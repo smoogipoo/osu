@@ -154,7 +154,7 @@ namespace osu.Game.Overlays.Mods
             Content.AutoSizeAxes = Axes.Y;
             Children = new Drawable[]
             {
-                new Container
+                new OccludingContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = true,
@@ -325,6 +325,10 @@ namespace osu.Game.Overlays.Mods
                     },
                 },
             };
+        }
+
+        private class OccludingContainer : Container, IOccluder
+        {
         }
     }
 }

@@ -66,7 +66,7 @@ namespace osu.Game.Overlays
 
             Children = new Drawable[]
             {
-                new Container
+                new OccludingContainer
                 {
                     Name = @"chat area",
                     RelativeSizeAxes = Axes.Both,
@@ -114,7 +114,7 @@ namespace osu.Game.Overlays
                         }
                     }
                 },
-                new Container
+                new OccludingContainer
                 {
                     Name = @"tabs area",
                     RelativeSizeAxes = Axes.X,
@@ -358,6 +358,10 @@ namespace osu.Game.Overlays
 
                 api.Queue(req);
             }
+        }
+
+        private class OccludingContainer : Container, IOccluder
+        {
         }
     }
 }
