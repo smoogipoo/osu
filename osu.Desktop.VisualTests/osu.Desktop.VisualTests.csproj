@@ -188,6 +188,7 @@
     <Compile Include="AutomatedVisualTestGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Tests\TestCaseChatDisplay.cs" />
+    <Compile Include="Tests\TestCaseAx2017.cs" />
     <Compile Include="Tests\TestCaseBeatmapDetails.cs" />
     <Compile Include="Tests\TestCaseContextMenu.cs" />
     <Compile Include="Tests\TestCaseDrawings.cs" />

@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Game.Overlays
 {
-    internal class LoginOverlay : FocusedOverlayContainer
+    public class LoginOverlay : FocusedOverlayContainer
     {
         private LoginSettings settingsSection;
 
