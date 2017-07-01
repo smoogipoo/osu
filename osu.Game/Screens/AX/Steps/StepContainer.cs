@@ -106,7 +106,7 @@ namespace osu.Game.Screens.AX.Steps
 
         protected override bool OnClick(InputState state) => true;
 
-        protected override void OnFocus(InputState state) => Schedule(() => inputManager.ChangeFocus(currentStep));
+        protected override void OnFocus(InputState state) => Schedule(() => inputManager?.ChangeFocus(currentStep));
 
         private void pushStep(Step step)
         {

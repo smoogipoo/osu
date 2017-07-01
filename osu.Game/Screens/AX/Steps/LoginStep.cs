@@ -40,7 +40,7 @@ namespace osu.Game.Screens.AX.Steps
                     OnCommit = (t, n) =>
                     {
                         if (!string.IsNullOrEmpty(t.Text))
-                            inputManager.ChangeFocus(password);
+                            inputManager?.ChangeFocus(password);
                     }
                 },
                 password = new OsuPasswordTextBox
@@ -48,6 +48,7 @@ namespace osu.Game.Screens.AX.Steps
                     RelativeSizeAxes = Axes.X,
                     PlaceholderText = "Password",
                     TabbableContentContainer = this,
+                    ReleaseFocusOnCommit = false,
                     OnCommit = (t, n) => performLogin()
                 },
                 loginButton = new OsuButton
@@ -64,6 +65,11 @@ namespace osu.Game.Screens.AX.Steps
         {
             this.api = api;
             this.inputManager = inputManager;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             inputManager?.ChangeFocus(username);
         }
@@ -74,7 +80,7 @@ namespace osu.Game.Screens.AX.Steps
 
         protected override bool OnClick(InputState state) => true;
 
-        protected override void OnFocus(InputState state) => Schedule(() => inputManager.ChangeFocus(string.IsNullOrEmpty(username.Text) ? username : password));
+        protected override void OnFocus(InputState state) => Schedule(() => inputManager?.ChangeFocus(string.IsNullOrEmpty(username.Text) ? username : password));
 
         private void performLogin()
         {
