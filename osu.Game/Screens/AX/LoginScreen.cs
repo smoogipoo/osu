@@ -9,6 +9,7 @@ using osu.Game.Screens.Menu;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Input;
+using osu.Game.Graphics.Sprites;
 using OpenTK.Input;
 
 namespace osu.Game.Screens.AX
@@ -34,6 +35,14 @@ namespace osu.Game.Screens.AX
                     Scale = new Vector2(0.35f),
                     Interactive = false,
                     Y = -120
+                },
+                new OsuSpriteText
+                {
+                    Anchor = Anchor.TopCentre,
+                    Origin = Anchor.TopCentre,
+                    Text = "Tell us what osu! means to you for free goodies!",
+                    TextSize = 72,
+                    Y = 30
                 },
                 new StepContainer
                 {
