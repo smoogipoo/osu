@@ -159,7 +159,7 @@ namespace osu.Game.Screens.AX.Steps
         {
             base.LoadComplete();
 
-            using (BeginDelayedSequence(10000))
+            using (BeginDelayedSequence(5000))
                 Schedule(() => api?.Logout());
 
             logo.ScaleTo(0.1f);
