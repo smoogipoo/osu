@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
+using OpenTK;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
@@ -60,6 +61,14 @@ namespace osu.Game.Screens.AX.Steps
 
             inputManager?.ChangeFocus(username);
         }
+
+        public override bool Contains(Vector2 screenSpacePos) => true;
+
+        public override bool AcceptsFocus => true;
+
+        protected override bool OnClick(InputState state) => true;
+
+        protected override void OnFocus(InputState state) => Schedule(() => inputManager.ChangeFocus(string.IsNullOrEmpty(username.Text) ? username : password));
 
         private void performLogin()
         {

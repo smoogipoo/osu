@@ -6,8 +6,10 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input;
 using osu.Game.Graphics;
 using osu.Game.Online.API;
+using OpenTK;
 using OpenTK.Graphics;
 
 namespace osu.Game.Screens.AX.Steps
@@ -20,6 +22,7 @@ namespace osu.Game.Screens.AX.Steps
         private Step currentStep;
 
         private APIAccess api;
+        private UserInputManager inputManager;
 
         public StepContainer()
         {
@@ -58,9 +61,11 @@ namespace osu.Game.Screens.AX.Steps
         }
 
         [BackgroundDependencyLoader(permitNulls: true)]
-        private void load(APIAccess api)
+        private void load(APIAccess api, UserInputManager inputManager)
         {
             this.api = api;
+            this.inputManager = inputManager;
+
             api?.Register(this);
         }
 
@@ -94,6 +99,14 @@ namespace osu.Game.Screens.AX.Steps
                     break;
             }
         }
+
+        public override bool Contains(Vector2 screenSpacePos) => true;
+
+        public override bool AcceptsFocus => true;
+
+        protected override bool OnClick(InputState state) => true;
+
+        protected override void OnFocus(InputState state) => Schedule(() => inputManager.ChangeFocus(currentStep));
 
         private void pushStep(Step step)
         {
