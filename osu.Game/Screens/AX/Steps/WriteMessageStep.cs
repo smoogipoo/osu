@@ -28,6 +28,8 @@ namespace osu.Game.Screens.AX.Steps
         private OsuButton submitButton;
 
         private APIAccess api;
+        private UserInputManager inputManager;
+
 
         public WriteMessageStep(string existingMessage)
         {
@@ -80,13 +82,21 @@ namespace osu.Game.Screens.AX.Steps
         }
 
         [BackgroundDependencyLoader(permitNulls: true)]
-        private void load(APIAccess api)
+        private void load(APIAccess api, UserInputManager inputManager)
         {
             this.api = api;
+            this.inputManager = inputManager;
 
             backButton.BackgroundColour = OsuColour.FromHex("ffcc22");
             backButton.Triangles.ColourDark = OsuColour.FromHex("eeaa00");
             backButton.Triangles.ColourLight = OsuColour.FromHex("ffdd55");
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            inputManager?.ChangeFocus(message);
         }
 
         private void goBack()
