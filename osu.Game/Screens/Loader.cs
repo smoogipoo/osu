@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using osu.Framework.Allocation;
+using osu.Game.Screens.AX;
 using osu.Game.Screens.Menu;
 
 namespace osu.Game.Screens
@@ -21,7 +22,7 @@ namespace osu.Game.Screens
             if (game.IsDeployedBuild)
                 LoadComponentAsync(new Disclaimer(), d => Push(d));
             else
-                LoadComponentAsync(new Intro(), d => Push(d));
+                LoadComponentAsync(new LoginScreen(), d => Push(d));
         }
     }
 }

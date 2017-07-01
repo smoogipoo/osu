@@ -206,6 +206,16 @@
     <Compile Include="Rulesets\Timing\DrawableTimingSection.cs" />
     <Compile Include="Rulesets\Timing\MultiplierControlPoint.cs" />
     <Compile Include="Rulesets\Timing\SpeedAdjustmentCollection.cs" />
+    <Compile Include="Screens\AX\GetMessageRequest.cs" />
+    <Compile Include="Screens\AX\LoginScreen.cs" />
+    <Compile Include="Screens\AX\MessageEntry.cs" />
+    <Compile Include="Screens\AX\PostMessageRequest.cs" />
+    <Compile Include="Screens\AX\Steps\LoginStep.cs" />
+    <Compile Include="Screens\AX\Steps\Step.cs" />
+    <Compile Include="Screens\AX\Steps\StepContainer.cs" />
+    <Compile Include="Screens\AX\Steps\SubmissionResultStep.cs" />
+    <Compile Include="Screens\AX\Steps\WriteMessageStep.cs" />
+    <Compile Include="Screens\AX\SubmissionState.cs" />
     <Compile Include="Screens\Menu\MenuSideFlashes.cs" />
     <Compile Include="Screens\Play\HUD\HealthDisplay.cs" />
     <Compile Include="Screens\Play\HUDOverlay.cs" />

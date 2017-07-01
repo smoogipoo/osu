@@ -107,6 +107,8 @@ namespace osu.Desktop.Overlays
 
         private async void checkForUpdateAsync(bool useDeltaPatching = true, UpdateProgressNotification notification = null)
         {
+            return;
+
             //should we schedule a retry on completion of this check?
             bool scheduleRetry = true;
 
