@@ -124,6 +124,8 @@ namespace osu.Game.Screens.AX.Steps
                     errorText.Text = "Incorrect username or password.";
                     errorText.Show();
 
+                    password.Text = string.Empty;
+
                     errorTextDelegate = Scheduler.AddDelayed(() => errorText.Hide(), 5000);
 
                     inputManager?.ChangeFocus(password);
