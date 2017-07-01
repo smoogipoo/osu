@@ -30,6 +30,7 @@ namespace osu.Game.Screens.AX.Steps
         private APIAccess api;
         private UserInputManager inputManager;
 
+        private bool submitQueued;
 
         public WriteMessageStep(string existingMessage)
         {
@@ -108,6 +109,10 @@ namespace osu.Game.Screens.AX.Steps
         {
             if (string.IsNullOrEmpty(message.Text))
                 return;
+
+            if (submitQueued)
+                return;
+            submitQueued = true;
 
             var postMessageRequest = new PostMessageRequest(message.Text);
             postMessageRequest.Success += m => Submit?.Invoke(m.FirstVisit ? SubmissionState.New : SubmissionState.Update);
