@@ -35,14 +35,20 @@ namespace osu.Game.Screens.AX.Steps
                 {
                     RelativeSizeAxes = Axes.X,
                     PlaceholderText = "Username",
-                    TabbableContentContainer = this
+                    TabbableContentContainer = this,
+                    ReleaseFocusOnCommit = false,
+                    OnCommit = (t, n) =>
+                    {
+                        if (!string.IsNullOrEmpty(t.Text))
+                            inputManager.ChangeFocus(password);
+                    }
                 },
                 password = new OsuPasswordTextBox
                 {
                     RelativeSizeAxes = Axes.X,
                     PlaceholderText = "Password",
                     TabbableContentContainer = this,
-                    OnCommit = (s, n) => performLogin()
+                    OnCommit = (t, n) => performLogin()
                 },
                 loginButton = new OsuButton
                 {
