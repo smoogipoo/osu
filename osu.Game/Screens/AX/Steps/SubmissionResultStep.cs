@@ -6,10 +6,13 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API;
 using OpenTK;
+using osu.Framework.Input;
+using OpenTK.Input;
 
 namespace osu.Game.Screens.AX.Steps
 {
@@ -155,15 +158,29 @@ namespace osu.Game.Screens.AX.Steps
             this.api = api;
         }
 
+        private ScheduledDelegate logoutDelegate;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
             using (BeginDelayedSequence(5000))
-                Schedule(() => api?.Logout());
+                logoutDelegate = Schedule(() => api?.Logout());
 
             logo.ScaleTo(0.1f);
             logo.ScaleTo(1f, 600, EasingTypes.OutBounce);
+        }
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (args.Key == Key.Enter)
+            {
+                logoutDelegate?.Cancel();
+                api?.Logout();
+                return true;
+            }
+
+            return base.OnKeyDown(state, args);
         }
     }
 }
