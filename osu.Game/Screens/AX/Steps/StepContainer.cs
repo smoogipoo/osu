@@ -67,6 +67,7 @@ namespace osu.Game.Screens.AX.Steps
             this.inputManager = inputManager;
 
             api?.Register(this);
+            api?.Logout();
         }
 
         public void APIStateChanged(APIAccess api, APIState state)
@@ -76,15 +77,9 @@ namespace osu.Game.Screens.AX.Steps
                 case APIState.Connecting:
                     break;
                 case APIState.Offline:
-                    using (BeginDelayedSequence(500))
-                    {
-                        Schedule(() =>
-                        {
-                            if (api.State != APIState.Offline)
-                                return;
-                            pushStep(new LoginStep());
-                        });
-                    }
+                    if (api?.Username != null)
+                        return;
+                    pushStep(new LoginStep());
                     break;
                 case APIState.Online:
                     var getMessageRequest = new GetMessageRequest();

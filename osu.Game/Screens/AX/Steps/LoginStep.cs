@@ -4,23 +4,26 @@
 using OpenTK;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
 
 namespace osu.Game.Screens.AX.Steps
 {
-    public class LoginStep : Step
+    public class LoginStep : Step, IOnlineComponent
     {
-        private OsuTextBox username;
-        private OsuTextBox password;
-        private OsuButton loginButton;
+        private readonly OsuTextBox username;
+        private readonly OsuTextBox password;
+        private readonly OsuButton loginButton;
+        private readonly Container progressContainer;
+        private readonly LoadingAnimation loadingAnimation;
+        private readonly OsuSpriteText errorText;
 
         private APIAccess api;
         private UserInputManager inputManager;
-
-        private bool loginRequested;
 
         public LoginStep()
         {
@@ -48,8 +51,28 @@ namespace osu.Game.Screens.AX.Steps
                     RelativeSizeAxes = Axes.X,
                     PlaceholderText = "Password",
                     TabbableContentContainer = this,
-                    ReleaseFocusOnCommit = false,
                     OnCommit = (t, n) => performLogin()
+                },
+                progressContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Height = 20,
+                    Children = new Drawable[]
+                    {
+                        loadingAnimation = new LoadingAnimation
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Alpha = 0
+                        },
+                        errorText = new OsuSpriteText
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Alpha = 0,
+                            Colour = OsuColour.FromHex("ed1121")
+                        }
+                    }
                 },
                 loginButton = new OsuButton
                 {
@@ -65,6 +88,8 @@ namespace osu.Game.Screens.AX.Steps
         {
             this.api = api;
             this.inputManager = inputManager;
+
+            api?.Register(this);
         }
 
         protected override void LoadComplete()
@@ -74,6 +99,47 @@ namespace osu.Game.Screens.AX.Steps
             inputManager?.ChangeFocus(username);
         }
 
+        public void APIStateChanged(APIAccess api, APIState state)
+        {
+            switch (state)
+            {
+                case APIState.Connecting:
+                    loadingAnimation.Show();
+                    break;
+                default:
+                    loadingAnimation.Hide();
+                    break;
+            }
+
+            switch (state)
+            {
+                case APIState.Offline:
+                    if (api?.Username == null)
+                        break;
+                    errorText.Text = "Incorrect username or password.";
+                    errorText.Show();
+
+                    inputManager?.ChangeFocus(password);
+
+                    break;
+                case APIState.Failing:
+                    errorText.Text = "An API error occurred, please poke on-site staff.";
+                    errorText.Show();
+                    break;
+                default:
+                    errorText.Hide();
+                    break;
+            }
+        }
+
+        private void performLogin()
+        {
+            if (string.IsNullOrEmpty(username.Text) || string.IsNullOrEmpty(password.Text))
+                return;
+
+            api?.Login(username.Text, password.Text);
+        }
+
         public override bool Contains(Vector2 screenSpacePos) => true;
 
         public override bool AcceptsFocus => true;
@@ -81,17 +147,5 @@ namespace osu.Game.Screens.AX.Steps
         protected override bool OnClick(InputState state) => true;
 
         protected override void OnFocus(InputState state) => Schedule(() => inputManager?.ChangeFocus(string.IsNullOrEmpty(username.Text) ? username : password));
-
-        private void performLogin()
-        {
-            if (string.IsNullOrEmpty(username.Text) || string.IsNullOrEmpty(password.Text))
-                return;
-
-            if (loginRequested)
-                return;
-
-            api?.Login(username.Text, password.Text);
-            loginRequested = true;
-        }
     }
 }
