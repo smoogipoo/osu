@@ -41,7 +41,7 @@ namespace osu.Game.Screens.AX
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre,
                     Text = "Tell us what osu! means to you for free goodies!",
-                    TextSize = 72,
+                    TextSize = 48,
                     Y = 30
                 },
                 new StepContainer
