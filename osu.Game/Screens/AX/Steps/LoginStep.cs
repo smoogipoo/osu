@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
@@ -99,6 +100,8 @@ namespace osu.Game.Screens.AX.Steps
             inputManager?.ChangeFocus(username);
         }
 
+        private ScheduledDelegate errorTextDelegate;
+
         public void APIStateChanged(APIAccess api, APIState state)
         {
             switch (state)
@@ -116,15 +119,22 @@ namespace osu.Game.Screens.AX.Steps
                 case APIState.Offline:
                     if (api?.Username == null)
                         break;
+
+                    errorTextDelegate?.Cancel();
                     errorText.Text = "Incorrect username or password.";
                     errorText.Show();
+
+                    errorTextDelegate = Scheduler.AddDelayed(() => errorText.Hide(), 5000);
 
                     inputManager?.ChangeFocus(password);
 
                     break;
                 case APIState.Failing:
+                    errorTextDelegate?.Cancel();
                     errorText.Text = "An API error occurred, please poke on-site staff.";
                     errorText.Show();
+
+                    errorTextDelegate = Scheduler.AddDelayed(() => errorText.Hide(), 5000);
                     break;
                 default:
                     errorText.Hide();
