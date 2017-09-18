@@ -23,6 +23,11 @@ namespace osu.Game.Overlays.Settings.Sections.Debug
                 },
                 new SettingsCheckbox
                 {
+                    LabelText = "Occlusion testing",
+                    Bindable = frameworkConfig.GetBindable<bool>(FrameworkSetting.OcclusionOptimisations)
+                },
+                new SettingsCheckbox
+                {
                     LabelText = "Debug logs",
                     Bindable = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay)
                 }

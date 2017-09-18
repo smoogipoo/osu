@@ -213,9 +213,9 @@ namespace osu.Game.Graphics.Backgrounds
             public readonly List<TriangleParticle> Parts = new List<TriangleParticle>();
             public Vector2 Size;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(Action<TexturedVertex2D> vertexAction, ref byte currentOccluder)
             {
-                base.Draw(vertexAction);
+                base.Draw(vertexAction, ref currentOccluder);
 
                 Shader.Bind();
                 Texture.TextureGL.Bind();

@@ -105,7 +105,7 @@ namespace osu.Game.Overlays
                             Padding = new MarginPadding { Top = TAB_AREA_HEIGHT },
                             Children = new Drawable[]
                             {
-                                chatBackground = new Box
+                                chatBackground = new OccludingBackground
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                 },
@@ -522,6 +522,10 @@ namespace osu.Game.Overlays
 
             protected override void Apply(ChatOverlay d, double time) => d.ChatHeight.Value = valueAt(time);
             protected override void ReadIntoStartValue(ChatOverlay d) => StartValue = d.ChatHeight.Value;
+        }
+
+        private class OccludingBackground : Box, IOccluder
+        {
         }
     }
 }

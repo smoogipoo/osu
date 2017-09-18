@@ -187,7 +187,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
                 }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(Action<TexturedVertex2D> vertexAction, ref byte currentOccluder)
             {
                 if (Shared.VertexBuffer == null)
                     Shared.VertexBuffer = new QuadVertexBuffer<TexturedVertex2D>(max_sprites, BufferUsageHint.DynamicDraw);
@@ -232,7 +232,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
                 if (updateStart != -1)
                     Shared.VertexBuffer.UpdateRange(updateStart * 4, updateEnd * 4);
 
-                base.Draw(vertexAction);
+                base.Draw(vertexAction, ref currentOccluder);
 
                 Shader.Bind();
 

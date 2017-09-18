@@ -167,9 +167,9 @@ namespace osu.Game.Screens.Menu
             public Color4 Colour;
             public float[] AudioData;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(Action<TexturedVertex2D> vertexAction, ref byte currentOccluder)
             {
-                base.Draw(vertexAction);
+                base.Draw(vertexAction, ref currentOccluder);
 
                 Shader.Bind();
                 Texture.TextureGL.Bind();

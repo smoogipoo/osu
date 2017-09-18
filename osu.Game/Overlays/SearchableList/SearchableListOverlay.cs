@@ -36,7 +36,7 @@ namespace osu.Game.Overlays.SearchableList
 
             Children = new Drawable[]
             {
-                new Box
+                new OccludingBackground
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = BackgroundColour,
@@ -118,6 +118,10 @@ namespace osu.Game.Overlays.SearchableList
             base.PopOut();
 
             Filter.Search.HoldFocus = false;
+        }
+
+        private class OccludingBackground : Box, IOccluder
+        {
         }
     }
 }
