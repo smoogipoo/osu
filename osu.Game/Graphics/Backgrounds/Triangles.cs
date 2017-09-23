@@ -237,7 +237,7 @@ namespace osu.Game.Graphics.Backgrounds
                     colourInfo.ApplyChild(particle.Colour);
 
                     Texture.DrawTriangle(
-                        triangle,
+                        triangle, DepthIndex,
                         colourInfo,
                         null,
                         Shared.VertexBatch.Add,

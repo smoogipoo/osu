@@ -25,6 +25,11 @@ namespace osu.Game.Overlays.Settings.Sections.Debug
                 {
                     LabelText = "Debug logs",
                     Bindable = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay)
+                },
+                new SettingsCheckbox
+                {
+                    LabelText = "Depth pre-pass",
+                    Bindable = config.GetBindable<bool>(DebugSetting.DepthPrePass)
                 }
             };
         }

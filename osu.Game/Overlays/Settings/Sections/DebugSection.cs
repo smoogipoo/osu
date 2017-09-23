@@ -18,6 +18,7 @@ namespace osu.Game.Overlays.Settings.Sections
             {
                 new GeneralSettings(),
                 new GCSettings(),
+
             };
         }
     }

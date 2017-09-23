@@ -208,7 +208,7 @@ namespace osu.Game.Screens.Menu
                             );
 
                             Texture.DrawQuad(
-                                rectangle,
+                                rectangle, DepthIndex,
                                 colourInfo,
                                 null,
                                 Shared.VertexBatch.Add,
