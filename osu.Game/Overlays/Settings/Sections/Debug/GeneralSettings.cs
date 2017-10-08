@@ -30,6 +30,11 @@ namespace osu.Game.Overlays.Settings.Sections.Debug
                 {
                     LabelText = "Depth pre-pass",
                     Bindable = config.GetBindable<bool>(DebugSetting.DepthPrePass)
+                },
+                new SettingsCheckbox
+                {
+                    LabelText = "Depth testing",
+                    Bindable = config.GetBindable<bool>(DebugSetting.DepthTesting)
                 }
             };
         }
