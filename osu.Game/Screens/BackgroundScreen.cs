@@ -12,6 +12,11 @@ namespace osu.Game.Screens
 {
     public abstract class BackgroundScreen : Screen, IEquatable<BackgroundScreen>
     {
+        public BackgroundScreen()
+        {
+            ShouldDrawDepth = false;
+        }
+
         public virtual bool Equals(BackgroundScreen other)
         {
             return other?.GetType() == GetType();
