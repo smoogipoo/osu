@@ -633,6 +633,7 @@
     <Compile Include="Screens\Edit\Screens\Compose\Compose.cs" />
     <Compile Include="Screens\Edit\Screens\Compose\Timeline\ScrollableTimeline.cs" />
     <Compile Include="Screens\Edit\Screens\Compose\Timeline\ScrollingTimelineContainer.cs" />
+    <Compile Include="Screens\Edit\Screens\Compose\Timeline\TickGraph.cs" />
     <Compile Include="Screens\Loader.cs" />
     <Compile Include="Screens\Menu\Button.cs" />
     <Compile Include="Screens\Menu\ButtonSystem.cs" />
