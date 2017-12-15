@@ -7,6 +7,7 @@ using OpenTK;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Timing;
+using osu.Game.Rulesets.Edit.Layers.Discussion;
 using osu.Game.Rulesets.Edit.Layers.Selection;
 using osu.Game.Rulesets.Osu.Edit;
 using osu.Game.Rulesets.Osu.Objects;
@@ -16,7 +17,7 @@ namespace osu.Game.Tests.Visual
 {
     public class TestCaseEditorSelectionLayer : OsuTestCase
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(SelectionLayer) };
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(SelectionLayer), typeof(DiscussionLayer), typeof(DragSelector), typeof(SelectionInfo) };
 
         public TestCaseEditorSelectionLayer()
         {
@@ -39,6 +40,8 @@ namespace osu.Game.Tests.Visual
                 })
             };
 
+            var selectionLayer = new SelectionLayer(playfield);
+
             Children = new Drawable[]
             {
                 new Container
@@ -47,7 +50,8 @@ namespace osu.Game.Tests.Visual
                     Clock = new FramedClock(new StopwatchClock()),
                     Child = playfield
                 },
-                new SelectionLayer(playfield)
+                selectionLayer,
+                new DiscussionLayer(selectionLayer)
             };
         }
     }
