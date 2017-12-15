@@ -2,29 +2,28 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using System;
-using osu.Game;
-using System.Linq;
-using System.Windows.Forms;
-using osu.Framework.Platform;
-using osu.Framework.Desktop.Platform;
-using osu.Desktop.Overlays;
-using System.Reflection;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using osu.Desktop.Overlays;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Screens.Menu;
+using osu.Framework.Platform;
+using osu.Game;
+using OpenTK.Input;
 
 namespace osu.Desktop
 {
     internal class OsuGameDesktop : OsuGame
     {
-        private VersionManager versionManager;
+        private readonly bool noVersionOverlay;
 
         public OsuGameDesktop(string[] args = null)
             : base(args)
         {
+            noVersionOverlay = args?.Any(a => a == "--no-version-overlay") ?? false;
         }
 
         public override Storage GetStorageForStableInstall()
@@ -83,16 +82,14 @@ namespace osu.Desktop
         {
             base.LoadComplete();
 
-            LoadComponentAsync(versionManager = new VersionManager { Depth = int.MinValue });
-
-            ScreenChanged += s =>
+            if (!noVersionOverlay)
             {
-                if (s is Intro && s.ChildScreen == null)
+                LoadComponentAsync(new VersionManager { Depth = int.MinValue }, v =>
                 {
-                    Add(versionManager);
-                    versionManager.State = Visibility.Visible;
-                }
-            };
+                    Add(v);
+                    v.State = Visibility.Visible;
+                });
+            }
         }
 
         public override void SetHost(GameHost host)
@@ -106,19 +103,16 @@ namespace osu.Desktop
                 desktopWindow.Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(GetType(), "lazer.ico"));
                 desktopWindow.Title = Name;
 
-                desktopWindow.DragEnter += dragEnter;
-                desktopWindow.DragDrop += dragDrop;
+                desktopWindow.FileDrop += fileDrop;
             }
         }
 
-        private void dragDrop(DragEventArgs e)
+        private void fileDrop(object sender, FileDropEventArgs e)
         {
-            // this method will only be executed if e.Effect in dragEnter gets set to something other that None.
-            var dropData = (object[])e.Data.GetData(DataFormats.FileDrop);
-            var filePaths = dropData.Select(f => f.ToString()).ToArray();
+            var filePaths = new [] { e.FileName };
 
             if (filePaths.All(f => Path.GetExtension(f) == @".osz"))
-                Task.Run(() => BeatmapManager.Import(filePaths));
+                Task.Factory.StartNew(() => BeatmapManager.Import(filePaths), TaskCreationOptions.LongRunning);
             else if (filePaths.All(f => Path.GetExtension(f) == @".osr"))
                 Task.Run(() =>
                 {
@@ -128,16 +122,5 @@ namespace osu.Desktop
         }
 
         private static readonly string[] allowed_extensions = { @".osz", @".osr" };
-
-        private void dragEnter(DragEventArgs e)
-        {
-            // dragDrop will only be executed if e.Effect gets set to something other that None in this method.
-            bool isFile = e.Data.GetDataPresent(DataFormats.FileDrop);
-            if (isFile)
-            {
-                var paths = ((object[])e.Data.GetData(DataFormats.FileDrop)).Select(f => f.ToString()).ToArray();
-                e.Effect = allowed_extensions.Any(ext => paths.All(p => p.EndsWith(ext))) ? DragDropEffects.Copy : DragDropEffects.None;
-            }
-        }
     }
 }

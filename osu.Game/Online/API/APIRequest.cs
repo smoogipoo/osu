@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using System;
-using osu.Framework.Extensions;
 using osu.Framework.IO.Network;
 
 namespace osu.Game.Online.API
@@ -37,7 +36,7 @@ namespace osu.Game.Online.API
             return request;
         }
 
-        private void request_Progress(WebRequest request, long current, long total) => API.Scheduler.Add(delegate { Progress?.Invoke(current, total); });
+        private void request_Progress(long current, long total) => API.Scheduler.Add(delegate { Progress?.Invoke(current, total); });
 
         protected APIDownloadRequest()
         {
@@ -70,13 +69,11 @@ namespace osu.Game.Online.API
 
         protected virtual string Uri => $@"{API.Endpoint}/api/v2/{Target}";
 
-        private double remainingTime => Math.Max(0, Timeout - (DateTime.Now.TotalMilliseconds() - (startTime ?? 0)));
+        private double remainingTime => Math.Max(0, Timeout - (DateTimeOffset.UtcNow - (startTime ?? DateTimeOffset.MinValue)).TotalMilliseconds);
 
         public bool ExceededTimeout => remainingTime == 0;
 
-        private double? startTime;
-
-        public double StartTime => startTime ?? -1;
+        private DateTimeOffset? startTime;
 
         protected APIAccess API;
         protected WebRequest WebRequest;
@@ -96,20 +93,20 @@ namespace osu.Game.Online.API
                 return;
 
             if (startTime == null)
-                startTime = DateTime.Now.TotalMilliseconds();
+                startTime = DateTimeOffset.UtcNow;
 
             if (remainingTime <= 0)
                 throw new TimeoutException(@"API request timeout hit");
 
             WebRequest = CreateWebRequest();
-            WebRequest.RetryCount = 0;
-            WebRequest.Headers[@"Authorization"] = $@"Bearer {api.AccessToken}";
+            WebRequest.AllowRetryOnTimeout = false;
+            WebRequest.AddHeader("Authorization", $"Bearer {api.AccessToken}");
 
             if (checkAndProcessFailure())
                 return;
 
             if (!WebRequest.Aborted) //could have been aborted by a Cancel() call
-                WebRequest.BlockingPerform();
+                WebRequest.Perform();
 
             if (checkAndProcessFailure())
                 return;

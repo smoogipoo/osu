@@ -7,11 +7,11 @@ using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
 using osu.Framework.Graphics.Shapes;
@@ -28,54 +28,21 @@ namespace osu.Game.Beatmaps.Drawables
 
         public Action<BeatmapSetInfo> RestoreHiddenRequested;
 
-        private readonly SpriteText title;
-        private readonly SpriteText artist;
-
         private readonly WorkingBeatmap beatmap;
+
         private readonly FillFlowContainer difficultyIcons;
 
         public BeatmapSetHeader(WorkingBeatmap beatmap)
         {
+            if (beatmap == null)
+                throw new ArgumentNullException(nameof(beatmap));
+
             this.beatmap = beatmap;
 
-            Children = new Drawable[]
+            difficultyIcons = new FillFlowContainer
             {
-                new DelayedLoadWrapper(
-                    new PanelBackground(beatmap)
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        OnLoadComplete = d => d.FadeInFromZero(400, Easing.Out),
-                    }
-                )
-                {
-                    TimeBeforeLoad = 300,
-                },
-                new FillFlowContainer
-                {
-                    Direction = FillDirection.Vertical,
-                    Padding = new MarginPadding { Top = 5, Left = 18, Right = 10, Bottom = 10 },
-                    AutoSizeAxes = Axes.Both,
-                    Children = new Drawable[]
-                    {
-                        title = new OsuSpriteText
-                        {
-                            Font = @"Exo2.0-BoldItalic",
-                            TextSize = 22,
-                            Shadow = true,
-                        },
-                        artist = new OsuSpriteText
-                        {
-                            Font = @"Exo2.0-SemiBoldItalic",
-                            TextSize = 17,
-                            Shadow = true,
-                        },
-                        difficultyIcons = new FillFlowContainer
-                        {
-                            Margin = new MarginPadding { Top = 5 },
-                            AutoSizeAxes = Axes.Both,
-                        }
-                    }
-                }
+                Margin = new MarginPadding { Top = 5 },
+                AutoSizeAxes = Axes.Both,
             };
         }
 
@@ -88,8 +55,42 @@ namespace osu.Game.Beatmaps.Drawables
         [BackgroundDependencyLoader]
         private void load(LocalisationEngine localisation)
         {
-            title.Current = localisation.GetUnicodePreference(beatmap.Metadata.TitleUnicode, beatmap.Metadata.Title);
-            artist.Current = localisation.GetUnicodePreference(beatmap.Metadata.ArtistUnicode, beatmap.Metadata.Artist);
+            if (localisation == null)
+                throw new ArgumentNullException(nameof(localisation));
+
+            Children = new Drawable[]
+            {
+                new DelayedLoadWrapper(
+                    new PanelBackground(beatmap)
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        OnLoadComplete = d => d.FadeInFromZero(400, Easing.Out),
+                    }, 300),
+                new FillFlowContainer
+                {
+                    Direction = FillDirection.Vertical,
+                    Padding = new MarginPadding { Top = 5, Left = 18, Right = 10, Bottom = 10 },
+                    AutoSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        new OsuSpriteText
+                        {
+                            Font = @"Exo2.0-BoldItalic",
+                            Current = localisation.GetUnicodePreference(beatmap.Metadata.TitleUnicode, beatmap.Metadata.Title),
+                            TextSize = 22,
+                            Shadow = true,
+                        },
+                        new OsuSpriteText
+                        {
+                            Font = @"Exo2.0-SemiBoldItalic",
+                            Current = localisation.GetUnicodePreference(beatmap.Metadata.ArtistUnicode, beatmap.Metadata.Artist),
+                            TextSize = 17,
+                            Shadow = true,
+                        },
+                        difficultyIcons
+                    }
+                }
+            };
         }
 
         private class PanelBackground : BufferedContainer
@@ -154,8 +155,10 @@ namespace osu.Game.Beatmaps.Drawables
 
         public void AddDifficultyIcons(IEnumerable<BeatmapPanel> panels)
         {
-            foreach (var p in panels)
-                difficultyIcons.Add(new DifficultyIcon(p.Beatmap));
+            if (panels == null)
+                throw new ArgumentNullException(nameof(panels));
+
+            difficultyIcons.AddRange(panels.Select(p => new FilterableDifficultyIcon(p)));
         }
 
         public MenuItem[] ContextMenuItems
@@ -173,6 +176,19 @@ namespace osu.Game.Beatmaps.Drawables
                 items.Add(new OsuMenuItem("Delete", MenuItemType.Destructive, () => DeleteRequested?.Invoke(beatmap.BeatmapSetInfo)));
 
                 return items.ToArray();
+            }
+        }
+
+        public class FilterableDifficultyIcon : DifficultyIcon
+        {
+            private readonly BindableBool filtered = new BindableBool();
+
+            public FilterableDifficultyIcon(BeatmapPanel panel)
+                : base(panel.Beatmap)
+            {
+                filtered.BindTo(panel.Filtered);
+                filtered.ValueChanged += v => this.FadeTo(v ? 0.1f : 1, 100);
+                filtered.TriggerChange();
             }
         }
     }

@@ -4,8 +4,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using osu.Framework.Desktop;
-using osu.Framework.Desktop.Platform;
+using osu.Framework;
+using osu.Framework.Platform;
 using osu.Game.IPC;
 
 namespace osu.Desktop

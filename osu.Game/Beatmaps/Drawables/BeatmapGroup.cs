@@ -31,6 +31,8 @@ namespace osu.Game.Beatmaps.Drawables
 
         public Action<BeatmapInfo> HideDifficultyRequested;
 
+        public Action<BeatmapInfo> EditRequested;
+
         public BeatmapSetHeader Header;
 
         public List<BeatmapPanel> BeatmapPanels;
@@ -38,38 +40,52 @@ namespace osu.Game.Beatmaps.Drawables
         public BeatmapSetInfo BeatmapSet;
 
         private BeatmapGroupState state;
+
         public BeatmapGroupState State
         {
             get { return state; }
             set
             {
                 state = value;
-
-                switch (value)
-                {
-                    case BeatmapGroupState.Expanded:
-                        Header.State = PanelSelectedState.Selected;
-                        foreach (BeatmapPanel panel in BeatmapPanels)
-                            panel.State = panel == SelectedPanel ? PanelSelectedState.Selected : PanelSelectedState.NotSelected;
-                        break;
-                    case BeatmapGroupState.Collapsed:
-                        Header.State = PanelSelectedState.NotSelected;
-                        foreach (BeatmapPanel panel in BeatmapPanels)
-                            panel.State = PanelSelectedState.Hidden;
-                        break;
-                    case BeatmapGroupState.Hidden:
-                        Header.State = PanelSelectedState.Hidden;
-                        foreach (BeatmapPanel panel in BeatmapPanels)
-                            panel.State = PanelSelectedState.Hidden;
-                        break;
-                }
-
+                UpdateState();
                 StateChanged?.Invoke(state);
+            }
+        }
+
+        public void UpdateState()
+        {
+            switch (state)
+            {
+                case BeatmapGroupState.Expanded:
+                    Header.State = PanelSelectedState.Selected;
+                    foreach (BeatmapPanel panel in BeatmapPanels)
+                        if (panel == SelectedPanel)
+                            panel.State = PanelSelectedState.Selected;
+                        else if (panel.Filtered)
+                            panel.State = PanelSelectedState.Hidden;
+                        else
+                            panel.State = PanelSelectedState.NotSelected;
+                    break;
+                case BeatmapGroupState.Collapsed:
+                    Header.State = PanelSelectedState.NotSelected;
+                    foreach (BeatmapPanel panel in BeatmapPanels)
+                        panel.State = PanelSelectedState.Hidden;
+                    break;
+                case BeatmapGroupState.Hidden:
+                    Header.State = PanelSelectedState.Hidden;
+                    foreach (BeatmapPanel panel in BeatmapPanels)
+                        panel.State = PanelSelectedState.Hidden;
+                    break;
             }
         }
 
         public BeatmapGroup(BeatmapSetInfo beatmapSet, BeatmapManager manager)
         {
+            if (beatmapSet == null)
+                throw new ArgumentNullException(nameof(beatmapSet));
+            if (manager == null)
+                throw new ArgumentNullException(nameof(manager));
+
             BeatmapSet = beatmapSet;
             WorkingBeatmap beatmap = manager.GetWorkingBeatmap(BeatmapSet.Beatmaps.FirstOrDefault());
 
@@ -81,13 +97,13 @@ namespace osu.Game.Beatmaps.Drawables
                 RelativeSizeAxes = Axes.X,
             };
 
-            BeatmapSet.Beatmaps = BeatmapSet.Beatmaps.Where(b => !b.Hidden).OrderBy(b => b.StarDifficulty).ToList();
-            BeatmapPanels = BeatmapSet.Beatmaps.Select(b => new BeatmapPanel(b)
+            BeatmapPanels = BeatmapSet.Beatmaps.Where(b => !b.Hidden).OrderBy(b => b.RulesetID).ThenBy(b => b.StarDifficulty).Select(b => new BeatmapPanel(b)
             {
                 Alpha = 0,
                 GainedSelection = panelGainedSelection,
                 HideRequested = p => HideDifficultyRequested?.Invoke(p),
-                StartRequested = p => { StartRequested?.Invoke(p.Beatmap); },
+                StartRequested = p => StartRequested?.Invoke(p.Beatmap),
+                EditRequested = p => EditRequested?.Invoke(p.Beatmap),
                 RelativeSizeAxes = Axes.X,
             }).ToList();
 
@@ -101,7 +117,7 @@ namespace osu.Game.Beatmaps.Drawables
 
             //we want to make sure one of our children is selected in the case none have been selected yet.
             if (SelectedPanel == null)
-                BeatmapPanels.First().State = PanelSelectedState.Selected;
+                BeatmapPanels.First(p => !p.Filtered).State = PanelSelectedState.Selected;
         }
 
         private void panelGainedSelection(BeatmapPanel panel)

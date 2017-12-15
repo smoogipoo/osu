@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Game.IO.Serialization;
 using osu.Game.Audio;
-using osu.Game.Rulesets.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 
 namespace osu.Game.Rulesets.Taiko.Beatmaps
@@ -52,18 +51,21 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
         {
             // Rewrite the beatmap info to add the slider velocity multiplier
             BeatmapInfo info = original.BeatmapInfo.DeepClone();
-            info.Difficulty.SliderMultiplier *= legacy_velocity_multiplier;
+            info.BaseDifficulty.SliderMultiplier *= legacy_velocity_multiplier;
 
             Beatmap<TaikoHitObject> converted = base.ConvertBeatmap(original);
 
-            // Post processing step to transform hit objects with the same start time into strong hits
-            converted.HitObjects = converted.HitObjects.GroupBy(t => t.StartTime).Select(x =>
+            if (original.BeatmapInfo.RulesetID == 3)
             {
-                TaikoHitObject first = x.First();
-                if (x.Skip(1).Any())
-                    first.IsStrong = true;
-                return first;
-            }).ToList();
+                // Post processing step to transform mania hit objects with the same start time into strong hits
+                converted.HitObjects = converted.HitObjects.GroupBy(t => t.StartTime).Select(x =>
+                {
+                    TaikoHitObject first = x.First();
+                    if (x.Skip(1).Any())
+                        first.IsStrong = true;
+                    return first;
+                }).ToList();
+            }
 
             return converted;
         }
@@ -94,7 +96,7 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
                 double distance = distanceData.Distance * repeats * legacy_velocity_multiplier;
 
                 // The velocity of the taiko hit object - calculated as the velocity of a drum roll
-                double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.Difficulty.SliderMultiplier * legacy_velocity_multiplier / speedAdjustedBeatLength;
+                double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * legacy_velocity_multiplier / speedAdjustedBeatLength;
                 // The duration of the taiko hit object
                 double taikoDuration = distance / taikoVelocity;
 
@@ -104,12 +106,12 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
                     speedAdjustedBeatLength *= speedAdjustment;
 
                 // The velocity of the osu! hit object - calculated as the velocity of a slider
-                double osuVelocity = osu_base_scoring_distance * beatmap.BeatmapInfo.Difficulty.SliderMultiplier * legacy_velocity_multiplier / speedAdjustedBeatLength;
+                double osuVelocity = osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * legacy_velocity_multiplier / speedAdjustedBeatLength;
                 // The duration of the osu! hit object
                 double osuDuration = distance / osuVelocity;
 
                 // If the drum roll is to be split into hit circles, assume the ticks are 1/8 spaced within the duration of one beat
-                double tickSpacing = Math.Min(speedAdjustedBeatLength / beatmap.BeatmapInfo.Difficulty.SliderTickRate, taikoDuration / repeats);
+                double tickSpacing = Math.Min(speedAdjustedBeatLength / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate, taikoDuration / repeats);
 
                 if (!isForCurrentRuleset && tickSpacing > 0 && osuDuration < 2 * speedAdjustedBeatLength)
                 {
@@ -152,13 +154,13 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
                         Samples = obj.Samples,
                         IsStrong = strong,
                         Duration = taikoDuration,
-                        TickRate = beatmap.BeatmapInfo.Difficulty.SliderTickRate == 3 ? 3 : 4,
+                        TickRate = beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate == 3 ? 3 : 4,
                     };
                 }
             }
             else if (endTimeData != null)
             {
-                double hitMultiplier = BeatmapDifficulty.DifficultyRange(beatmap.BeatmapInfo.Difficulty.OverallDifficulty, 3, 5, 7.5) * swell_hit_multiplier;
+                double hitMultiplier = BeatmapDifficulty.DifficultyRange(beatmap.BeatmapInfo.BaseDifficulty.OverallDifficulty, 3, 5, 7.5) * swell_hit_multiplier;
 
                 yield return new Swell
                 {

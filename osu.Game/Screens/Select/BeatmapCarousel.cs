@@ -23,7 +23,7 @@ using osu.Game.Graphics.Cursor;
 
 namespace osu.Game.Screens.Select
 {
-    internal class BeatmapCarousel : OsuScrollContainer
+    public class BeatmapCarousel : OsuScrollContainer
     {
         public BeatmapInfo SelectedBeatmap => selectedPanel?.Beatmap;
 
@@ -33,11 +33,7 @@ namespace osu.Game.Screens.Select
 
         public IEnumerable<BeatmapSetInfo> Beatmaps
         {
-            get
-            {
-                return groups.Select(g => g.BeatmapSet);
-            }
-
+            get { return groups.Select(g => g.BeatmapSet); }
             set
             {
                 scrollableContent.Clear(false);
@@ -48,7 +44,7 @@ namespace osu.Game.Screens.Select
 
                 Task.Run(() =>
                 {
-                    newGroups = value.Select(createGroup).ToList();
+                    newGroups = value.Select(createGroup).Where(g => g != null).ToList();
                     criteria.Filter(newGroups);
                 }).ContinueWith(t =>
                 {
@@ -98,51 +94,45 @@ namespace osu.Game.Screens.Select
             });
         }
 
-        public void AddBeatmap(BeatmapSetInfo beatmapSet)
+        public void RemoveBeatmap(BeatmapSetInfo beatmapSet)
         {
-            var group = createGroup(beatmapSet);
-
-            //for the time being, let's completely load the difficulty panels in the background.
-            //this likely won't scale so well, but allows us to completely async the loading flow.
-            Schedule(delegate
-            {
-                addGroup(group);
-                computeYPositions();
-                if (selectedGroup == null)
-                    selectGroup(group);
-            });
+            Schedule(() => removeGroup(groups.Find(b => b.BeatmapSet.ID == beatmapSet.ID)));
         }
 
-        public void RemoveBeatmap(BeatmapSetInfo beatmapSet) => removeGroup(groups.Find(b => b.BeatmapSet.ID == beatmapSet.ID));
-
-        internal void UpdateBeatmap(BeatmapInfo beatmap)
+        public void UpdateBeatmapSet(BeatmapSetInfo beatmapSet)
         {
-            // todo: this method should not run more than once for the same BeatmapSetInfo.
-            var set = manager.Refresh(beatmap.BeatmapSet);
-
             // todo: this method should be smarter as to not recreate panels that haven't changed, etc.
-            var group = groups.Find(b => b.BeatmapSet.ID == set.ID);
+            var oldGroup = groups.Find(b => b.BeatmapSet.ID == beatmapSet.ID);
 
-            if (group == null)
-                return;
+            var newGroup = createGroup(beatmapSet);
 
-            var newGroup = createGroup(set);
+            int index = groups.IndexOf(oldGroup);
+            if (index >= 0)
+                groups.RemoveAt(index);
 
-            int i = groups.IndexOf(group);
-            groups.RemoveAt(i);
-            groups.Insert(i, newGroup);
+            if (newGroup != null)
+            {
+                if (index >= 0)
+                    groups.Insert(index, newGroup);
+                else
+                    addGroup(newGroup);
+            }
 
-            if (selectedGroup == group && newGroup.BeatmapPanels.Count == 0)
+            bool hadSelection = selectedGroup == oldGroup;
+
+            if (hadSelection && newGroup == null)
                 selectedGroup = null;
 
             Filter(null, false);
 
             //check if we can/need to maintain our current selection.
-            if (selectedGroup == group && newGroup.BeatmapPanels.Count > 0)
+            if (hadSelection && newGroup != null)
             {
                 var newSelection =
-                    newGroup.BeatmapPanels.Find(p => p.Beatmap.ID == selectedPanel?.Beatmap.ID) ??
-                    newGroup.BeatmapPanels[Math.Min(newGroup.BeatmapPanels.Count - 1, group.BeatmapPanels.IndexOf(selectedPanel))];
+                    newGroup.BeatmapPanels.Find(p => p.Beatmap.ID == selectedPanel?.Beatmap.ID);
+
+                if (newSelection == null && oldGroup != null && selectedPanel != null)
+                    newSelection = newGroup.BeatmapPanels[Math.Min(newGroup.BeatmapPanels.Count - 1, oldGroup.BeatmapPanels.IndexOf(selectedPanel))];
 
                 selectGroup(newGroup, newSelection);
             }
@@ -177,46 +167,73 @@ namespace osu.Game.Screens.Select
 
         public Action<BeatmapSetInfo> RestoreRequested;
 
+        public Action<BeatmapInfo> EditRequested;
+
         public Action<BeatmapInfo> HideDifficultyRequested;
 
+        private void selectNullBeatmap()
+        {
+            selectedGroup = null;
+            selectedPanel = null;
+            SelectionChanged?.Invoke(null);
+        }
+
+        /// <summary>
+        /// Increment selection in the carousel in a chosen direction.
+        /// </summary>
+        /// <param name="direction">The direction to increment. Negative is backwards.</param>
+        /// <param name="skipDifficulties">Whether to skip individual difficulties and only increment over full groups.</param>
         public void SelectNext(int direction = 1, bool skipDifficulties = true)
         {
+            // todo: we may want to refactor and remove this as an optimisation in the future.
             if (groups.All(g => g.State == BeatmapGroupState.Hidden))
             {
-                selectedGroup = null;
-                selectedPanel = null;
-                SelectionChanged?.Invoke(null);
+                selectNullBeatmap();
                 return;
             }
 
-            if (!skipDifficulties && selectedGroup != null)
-            {
-                int i = selectedGroup.BeatmapPanels.IndexOf(selectedPanel) + direction;
+            int originalIndex = Math.Max(0, groups.IndexOf(selectedGroup));
+            int currentIndex = originalIndex;
 
-                if (i >= 0 && i < selectedGroup.BeatmapPanels.Count)
-                {
-                    //changing difficulty panel, not set.
-                    selectGroup(selectedGroup, selectedGroup.BeatmapPanels[i]);
-                    return;
-                }
-            }
+            // local function to increment the index in the required direction, wrapping over extremities.
+            int incrementIndex() => currentIndex = (currentIndex + direction + groups.Count) % groups.Count;
 
-            int startIndex = Math.Max(0, groups.IndexOf(selectedGroup));
-            int index = startIndex;
+            // in the case we are skipping difficulties, we want to increment the index once before starting to find out new target
+            // (we don't care about the currently selected group).
+            if (skipDifficulties)
+                incrementIndex();
 
             do
             {
-                index = (index + direction + groups.Count) % groups.Count;
-                if (groups[index].State != BeatmapGroupState.Hidden)
-                {
-                    if (skipDifficulties)
-                        SelectBeatmap(groups[index].SelectedPanel != null ? groups[index].SelectedPanel.Beatmap : groups[index].BeatmapPanels.First().Beatmap);
-                    else
-                        SelectBeatmap(direction == 1 ? groups[index].BeatmapPanels.First().Beatmap : groups[index].BeatmapPanels.Last().Beatmap);
+                var group = groups[currentIndex];
 
+                if (group.State == BeatmapGroupState.Hidden) continue;
+
+                // we are only interested in non-filtered panels.
+                IEnumerable<BeatmapPanel> validPanels = group.BeatmapPanels.Where(p => !p.Filtered);
+
+                // if we are considering difficulties, we need to do a few extrea steps.
+                if (!skipDifficulties)
+                {
+                    // we want to reverse the panel order if we are searching backwards.
+                    if (direction < 0)
+                        validPanels = validPanels.Reverse();
+
+                    // if we are currently on the selected panel, let's try to find a valid difficulty before leaving to the next group.
+                    // the first valid difficulty is found by skipping to the selected panel and then one further.
+                    if (currentIndex == originalIndex)
+                        validPanels = validPanels.SkipWhile(p => p != selectedPanel).Skip(1);
+                }
+
+                var next = validPanels.FirstOrDefault();
+
+                // at this point, we can perform the selection change if we have a valid new target, else continue to increment in the specified direction.
+                if (next != null)
+                {
+                    selectGroup(group, next);
                     return;
                 }
-            } while (index != startIndex);
+            } while (incrementIndex() != originalIndex);
         }
 
         private IEnumerable<BeatmapGroup> getVisibleGroups() => groups.Where(selectGroup => selectGroup.State != BeatmapGroupState.Hidden);
@@ -293,8 +310,6 @@ namespace osu.Game.Screens.Select
             if (newCriteria != null)
                 criteria = newCriteria;
 
-            if (!IsLoaded) return;
-
             Action perform = delegate
             {
                 filterTask = null;
@@ -311,6 +326,8 @@ namespace osu.Game.Screens.Select
                     addGroup(g);
 
                 computeYPositions();
+
+                selectedGroup?.UpdateState();
 
                 if (selectedGroup == null || selectedGroup.State == BeatmapGroupState.Hidden)
                     SelectNext();
@@ -335,6 +352,9 @@ namespace osu.Game.Screens.Select
 
         private BeatmapGroup createGroup(BeatmapSetInfo beatmapSet)
         {
+            if (beatmapSet.Beatmaps.All(b => b.Hidden))
+                return null;
+
             foreach (var b in beatmapSet.Beatmaps)
             {
                 if (b.Metadata == null)
@@ -347,6 +367,7 @@ namespace osu.Game.Screens.Select
                 StartRequested = b => StartRequested?.Invoke(),
                 DeleteRequested = b => DeleteRequested?.Invoke(b),
                 RestoreHiddenRequested = s => RestoreRequested?.Invoke(s),
+                EditRequested = b => EditRequested?.Invoke(b),
                 HideDifficultyRequested = b => HideDifficultyRequested?.Invoke(b),
                 State = BeatmapGroupState.Collapsed
             };
@@ -362,6 +383,10 @@ namespace osu.Game.Screens.Select
 
         private void addGroup(BeatmapGroup group)
         {
+            // prevent duplicates by concurrent independent actions trying to add a group
+            if (groups.Any(g => g.BeatmapSet.ID == group.BeatmapSet.ID))
+                return;
+
             groups.Add(group);
             panels.Add(group.Header);
             panels.AddRange(group.BeatmapPanels);
@@ -372,6 +397,14 @@ namespace osu.Game.Screens.Select
             if (group == null)
                 return;
 
+            if (selectedGroup == group)
+            {
+                if (getVisibleGroups().Count() == 1)
+                    selectNullBeatmap();
+                else
+                    SelectNext();
+            }
+
             groups.Remove(group);
             panels.Remove(group.Header);
             foreach (var p in group.BeatmapPanels)
@@ -379,9 +412,6 @@ namespace osu.Game.Screens.Select
 
             scrollableContent.Remove(group.Header);
             scrollableContent.RemoveRange(group.BeatmapPanels);
-
-            if (selectedGroup == group)
-                SelectNext();
 
             computeYPositions();
         }
@@ -413,11 +443,13 @@ namespace osu.Game.Screens.Select
 
                         panel.MoveToX(-50, 500, Easing.OutExpo);
 
+                        bool isHidden = panel.State == PanelSelectedState.Hidden;
+
                         //on first display we want to begin hidden under our group's header.
-                        if (panel.Alpha == 0)
+                        if (isHidden || panel.Alpha == 0)
                             panel.MoveToY(headerY);
 
-                        movePanel(panel, true, animated, ref currentY);
+                        movePanel(panel, !isHidden, animated, ref currentY);
                     }
                 }
                 else
@@ -451,8 +483,8 @@ namespace osu.Game.Screens.Select
         {
             try
             {
-                if (panel == null)
-                    panel = group.BeatmapPanels.First();
+                if (panel == null || panel.Filtered == true)
+                    panel = group.BeatmapPanels.First(p => !p.Filtered);
 
                 if (selectedPanel == panel) return;
 
@@ -516,7 +548,7 @@ namespace osu.Game.Screens.Select
             float drawHeight = DrawHeight;
 
             // Remove all panels that should no longer be on-screen
-            scrollableContent.RemoveAll(delegate (Panel p)
+            scrollableContent.RemoveAll(delegate(Panel p)
             {
                 float panelPosY = p.Position.Y;
                 bool remove = panelPosY < Current - p.DrawHeight || panelPosY > Current + drawHeight || !p.IsPresent;
@@ -551,7 +583,18 @@ namespace osu.Game.Screens.Select
                     // Makes sure headers are always _below_ panels,
                     // and depth flows downward.
                     panel.Depth = i + (panel is BeatmapSetHeader ? panels.Count : 0);
-                    scrollableContent.Add(panel);
+
+                    switch (panel.LoadState)
+                    {
+                        case LoadState.NotLoaded:
+                            LoadComponentAsync(panel);
+                            break;
+                        case LoadState.Loading:
+                            break;
+                        default:
+                            scrollableContent.Add(panel);
+                            break;
+                    }
                 }
             }
 

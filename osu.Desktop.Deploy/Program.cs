@@ -7,7 +7,6 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using Newtonsoft.Json;
 using osu.Framework.IO.Network;
 using FileWebRequest = osu.Framework.IO.Network.FileWebRequest;
@@ -19,7 +18,7 @@ namespace osu.Desktop.Deploy
     {
         private const string nuget_path = @"packages\NuGet.CommandLine.4.3.0\tools\NuGet.exe";
         private const string squirrel_path = @"packages\squirrel.windows.1.7.8\tools\Squirrel.exe";
-        private const string msbuild_path = @"C:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe";
+        private const string msbuild_path = @"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe";
 
         public static string StagingFolder = ConfigurationManager.AppSettings["StagingFolder"];
         public static string ReleasesFolder = ConfigurationManager.AppSettings["ReleasesFolder"];
@@ -29,7 +28,7 @@ namespace osu.Desktop.Deploy
         public static string SolutionName = ConfigurationManager.AppSettings["SolutionName"];
         public static string ProjectName = ConfigurationManager.AppSettings["ProjectName"];
         public static string NuSpecName = ConfigurationManager.AppSettings["NuSpecName"];
-        public static string TargetName = ConfigurationManager.AppSettings["TargetName"];
+        public static string TargetNames = ConfigurationManager.AppSettings["TargetName"];
         public static string PackageName = ConfigurationManager.AppSettings["PackageName"];
         public static string IconName = ConfigurationManager.AppSettings["IconName"];
         public static string CodeSigningCertificate = ConfigurationManager.AppSettings["CodeSigningCertificate"];
@@ -100,7 +99,8 @@ namespace osu.Desktop.Deploy
             updateAssemblyInfo(version);
 
             write("Running build process...");
-            runCommand(msbuild_path, $"/v:quiet /m /t:{TargetName.Replace('.', '_')} /p:OutputPath={stagingPath};Targets=\"Clean;Build\";Configuration=Release {SolutionName}.sln");
+            foreach (string targetName in TargetNames.Split(','))
+                runCommand(msbuild_path, $"/v:quiet /m /t:{targetName.Replace('.', '_')} /p:OutputPath={stagingPath};Targets=\"Clean;Build\";Configuration=Release {SolutionName}.sln");
 
             write("Creating NuGet deployment package...");
             runCommand(nuget_path, $"pack {NuSpecName} -Version {version} -Properties Configuration=Deploy -OutputDirectory {stagingPath} -BasePath {stagingPath}");
@@ -145,6 +145,8 @@ namespace osu.Desktop.Deploy
         /// </summary>
         private static void checkReleaseFiles()
         {
+            if (!canGitHub) return;
+
             var releaseLines = getReleaseLines();
 
             //ensure we have all files necessary
@@ -157,6 +159,8 @@ namespace osu.Desktop.Deploy
 
         private static void pruneReleases()
         {
+            if (!canGitHub) return;
+
             write("Pruning RELEASES...");
 
             var releaseLines = getReleaseLines().ToList();
@@ -190,7 +194,7 @@ namespace osu.Desktop.Deploy
 
         private static void uploadBuild(string version)
         {
-            if (string.IsNullOrEmpty(GitHubAccessToken) || string.IsNullOrEmpty(codeSigningCertPath))
+            if (!canGitHub || string.IsNullOrEmpty(CodeSigningCertificate))
                 return;
 
             write("Publishing to GitHub...");
@@ -228,8 +232,12 @@ namespace osu.Desktop.Deploy
 
         private static void openGitHubReleasePage() => Process.Start(GitHubReleasePage);
 
+        private static bool canGitHub => !string.IsNullOrEmpty(GitHubAccessToken);
+
         private static void checkGitHubReleases()
         {
+            if (!canGitHub) return;
+
             write("Checking GitHub releases...");
             var req = new JsonWebRequest<List<GitHubRelease>>($"{GitHubApiEndpoint}");
             req.AuthenticatedBlockingPerform();
@@ -391,7 +399,7 @@ namespace osu.Desktop.Deploy
         public static void AuthenticatedBlockingPerform(this WebRequest r)
         {
             r.AddHeader("Authorization", $"token {GitHubAccessToken}");
-            r.BlockingPerform();
+            r.Perform();
         }
     }
 
@@ -401,12 +409,7 @@ namespace osu.Desktop.Deploy
         {
         }
 
-        protected override HttpWebRequest CreateWebRequest(string requestString = null)
-        {
-            var req = base.CreateWebRequest(requestString);
-            req.Accept = "application/octet-stream";
-            return req;
-        }
+        protected override string Accept => "application/octet-stream";
     }
 
     internal class ReleaseLine

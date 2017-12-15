@@ -15,7 +15,6 @@ using osu.Game.Rulesets.Taiko.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.Taiko.Replays;
 using OpenTK;
-using osu.Game.Rulesets.Beatmaps;
 using System.Linq;
 using osu.Framework.Input;
 
@@ -64,7 +63,7 @@ namespace osu.Game.Rulesets.Taiko.UI
                     StartTime = time,
                 };
 
-                barLine.ApplyDefaults(Beatmap.ControlPointInfo, Beatmap.BeatmapInfo.Difficulty);
+                barLine.ApplyDefaults(Beatmap.ControlPointInfo, Beatmap.BeatmapInfo.BaseDifficulty);
 
                 bool isMajor = currentBeat % (int)currentPoint.TimeSignature == 0;
                 Playfield.Add(isMajor ? new DrawableBarLineMajor(barLine) : new DrawableBarLine(barLine));

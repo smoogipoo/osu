@@ -20,13 +20,15 @@ namespace osu.Game.Rulesets.Scoring
 
         public double Health { get; set; } = 1;
 
+        public double? PP { get; set; }
+
         public int MaxCombo { get; set; }
 
         public int Combo { get; set; }
 
         public RulesetInfo Ruleset { get; set; }
 
-        public Mod[] Mods { get; set; }
+        public Mod[] Mods { get; set; } = { };
 
         public User User;
 
@@ -38,6 +40,6 @@ namespace osu.Game.Rulesets.Scoring
 
         public DateTimeOffset Date;
 
-        public Dictionary<string, dynamic> Statistics = new Dictionary<string, dynamic>();
+        public Dictionary<string, object> Statistics = new Dictionary<string, object>();
     }
 }

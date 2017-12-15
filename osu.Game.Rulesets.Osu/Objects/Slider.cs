@@ -45,6 +45,18 @@ namespace osu.Game.Rulesets.Osu.Objects
             set { Curve.Distance = value; }
         }
 
+        /// <summary>
+        /// The position of the cursor at the point of completion of this <see cref="Slider"/> if it was hit
+        /// with as few movements as possible. This is set and used by difficulty calculation.
+        /// </summary>
+        internal Vector2? LazyEndPosition;
+
+        /// <summary>
+        /// The distance travelled by the cursor upon completion of this <see cref="Slider"/> if it was hit
+        /// with as few movements as possible. This is set and used by difficulty calculation.
+        /// </summary>
+        internal float LazyTravelDistance;
+
         public List<SampleInfoList> RepeatSamples { get; set; } = new List<SampleInfoList>();
         public int RepeatCount { get; set; } = 1;
 
@@ -126,6 +138,34 @@ namespace osu.Game.Rulesets.Osu.Objects
                                 Name = @"slidertick",
                                 Volume = s.Volume
                             }))
+                        };
+                    }
+                }
+            }
+        }
+        public IEnumerable<RepeatPoint> RepeatPoints
+        {
+            get
+            {
+                var length = Curve.Distance;
+                var repeatPointDistance = Math.Min(Distance, length);
+                var repeatDuration = length / Velocity;
+
+                for (var repeat = 1; repeat < RepeatCount; repeat++)
+                {
+                    for (var d = repeatPointDistance; d <= length; d += repeatPointDistance)
+                    {
+                        var repeatStartTime = StartTime + repeat * repeatDuration;
+                        var distanceProgress = d / length;
+
+                        yield return new RepeatPoint
+                        {
+                            RepeatIndex = repeat,
+                            StartTime = repeatStartTime,
+                            Position = Curve.PositionAt(distanceProgress),
+                            StackHeight = StackHeight,
+                            Scale = Scale,
+                            ComboColour = ComboColour,
                         };
                     }
                 }

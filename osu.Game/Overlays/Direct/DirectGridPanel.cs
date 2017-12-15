@@ -12,7 +12,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
-using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Direct
 {
@@ -22,9 +21,15 @@ namespace osu.Game.Overlays.Direct
         private const float vertical_padding = 5;
 
         private FillFlowContainer bottomPanel;
+        private PlayButton playButton;
+        private Box progressBar;
+
+        protected override PlayButton PlayButton => playButton;
+        protected override Box PreviewBar => progressBar;
 
         public DirectGridPanel(BeatmapSetInfo beatmap) : base(beatmap)
         {
+            Width = 400;
             Height = 140 + vertical_padding; //full height of all the elements plus vertical padding (autosize uses the image)
         }
 
@@ -88,6 +93,15 @@ namespace osu.Game.Overlays.Direct
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                 },
+                                progressBar = new Box
+                                {
+                                    Origin = Anchor.BottomLeft,
+                                    RelativeSizeAxes = Axes.X,
+                                    BypassAutoSizeAxes = Axes.Both,
+                                    Size = new Vector2(0, 3),
+                                    Alpha = 0,
+                                    Colour = colours.Yellow,
+                                },
                                 new FillFlowContainer
                                 {
                                     RelativeSizeAxes = Axes.X,
@@ -117,7 +131,7 @@ namespace osu.Game.Overlays.Direct
                                                 },
                                                 new OsuSpriteText
                                                 {
-                                                    Text = SetInfo.Metadata.Author,
+                                                    Text = SetInfo.Metadata.Author.Username,
                                                     TextSize = 14,
                                                     Font = @"Exo2.0-SemiBoldItalic",
                                                     Shadow = false,
@@ -150,6 +164,15 @@ namespace osu.Game.Overlays.Direct
                                         },
                                     },
                                 },
+                                new DownloadButton
+                                {
+                                    Size = new Vector2(30),
+                                    Margin = new MarginPadding(horizontal_padding),
+                                    Anchor = Anchor.CentreRight,
+                                    Origin = Anchor.CentreRight,
+                                    Colour = colours.Gray5,
+                                    Action = StartDownload
+                                },
                             },
                         },
                     },
@@ -170,13 +193,13 @@ namespace osu.Game.Overlays.Direct
                         new Statistic(FontAwesome.fa_heart, SetInfo.OnlineInfo?.FavouriteCount ?? 0),
                     },
                 },
+                playButton = new PlayButton(SetInfo)
+                {
+                    Margin = new MarginPadding { Top = 5, Left = 10 },
+                    Size = new Vector2(30),
+                    Alpha = 0,
+                },
             });
-        }
-
-        protected override bool OnClick(InputState state)
-        {
-            StartDownload();
-            return true;
         }
     }
 }

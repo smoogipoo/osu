@@ -2,49 +2,57 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Newtonsoft.Json;
+using osu.Game.Database;
 using osu.Game.IO.Serialization;
 using osu.Game.Rulesets;
-using SQLite.Net.Attributes;
-using SQLiteNetExtensions.Attributes;
 
 namespace osu.Game.Beatmaps
 {
-    public class BeatmapInfo : IEquatable<BeatmapInfo>, IJsonSerializable
+    public class BeatmapInfo : IEquatable<BeatmapInfo>, IJsonSerializable, IHasPrimaryKey
     {
-        [PrimaryKey, AutoIncrement]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
 
         //TODO: should be in database
         public int BeatmapVersion;
 
-        public int? OnlineBeatmapID { get; set; }
+        private int? onlineBeatmapID;
+        private int? onlineBeatmapSetID;
 
-        public int? OnlineBeatmapSetID { get; set; }
+        [JsonProperty("id")]
+        public int? OnlineBeatmapID
+        {
+            get { return onlineBeatmapID; }
+            set { onlineBeatmapID = value > 0 ? value : null; }
+        }
 
-        [ForeignKey(typeof(BeatmapSetInfo))]
+        [JsonProperty("beatmapset_id")]
+        [NotMapped]
+        public int? OnlineBeatmapSetID
+        {
+            get { return onlineBeatmapSetID; }
+            set { onlineBeatmapSetID = value > 0 ? value : null; }
+        }
+
         public int BeatmapSetInfoID { get; set; }
 
-        [ManyToOne]
+        [Required]
         public BeatmapSetInfo BeatmapSet { get; set; }
 
-        [ForeignKey(typeof(BeatmapMetadata))]
-        public int BeatmapMetadataID { get; set; }
-
-        [OneToOne(CascadeOperations = CascadeOperation.All)]
         public BeatmapMetadata Metadata { get; set; }
 
-        [ForeignKey(typeof(BeatmapDifficulty)), NotNull]
         public int BaseDifficultyID { get; set; }
 
-        [OneToOne(CascadeOperations = CascadeOperation.All)]
-        public BeatmapDifficulty Difficulty { get; set; }
+        public BeatmapDifficulty BaseDifficulty { get; set; }
 
-        [Ignore]
+        [NotMapped]
         public BeatmapMetrics Metrics { get; set; }
 
-        [Ignore]
+        [NotMapped]
         public BeatmapOnlineInfo OnlineInfo { get; set; }
 
         public string Path { get; set; }
@@ -57,7 +65,6 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// MD5 is kept for legacy support (matching against replays, osu-web-10 etc.).
         /// </summary>
-        [Indexed]
         [JsonProperty("file_md5")]
         public string MD5Hash { get; set; }
 
@@ -67,10 +74,8 @@ namespace osu.Game.Beatmaps
         public float StackLeniency { get; set; }
         public bool SpecialStyle { get; set; }
 
-        [ForeignKey(typeof(RulesetInfo))]
         public int RulesetID { get; set; }
 
-        [OneToOne(CascadeOperations = CascadeOperation.CascadeRead)]
         public RulesetInfo Ruleset { get; set; }
 
         public bool LetterboxInBreaks { get; set; }
@@ -78,15 +83,29 @@ namespace osu.Game.Beatmaps
 
         // Editor
         // This bookmarks stuff is necessary because DB doesn't know how to store int[]
-        public string StoredBookmarks { get; set; }
-
-        [Ignore]
         [JsonIgnore]
-        public int[] Bookmarks
+        public string StoredBookmarks
         {
-            get { return StoredBookmarks.Split(',').Select(int.Parse).ToArray(); }
-            set { StoredBookmarks = string.Join(",", value); }
+            get { return string.Join(",", Bookmarks); }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    Bookmarks = new int[0];
+                    return;
+                }
+
+                Bookmarks = value.Split(',').Select(v =>
+                {
+                    int val;
+                    bool result = int.TryParse(v, out val);
+                    return new { result, val };
+                }).Where(p => p.result).Select(p => p.val).ToArray();
+            }
         }
+
+        [NotMapped]
+        public int[] Bookmarks { get; set; } = new int[0];
 
         public double DistanceSpacing { get; set; }
         public int BeatDivisor { get; set; }
@@ -96,6 +115,7 @@ namespace osu.Game.Beatmaps
         // Metadata
         public string Version { get; set; }
 
+        [JsonProperty("difficulty_rating")]
         public double StarDifficulty { get; set; }
 
         public bool Equals(BeatmapInfo other)

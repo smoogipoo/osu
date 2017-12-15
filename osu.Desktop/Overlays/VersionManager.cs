@@ -4,23 +4,23 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Graphics.Sprites;
-using osu.Game.Overlays;
-using osu.Game.Overlays.Notifications;
-using Squirrel;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Game.Graphics;
-using OpenTK;
-using OpenTK.Graphics;
-using System.Net.Http;
 using osu.Framework.Logging;
 using osu.Game;
 using osu.Game.Configuration;
+using osu.Game.Graphics;
+using osu.Game.Graphics.Sprites;
+using osu.Game.Overlays;
+using osu.Game.Overlays.Notifications;
+using OpenTK;
+using OpenTK.Graphics;
+using Squirrel;
 
 namespace osu.Desktop.Overlays
 {
@@ -70,7 +70,7 @@ namespace osu.Desktop.Overlays
                                 },
                                 new OsuSpriteText
                                 {
-                                    Colour = game.IsDebug ? colours.Red : Color4.White,
+                                    Colour = DebugUtils.IsDebug ? colours.Red : Color4.White,
                                     Text = game.Version
                                 },
                             }
@@ -197,10 +197,9 @@ namespace osu.Desktop.Overlays
                     }
                 }
             }
-            catch (HttpRequestException)
+            catch (Exception)
             {
-                //likely have no internet connection.
-                //we'll ignore this and retry later.
+                // we'll ignore this and retry later. can be triggered by no internet connection or thread abortion.
             }
             finally
             {
@@ -232,7 +231,8 @@ namespace osu.Desktop.Overlays
                 Text = @"Update ready to install. Click to restart!",
                 Activated = () =>
                 {
-                    UpdateManager.RestartAppWhenExited();
+                    // Squirrel returns execution to us after the update process is started, so it's safe to use Wait() here
+                    UpdateManager.RestartAppWhenExited().Wait();
                     game.GracefullyExit();
                     return true;
                 }

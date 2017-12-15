@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using System;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -61,6 +62,8 @@ namespace osu.Game.Beatmaps.Drawables
             return base.OnClick(state);
         }
 
+        public BindableBool Filtered = new BindableBool();
+
         protected override void ApplyState(PanelSelectedState last = PanelSelectedState.Hidden)
         {
             if (!IsLoaded) return;
@@ -73,6 +76,9 @@ namespace osu.Game.Beatmaps.Drawables
 
         public BeatmapPanel(BeatmapInfo beatmap)
         {
+            if (beatmap == null)
+                throw new ArgumentNullException(nameof(beatmap));
+
             Beatmap = beatmap;
             Height *= 0.60f;
 
@@ -135,7 +141,7 @@ namespace osu.Game.Beatmaps.Drawables
                                         new OsuSpriteText
                                         {
                                             Font = @"Exo2.0-MediumItalic",
-                                            Text = $"{(beatmap.Metadata ?? beatmap.BeatmapSet.Metadata).Author}",
+                                            Text = $"{(beatmap.Metadata ?? beatmap.BeatmapSet.Metadata).Author.Username}",
                                             TextSize = 16,
                                             Anchor = Anchor.BottomLeft,
                                             Origin = Anchor.BottomLeft

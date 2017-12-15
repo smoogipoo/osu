@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using osu.Game.Rulesets.Beatmaps;
 using osu.Game.Rulesets.Mania.Objects;
 using System;
 using System.Collections.Generic;
@@ -44,7 +43,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
         {
             beatmap = original;
 
-            BeatmapDifficulty difficulty = original.BeatmapInfo.Difficulty;
+            BeatmapDifficulty difficulty = original.BeatmapInfo.BaseDifficulty;
 
             int seed = (int)Math.Round(difficulty.DrainRate + difficulty.CircleSize) * 20 + (int)(difficulty.OverallDifficulty * 41.2) + (int)Math.Round(difficulty.ApproachRate);
             random = new FastRandom(seed);
@@ -139,8 +138,8 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
             Pattern newPattern = conversion.Generate();
             lastPattern = newPattern;
 
-            var stairPatternGenerator = (HitObjectPatternGenerator)conversion;
-            lastStair = stairPatternGenerator.StairType;
+            var stairPatternGenerator = conversion as HitObjectPatternGenerator;
+            lastStair = stairPatternGenerator?.StairType ?? lastStair;
 
             return newPattern.HitObjects;
         }

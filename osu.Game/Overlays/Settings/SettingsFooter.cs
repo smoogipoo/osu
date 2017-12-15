@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
@@ -26,7 +27,7 @@ namespace osu.Game.Overlays.Settings
 
             var modes = new List<Drawable>();
 
-            foreach (var ruleset in rulesets.AllRulesets)
+            foreach (var ruleset in rulesets.AvailableRulesets)
             {
                 var icon = new ConstrainedIconContainer
                 {
@@ -64,7 +65,7 @@ namespace osu.Game.Overlays.Settings
                     Origin = Anchor.TopCentre,
                     TextSize = 14,
                     Text = game.Version,
-                    Colour = game.IsDebug ? colours.Red : Color4.White,
+                    Colour = DebugUtils.IsDebug ? colours.Red : Color4.White,
                 },
             };
         }
