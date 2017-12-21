@@ -17,7 +17,7 @@ namespace osu.Game.Tests.Visual
 {
     public class TestCaseEditorSelectionLayer : OsuTestCase
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(SelectionLayer), typeof(DiscussionLayer), typeof(DragSelector), typeof(SelectionInfo) };
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(SelectionLayer), typeof(DiscussionLayer), typeof(HitObjectSelectionBox), typeof(SelectionInfo) };
 
         public TestCaseEditorSelectionLayer()
         {
