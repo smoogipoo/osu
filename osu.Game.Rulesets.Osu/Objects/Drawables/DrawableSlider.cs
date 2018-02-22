@@ -87,6 +87,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 components.Add(drawableRepeatPoint);
                 AddNested(drawableRepeatPoint);
             }
+
+            s.OnPositionChanged += _ => Body.Position = s.StackedPosition;
         }
 
         [BackgroundDependencyLoader]

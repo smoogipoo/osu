@@ -23,6 +23,27 @@ namespace osu.Game.Rulesets.Osu.Objects
         public double EndTime => StartTime + this.SpanCount() * Curve.Distance / Velocity;
         public double Duration => EndTime - StartTime;
 
+        public override Vector2 Position
+        {
+            get => this.PositionAt(0);
+            set
+            {
+                var currentPosition = Position;
+                if (currentPosition == value)
+                    return;
+
+                for (int i = 0; i < ControlPoints.Count; i++)
+                {
+                    ControlPoints[i] -= currentPosition;
+                    ControlPoints[i] += value;
+                }
+
+                Curve.Calculate();
+
+                base.Position = value;
+            }
+        }
+
         public Vector2 StackedPositionAt(double t) => this.PositionAt(t) + StackOffset;
         public override Vector2 EndPosition => this.PositionAt(1);
 
@@ -99,7 +120,7 @@ namespace osu.Game.Rulesets.Osu.Objects
             HeadCircle = new HitCircle
             {
                 StartTime = StartTime,
-                Position = StackedPosition,
+                Position = Position,
                 IndexInCurrentCombo = IndexInCurrentCombo,
                 ComboColour = ComboColour,
                 Samples = Samples,
@@ -109,7 +130,7 @@ namespace osu.Game.Rulesets.Osu.Objects
             TailCircle = new HitCircle
             {
                 StartTime = EndTime,
-                Position = StackedEndPosition,
+                Position = EndPosition,
                 IndexInCurrentCombo = IndexInCurrentCombo,
                 ComboColour = ComboColour
             };

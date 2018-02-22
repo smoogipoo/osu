@@ -4,20 +4,18 @@
 using osu.Framework.Graphics;
 using osu.Framework.Allocation;
 using osu.Game.Graphics;
-using osu.Game.Rulesets.Edit.Layers.Selection;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables.Pieces;
 
 namespace osu.Game.Rulesets.Osu.Edit.Layers.Selection.Overlays
 {
-    public class HitCircleOverlay : HitObjectOverlay
+    public class HitCircleOverlay : OsuHitObjectOverlay
     {
         public HitCircleOverlay(DrawableHitCircle hitCircle)
             : base(hitCircle)
         {
             Origin = Anchor.Centre;
 
-            Position = hitCircle.Position;
             Size = hitCircle.Size;
             Scale = hitCircle.Scale;
 

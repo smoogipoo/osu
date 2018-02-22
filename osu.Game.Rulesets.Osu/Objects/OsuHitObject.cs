@@ -1,23 +1,40 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
+using System;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
 using OpenTK;
 using osu.Game.Rulesets.Objects.Types;
 using OpenTK.Graphics;
 using osu.Game.Beatmaps.ControlPoints;
+using osu.Game.Rulesets.Edit.Types;
 
 namespace osu.Game.Rulesets.Osu.Objects
 {
-    public abstract class OsuHitObject : HitObject, IHasCombo, IHasPosition
+    public abstract class OsuHitObject : HitObject, IHasCombo, IHasPosition, IHasMutablePosition
     {
         public const double OBJECT_RADIUS = 64;
+
+        public event Action<Vector2> OnPositionChanged;
 
         public double TimePreempt = 600;
         public double TimeFadein = 400;
 
-        public Vector2 Position { get; set; }
+        private Vector2 position;
+        public virtual Vector2 Position
+        {
+            get => position;
+            set
+            {
+                if (position == value)
+                    return;
+                position = value;
+
+                OnPositionChanged?.Invoke(value);
+            }
+        }
+
         public float X => Position.X;
         public float Y => Position.Y;
 

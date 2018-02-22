@@ -30,6 +30,7 @@ namespace osu.Game.Tests.Visual
             typeof(HitObjectOverlayLayer),
             typeof(OsuHitObjectOverlayLayer),
             typeof(HitObjectOverlay),
+            typeof(OsuHitObjectOverlay),
             typeof(HitCircleOverlay),
             typeof(SliderOverlay),
             typeof(SliderCircleOverlay)
