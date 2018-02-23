@@ -30,6 +30,16 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             set { path.PathWidth = value; }
         }
 
+        /// <summary>
+        /// Offset in absolute coordinates from the start of the curve.
+        /// </summary>
+        public Vector2 PathOffset { get; private set; }
+
+        public readonly List<Vector2> CurrentCurve = new List<Vector2>();
+
+        public readonly Bindable<bool> SnakingIn = new Bindable<bool>();
+        public readonly Bindable<bool> SnakingOut = new Bindable<bool>();
+
         public double? SnakedStart { get; private set; }
         public double? SnakedEnd { get; private set; }
 
@@ -55,6 +65,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
         private int textureWidth => (int)PathWidth * 2;
 
+        private Vector2 topLeftOffset;
+
         private readonly Slider slider;
         public SliderBody(Slider s)
         {
@@ -64,6 +76,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             {
                 container = new BufferedContainer
                 {
+                    RelativeSizeAxes = Axes.Both,
                     CacheDrawnFrameBuffer = true,
                     Children = new Drawable[]
                     {
@@ -87,11 +100,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
             if (updateSnaking(p0, p1))
             {
-                // Autosizing does not give us the desired behaviour here.
-                // We want the container to have the same size as the slider,
-                // and to be positioned such that the slider head is at (0,0).
-                container.Size = path.Size;
-                container.Position = -path.PositionInBoundingBox(slider.Curve.PositionAt(0) - CurrentCurve[0]);
+                // The path is generated such that its size encloses it. This change of size causes the path
+                // to move around while snaking, so we need to offset it to make sure it maintains the
+                // same position as when it is fully snaked.
+                var newTopLeftOffset = path.PositionInBoundingBox(Vector2.Zero);
+                path.Position = topLeftOffset - newTopLeftOffset;
 
                 container.ForceRedraw();
             }
@@ -107,6 +120,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             snakingOut = config.GetBindable<bool>(OsuSetting.SnakingOutSliders);
 
             reloadTexture();
+            computeSize();
         }
 
         private void reloadTexture()
@@ -150,7 +164,19 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             path.Texture = texture;
         }
 
-        public readonly List<Vector2> CurrentCurve = new List<Vector2>();
+        private void computeSize()
+        {
+            // Generate the entire curve
+            slider.Curve.GetPathToProgress(CurrentCurve, 0, 1);
+            foreach (Vector2 p in CurrentCurve)
+                path.AddVertex(p);
+
+            Size = path.Size;
+
+            topLeftOffset = path.PositionInBoundingBox(Vector2.Zero);
+            PathOffset = path.PositionInBoundingBox(CurrentCurve[0]);
+        }
+
         private bool updateSnaking(double p0, double p1)
         {
             if (SnakedStart == p0 && SnakedEnd == p1) return false;
@@ -162,7 +188,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
             path.ClearVertices();
             foreach (Vector2 p in CurrentCurve)
-                path.AddVertex(p - CurrentCurve[0]);
+                path.AddVertex(p);
 
             return true;
         }

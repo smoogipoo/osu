@@ -111,7 +111,7 @@ namespace osu.Game.Rulesets.Osu.Objects
             HeadCircle = new HitCircle
             {
                 StartTime = StartTime,
-                Position = StackedPosition,
+                Position = this.PositionAt(0),
                 IndexInCurrentCombo = IndexInCurrentCombo,
                 ComboColour = ComboColour,
                 Samples = Samples,
@@ -121,7 +121,7 @@ namespace osu.Game.Rulesets.Osu.Objects
             TailCircle = new HitCircle
             {
                 StartTime = EndTime,
-                Position = StackedEndPosition,
+                Position = this.PositionAt(1),
                 IndexInCurrentCombo = IndexInCurrentCombo,
                 ComboColour = ComboColour
             };
@@ -168,7 +168,7 @@ namespace osu.Game.Rulesets.Osu.Objects
                         SpanIndex = span,
                         SpanStartTime = spanStartTime,
                         StartTime = spanStartTime + timeProgress * SpanDuration,
-                        Position = Curve.PositionAt(distanceProgress),
+                        Position = Curve.PositionAt(distanceProgress) - Curve.PositionAt(0),
                         StackHeight = StackHeight,
                         Scale = Scale,
                         ComboColour = ComboColour,
@@ -187,7 +187,7 @@ namespace osu.Game.Rulesets.Osu.Objects
                     RepeatIndex = repeatIndex,
                     SpanDuration = SpanDuration,
                     StartTime = StartTime + repeat * SpanDuration,
-                    Position = Curve.PositionAt(repeat % 2),
+                    Position = Curve.PositionAt(repeat % 2) - Curve.PositionAt(0),
                     StackHeight = StackHeight,
                     Scale = Scale,
                     ComboColour = ComboColour,
@@ -195,5 +195,11 @@ namespace osu.Game.Rulesets.Osu.Objects
                 });
             }
         }
+    }
+
+    public static class SliderExtensions
+    {
+        public static Vector2 PositionAt(this Slider slider, double progress)
+            => ((IHasCurve)slider).PositionAt(progress) - slider.Curve.PositionAt(0);
     }
 }

@@ -78,7 +78,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             bool isRepeatAtEnd = repeatPoint.RepeatIndex % 2 == 0;
             List<Vector2> curve = drawableSlider.Body.CurrentCurve;
 
-            Position = isRepeatAtEnd ? end : start;
+            var positionOnCurve = isRepeatAtEnd ? end : start;
+            Position = positionOnCurve - curve[0] + drawableSlider.HitObject.StackOffset;
 
             if (curve.Count < 2)
                 return;
