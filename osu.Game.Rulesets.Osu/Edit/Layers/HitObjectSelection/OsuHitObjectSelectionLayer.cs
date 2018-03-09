@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using osu.Game.Rulesets.Edit.Layers.Selection;
+using osu.Game.Rulesets.Edit.Layers.HitObjectSelection;
 using osu.Game.Rulesets.Objects.Drawables;
-using osu.Game.Rulesets.Osu.Edit.Layers.Selection.Overlays;
+using osu.Game.Rulesets.Osu.Edit.Layers.HitObjectSelection.Overlays;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 
-namespace osu.Game.Rulesets.Osu.Edit.Layers.Selection
+namespace osu.Game.Rulesets.Osu.Edit.Layers.HitObjectSelection
 {
-    public class OsuHitObjectOverlayLayer : HitObjectOverlayLayer
+    public class OsuHitObjectSelectionLayer : HitObjectSelectionLayer
     {
         protected override HitObjectOverlay CreateOverlayFor(DrawableHitObject hitObject)
         {

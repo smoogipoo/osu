@@ -13,9 +13,9 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI;
 using OpenTK;
 
-namespace osu.Game.Rulesets.Edit.Layers.Selection
+namespace osu.Game.Rulesets.Edit.Layers.DragSelection
 {
-    public class SelectionLayer : CompositeDrawable
+    public class DragSelectionLayer : CompositeDrawable
     {
         /// <summary>
         /// Invoked when a <see cref="DrawableHitObject"/> is selected.
@@ -39,7 +39,7 @@ namespace osu.Game.Rulesets.Edit.Layers.Selection
 
         private readonly Playfield playfield;
 
-        public SelectionLayer(Playfield playfield)
+        public DragSelectionLayer(Playfield playfield)
         {
             this.playfield = playfield;
 

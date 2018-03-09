@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Edit;
-using osu.Game.Rulesets.Edit.Layers.Selection;
+using osu.Game.Rulesets.Edit.Layers.HitObjectSelection;
 using osu.Game.Rulesets.Edit.Tools;
-using osu.Game.Rulesets.Osu.Edit.Layers.Selection;
+using osu.Game.Rulesets.Osu.Edit.Layers.HitObjectSelection;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.UI;
@@ -32,6 +32,6 @@ namespace osu.Game.Rulesets.Osu.Edit
 
         protected override ScalableContainer CreateLayerContainer() => new ScalableContainer(OsuPlayfield.BASE_SIZE.X) { RelativeSizeAxes = Axes.Both };
 
-        protected override HitObjectOverlayLayer CreateHitObjectOverlayLayer() => new OsuHitObjectOverlayLayer();
+        protected override HitObjectSelectionLayer CreateHitObjectOverlayLayer() => new OsuHitObjectSelectionLayer();
     }
 }

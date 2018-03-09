@@ -4,14 +4,14 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Game.Graphics;
-using osu.Game.Rulesets.Edit.Layers.Selection;
+using osu.Game.Rulesets.Edit.Layers.HitObjectSelection;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables.Pieces;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Game.Rulesets.Osu.Edit.Layers.Selection.Overlays
+namespace osu.Game.Rulesets.Osu.Edit.Layers.HitObjectSelection.Overlays
 {
     public class SliderOverlay : HitObjectOverlay
     {

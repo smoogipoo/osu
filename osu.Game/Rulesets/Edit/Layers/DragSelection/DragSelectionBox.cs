@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using OpenTK.Graphics;
 
-namespace osu.Game.Rulesets.Edit.Layers.Selection
+namespace osu.Game.Rulesets.Edit.Layers.DragSelection
 {
     /// <summary>
     /// A box that represents a drag selection.

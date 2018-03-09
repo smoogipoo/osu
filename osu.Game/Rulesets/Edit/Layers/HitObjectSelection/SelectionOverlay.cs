@@ -9,11 +9,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Game.Graphics;
+using osu.Game.Rulesets.Edit.Layers.DragSelection;
 using osu.Game.Rulesets.Edit.Types;
 using osu.Game.Rulesets.Objects.Drawables;
 using OpenTK;
 
-namespace osu.Game.Rulesets.Edit.Layers.Selection
+namespace osu.Game.Rulesets.Edit.Layers.HitObjectSelection
 {
     /// <summary>
     /// A box which encloses <see cref="DrawableHitObject"/>s.
@@ -27,7 +28,7 @@ namespace osu.Game.Rulesets.Edit.Layers.Selection
             this.overlays = overlays;
 
             Masking = true;
-            BorderThickness = SelectionBox.BORDER_RADIUS;
+            BorderThickness = DragSelectionBox.BORDER_RADIUS;
 
             InternalChild = new Box
             {

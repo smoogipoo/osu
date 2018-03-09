@@ -8,12 +8,13 @@ using osu.Framework.Allocation;
 using OpenTK;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Edit;
-using osu.Game.Rulesets.Edit.Layers.Selection;
+using osu.Game.Rulesets.Edit.Layers.DragSelection;
+using osu.Game.Rulesets.Edit.Layers.HitObjectSelection;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Edit;
-using osu.Game.Rulesets.Osu.Edit.Layers.Selection;
-using osu.Game.Rulesets.Osu.Edit.Layers.Selection.Overlays;
+using osu.Game.Rulesets.Osu.Edit.Layers.HitObjectSelection;
+using osu.Game.Rulesets.Osu.Edit.Layers.HitObjectSelection.Overlays;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Tests.Beatmaps;
 
@@ -25,12 +26,12 @@ namespace osu.Game.Tests.Visual
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(DragSelectionBox),
-            typeof(SelectionLayer),
+            typeof(DragSelectionLayer),
             typeof(SelectionOverlay),
             typeof(HitObjectComposer),
             typeof(OsuHitObjectComposer),
-            typeof(HitObjectOverlayLayer),
-            typeof(OsuHitObjectOverlayLayer),
+            typeof(HitObjectSelectionLayer),
+            typeof(OsuHitObjectSelectionLayer),
             typeof(HitObjectOverlay),
             typeof(HitCircleOverlay),
             typeof(SliderOverlay),

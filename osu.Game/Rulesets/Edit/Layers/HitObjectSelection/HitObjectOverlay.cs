@@ -4,7 +4,7 @@
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Objects.Drawables;
 
-namespace osu.Game.Rulesets.Edit.Layers.Selection
+namespace osu.Game.Rulesets.Edit.Layers.HitObjectSelection
 {
     public class HitObjectOverlay : Container
     {

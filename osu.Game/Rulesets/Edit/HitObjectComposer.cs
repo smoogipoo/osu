@@ -11,7 +11,8 @@ using osu.Framework.Logging;
 using osu.Framework.Timing;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Edit.Layers;
-using osu.Game.Rulesets.Edit.Layers.Selection;
+using osu.Game.Rulesets.Edit.Layers.DragSelection;
+using osu.Game.Rulesets.Edit.Layers.HitObjectSelection;
 using osu.Game.Rulesets.Edit.Tools;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Screens.Compose.RadioButtons;
@@ -49,8 +50,8 @@ namespace osu.Game.Rulesets.Edit
                 return;
             }
 
-            HitObjectOverlayLayer hitObjectOverlayLayer = CreateHitObjectOverlayLayer();
-            SelectionLayer selectionLayer = new SelectionLayer(rulesetContainer.Playfield);
+            HitObjectSelectionLayer hitObjectSelectionLayer = CreateHitObjectOverlayLayer();
+            DragSelectionLayer dragSelectionLayer = new DragSelectionLayer(rulesetContainer.Playfield);
 
             var layerBelowRuleset = new BorderLayer
             {
@@ -61,9 +62,9 @@ namespace osu.Game.Rulesets.Edit
             var layerAboveRuleset = CreateLayerContainer();
             layerAboveRuleset.Children = new Drawable[]
             {
-                selectionLayer, // Below object overlays for input
-                hitObjectOverlayLayer,
-                selectionLayer.CreateProxy() // Proxy above object overlays for selections
+                dragSelectionLayer, // Below object overlays for input
+                hitObjectSelectionLayer,
+                dragSelectionLayer.CreateProxy() // Proxy above object overlays for selections
             };
 
             layerContainers.Add(layerBelowRuleset);
@@ -106,10 +107,10 @@ namespace osu.Game.Rulesets.Edit
                 }
             };
 
-            selectionLayer.ObjectSelected += hitObjectOverlayLayer.AddOverlay;
-            selectionLayer.ObjectDeselected += hitObjectOverlayLayer.RemoveOverlay;
-            selectionLayer.SelectionCleared += hitObjectOverlayLayer.RemoveSelectionOverlay;
-            selectionLayer.SelectionFinished += hitObjectOverlayLayer.AddSelectionOverlay;
+            dragSelectionLayer.ObjectSelected += hitObjectSelectionLayer.AddOverlay;
+            dragSelectionLayer.ObjectDeselected += hitObjectSelectionLayer.RemoveOverlay;
+            dragSelectionLayer.SelectionCleared += hitObjectSelectionLayer.RemoveSelectionOverlay;
+            dragSelectionLayer.SelectionFinished += hitObjectSelectionLayer.AddSelectionOverlay;
 
             toolboxCollection.Items =
                 new[] { new RadioButton("Select", () => setCompositionTool(null)) }
@@ -146,8 +147,8 @@ namespace osu.Game.Rulesets.Edit
         protected virtual ScalableContainer CreateLayerContainer() => new ScalableContainer { RelativeSizeAxes = Axes.Both };
 
         /// <summary>
-        /// Creates the <see cref="HitObjectOverlayLayer"/> which overlays selected <see cref="DrawableHitObject"/>s.
+        /// Creates the <see cref="HitObjectSelectionLayer"/> which overlays selected <see cref="DrawableHitObject"/>s.
         /// </summary>
-        protected virtual HitObjectOverlayLayer CreateHitObjectOverlayLayer() => new HitObjectOverlayLayer();
+        protected virtual HitObjectSelectionLayer CreateHitObjectOverlayLayer() => new HitObjectSelectionLayer();
     }
 }

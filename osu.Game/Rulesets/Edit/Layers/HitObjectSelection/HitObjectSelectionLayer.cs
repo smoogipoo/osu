@@ -7,13 +7,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Objects.Drawables;
 
-namespace osu.Game.Rulesets.Edit.Layers.Selection
+namespace osu.Game.Rulesets.Edit.Layers.HitObjectSelection
 {
-    public class HitObjectOverlayLayer : CompositeDrawable
+    public class HitObjectSelectionLayer : CompositeDrawable
     {
         private readonly Container<HitObjectOverlay> overlayContainer;
 
-        public HitObjectOverlayLayer()
+        public HitObjectSelectionLayer()
         {
             RelativeSizeAxes = Axes.Both;
 
