@@ -12,14 +12,14 @@ namespace osu.Game.Rulesets.Edit.Layers.Selection
     /// <summary>
     /// A box that represents a drag selection.
     /// </summary>
-    public class SelectionBox : VisibilityContainer
+    public class DragSelectionBox : VisibilityContainer
     {
         public const float BORDER_RADIUS = 2;
 
         /// <summary>
-        /// Creates a new <see cref="SelectionBox"/>.
+        /// Creates a new <see cref="DragSelectionBox"/>.
         /// </summary>
-        public SelectionBox()
+        public DragSelectionBox()
         {
             Masking = true;
             BorderColour = Color4.White;

@@ -46,7 +46,7 @@ namespace osu.Game.Rulesets.Edit.Layers.Selection
             RelativeSizeAxes = Axes.Both;
         }
 
-        private SelectionBox selectionBox;
+        private DragSelectionBox dragSelectionBox;
 
         private readonly HashSet<DrawableHitObject> selectedHitObjects = new HashSet<DrawableHitObject>();
 
@@ -58,20 +58,20 @@ namespace osu.Game.Rulesets.Edit.Layers.Selection
 
         protected override bool OnDragStart(InputState state)
         {
-            AddInternal(selectionBox = new SelectionBox());
+            AddInternal(dragSelectionBox = new DragSelectionBox());
             return true;
         }
 
         protected override bool OnDrag(InputState state)
         {
-            selectionBox.Show();
+            dragSelectionBox.Show();
 
             var dragPosition = state.Mouse.NativeState.Position;
             var dragStartPosition = state.Mouse.NativeState.PositionMouseDown ?? dragPosition;
 
             var screenSpaceDragQuad = new Quad(dragStartPosition.X, dragStartPosition.Y, dragPosition.X - dragStartPosition.X, dragPosition.Y - dragStartPosition.Y);
 
-            selectionBox.SetDragRectangle(screenSpaceDragQuad.AABBFloat);
+            dragSelectionBox.SetDragRectangle(screenSpaceDragQuad.AABBFloat);
             selectQuad(screenSpaceDragQuad);
 
             return true;
@@ -79,8 +79,8 @@ namespace osu.Game.Rulesets.Edit.Layers.Selection
 
         protected override bool OnDragEnd(InputState state)
         {
-            selectionBox.Hide();
-            selectionBox.Expire();
+            dragSelectionBox.Hide();
+            dragSelectionBox.Expire();
 
             finishSelection();
 
