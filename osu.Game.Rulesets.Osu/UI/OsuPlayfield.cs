@@ -28,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.UI
         public static readonly Vector2 BASE_SIZE = new Vector2(512, 384);
 
         public OsuPlayfield()
-            : base(BASE_SIZE.X)
+            : base(BASE_SIZE.X, BASE_SIZE.Y)
         {
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;

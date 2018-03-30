@@ -31,7 +31,7 @@ namespace osu.Game.Rulesets.Osu.Edit
             new HitObjectCompositionTool<Spinner>()
         };
 
-        protected override ScalableContainer CreateLayerContainer() => new ScalableContainer(OsuPlayfield.BASE_SIZE.X) { RelativeSizeAxes = Axes.Both };
+        protected override ScalableContainer CreateLayerContainer() => new ScalableContainer(OsuPlayfield.BASE_SIZE.X, OsuPlayfield.BASE_SIZE.Y) { RelativeSizeAxes = Axes.Both };
 
         public override HitObjectMask CreateMaskFor(DrawableHitObject hitObject)
         {
