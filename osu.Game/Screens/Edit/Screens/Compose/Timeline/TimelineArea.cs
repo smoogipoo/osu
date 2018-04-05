@@ -6,6 +6,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Timing;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
@@ -18,7 +19,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
 
         private readonly Timeline timeline;
 
-        public TimelineArea()
+        public TimelineArea(IAdjustableClock adjustableClock)
         {
             Masking = true;
             CornerRadius = 5;
@@ -109,7 +110,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
                                     }
                                 }
                             },
-                            timeline = new Timeline { RelativeSizeAxes = Axes.Both }
+                            timeline = new Timeline(adjustableClock) { RelativeSizeAxes = Axes.Both }
                         },
                     },
                     ColumnDimensions = new[]

@@ -8,6 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Logging;
+using osu.Framework.Timing;
 using osu.Game.Screens.Edit.Screens.Compose.Timeline;
 
 namespace osu.Game.Screens.Edit.Screens.Compose
@@ -27,7 +28,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose
             => dependencies = new DependencyContainer(parent);
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(IAdjustableClock adjustableClock)
         {
             dependencies.Cache(beatDivisor);
 
@@ -68,7 +69,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose
                                                     {
                                                         RelativeSizeAxes = Axes.Both,
                                                         Padding = new MarginPadding { Right = 5 },
-                                                        Child = timelineArea = new TimelineArea { RelativeSizeAxes = Axes.Both }
+                                                        Child = timelineArea = new TimelineArea(adjustableClock) { RelativeSizeAxes = Axes.Both }
                                                     },
                                                     new BeatDivisorControl(beatDivisor) { RelativeSizeAxes = Axes.Both }
                                                 },

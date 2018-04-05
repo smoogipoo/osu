@@ -8,6 +8,7 @@ using OpenTK;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Timing;
 using osu.Game.Overlays;
 using osu.Game.Screens.Edit.Screens.Compose.Timeline;
 
@@ -30,7 +31,7 @@ namespace osu.Game.Tests.Visual
                     Origin = Anchor.TopCentre,
                     State = Visibility.Visible
                 },
-                timelineArea = new TimelineArea
+                timelineArea = new TimelineArea(new DecoupleableInterpolatingFramedClock())
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
