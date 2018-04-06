@@ -62,7 +62,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
         protected override bool OnWheel(InputState state)
         {
             if (!state.Keyboard.ControlPressed)
-                return base.OnWheel(state);
+                return false;
 
             if (adjustableClock.IsRunning)
             {
