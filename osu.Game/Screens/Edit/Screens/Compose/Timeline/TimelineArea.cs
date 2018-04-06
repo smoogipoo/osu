@@ -19,7 +19,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
 
         private readonly Timeline timeline;
 
-        public TimelineArea(IAdjustableClock adjustableClock)
+        public TimelineArea(IFrameBasedClock framedClock)
         {
             Masking = true;
             CornerRadius = 5;
@@ -110,7 +110,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
                                     }
                                 }
                             },
-                            timeline = new Timeline(adjustableClock) { RelativeSizeAxes = Axes.Both }
+                            timeline = new Timeline(framedClock) { RelativeSizeAxes = Axes.Both }
                         },
                     },
                     ColumnDimensions = new[]

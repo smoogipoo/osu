@@ -18,11 +18,11 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
         public readonly Bindable<bool> WaveformVisible = new Bindable<bool>();
         public readonly Bindable<WorkingBeatmap> Beatmap = new Bindable<WorkingBeatmap>();
 
-        private readonly IAdjustableClock adjustableClock;
+        private readonly IFrameBasedClock framedClock;
 
-        public Timeline(IAdjustableClock adjustableClock)
+        public Timeline(IFrameBasedClock framedClock)
         {
-            this.adjustableClock = adjustableClock;
+            this.framedClock = framedClock;
 
             BeatmapWaveformGraph waveform;
             Child = waveform = new BeatmapWaveformGraph
@@ -64,7 +64,7 @@ namespace osu.Game.Screens.Edit.Screens.Compose.Timeline
             if (!state.Keyboard.ControlPressed)
                 return false;
 
-            if (adjustableClock.IsRunning)
+            if (framedClock.IsRunning)
             {
                 // Bypass base to zoom while focusing on the centre point
                 Zoom += state.Mouse.WheelDelta;
