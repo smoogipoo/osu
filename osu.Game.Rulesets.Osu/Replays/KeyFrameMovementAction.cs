@@ -3,8 +3,7 @@
 
 namespace osu.Game.Rulesets.Osu.Replays
 {
-    public class KeyFrameAction
+    public class KeyFrameMovementAction : KeyFrameAction
     {
-        public HitPoint TargetPoint;
     }
 }

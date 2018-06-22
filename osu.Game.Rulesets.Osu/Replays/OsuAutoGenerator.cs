@@ -121,20 +121,17 @@ namespace osu.Game.Rulesets.Osu.Replays
             ButtonPlanner buttonManager = new ButtonPlanner();
             foreach (KeyFrame curr in keyFrames.Values)
             {
-                foreach (var unused in curr.Actions.Where(a => a.Type == KeyFrameActionType.Release))
+                foreach (var unused in curr.Actions.OfType<KeyFrameReleaseAction>())
                     buttonsPlan[curr.Time] = buttonManager.Release(curr.Time);
 
-                foreach (var clickAction in curr.Actions.Where(a => a.Type == KeyFrameActionType.Click))
+                foreach (var clickAction in curr.Actions.OfType<KeyFrameClickAction>())
                 {
-                    switch (clickAction.Location)
+                    if (clickAction.Primary)
+                        buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
+                    else
                     {
-                        case KeyFrameActionLocation.Start:
-                            buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
-                            break;
-                        case KeyFrameActionLocation.Mid:
-                            buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
-                            buttonManager.Release(curr.Time);
-                            break;
+                        buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
+                        buttonManager.Release(curr.Time);
                     }
                 }
             }
@@ -209,14 +206,14 @@ namespace osu.Game.Rulesets.Osu.Replays
             foreach (var curr in keyFrames.Values)
             {
                 // Clicks are prioritised
-                var clickAction = curr.Actions.FirstOrDefault(a => a.Type == KeyFrameActionType.Click);
+                var clickAction = curr.Actions.SingleOrDefault(a => a is KeyFrameClickAction);
                 if (clickAction != null)
                 {
                     activeHitpoints[curr.Time] = clickAction.TargetPoint;
                     continue;
                 }
 
-                var moveAction = curr.Actions.FirstOrDefault(a => a.Type == KeyFrameActionType.Move);
+                var moveAction = curr.Actions.SingleOrDefault(a => a is KeyFrameMovementAction);
                 if (moveAction != null)
                     activeHitpoints[curr.Time] = moveAction.TargetPoint;
             }

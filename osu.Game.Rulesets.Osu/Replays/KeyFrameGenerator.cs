@@ -77,26 +77,12 @@ namespace osu.Game.Rulesets.Osu.Replays
             {
                 foreach (var action in kvp.Value.Actions)
                 {
-                    switch (action.Type)
+                    switch (action)
                     {
-                        case KeyFrameActionType.Click:
-                        {
-                            // Transform all click actions that aren't at the start of their respective hold intervals into 'mid' actions
+                        case KeyFrameClickAction click:
                             var interval = holdIntervals.IntervalAt(kvp.Key);
-                            action.Location = kvp.Key == interval.Start ? KeyFrameActionLocation.Start : KeyFrameActionLocation.Mid;
+                            click.Primary = kvp.Key == interval.Start;
                             break;
-                        }
-                        case KeyFrameActionType.Spin:
-                        {
-                            var interval = SpinIntervals.IntervalAt(kvp.Key);
-                            if (kvp.Key == interval.Start)
-                                action.Location = KeyFrameActionLocation.Start;
-                            else if (kvp.Key == interval.End)
-                                action.Location = KeyFrameActionLocation.End;
-                            else
-                                action.Location = KeyFrameActionLocation.Mid;
-                            break;
-                        }
                     }
                 }
             }
@@ -110,9 +96,11 @@ namespace osu.Game.Rulesets.Osu.Replays
         {
             addKeyFrame(obj.StartTime);
 
-            KeyFrames[obj.StartTime].Actions.Add(new KeyFrameAction
+            if (KeyFrames[obj.StartTime].Actions.Any(a => a is KeyFrameMovementAction))
+                return;
+
+            KeyFrames[obj.StartTime].Actions.Add(new KeyFrameMovementAction
             {
-                Type = KeyFrameActionType.Move,
                 TargetPoint = new HitPoint
                 {
                     Time = obj.StartTime,
@@ -129,12 +117,11 @@ namespace osu.Game.Rulesets.Osu.Replays
         {
             addKeyFrame(obj.StartTime);
 
-            if (KeyFrames[obj.StartTime].Actions.Any(a => a.Type == KeyFrameActionType.Click))
+            if (KeyFrames[obj.StartTime].Actions.Any(a => a is KeyFrameClickAction))
                 return;
 
-            KeyFrames[obj.StartTime].Actions.Add(new KeyFrameAction
+            KeyFrames[obj.StartTime].Actions.Add(new KeyFrameClickAction
             {
-                Type = KeyFrameActionType.Click,
                 TargetPoint = new HitPoint
                 {
                     Time = obj.StartTime,
@@ -147,9 +134,8 @@ namespace osu.Game.Rulesets.Osu.Replays
         {
             addKeyFrame(time);
 
-            KeyFrames[time].Actions.Add(new KeyFrameAction
+            KeyFrames[time].Actions.Add(new KeyFrameReleaseAction
             {
-                Type = KeyFrameActionType.Release,
                 TargetPoint = new HitPoint { Time = time }
             });
         }

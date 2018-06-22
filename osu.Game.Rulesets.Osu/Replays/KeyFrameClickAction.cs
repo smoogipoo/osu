@@ -3,8 +3,11 @@
 
 namespace osu.Game.Rulesets.Osu.Replays
 {
-    public class KeyFrameAction
+    public class KeyFrameClickAction : KeyFrameAction
     {
-        public HitPoint TargetPoint;
+        /// <summary>
+        /// Whether this click action is the first in the sequence.
+        /// </summary>
+        public bool Primary = true;
     }
 }
