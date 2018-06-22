@@ -8,7 +8,7 @@ namespace osu.Game.Rulesets.Osu.Replays
     /// <summary>
     /// An interval. Stores a start point and an end point.
     /// </summary>
-    public class Interval : IComparable<Interval>
+    public class Interval : IComparable<Interval>, IEquatable<Interval>
     {
         public double Start;
         public double End;
@@ -24,5 +24,9 @@ namespace osu.Game.Rulesets.Osu.Replays
             // The two intervals overlap
             return 0;
         }
+
+        public bool Equals(Interval other) => other != null && Start.Equals(other.Start) && End.Equals(other.End);
+
+        public override string ToString() => $"{Start} -> {End}";
     }
 }

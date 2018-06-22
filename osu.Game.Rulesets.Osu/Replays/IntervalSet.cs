@@ -7,112 +7,67 @@ using System.Collections.Generic;
 namespace osu.Game.Rulesets.Osu.Replays
 {
     /// <summary>
-    /// Stores an interal, usually an interval between two timestamps.
+    /// Stores a set of <see cref="Interval"/>s, each between two data points.
     /// </summary>
     public class IntervalSet : List<Interval>
     {
         /// <summary>
-        /// Add a new interval to the interval set, merging intervals if they overlap.
-        /// Returns the interval that was ultimately added (after merging)
+        /// Adds a new interval to the set, merging intervals if they overlap.
+        /// Returns the interval that was ultimately added (after merging).
         /// </summary>
         public Interval AddInterval(double start, double end)
         {
             if (end < start)
-                return null;
+                throw new ArgumentException($"{nameof(start)} must be <= {nameof(end)}.");
 
-            // Smallest and largest overlapping intervals
-            int lowest = FindIndex(s => s.End >= start);
-            int highest = FindLastIndex(s => s.Start <= end);
+            // Any existing interval which overlaps at the start point of the new one
+            int startOverlap = FindIndex(s => s.End >= start);
 
-            // This means that the interval being inserted is larger than all existing intervals.
-            if (lowest == -1)
+            // Any existing interval which overlaps at the end point of the new one
+            int endOverlap = FindLastIndex(s => s.Start <= end);
+
+            Interval newInterval;
+
+            if (startOverlap == -1)
             {
-                lowest = Count;
-            }
-
-            // The case where the interval is smaller than everything is "automatic"
-            //if (highest == -1) {
-            //    highest = -1;
-            //}
-
-            if (lowest == highest + 1)
-            {
-                Interval interval = new Interval
+                // Adding at end, no overlap possible
+                startOverlap = Count;
+                Insert(startOverlap, newInterval = new Interval
                 {
                     Start = start,
                     End = end
-                };
-                // There are no intervals to merge
-                Insert(lowest, interval);
-                return interval;
+                });
             }
-            else
+            else if (endOverlap == -1)
             {
-                // Create a new interval that merges the overlapping intervals
-                Interval interval = new Interval
+                // Adding at start, no overlap possible
+                Insert(startOverlap, newInterval = new Interval
                 {
-                    Start = Math.Min(start, this[lowest].Start),
-                    End = Math.Max(end, this[highest].End)
-                };
-
-                RemoveRange(lowest, highest - lowest + 1);
-                Insert(lowest, interval);
-                return interval;
+                    Start = start,
+                    End = end
+                });
             }
-        }
-
-        public Interval AddInterval(Interval interval)
-        {
-            return AddInterval(interval.Start, interval.End);
-        }
-
-        public void RemoveInterval(double start, double end)
-        {
-            // Smallest and largest overlapping intervals
-            int lowest = BinarySearch(new Interval { Start = start, End = start});
-            int highest = BinarySearch(new Interval { Start = end, End = end });
-
-            // Special case where both lowest and highest are on the same interval
-            if (lowest >= 0 && lowest == highest)
+            else
             {
-                double origend = this[lowest].End;
-                this[lowest].End = start;
-                AddInterval(end, origend);
-                return;
+                // Adding somewhere in the middle, merge any overlapped intervals
+                double newStart = Math.Min(start, this[startOverlap].Start);
+                double newEnd = Math.Max(end, this[endOverlap].End);
+
+                RemoveRange(startOverlap, endOverlap - startOverlap + 1);
+                Insert(startOverlap, newInterval = new Interval
+                {
+                    Start = newStart,
+                    End = newEnd
+                });
             }
 
-            // Trim the edge overlapping intervals
-            // also set lowest and highest to the boundaries of all the intervals fully contained in (start, end)
-            if (lowest >= 0)
-                this[lowest++].End = start;
-            else
-                lowest = ~lowest;
-            if (highest >= 0)
-                this[highest].Start = end;
-            else
-                highest = ~highest;
-
-            // Remove all the intervals that were fully contained
-            RemoveRange(lowest, highest - lowest);
-        }
-
-        public void RemoveInterval(Interval interval)
-        {
-            RemoveInterval(interval.Start, interval.End);
-        }
-
-        public bool Contains(double value)
-        {
-            return BinarySearch(new Interval { Start = value, End = value }) >= 0;
+            return newInterval;
         }
 
         public Interval GetIntervalContaining(double value)
         {
             int index = BinarySearch(new Interval { Start = value, End = value });
-            if (index >= 0)
-                return this[index];
-            else
-                return null;
+            return index >= 0 ? this[index] : null;
         }
 
         public IntervalSet Intersect(double start, double end)
@@ -128,19 +83,12 @@ namespace osu.Game.Rulesets.Osu.Replays
             for (int index = startindex; index < Count; index++)
             {
                 if (this[index].Start > end)
-                {
                     break;
-                }
 
                 result.AddInterval(Math.Max(start, this[index].Start), Math.Min(end, this[index].End));
             }
 
             return result;
-        }
-
-        public IntervalSet Intersect(Interval interval)
-        {
-            return Intersect(interval.Start, interval.End);
         }
     }
 }
