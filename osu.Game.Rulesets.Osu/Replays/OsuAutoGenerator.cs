@@ -87,11 +87,11 @@ namespace osu.Game.Rulesets.Osu.Replays
 
             collectKeyInfo(out IntervalSet spinZones, out IntervalSet spinnerVisibleZones, out SortedDictionary<double, KeyFrame> keyFrames);
             filterHitpoints(out SortedDictionary<double, Hitpoint> activeHitpoints,
-                            keyFrames);
+                keyFrames);
             planButtons(out SortedDictionary<double, ButtonPlan> buttonsPlan,
-                        keyFrames);
+                keyFrames);
             generateButtons(out SortedDictionary<double, IEnumerable<OsuAction>> buttons,
-                            buttonsPlan);
+                buttonsPlan);
             generatePositions(out SortedDictionary<double, Vector2> positions, activeHitpoints, spinZones, spinnerVisibleZones);
 
             // Combine to form actual replay
@@ -118,9 +118,9 @@ namespace osu.Game.Rulesets.Osu.Replays
         private void collectKeyInfo(out IntervalSet spinZones, out IntervalSet spinnerVisibleZones, out SortedDictionary<double, KeyFrame> keyFrames)
         {
             IntervalSet holdZones = new IntervalSet();
-            spinZones             = new IntervalSet();
-            spinnerVisibleZones   = new IntervalSet();
-            keyFrames             = new SortedDictionary<double, KeyFrame>();
+            spinZones = new IntervalSet();
+            spinnerVisibleZones = new IntervalSet();
+            keyFrames = new SortedDictionary<double, KeyFrame>();
 
             foreach (OsuHitObject obj in Beatmap.HitObjects)
             {
@@ -183,6 +183,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 {
                     keyFrameIter.MoveNext();
                 }
+
                 keyFrameIter.Current.Value.Hold = IntervalState.Start;
                 keyFrameIter.MoveNext();
                 while (keyFrameIter.Current.Key < hold.End)
@@ -190,9 +191,11 @@ namespace osu.Game.Rulesets.Osu.Replays
                     keyFrameIter.Current.Value.Hold = IntervalState.Mid;
                     keyFrameIter.MoveNext();
                 }
+
                 keyFrameIter.Current.Value.Hold = IntervalState.End;
                 keyFrameIter.MoveNext();
             }
+
             keyFrameIter.Dispose();
             keyFrameIter = keyFrames.GetEnumerator();
             keyFrameIter.MoveNext();
@@ -202,6 +205,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 {
                     keyFrameIter.MoveNext();
                 }
+
                 keyFrameIter.Current.Value.Spin = IntervalState.Start;
                 keyFrameIter.MoveNext();
                 while (keyFrameIter.Current.Key < spin.End)
@@ -209,9 +213,11 @@ namespace osu.Game.Rulesets.Osu.Replays
                     keyFrameIter.Current.Value.Spin = IntervalState.Mid;
                     keyFrameIter.MoveNext();
                 }
+
                 keyFrameIter.Current.Value.Spin = IntervalState.End;
                 keyFrameIter.MoveNext();
             }
+
             keyFrameIter.Dispose();
         }
 
@@ -222,7 +228,8 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// <param name="keyFrames">A list of <see cref="KeyFrame"/> in the Beatmap, storing hitpoints (important timestamps where clicks/holds/etc. occur).</param>
         private void planButtons(out SortedDictionary<double, ButtonPlan> buttonsPlan, SortedDictionary<double, KeyFrame> keyFrames)
         {
-            buttonsPlan = new SortedDictionary<double, ButtonPlan> {
+            buttonsPlan = new SortedDictionary<double, ButtonPlan>
+            {
                 [Beatmap.HitObjects[0].StartTime - 1000] = new ButtonPlan()
             };
 
@@ -252,7 +259,8 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// <param name="buttonsPlan">A list of <see cref="ButtonPlan"/> which is basically a slightly more informative <see cref="OsuAction"/>.</param>
         private void generateButtons(out SortedDictionary<double, IEnumerable<OsuAction>> buttons, SortedDictionary<double, ButtonPlan> buttonsPlan)
         {
-            buttons = new SortedDictionary<double, IEnumerable<OsuAction>> {
+            buttons = new SortedDictionary<double, IEnumerable<OsuAction>>
+            {
                 [Beatmap.HitObjects[0].StartTime - 1000] = Enumerable.Empty<OsuAction>()
             };
 
@@ -287,9 +295,11 @@ namespace osu.Game.Rulesets.Osu.Replays
                             break;
                         }
                     }
+
                     buttons[ibutton.Key] = new[] { OsuAction.LeftButton, OsuAction.RightButton };
                     buttons[keyUpTime] = ibutton.Value.PrimaryRbs;
                 }
+
                 i++;
                 prev = ibutton.Value;
             }
@@ -302,7 +312,7 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// <param name="activeHitpoints">The finalised list of <see cref="Hitpoint"/> that will be used to generate positions.</param>
         /// <param name="keyFrames">A list of <see cref="KeyFrame"/>.</param>
         private void filterHitpoints(out SortedDictionary<double, Hitpoint> activeHitpoints,
-            SortedDictionary<double, KeyFrame> keyFrames)
+                                     SortedDictionary<double, KeyFrame> keyFrames)
         {
             activeHitpoints = new SortedDictionary<double, Hitpoint>();
             foreach (var curr in keyFrames.Values)
@@ -331,7 +341,8 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// <param name="spinnerVisibleZones">The intervals where at least one spinner is visible.</param>
         private void generatePositions(out SortedDictionary<double, Vector2> positions, SortedDictionary<double, Hitpoint> activeHitpoints, IntervalSet spinZones, IntervalSet spinnerVisibleZones)
         {
-            positions = new SortedDictionary<double, Vector2> {
+            positions = new SortedDictionary<double, Vector2>
+            {
                 [Beatmap.HitObjects[0].StartTime - 1000] = new Vector2(256, 192)
             };
 
@@ -360,14 +371,21 @@ namespace osu.Game.Rulesets.Osu.Replays
                         // Time when we should react to the right hitpoint
                         double reactionStartTime = right.HitObject.StartTime - Math.Max(0, right.HitObject.TimePreempt - reactionTime);
                         double startTime;
-                        if (left.Time >= right.Time - MIN_MOVE_TIME) {
+                        if (left.Time >= right.Time - MIN_MOVE_TIME)
+                        {
                             startTime = left.Time;
-                        } else if (left.Time + KEY_UP_DELAY >= right.Time - MIN_MOVE_TIME) {
+                        }
+                        else if (left.Time + KEY_UP_DELAY >= right.Time - MIN_MOVE_TIME)
+                        {
                             startTime = right.Time - MIN_MOVE_TIME;
-                        } else if (left.Time + KEY_UP_DELAY > reactionStartTime) {
+                        }
+                        else if (left.Time + KEY_UP_DELAY > reactionStartTime)
+                        {
                             // If possible, hover on the previous object for KEY_UP_DELAY ms
                             startTime = left.Time + KEY_UP_DELAY;
-                        } else {
+                        }
+                        else
+                        {
                             startTime = reactionStartTime;
                         }
 
@@ -391,7 +409,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                     // Travel from left to spin
                     double spinnerVisible = spinnerVisibleZones.GetIntervalContaining(startSpinTime).Start;
                     double leftStartTime = Math.Max(left.Time, Math.Min(startSpinTime - MIN_MOVE_TIME,
-                            spinnerVisible + reactionTime));
+                        spinnerVisible + reactionTime));
                     addMovePositions(positions, leftStartTime, startSpinTime, left.Position, firstSpinPos);
 
                     // Travel from spin to right
@@ -419,9 +437,10 @@ namespace osu.Game.Rulesets.Osu.Replays
 
                 // Travel from spin to first hitpoint
                 double startTime = Math.Max(startSpins.Last().End, Math.Min(firstHitpoint.Time - MIN_MOVE_TIME,
-                        firstHitpoint.HitObject.StartTime - Math.Max(0, firstHitpoint.HitObject.TimePreempt - reactionTime)));
+                    firstHitpoint.HitObject.StartTime - Math.Max(0, firstHitpoint.HitObject.TimePreempt - reactionTime)));
                 addMovePositions(positions, startTime, firstHitpoint.Time, firstSpinPos, firstHitpoint.Position);
             }
+
             if (endSpins.Count > 0)
             {
                 Vector2 curpos = lastHitpoint.Position;
@@ -434,7 +453,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 // Travel from last hitpoint to spin
                 double spinnerVisible = spinnerVisibleZones.GetIntervalContaining(endSpins[0].Start).Start;
                 double startTime = Math.Max(lastHitpoint.Time, Math.Min(endSpins[0].Start - MIN_MOVE_TIME,
-                        spinnerVisible + reactionTime));
+                    spinnerVisible + reactionTime));
                 addMovePositions(positions, startTime, endSpins[0].Start, lastHitpoint.Position, endSpinPos);
             }
         }
@@ -450,7 +469,8 @@ namespace osu.Game.Rulesets.Osu.Replays
             int buttonIndex = 0;
             var button = buttons.First();
             var buttonIter = buttons.GetEnumerator();
-            buttonIter.MoveNext(); buttonIter.MoveNext();
+            buttonIter.MoveNext();
+            buttonIter.MoveNext();
             var nextbutton = buttonIter.Current;
             foreach (var pos in positions)
             {
@@ -481,6 +501,7 @@ namespace osu.Game.Rulesets.Osu.Replays
 
                 AddFrameToReplay(new OsuReplayFrame(pos.Key, new Vector2(pos.Value.X, pos.Value.Y), button.Value.ToArray()));
             }
+
             buttonIter.Dispose();
         }
 
@@ -731,7 +752,7 @@ namespace osu.Game.Rulesets.Osu.Replays
             private const double alternate_threshold = 150; // 150ms is threshold for 120bpm streams
 
             // Extra metadata to manage state changes (when to alternate after Press, etc)
-            private double lastUsedLeft  = double.NegativeInfinity;
+            private double lastUsedLeft = double.NegativeInfinity;
             private double lastUsedRight = double.NegativeInfinity;
 
             private int numHeld; // Buttons currently held
@@ -752,17 +773,18 @@ namespace osu.Game.Rulesets.Osu.Replays
                     if (time - lastUsedLeft + KEY_UP_DELAY > alternate_threshold)
                     {
                         // The time since last used is big enough so we singletap
-                        curr = new ButtonPlan{Primary = Button.Left};
+                        curr = new ButtonPlan { Primary = Button.Left };
                     }
                     else if (lastUsedLeft < lastUsedRight)
                     {
                         // We're alternating, use the less recently used button
-                        curr = new ButtonPlan{Primary = Button.Left};
+                        curr = new ButtonPlan { Primary = Button.Left };
                     }
                     else
                     {
-                        curr = new ButtonPlan{Primary = Button.Right};
+                        curr = new ButtonPlan { Primary = Button.Right };
                     }
+
                     setLastUsed(curr.Primary, time);
                 }
                 else if (numHeld == 1)
@@ -778,8 +800,9 @@ namespace osu.Game.Rulesets.Osu.Replays
                     // }
                     // else
                     // {
-                    curr = new ButtonPlan{
-                        Primary   = curr.Primary,
+                    curr = new ButtonPlan
+                    {
+                        Primary = curr.Primary,
                         Secondary = curr.Primary ^ (Button.Left | Button.Right)
                     };
                     setLastUsed(curr.Secondary, time);
@@ -791,6 +814,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                     numHeld--;
                     throw new InvalidOperationException("Trying to click when both buttons are already pressed is likely a mistake. (at " + time + ")");
                 }
+
                 numHeld++;
                 return curr;
             }
@@ -805,7 +829,8 @@ namespace osu.Game.Rulesets.Osu.Replays
                 else if (numHeld == 2)
                 {
                     setLastUsed(curr.Secondary, time);
-                    curr = new ButtonPlan{
+                    curr = new ButtonPlan
+                    {
                         Primary = curr.Primary
                     };
                 }
@@ -814,6 +839,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                     // do nothing
                     numHeld++;
                 }
+
                 numHeld--;
                 return curr;
             }
@@ -824,7 +850,9 @@ namespace osu.Game.Rulesets.Osu.Replays
             public double Start;
             public double End;
 
-            public Interval() {}
+            public Interval()
+            {
+            }
 
             public Interval(double start, double end)
             {
@@ -857,12 +885,12 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// </summary>
         private class IntervalSet : List<Interval>
         {
-
             /// <summary>
             /// Add a new interval to the interval set, merging intervals if they overlap.
             /// Returns the interval that was ultimately added (after merging)
             /// </summary>
-            public Interval AddInterval(double start, double end) {
+            public Interval AddInterval(double start, double end)
+            {
                 if (end < start)
                     return null;
 
@@ -871,7 +899,8 @@ namespace osu.Game.Rulesets.Osu.Replays
                 int highest = FindLastIndex(s => s.Start <= end);
 
                 // This means that the interval being inserted is larger than all existing intervals.
-                if (lowest == -1) {
+                if (lowest == -1)
+                {
                     lowest = Count;
                 }
 
@@ -897,10 +926,10 @@ namespace osu.Game.Rulesets.Osu.Replays
                     Interval interval = new Interval
                     {
                         Start = Math.Min(start, this[lowest].Start),
-                        End   = Math.Max(end, this[highest].End)
+                        End = Math.Max(end, this[highest].End)
                     };
 
-                    RemoveRange(lowest, highest-lowest+1);
+                    RemoveRange(lowest, highest - lowest + 1);
                     Insert(lowest, interval);
                     return interval;
                 }
@@ -976,8 +1005,10 @@ namespace osu.Game.Rulesets.Osu.Replays
                     {
                         break;
                     }
+
                     result.AddInterval(Math.Max(start, this[index].Start), Math.Min(end, this[index].End));
                 }
+
                 return result;
             }
 
