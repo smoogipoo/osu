@@ -67,7 +67,11 @@ namespace osu.Game.Rulesets.Osu.Replays
         public Interval GetIntervalContaining(double value)
         {
             int index = BinarySearch(new Interval { Start = value, End = value });
-            return index >= 0 ? this[index] : null;
+
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "The point is not contained by any interval.");
+
+            return this[index];
         }
 
         public IntervalSet Intersect(double start, double end)
