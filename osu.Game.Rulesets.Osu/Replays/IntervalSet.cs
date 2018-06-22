@@ -64,6 +64,8 @@ namespace osu.Game.Rulesets.Osu.Replays
             return newInterval;
         }
 
+        public Interval AddInterval(Interval other) => AddInterval(other.Start, other.End);
+
         public Interval IntervalAt(double value)
         {
             int index = BinarySearch(new Interval { Start = value, End = value });

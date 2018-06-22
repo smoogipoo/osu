@@ -39,33 +39,21 @@ namespace osu.Game.Rulesets.Osu.Replays
 
             foreach (OsuHitObject obj in beatmap.HitObjects)
             {
-                // All hitobjects require the button to be held from their start time to their end time
-                Interval baseInterval = holdIntervals.AddInterval(obj.StartTime, ((obj as IHasEndTime)?.EndTime ?? obj.StartTime) + AutoGenerator<OsuHitObject>.KEY_UP_DELAY);
-                addKeyFrame(baseInterval.Start);
-                addKeyFrame(baseInterval.End);
+                // All hitobjects require a click
+                holdIntervals.AddInterval(addClickAction(obj));
 
                 switch (obj)
                 {
-                    // Now we add hitpoints of interest (clicks and follows or spins)
-                    case HitCircle _:
-                        addClickAction(obj);
-                        break;
                     case Slider slider:
                         foreach (var n in slider.NestedHitObjects)
                         {
-                            if (n == slider.HeadCircle)
-                                addClickAction((OsuHitObject)n);
-                            else
+                            if (n != slider.HeadCircle)
                                 addMovementAction((OsuHitObject)n);
                         }
                         break;
                     case Spinner spinner:
-                        Interval interval = SpinIntervals.AddInterval(spinner.StartTime, spinner.EndTime);
+                        SpinIntervals.AddInterval(spinner.StartTime, spinner.EndTime);
                         SpinnerVisibleIntervals.AddInterval(spinner.StartTime - spinner.TimePreempt, spinner.EndTime);
-
-                        // Create keyframes for the spinner, but don't explicitly require movement
-                        addKeyFrame(interval.Start);
-                        addKeyFrame(interval.End);
                         break;
                 }
             }
@@ -110,15 +98,23 @@ namespace osu.Game.Rulesets.Osu.Replays
         }
 
         /// <summary>
-        /// Adds a click <see cref="KeyFrame"/> at a point in time.
+        /// Adds a <see cref="KeyFrameClickAction"/> for a <see cref="OsuHitObject"/>.
         /// </summary>
         /// <param name="obj">The <see cref="OsuHitObject"/> that will be clicked.</param>
-        private void addClickAction(OsuHitObject obj)
+        /// <returns>The interval of the button being held down for <paramref name="obj"/>.</returns>
+        private Interval addClickAction(OsuHitObject obj)
         {
-            addKeyFrame(obj.StartTime);
+            var interval = new Interval
+            {
+                Start = obj.StartTime,
+                End = ((obj as IHasEndTime)?.EndTime ?? obj.StartTime) + AutoGenerator<OsuHitObject>.KEY_UP_DELAY
+            };
+
+            addKeyFrame(interval.Start);
+            addKeyFrame(interval.End);
 
             if (KeyFrames[obj.StartTime].Actions.Any(a => a is KeyFrameClickAction))
-                return;
+                return interval;
 
             KeyFrames[obj.StartTime].Actions.Add(new KeyFrameClickAction
             {
@@ -128,8 +124,15 @@ namespace osu.Game.Rulesets.Osu.Replays
                     HitObject = obj
                 }
             });
+
+            return interval;
         }
 
+        /// <summary>
+        /// Adds a <see cref="KeyFrameReleaseAction"/> at a point in time.
+        /// This will cause a button to be released.
+        /// </summary>
+        /// <param name="time">The time of the <see cref="KeyFrameReleaseAction"/>.</param>
         private void addReleaseAction(double time)
         {
             addKeyFrame(time);
