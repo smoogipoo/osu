@@ -16,29 +16,9 @@ namespace osu.Game.Rulesets.Osu.Replays
         public readonly double Time;
 
         /// <summary>
-        /// The current gameplay hold state.
+        /// The actions that need to be performed during this <see cref="KeyFrame"/>.
         /// </summary>
-        public IntervalState Hold = IntervalState.None;
-
-        /// <summary>
-        /// List of <see cref="HitPoint"/>s where the cursor should be near to.
-        /// </summary>
-        public readonly List<HitPoint> Moves = new List<HitPoint>();
-
-        /// <summary>
-        /// Whether the cursor should be near any points.
-        /// </summary>
-        public bool HasMove => Moves.Count > 0;
-
-        /// <summary>
-        /// List of <see cref="HitPoint"/>s that need to be clicked.
-        /// </summary>
-        public readonly List<HitPoint> Clicks = new List<HitPoint>();
-
-        /// <summary>
-        /// Whether any <see cref="HitPoint"/>s need to be clicked.
-        /// </summary>
-        public bool HasClick => Clicks.Count > 0;
+        public readonly List<KeyFrameAction> Actions = new List<KeyFrameAction>();
 
         public KeyFrame(double time)
         {

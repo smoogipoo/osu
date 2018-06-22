@@ -121,18 +121,21 @@ namespace osu.Game.Rulesets.Osu.Replays
             ButtonPlanner buttonManager = new ButtonPlanner();
             foreach (KeyFrame curr in keyFrames.Values)
             {
-                if (curr.Hold == IntervalState.Mid && curr.HasClick)
-                {
-                    buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
-                    buttonManager.Release(curr.Time);
-                }
-                else if (curr.Hold == IntervalState.End)
-                {
+                foreach (var unused in curr.Actions.Where(a => a.Type == KeyFrameActionType.Release))
                     buttonsPlan[curr.Time] = buttonManager.Release(curr.Time);
-                }
-                else if (curr.Hold == IntervalState.Start)
+
+                foreach (var clickAction in curr.Actions.Where(a => a.Type == KeyFrameActionType.Click))
                 {
-                    buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
+                    switch (clickAction.Location)
+                    {
+                        case KeyFrameActionLocation.Start:
+                            buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
+                            break;
+                        case KeyFrameActionLocation.Mid:
+                            buttonsPlan[curr.Time] = buttonManager.Press(curr.Time);
+                            buttonManager.Release(curr.Time);
+                            break;
+                    }
                 }
             }
         }
@@ -200,19 +203,22 @@ namespace osu.Game.Rulesets.Osu.Replays
                                      SortedDictionary<double, KeyFrame> keyFrames)
         {
             activeHitpoints = new SortedDictionary<double, HitPoint>();
+
+            // Click or move to the first object in each keyframe
+
             foreach (var curr in keyFrames.Values)
             {
-                // For now just make it click/move to the first object, prioritising clicks
-                if (curr.HasClick && !curr.HasMove)
-                    activeHitpoints[curr.Time] = curr.Clicks[0];
-                else if (!curr.HasClick && curr.HasMove)
-                    activeHitpoints[curr.Time] = curr.Moves[0];
-                else if (curr.HasClick && curr.HasMove)
-                    activeHitpoints[curr.Time] = curr.Clicks[0];
-                else
+                // Clicks are prioritised
+                var clickAction = curr.Actions.FirstOrDefault(a => a.Type == KeyFrameActionType.Click);
+                if (clickAction != null)
                 {
-                    // Nothing to do if there is already nothing to click or move to
+                    activeHitpoints[curr.Time] = clickAction.TargetPoint;
+                    continue;
                 }
+
+                var moveAction = curr.Actions.FirstOrDefault(a => a.Type == KeyFrameActionType.Move);
+                if (moveAction != null)
+                    activeHitpoints[curr.Time] = moveAction.TargetPoint;
             }
         }
 
@@ -292,7 +298,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                         curpos = addSpinPositions(positions, curpos, spin);
 
                     // Travel from left to spin
-                    double spinnerVisible = spinnerVisibleZones.GetIntervalContaining(startSpinTime).Start;
+                    double spinnerVisible = spinnerVisibleZones.IntervalAt(startSpinTime).Start;
                     double leftStartTime = Math.Max(left.Time, Math.Min(startSpinTime - MIN_MOVE_TIME,
                         spinnerVisible + reactionTime));
                     addMovePositions(positions, leftStartTime, startSpinTime, left.Position, firstSpinPos);
@@ -336,7 +342,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 }
 
                 // Travel from last hitpoint to spin
-                double spinnerVisible = spinnerVisibleZones.GetIntervalContaining(endSpins[0].Start).Start;
+                double spinnerVisible = spinnerVisibleZones.IntervalAt(endSpins[0].Start).Start;
                 double startTime = Math.Max(lastHitPoint.Time, Math.Min(endSpins[0].Start - MIN_MOVE_TIME,
                     spinnerVisible + reactionTime));
                 addMovePositions(positions, startTime, endSpins[0].Start, lastHitPoint.Position, endSpinPos);

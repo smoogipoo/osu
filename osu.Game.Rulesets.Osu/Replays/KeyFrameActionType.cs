@@ -4,25 +4,25 @@
 namespace osu.Game.Rulesets.Osu.Replays
 {
     /// <summary>
-    /// Represents the gameplay state during an interval.
+    /// The types of action performed during the a <see cref="KeyFrame"/>.
     /// </summary>
-    public enum IntervalState
+    public enum KeyFrameActionType
     {
         /// <summary>
-        /// Nothing is happening.
+        /// The cursor should be moved.
         /// </summary>
-        None,
+        Move,
         /// <summary>
-        /// Gameplay is at the start of an interval.
+        /// A button should be clicked.
         /// </summary>
-        Start,
+        Click,
         /// <summary>
-        /// Gameplay is within an interval.
+        /// A button should be released.
         /// </summary>
-        Mid,
+        Release,
         /// <summary>
-        /// Gameplay is at the end of an interval.
+        /// The cursor should be spun.
         /// </summary>
-        End
+        Spin
     }
 }

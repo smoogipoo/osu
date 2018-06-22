@@ -64,15 +64,29 @@ namespace osu.Game.Rulesets.Osu.Replays
             return newInterval;
         }
 
-        public Interval GetIntervalContaining(double value)
+        public Interval IntervalAt(double value)
         {
             int index = BinarySearch(new Interval { Start = value, End = value });
-
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), "The point is not contained by any interval.");
 
             return this[index];
         }
+
+        public bool TryGetIntervalAt(double value, out Interval interval)
+        {
+            int index = BinarySearch(new Interval { Start = value, End = value });
+            if (index < 0)
+            {
+                interval = default(Interval);
+                return false;
+            }
+
+            interval = this[index];
+            return true;
+        }
+
+        public bool IsInInterval(double value) => BinarySearch(new Interval { Start = value, End = value }) >= 0;
 
         public IntervalSet Intersect(double start, double end)
         {

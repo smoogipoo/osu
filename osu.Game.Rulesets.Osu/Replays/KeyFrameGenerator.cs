@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using System.Collections.Generic;
+using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
@@ -47,15 +48,15 @@ namespace osu.Game.Rulesets.Osu.Replays
                 {
                     // Now we add hitpoints of interest (clicks and follows or spins)
                     case HitCircle _:
-                        addClickPoint(obj, obj.StartTime);
+                        addClickAction(obj);
                         break;
                     case Slider slider:
                         foreach (var n in slider.NestedHitObjects)
                         {
                             if (n == slider.HeadCircle)
-                                addClickPoint((OsuHitObject)n, n.StartTime);
+                                addClickAction((OsuHitObject)n);
                             else
-                                addMovePoint((OsuHitObject)n, n.StartTime);
+                                addMovementAction((OsuHitObject)n);
                         }
                         break;
                     case Spinner spinner:
@@ -69,63 +70,88 @@ namespace osu.Game.Rulesets.Osu.Replays
                 }
             }
 
-            // Set Hold and Spin IntervalStates
-            var keyFrameIter = KeyFrames.GetEnumerator();
-            keyFrameIter.MoveNext();
-            foreach (var hold in holdIntervals)
+            foreach (var interval in holdIntervals)
+                addReleaseAction(interval.End);
+
+            foreach (var kvp in KeyFrames)
             {
-                while (keyFrameIter.Current.Key < hold.Start)
+                foreach (var action in kvp.Value.Actions)
                 {
-                    keyFrameIter.MoveNext();
+                    switch (action.Type)
+                    {
+                        case KeyFrameActionType.Click:
+                        {
+                            // Transform all click actions that aren't at the start of their respective hold intervals into 'mid' actions
+                            var interval = holdIntervals.IntervalAt(kvp.Key);
+                            action.Location = kvp.Key == interval.Start ? KeyFrameActionLocation.Start : KeyFrameActionLocation.Mid;
+                            break;
+                        }
+                        case KeyFrameActionType.Spin:
+                        {
+                            var interval = SpinIntervals.IntervalAt(kvp.Key);
+                            if (kvp.Key == interval.Start)
+                                action.Location = KeyFrameActionLocation.Start;
+                            else if (kvp.Key == interval.End)
+                                action.Location = KeyFrameActionLocation.End;
+                            else
+                                action.Location = KeyFrameActionLocation.Mid;
+                            break;
+                        }
+                    }
                 }
-
-                keyFrameIter.Current.Value.Hold = IntervalState.Start;
-                keyFrameIter.MoveNext();
-                while (keyFrameIter.Current.Key < hold.End)
-                {
-                    keyFrameIter.Current.Value.Hold = IntervalState.Mid;
-                    keyFrameIter.MoveNext();
-                }
-
-                keyFrameIter.Current.Value.Hold = IntervalState.End;
-                keyFrameIter.MoveNext();
             }
-
-            keyFrameIter.Dispose();
         }
 
         /// <summary>
         /// Adds a movement <see cref="KeyFrame"/> at a point in time.
         /// </summary>
         /// <param name="obj">The <see cref="OsuHitObject"/> that is targeted by this movement.</param>
-        /// <param name="time">The time to add the <see cref="KeyFrame"/> at.</param>
-        private void addMovePoint(OsuHitObject obj, double time)
+        private void addMovementAction(OsuHitObject obj)
         {
-            HitPoint movePoint = new HitPoint
-            {
-                Time = time,
-                HitObject = obj
-            };
+            addKeyFrame(obj.StartTime);
 
-            addKeyFrame(time);
-            KeyFrames[time].Moves.Add(movePoint);
+            KeyFrames[obj.StartTime].Actions.Add(new KeyFrameAction
+            {
+                Type = KeyFrameActionType.Move,
+                TargetPoint = new HitPoint
+                {
+                    Time = obj.StartTime,
+                    HitObject = obj
+                }
+            });
         }
 
         /// <summary>
         /// Adds a click <see cref="KeyFrame"/> at a point in time.
         /// </summary>
         /// <param name="obj">The <see cref="OsuHitObject"/> that will be clicked.</param>
-        /// <param name="time">The time to add the <see cref="KeyFrame"/> at.</param>
-        private void addClickPoint(OsuHitObject obj, double time)
+        private void addClickAction(OsuHitObject obj)
         {
-            HitPoint clickPoint = new HitPoint
-            {
-                Time = time,
-                HitObject = obj
-            };
+            addKeyFrame(obj.StartTime);
 
+            if (KeyFrames[obj.StartTime].Actions.Any(a => a.Type == KeyFrameActionType.Click))
+                return;
+
+            KeyFrames[obj.StartTime].Actions.Add(new KeyFrameAction
+            {
+                Type = KeyFrameActionType.Click,
+                TargetPoint = new HitPoint
+                {
+                    Time = obj.StartTime,
+                    HitObject = obj
+                }
+            });
+        }
+
+        private void addReleaseAction(double time)
+        {
             addKeyFrame(time);
-            KeyFrames[time].Clicks.Add(clickPoint);
+
+            KeyFrames[time].Actions.Add(new KeyFrameAction
+            {
+                Type = KeyFrameActionType.Release,
+                TargetPoint = new HitPoint { Time = time }
+            });
         }
 
         /// <summary>
