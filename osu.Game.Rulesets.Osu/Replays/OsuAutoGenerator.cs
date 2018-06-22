@@ -10,7 +10,6 @@ using System.Linq;
 using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Logging;
-using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Replays;
 using System.Collections.Generic;
 
@@ -85,14 +84,12 @@ namespace osu.Game.Rulesets.Osu.Replays
             //  5) The 5th step generates all cursor positions
             //  6) The 6th step combines cursor locations with button states to produce the actual replayframes
 
-            collectKeyInfo(out IntervalSet spinZones, out IntervalSet spinnerVisibleZones, out SortedDictionary<double, KeyFrame> keyFrames);
-            filterHitpoints(out SortedDictionary<double, HitPoint> activeHitpoints,
-                keyFrames);
-            planButtons(out SortedDictionary<double, ButtonPlan> buttonsPlan,
-                keyFrames);
-            generateButtons(out SortedDictionary<double, IEnumerable<OsuAction>> buttons,
-                buttonsPlan);
-            generatePositions(out SortedDictionary<double, Vector2> positions, activeHitpoints, spinZones, spinnerVisibleZones);
+            var keyframeGenerator = new KeyFrameGenerator(Beatmap);
+
+            filterHitpoints(out SortedDictionary<double, HitPoint> activeHitpoints, keyframeGenerator.KeyFrames);
+            planButtons(out SortedDictionary<double, ButtonPlan> buttonsPlan, keyframeGenerator.KeyFrames);
+            generateButtons(out SortedDictionary<double, IEnumerable<OsuAction>> buttons, buttonsPlan);
+            generatePositions(out SortedDictionary<double, Vector2> positions, activeHitpoints, keyframeGenerator.SpinIntervals, keyframeGenerator.SpinnerVisibleIntervals);
 
             // Combine to form actual replay
             AddFrameToReplay(new OsuReplayFrame(-100000, new Vector2(256, 500), Array.Empty<OsuAction>()));
@@ -108,96 +105,6 @@ namespace osu.Game.Rulesets.Osu.Replays
         }
 
         #region Generation steps
-
-        /// <summary>
-        /// Extracts the most important info from the Beatmap first, which will be further processed to generate the replay.
-        /// </summary>
-        /// <param name="spinZones">The intervals where spinning will be required.</param>
-        /// <param name="spinnerVisibleZones">The intervals where at least 1 spinner is visible.</param>
-        /// <param name="keyFrames">A list of <see cref="KeyFrame"/> in the Beatmap, storing important timestamps where clicks/holds/etc. occur.</param>
-        private void collectKeyInfo(out IntervalSet spinZones, out IntervalSet spinnerVisibleZones, out SortedDictionary<double, KeyFrame> keyFrames)
-        {
-            IntervalSet holdZones = new IntervalSet();
-            spinZones = new IntervalSet();
-            spinnerVisibleZones = new IntervalSet();
-            keyFrames = new SortedDictionary<double, KeyFrame>();
-
-            foreach (OsuHitObject obj in Beatmap.HitObjects)
-            {
-                // Circles are also "holds" for KEY_UP_DELAY amount of time
-                // so we just add holdZones regardless of object type
-                {
-                    Interval interval = holdZones.AddInterval(
-                        obj.StartTime,
-                        ((obj as IHasEndTime)?.EndTime ?? obj.StartTime) + KEY_UP_DELAY
-                    );
-
-                    // Create frames for the new hold
-                    addKeyFrame(keyFrames, interval.Start);
-                    addKeyFrame(keyFrames, interval.End);
-                }
-
-                // Now we add hitpoints of interest (clicks and follows or spins)
-                if (obj is HitCircle)
-                {
-                    addHitpoint(keyFrames, obj, obj.StartTime, true, false);
-                }
-                else if (obj is Slider)
-                {
-                    Slider slider = obj as Slider;
-
-                    // Slider head
-                    addHitpoint(keyFrames, slider, slider.StartTime, true, false);
-
-                    // Slider ticks and repeats
-                    foreach (var n in slider.NestedHitObjects)
-                    {
-                        if (n is SliderTick || n is RepeatPoint)
-                        {
-                            addHitpoint(keyFrames, slider, n.StartTime, false, true);
-                        }
-                    }
-
-                    // Slider tail
-                    addHitpoint(keyFrames, slider, slider.EndTime, false, true);
-                }
-                else if (obj is Spinner)
-                {
-                    Spinner spinner = (Spinner)obj;
-
-                    Interval interval = spinZones.AddInterval(spinner.StartTime, spinner.EndTime);
-                    spinnerVisibleZones.AddInterval(spinner.StartTime - spinner.TimePreempt, spinner.EndTime);
-
-                    // Create frames for the new spin
-                    addKeyFrame(keyFrames, interval.Start);
-                    addKeyFrame(keyFrames, interval.End);
-                }
-            }
-
-            // Set Hold and Spin IntervalStates
-            var keyFrameIter = keyFrames.GetEnumerator();
-            keyFrameIter.MoveNext();
-            foreach (var hold in holdZones)
-            {
-                while (keyFrameIter.Current.Key < hold.Start)
-                {
-                    keyFrameIter.MoveNext();
-                }
-
-                keyFrameIter.Current.Value.Hold = IntervalState.Start;
-                keyFrameIter.MoveNext();
-                while (keyFrameIter.Current.Key < hold.End)
-                {
-                    keyFrameIter.Current.Value.Hold = IntervalState.Mid;
-                    keyFrameIter.MoveNext();
-                }
-
-                keyFrameIter.Current.Value.Hold = IntervalState.End;
-                keyFrameIter.MoveNext();
-            }
-
-            keyFrameIter.Dispose();
-        }
 
         /// <summary>
         /// Determines when and which buttons should be pressed using the key frames given.
@@ -561,52 +468,6 @@ namespace osu.Game.Rulesets.Osu.Replays
         #endregion
 
         #region keyframe/hitpoint/zones Helpers
-
-        /// <summary>
-        /// Create a new <see cref="KeyFrame"/> in the <paramref name="keyFrames"/> list at the specified timestamp <paramref name="time"/>.
-        /// </summary>
-        /// <param name="keyFrames">The key frame list.</param>
-        /// <param name="time">The timestamp to generate the key frame at.</param>
-        private void addKeyFrame(SortedDictionary<double, KeyFrame> keyFrames, double time)
-        {
-            if (!keyFrames.ContainsKey(time))
-            {
-                keyFrames[time] = new KeyFrame(time);
-            }
-        }
-
-        /// <summary>
-        /// Adds a hitpoint to the key frame list, creating a new key frame if necessary.
-        /// </summary>
-        /// <param name="keyFrames">The key frame list.</param>
-        /// <param name="obj">The <see cref="OsuHitObject"/> of this hitpoint.</param>
-        /// <param name="time">The timestamp of this hitpoint.</param>
-        /// <param name="click">Whether this hitpoint should be clicked or not (a circle or slider head).</param>
-        /// <param name="move">Whether the cursor should move to this hitpoint or not (a circle or slider, not a spinner).</param>
-        private void addHitpoint(SortedDictionary<double, KeyFrame> keyFrames, OsuHitObject obj, double time, bool click, bool move)
-        {
-            HitPoint newhitpoint = new HitPoint
-            {
-                Time = time,
-                HitObject = obj
-            };
-
-            // Add click to keyFrames
-            if (click)
-            {
-                addKeyFrame(keyFrames, time);
-
-                keyFrames[time].Clicks.Add(newhitpoint);
-            }
-
-            // Add move to keyFrames
-            if (move)
-            {
-                addKeyFrame(keyFrames, time);
-
-                keyFrames[time].Moves.Add(newhitpoint);
-            }
-        }
 
         #endregion
 
