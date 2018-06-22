@@ -10,25 +10,34 @@ namespace osu.Game.Rulesets.Osu.Replays
     /// </summary>
     public class KeyFrame
     {
-        // The timestamp where all this is happening
+        /// <summary>
+        /// The time of this <see cref="KeyFrame"/>.
+        /// </summary>
         public readonly double Time;
 
-        // Whether we're at the start of a holdZone, middle of one, or at the end of one.
+        /// <summary>
+        /// The current gameplay hold state.
+        /// </summary>
         public IntervalState Hold = IntervalState.None;
-        public bool WasHolding => Hold == IntervalState.Mid || Hold == IntervalState.End;
-        public bool Holding => Hold == IntervalState.Start || Hold == IntervalState.Mid;
 
-        // Ditto for spins
-        public IntervalState Spin = IntervalState.None;
-        public bool WasSpinning => Spin == IntervalState.Mid || Spin == IntervalState.End;
-        public bool Spinning => Spin == IntervalState.Start || Hold == IntervalState.Mid;
+        /// <summary>
+        /// List of <see cref="HitPoint"/>s where the cursor should be near to.
+        /// </summary>
+        public readonly List<HitPoint> Moves = new List<HitPoint>();
 
-        // List of hitpoints we want our cursor to be near to
-        public readonly List<Hitpoint> Moves = new List<Hitpoint>();
+        /// <summary>
+        /// Whether the cursor should be near any points.
+        /// </summary>
         public bool HasMove => Moves.Count > 0;
 
-        // List of hitpoints we need to click
-        public readonly List<Hitpoint> Clicks = new List<Hitpoint>();
+        /// <summary>
+        /// List of <see cref="HitPoint"/>s that need to be clicked.
+        /// </summary>
+        public readonly List<HitPoint> Clicks = new List<HitPoint>();
+
+        /// <summary>
+        /// Whether any <see cref="HitPoint"/>s need to be clicked.
+        /// </summary>
         public bool HasClick => Clicks.Count > 0;
 
         public KeyFrame(double time)

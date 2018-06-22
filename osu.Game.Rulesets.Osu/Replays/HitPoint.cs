@@ -10,7 +10,7 @@ namespace osu.Game.Rulesets.Osu.Replays
     /// Basically a timestamp and a position, used to generate positions.
     /// Keeps a reference to the corresponding <see cref="OsuHitObject"/> in so we can see whether we should follow sliders or not afterwards.
     /// </summary>
-    public class Hitpoint
+    public class HitPoint
     {
         public double Time;
 

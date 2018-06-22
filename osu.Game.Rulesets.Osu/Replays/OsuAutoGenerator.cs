@@ -86,7 +86,7 @@ namespace osu.Game.Rulesets.Osu.Replays
             //  6) The 6th step combines cursor locations with button states to produce the actual replayframes
 
             collectKeyInfo(out IntervalSet spinZones, out IntervalSet spinnerVisibleZones, out SortedDictionary<double, KeyFrame> keyFrames);
-            filterHitpoints(out SortedDictionary<double, Hitpoint> activeHitpoints,
+            filterHitpoints(out SortedDictionary<double, HitPoint> activeHitpoints,
                 keyFrames);
             planButtons(out SortedDictionary<double, ButtonPlan> buttonsPlan,
                 keyFrames);
@@ -197,28 +197,6 @@ namespace osu.Game.Rulesets.Osu.Replays
             }
 
             keyFrameIter.Dispose();
-            keyFrameIter = keyFrames.GetEnumerator();
-            keyFrameIter.MoveNext();
-            foreach (var spin in spinZones)
-            {
-                while (keyFrameIter.Current.Key < spin.Start)
-                {
-                    keyFrameIter.MoveNext();
-                }
-
-                keyFrameIter.Current.Value.Spin = IntervalState.Start;
-                keyFrameIter.MoveNext();
-                while (keyFrameIter.Current.Key < spin.End)
-                {
-                    keyFrameIter.Current.Value.Spin = IntervalState.Mid;
-                    keyFrameIter.MoveNext();
-                }
-
-                keyFrameIter.Current.Value.Spin = IntervalState.End;
-                keyFrameIter.MoveNext();
-            }
-
-            keyFrameIter.Dispose();
         }
 
         /// <summary>
@@ -309,12 +287,12 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// Determines the actual hitpoints that should be used, as a single KeyFrame may contain multiple hitpoints on the same timestamp.
         /// The hitpoints will then be used to generate cursor movement.
         /// </summary>
-        /// <param name="activeHitpoints">The finalised list of <see cref="Hitpoint"/> that will be used to generate positions.</param>
+        /// <param name="activeHitpoints">The finalised list of <see cref="HitPoint"/> that will be used to generate positions.</param>
         /// <param name="keyFrames">A list of <see cref="KeyFrame"/>.</param>
-        private void filterHitpoints(out SortedDictionary<double, Hitpoint> activeHitpoints,
+        private void filterHitpoints(out SortedDictionary<double, HitPoint> activeHitpoints,
                                      SortedDictionary<double, KeyFrame> keyFrames)
         {
-            activeHitpoints = new SortedDictionary<double, Hitpoint>();
+            activeHitpoints = new SortedDictionary<double, HitPoint>();
             foreach (var curr in keyFrames.Values)
             {
                 // For now just make it click/move to the first object, prioritising clicks
@@ -336,10 +314,10 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// Also spins the cursor if we should be spinning and there is sufficient time between any two hitpoints.
         /// </summary>
         /// <param name="positions">The cursor positions.</param>
-        /// <param name="activeHitpoints">The list of <see cref="Hitpoint"/>.</param>
+        /// <param name="activeHitpoints">The list of <see cref="HitPoint"/>.</param>
         /// <param name="spinZones">The intervals where we should spin the cursor.</param>
         /// <param name="spinnerVisibleZones">The intervals where at least one spinner is visible.</param>
-        private void generatePositions(out SortedDictionary<double, Vector2> positions, SortedDictionary<double, Hitpoint> activeHitpoints, IntervalSet spinZones, IntervalSet spinnerVisibleZones)
+        private void generatePositions(out SortedDictionary<double, Vector2> positions, SortedDictionary<double, HitPoint> activeHitpoints, IntervalSet spinZones, IntervalSet spinnerVisibleZones)
         {
             positions = new SortedDictionary<double, Vector2>
             {
@@ -347,11 +325,11 @@ namespace osu.Game.Rulesets.Osu.Replays
             };
 
             // First we "dot in" all the positions *at* hitpoints, before generating positions between hitpoints.
-            foreach (Hitpoint curr in activeHitpoints.Values)
+            foreach (HitPoint curr in activeHitpoints.Values)
                 positions[curr.Time] = curr.Position;
 
-            Hitpoint left = activeHitpoints.First().Value;
-            foreach (Hitpoint right in activeHitpoints.Values.Skip(1))
+            HitPoint left = activeHitpoints.First().Value;
+            foreach (HitPoint right in activeHitpoints.Values.Skip(1))
             {
                 IntervalSet spins = spinZones.Intersect(left.Time + SPIN_BUFFER_TIME, right.Time - SPIN_BUFFER_TIME);
 
@@ -423,10 +401,10 @@ namespace osu.Game.Rulesets.Osu.Replays
 
             // Handle spins at the beginning or end of the replay
             // This is needed because these spins don't occur between any activeHitpoints
-            Hitpoint firstHitpoint = activeHitpoints.First().Value;
-            Hitpoint lastHitpoint = activeHitpoints.Last().Value;
-            IntervalSet startSpins = spinZones.Intersect(double.NegativeInfinity, firstHitpoint.Time - SPIN_BUFFER_TIME);
-            IntervalSet endSpins = spinZones.Intersect(lastHitpoint.Time + SPIN_BUFFER_TIME, double.PositiveInfinity);
+            HitPoint firstHitPoint = activeHitpoints.First().Value;
+            HitPoint lastHitPoint = activeHitpoints.Last().Value;
+            IntervalSet startSpins = spinZones.Intersect(double.NegativeInfinity, firstHitPoint.Time - SPIN_BUFFER_TIME);
+            IntervalSet endSpins = spinZones.Intersect(lastHitPoint.Time + SPIN_BUFFER_TIME, double.PositiveInfinity);
             if (startSpins.Count > 0)
             {
                 Vector2 firstSpinPos = new Vector2(); // will be overwritten, but C# complains about possible null
@@ -436,14 +414,14 @@ namespace osu.Game.Rulesets.Osu.Replays
                 }
 
                 // Travel from spin to first hitpoint
-                double startTime = Math.Max(startSpins.Last().End, Math.Min(firstHitpoint.Time - MIN_MOVE_TIME,
-                    firstHitpoint.HitObject.StartTime - Math.Max(0, firstHitpoint.HitObject.TimePreempt - reactionTime)));
-                addMovePositions(positions, startTime, firstHitpoint.Time, firstSpinPos, firstHitpoint.Position);
+                double startTime = Math.Max(startSpins.Last().End, Math.Min(firstHitPoint.Time - MIN_MOVE_TIME,
+                    firstHitPoint.HitObject.StartTime - Math.Max(0, firstHitPoint.HitObject.TimePreempt - reactionTime)));
+                addMovePositions(positions, startTime, firstHitPoint.Time, firstSpinPos, firstHitPoint.Position);
             }
 
             if (endSpins.Count > 0)
             {
-                Vector2 curpos = lastHitpoint.Position;
+                Vector2 curpos = lastHitPoint.Position;
                 Vector2 endSpinPos = CalcSpinnerStartPos(curpos);
                 foreach (Interval spin in endSpins)
                 {
@@ -452,9 +430,9 @@ namespace osu.Game.Rulesets.Osu.Replays
 
                 // Travel from last hitpoint to spin
                 double spinnerVisible = spinnerVisibleZones.GetIntervalContaining(endSpins[0].Start).Start;
-                double startTime = Math.Max(lastHitpoint.Time, Math.Min(endSpins[0].Start - MIN_MOVE_TIME,
+                double startTime = Math.Max(lastHitPoint.Time, Math.Min(endSpins[0].Start - MIN_MOVE_TIME,
                     spinnerVisible + reactionTime));
-                addMovePositions(positions, startTime, endSpins[0].Start, lastHitpoint.Position, endSpinPos);
+                addMovePositions(positions, startTime, endSpins[0].Start, lastHitPoint.Position, endSpinPos);
             }
         }
 
@@ -607,7 +585,7 @@ namespace osu.Game.Rulesets.Osu.Replays
         /// <param name="move">Whether the cursor should move to this hitpoint or not (a circle or slider, not a spinner).</param>
         private void addHitpoint(SortedDictionary<double, KeyFrame> keyFrames, OsuHitObject obj, double time, bool click, bool move)
         {
-            Hitpoint newhitpoint = new Hitpoint
+            HitPoint newhitpoint = new HitPoint
             {
                 Time = time,
                 HitObject = obj
