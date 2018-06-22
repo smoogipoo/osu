@@ -69,8 +69,8 @@ namespace osu.Game.Rulesets.Osu.Replays
         public void RemoveInterval(double start, double end)
         {
             // Smallest and largest overlapping intervals
-            int lowest = BinarySearch(new Interval(start, start));
-            int highest = BinarySearch(new Interval(end, end));
+            int lowest = BinarySearch(new Interval { Start = start, End = start});
+            int highest = BinarySearch(new Interval { Start = end, End = end });
 
             // Special case where both lowest and highest are on the same interval
             if (lowest >= 0 && lowest == highest)
@@ -103,12 +103,12 @@ namespace osu.Game.Rulesets.Osu.Replays
 
         public bool Contains(double value)
         {
-            return BinarySearch(new Interval(value, value)) >= 0;
+            return BinarySearch(new Interval { Start = value, End = value }) >= 0;
         }
 
         public Interval GetIntervalContaining(double value)
         {
-            int index = BinarySearch(new Interval(value, value));
+            int index = BinarySearch(new Interval { Start = value, End = value });
             if (index >= 0)
                 return this[index];
             else
@@ -120,7 +120,7 @@ namespace osu.Game.Rulesets.Osu.Replays
             if (end < start)
                 return new IntervalSet();
 
-            int startindex = BinarySearch(new Interval(start, start));
+            int startindex = BinarySearch(new Interval { Start = start, End = start });
             if (startindex < 0)
                 startindex = ~startindex;
 
