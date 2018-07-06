@@ -240,6 +240,7 @@ namespace osu.Game.Graphics.Backgrounds
 
                     Texture.DrawTriangle(
                         triangle,
+                        DepthIndex,
                         colourInfo,
                         null,
                         Shared.VertexBatch.AddAction,

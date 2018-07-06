@@ -214,7 +214,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
                         float time = Parts[i].Time;
 
                         Texture.DrawQuad(
-                            new Quad(pos.X - Size.X / 2, pos.Y - Size.Y / 2, Size.X, Size.Y),
+                            new Quad(pos.X - Size.X / 2, pos.Y - Size.Y / 2, Size.X, Size.Y), DepthIndex,
                             DrawInfo.Colour,
                             null,
                             v => Shared.VertexBuffer.Vertices[end++] = new TexturedTrailVertex
