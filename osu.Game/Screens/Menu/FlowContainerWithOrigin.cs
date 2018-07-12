@@ -22,15 +22,14 @@ namespace osu.Game.Screens.Menu
 
         public override Anchor Origin => Anchor.Custom;
 
-        public override Vector2 OriginPosition
+        protected override void UpdateAfterChildren()
         {
-            get
-            {
-                if (CentreTarget == null)
-                    return base.OriginPosition;
+            base.UpdateAfterChildren();
 
-                return CentreTarget.DrawPosition + CentreTarget.DrawSize / 2;
-            }
+            if (CentreTarget == null)
+                OriginPosition = Vector2.Zero;
+            else
+                OriginPosition = CentreTarget.DrawPosition + CentreTarget.DrawSize / 2;
         }
     }
 }
