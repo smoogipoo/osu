@@ -120,7 +120,12 @@ namespace osu.Game.Rulesets
             try
             {
                 var assembly = Assembly.LoadFrom(file);
-                loaded_assemblies[assembly] = assembly.GetTypes().First(t => t.IsPublic && t.IsSubclassOf(typeof(Ruleset)));
+
+                var rulesetType = assembly.GetTypes().FirstOrDefault(t => t.IsPublic && t.IsSubclassOf(typeof(Ruleset)));
+                if (rulesetType == null)
+                    return;
+
+                loaded_assemblies[assembly] = rulesetType;
             }
             catch (Exception e)
             {
