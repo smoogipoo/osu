@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <OutputType>Library</OutputType>
+        <Description>dodge the bullets. to the beat.</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\osu.Game\osu.Game.csproj" />
+    </ItemGroup>
+</Project>
