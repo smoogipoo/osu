@@ -12,6 +12,12 @@ namespace osu.Game.Rulesets.Dodge
 {
     public class DodgeRuleset : Ruleset
     {
+        public DodgeRuleset(RulesetInfo info = null)
+            : base(info)
+        {
+
+        }
+
         public override IEnumerable<Mod> GetModsFor(ModType type) => Enumerable.Empty<Mod>();
 
         public override RulesetContainer CreateRulesetContainerWith(WorkingBeatmap beatmap)
