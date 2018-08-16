@@ -25,7 +25,7 @@ namespace osu.Game.Input.Handlers
         /// </summary>
         /// <param name="time">The time which we should use for finding the current frame.</param>
         /// <returns>The usable time value. If null, we should not advance time as we do not have enough data.</returns>
-        public abstract double? SetFrameFromTime(double time);
+        public abstract double SetFrameFromTime(double time);
 
         public override bool Initialize(GameHost host) => true;
 

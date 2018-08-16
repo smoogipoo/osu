@@ -48,25 +48,12 @@ namespace osu.Game.Rulesets.Replays
         public bool AtLastFrame => currentFrameIndex == Frames.Count - 1;
         public bool AtFirstFrame => currentFrameIndex == 0;
 
-        private const double sixty_frame_time = 1000.0 / 60;
+        private const double max_skip_time = 1000.0 / 50;
 
         protected double CurrentTime { get; private set; }
         private int currentDirection;
 
-        /// <summary>
-        /// When set, we will ensure frames executed by nested drawables are frame-accurate to replay data.
-        /// Disabling this can make replay playback smoother (useful for autoplay, currently).
-        /// </summary>
-        public bool FrameAccuratePlayback = true;
-
         protected bool HasFrames => Frames.Count > 0;
-
-        private bool inImportantSection =>
-            HasFrames && FrameAccuratePlayback &&
-            //a button is in a pressed state
-            IsImportant(currentDirection > 0 ? CurrentFrame : NextFrame) &&
-            //the next frame is within an allowable time span
-            Math.Abs(CurrentTime - NextFrame?.Time ?? 0) <= sixty_frame_time * 1.2;
 
         protected virtual bool IsImportant(TFrame frame) => false;
 
@@ -77,31 +64,39 @@ namespace osu.Game.Rulesets.Replays
         /// </summary>
         /// <param name="time">The time which we should use for finding the current frame.</param>
         /// <returns>The usable time value. If null, we should not advance time as we do not have enough data.</returns>
-        public override double? SetFrameFromTime(double time)
+        public override double SetFrameFromTime(double time)
         {
+            if (!HasFrames)
+                return CurrentTime = time;
+
             currentDirection = time.CompareTo(CurrentTime);
             if (currentDirection == 0) currentDirection = 1;
 
-            if (HasFrames)
+            while (true)
             {
-                // check if the next frame is in the "future" for the current playback direction
-                if (currentDirection != time.CompareTo(NextFrame.Time))
-                {
-                    // if we didn't change frames, we need to ensure we are allowed to run frames in between, else return null.
-                    if (inImportantSection)
-                        return null;
-                }
-                else if (advanceFrame())
-                {
-                    // If going backwards, we need to execute once _before_ the frame time to reverse any judgements
-                    // that would occur as a result of this frame in forward playback
-                    if (currentDirection == -1)
-                        return CurrentTime = CurrentFrame.Time - 1;
-                    return CurrentTime = CurrentFrame.Time;
-                }
-            }
+                // Will be the same value as the direction of playback if the next frame hasn't been reached
+                int nextFrameOffset = NextFrame.Time.CompareTo(time);
 
-            return CurrentTime = time;
+                // If the direction and offset are equal, the frame will not change. Play at the requested time value.
+                if (currentDirection == nextFrameOffset)
+                    return CurrentTime = time;
+
+                int currentFrameOffset = NextFrame.Time.CompareTo(CurrentTime);
+
+                // From here, we _can_ advance the frame, but prior to doing so we need to make sure we're not skipping too far into the future
+                // We can only do this if the next frame is IN-BETWEEN the current time and the requested time.
+                double frameTime = currentDirection == -1 ? NextFrame.Time - 1 : NextFrame.Time;
+                if (currentFrameOffset != nextFrameOffset && Math.Abs(CurrentTime - frameTime) >= max_skip_time)
+                    return CurrentTime += currentDirection * max_skip_time;
+
+                // Attempt to advance the frame, and play at the requested time value if there's no next frame
+                if (!advanceFrame())
+                    return CurrentTime = time;
+
+                // If the frame is important, always play at the frame time
+                if (IsImportant(CurrentFrame))
+                    return CurrentTime = frameTime;
+            }
         }
     }
 }
