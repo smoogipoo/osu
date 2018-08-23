@@ -351,7 +351,10 @@ namespace osu.Game.Beatmaps
             // let's make sure there are actually .osu files to import.
             string mapName = reader.Filenames.FirstOrDefault(f => f.EndsWith(".osu"));
             if (string.IsNullOrEmpty(mapName))
-                throw new InvalidOperationException($"No beatmap files found in this beatmap archive ({reader.Name}).");
+            {
+                Logger.Log($"No beatmap files found in this beatmap archive ({reader.Name}).", LoggingTarget.Database, LogLevel.Error);
+                return null;
+            }
 
             Beatmap beatmap;
             using (var stream = new StreamReader(reader.GetStream(mapName)))
