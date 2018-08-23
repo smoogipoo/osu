@@ -126,8 +126,6 @@ namespace osu.Game.Database
 
             PostNotification?.Invoke(notification);
 
-            List<TModel> imported = new List<TModel>();
-
             int current = 0;
             int errors = 0;
             foreach (string path in paths)
@@ -140,7 +138,7 @@ namespace osu.Game.Database
                 {
                     notification.Text = $"Importing ({++current} of {paths.Length})\n{Path.GetFileName(path)}";
                     using (ArchiveReader reader = getReaderFrom(path))
-                        imported.Add(Import(reader));
+                        Import(reader);
 
                     notification.Progress = (float)current / paths.Length;
 
