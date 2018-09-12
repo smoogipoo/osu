@@ -18,6 +18,13 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
     /// </summary>
     public class DrawableHoldNote : DrawableManiaHitObject<HoldNote>, IKeyBindingHandler<ManiaAction>
     {
+        /// <summary>
+        /// Lenience of release hit windows. This is to make cases where the hold note release
+        /// is timed alongside presses of other hit objects less awkward.
+        /// Todo: This shouldn't exist for non-LegacyBeatmapDecoder beatmaps
+        /// </summary>
+        private const double release_window_lenience = 1.5;
+
         public override bool DisplayResult => false;
 
         public readonly DrawableNote Head;
@@ -56,12 +63,12 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
                         HoldStartTime = () => holdStartTime
                     })
                 },
-                Head = new DrawableHeadNote(this)
+                Head = new DrawableHoldNoteNote(hitObject.Head)
                 {
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre
                 },
-                Tail = new DrawableTailNote(this)
+                Tail = new DrawableHoldNoteNote(hitObject.Tail)
                 {
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre
