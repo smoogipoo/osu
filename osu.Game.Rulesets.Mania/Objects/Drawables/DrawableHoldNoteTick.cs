@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using System;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
@@ -17,10 +16,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
     /// </summary>
     public class DrawableHoldNoteTick : DrawableManiaHitObject<HoldNoteTick>
     {
-        /// <summary>
-        /// References the time at which the user started holding the hold note.
-        /// </summary>
-        public Func<double?> HoldStartTime;
+        public bool IsHolding;
 
         private readonly Container glowContainer;
 
@@ -76,12 +72,10 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             if (Time.Current < HitObject.StartTime)
                 return;
 
-            var startTime = HoldStartTime?.Invoke();
-
-            if (startTime == null || startTime > HitObject.StartTime)
-                ApplyResult(r => r.Type = HitResult.Miss);
-            else
+            if (IsHolding)
                 ApplyResult(r => r.Type = HitResult.Perfect);
+            else
+                ApplyResult(r => r.Type = HitResult.Miss);
         }
     }
 }

@@ -27,19 +27,12 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
         public override bool DisplayResult => false;
 
-        public readonly DrawableNote Head;
-        public readonly DrawableNote Tail;
+        public readonly DrawableHoldNoteNote Head;
+        public readonly DrawableHoldNoteNote Tail;
 
         private readonly BodyPiece bodyPiece;
 
-        /// <summary>
-        /// Time at which the user started holding this hold note. Null if the user is not holding this hold note.
-        /// </summary>
-        private double? holdStartTime;
-
-        /// <summary>
-        /// Whether the hold note has been released too early and shouldn't give full score for the release.
-        /// </summary>
+        private bool isHolding;
         private bool hasBroken;
 
         private readonly Container<DrawableHoldNoteTick> tickContainer;
@@ -58,10 +51,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
                 tickContainer = new Container<DrawableHoldNoteTick>
                 {
                     RelativeSizeAxes = Axes.Both,
-                    ChildrenEnumerable = HitObject.NestedHitObjects.OfType<HoldNoteTick>().Select(tick => new DrawableHoldNoteTick(tick)
-                    {
-                        HoldStartTime = () => holdStartTime
-                    })
+                    ChildrenEnumerable = HitObject.NestedHitObjects.OfType<HoldNoteTick>().Select(tick => new DrawableHoldNoteTick(tick))
                 },
                 Head = new DrawableHoldNoteNote(hitObject.Head)
                 {
@@ -103,12 +93,6 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             }
         }
 
-        protected override void CheckForResult(bool userTriggered, double timeOffset)
-        {
-            if (Tail.AllJudged)
-                ApplyResult(r => r.Type = HitResult.Perfect);
-        }
-
         protected override void Update()
         {
             base.Update();
@@ -118,49 +102,98 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             bodyPiece.Height = DrawHeight - Head.Height / 2 + Tail.Height / 2;
         }
 
-        protected void BeginHold()
+        protected override void CheckForResult(bool userTriggered, double timeOffset)
         {
-            holdStartTime = Time.Current;
-            bodyPiece.Hitting = true;
+            double startTimeOffset = Time.Current - Head.HitObject.StartTime;
+
+            if (!userTriggered)
+            {
+                // If the time passes the head note's range without the head being hit (or missed), count it as a miss
+                if (!Head.Result.HasResult && !Head.HitObject.HitWindows.CanBeHit(startTimeOffset))
+                {
+                    Head.ApplyResult(r => r.Type = HitResult.Miss);
+                    hasBroken = true;
+                }
+
+                // Todo: Check this
+                // If the time passes the tail note's range without it being hit, count it as a miss
+                if (!Tail.Result.HasResult && !Tail.HitObject.HitWindows.CanBeHit(timeOffset))
+                {
+                    applyTailResult(HitResult.Miss);
+                    hasBroken = true;
+                }
+
+                if (!HitObject.HitWindows.CanBeHit(timeOffset))
+                    ApplyResult(r => r.Type = HitResult.Perfect);
+
+                return;
+            }
+
+            if (!Head.Result.HasResult)
+            {
+                var startResult = Head.HitObject.HitWindows.ResultFor(startTimeOffset);
+                if (startResult == HitResult.None)
+                    return;
+
+                if (startResult == HitResult.Miss)
+                    hasBroken = true;
+
+                Head.ApplyResult(r => r.Type = startResult);
+            }
+
+            // Should be holding even if the head result is a miss
+            updateHolding(true);
         }
 
-        protected void EndHold()
+        private void applyTailResult(HitResult type)
         {
-            holdStartTime = null;
-            bodyPiece.Hitting = false;
+            if (hasBroken && type > HitResult.Good)
+                type = HitResult.Good;
+            Tail.ApplyResult(r => r.Type = type);
+        }
+
+        private void updateHolding(bool holding)
+        {
+            if (isHolding && !holding)
+                hasBroken = true;
+
+            isHolding = holding;
+
+            foreach (var tick in tickContainer)
+                tick.IsHolding = holding;
+            bodyPiece.Hitting = holding;
         }
 
         public bool OnPressed(ManiaAction action)
         {
-            // Make sure the action happened within the body of the hold note
-            if (Time.Current < HitObject.StartTime || Time.Current > HitObject.EndTime)
-                return false;
-
             if (action != Action.Value)
                 return false;
 
-            // The user has pressed during the body of the hold note, after the head note and its hit windows have passed
-            // and within the limited range of the above if-statement. This state will be managed by the head note if the
-            // user has pressed during the hit windows of the head note.
-            BeginHold();
-            return true;
+            if (AllJudged)
+                return false;
+
+            if (Time.Current < Head.HitObject.StartTime - Head.HitObject.HitWindows.HalfWindowFor(HitResult.Miss)
+                || Time.Current > Tail.HitObject.StartTime + Tail.HitObject.HitWindows.HalfWindowFor(HitResult.Miss))
+            {
+                return false;
+            }
+
+            return UpdateResult(true);
         }
 
         public bool OnReleased(ManiaAction action)
         {
-            // Make sure that the user started holding the key during the hold note
-            if (!holdStartTime.HasValue)
+            if (!isHolding)
                 return false;
 
             if (action != Action.Value)
                 return false;
 
-            EndHold();
+            var tailResult = Tail.HitObject.HitWindows.ResultFor(Time.Current - Tail.HitObject.StartTime);
+            if (tailResult > HitResult.Miss)
+                applyTailResult(tailResult);
 
-            // If the key has been released too early, the user should not receive full score for the release
-            if (!Tail.IsHit)
-                hasBroken = true;
-
+            updateHolding(false);
             return true;
         }
     }
