@@ -34,9 +34,7 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
                 {
                     StartTime = obj.StartTime,
                     Samples = obj.Samples,
-                    ControlPoints = curveData.ControlPoints,
-                    PathType = curveData.PathType,
-                    Distance = curveData.Distance,
+                    Path = curveData.Path,
                     RepeatSamples = curveData.RepeatSamples,
                     RepeatCount = curveData.RepeatCount,
                     X = (positionData?.X ?? 0) / CatchPlayfield.BASE_WIDTH,
