@@ -3,7 +3,6 @@
 
 using OpenTK;
 using osu.Game.Audio;
-using osu.Game.Rulesets.Objects.Types;
 using System.Collections.Generic;
 
 namespace osu.Game.Rulesets.Objects.Legacy.Catch
@@ -37,7 +36,7 @@ namespace osu.Game.Rulesets.Objects.Legacy.Catch
             };
         }
 
-        protected override HitObject CreateSlider(Vector2 position, bool newCombo, int comboOffset, Vector2[] controlPoints, double length, PathType pathType, int repeatCount, List<List<SampleInfo>> repeatSamples)
+        protected override HitObject CreateSlider(Vector2 position, bool newCombo, int comboOffset, SliderSegment[] segments, double length, int repeatCount, List<List<SampleInfo>> repeatSamples)
         {
             newCombo |= forceNewCombo;
             comboOffset += extraComboOffset;
@@ -50,7 +49,7 @@ namespace osu.Game.Rulesets.Objects.Legacy.Catch
                 X = position.X,
                 NewCombo = FirstObject || newCombo,
                 ComboOffset = comboOffset,
-                Path = new SliderPath(pathType, controlPoints, length),
+                Path = new SliderPath(segments, length),
                 RepeatSamples = repeatSamples,
                 RepeatCount = repeatCount
             };

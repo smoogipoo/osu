@@ -75,14 +75,9 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
                     string[] pointSplit = split[5].Split('|');
 
-                    int pointCount = 1;
-                    foreach (var t in pointSplit)
-                        if (t.Length > 1)
-                            pointCount++;
+                    var pointsPerSegment = new List<List<Vector2>> { new List<Vector2> { Vector2.Zero } };
 
-                    var points = new Vector2[pointCount];
-
-                    int pointIndex = 1;
+                    var lastPoint = Vector2.Zero;
                     foreach (string t in pointSplit)
                     {
                         if (t.Length == 1)
@@ -107,14 +102,20 @@ namespace osu.Game.Rulesets.Objects.Legacy
                         }
 
                         string[] temp = t.Split(':');
-                        points[pointIndex++] = new Vector2((int)Convert.ToDouble(temp[0], CultureInfo.InvariantCulture), (int)Convert.ToDouble(temp[1], CultureInfo.InvariantCulture)) - pos;
+
+                        var point = new Vector2((int)Convert.ToDouble(temp[0], CultureInfo.InvariantCulture), (int)Convert.ToDouble(temp[1], CultureInfo.InvariantCulture)) - pos;
+
+                        if (point == lastPoint)
+                            pointsPerSegment.Add(new List<Vector2>());
+                        pointsPerSegment.Last().Add(point);
                     }
 
                     // osu-stable special-cased colinear perfect curves to a CurveType.Linear
                     bool isLinear(Vector2[] p) => Precision.AlmostEquals(0, (p[1].Y - p[0].Y) * (p[2].X - p[0].X) - (p[1].X - p[0].X) * (p[2].Y - p[0].Y));
 
-                    if (points.Length == 3 && pathType == PathType.PerfectCurve && isLinear(points))
+                    if (pointsPerSegment.Sum(s => s.Count) == 3 && pathType == PathType.PerfectCurve && isLinear(pointsPerSegment.SelectMany(s => s).ToArray()))
                         pathType = PathType.Linear;
+
 
                     int repeatCount = Convert.ToInt32(split[6], CultureInfo.InvariantCulture);
 
@@ -178,7 +179,11 @@ namespace osu.Game.Rulesets.Objects.Legacy
                     for (int i = 0; i < nodes; i++)
                         nodeSamples.Add(convertSoundType(nodeSoundTypes[i], nodeBankInfos[i]));
 
-                    result = CreateSlider(pos, combo, comboOffset, points, length, pathType, repeatCount, nodeSamples);
+                    var segments = new SliderSegment[pointsPerSegment.Count];
+                    for (int i = 0; i < pointsPerSegment.Count; i++)
+                        segments[i] = new SliderSegment(pathType, pointsPerSegment[i].ToArray());
+
+                    result = CreateSlider(pos, combo, comboOffset, segments, length, repeatCount, nodeSamples);
                 }
                 else if (type.HasFlag(ConvertHitObjectType.Spinner))
                 {
@@ -266,13 +271,12 @@ namespace osu.Game.Rulesets.Objects.Legacy
         /// <param name="position">The position of the hit object.</param>
         /// <param name="newCombo">Whether the hit object creates a new combo.</param>
         /// <param name="comboOffset">When starting a new combo, the offset of the new combo relative to the current one.</param>
-        /// <param name="controlPoints">The slider control points.</param>
+        /// <param name="segments">The segments of the slider.</param>
         /// <param name="length">The slider length.</param>
-        /// <param name="pathType">The slider curve type.</param>
         /// <param name="repeatCount">The slider repeat count.</param>
         /// <param name="repeatSamples">The samples to be played when the repeat nodes are hit. This includes the head and tail of the slider.</param>
         /// <returns>The hit object.</returns>
-        protected abstract HitObject CreateSlider(Vector2 position, bool newCombo, int comboOffset, Vector2[] controlPoints, double length, PathType pathType, int repeatCount, List<List<SampleInfo>> repeatSamples);
+        protected abstract HitObject CreateSlider(Vector2 position, bool newCombo, int comboOffset, SliderSegment[] segments, double length, int repeatCount, List<List<SampleInfo>> repeatSamples);
 
         /// <summary>
         /// Creates a legacy Spinner-type hit object.

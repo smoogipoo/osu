@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
 using OpenTK;
-using osu.Game.Rulesets.Objects.Types;
 using System.Collections.Generic;
 using osu.Game.Audio;
 
@@ -23,11 +22,11 @@ namespace osu.Game.Rulesets.Objects.Legacy.Taiko
             return new ConvertHit();
         }
 
-        protected override HitObject CreateSlider(Vector2 position, bool newCombo, int comboOffset, Vector2[] controlPoints, double length, PathType pathType, int repeatCount, List<List<SampleInfo>> repeatSamples)
+        protected override HitObject CreateSlider(Vector2 position, bool newCombo, int comboOffset, SliderSegment[] segments, double length, int repeatCount, List<List<SampleInfo>> repeatSamples)
         {
             return new ConvertSlider
             {
-                Path = new SliderPath(pathType, controlPoints, length),
+                Path = new SliderPath(segments, length),
                 RepeatSamples = repeatSamples,
                 RepeatCount = repeatCount
             };

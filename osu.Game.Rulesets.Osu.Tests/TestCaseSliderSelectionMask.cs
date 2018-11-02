@@ -36,12 +36,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             var slider = new Slider
             {
                 Position = new Vector2(256, 192),
-                Path = new SliderPath(PathType.Bezier, new[]
-                {
-                    Vector2.Zero,
-                    new Vector2(150, 150),
-                    new Vector2(300, 0)
-                })
+                Path = new SliderPath(new[] { new SliderSegment(PathType.Bezier, Vector2.Zero, new Vector2(150, 150), new Vector2(300, 0)) })
             };
 
             slider.ApplyDefaults(new ControlPointInfo(), new BeatmapDifficulty { CircleSize = 2 });

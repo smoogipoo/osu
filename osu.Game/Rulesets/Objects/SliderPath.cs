@@ -1,25 +1,21 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.MathUtils;
-using osu.Game.Rulesets.Objects.Types;
 using OpenTK;
 
 namespace osu.Game.Rulesets.Objects
 {
     public readonly struct SliderPath
     {
-        public readonly Vector2[] ControlPoints;
-        public readonly PathType Type;
+        public readonly SliderSegment[] Segments;
         public readonly double? ExpectedDistance;
 
-        public SliderPath(PathType type, Vector2[] controlPoints, double? expectedDistance = null)
+        public SliderPath(SliderSegment[] segments, double? expectedDistance = null)
         {
-            ControlPoints = controlPoints;
-            Type = type;
+            Segments = segments;
             ExpectedDistance = expectedDistance;
 
             calculatedPath = new List<Vector2>();
@@ -32,36 +28,6 @@ namespace osu.Game.Rulesets.Objects
         private readonly List<Vector2> calculatedPath;
         private readonly List<double> cumulativeLength;
 
-        private List<Vector2> calculateSubpath(ReadOnlySpan<Vector2> subControlPoints)
-        {
-            switch (Type)
-            {
-                case PathType.Linear:
-                    var result = new List<Vector2>(subControlPoints.Length);
-                    foreach (var c in subControlPoints)
-                        result.Add(c);
-
-                    return result;
-                case PathType.PerfectCurve:
-                    //we can only use CircularArc iff we have exactly three control points and no dissection.
-                    if (ControlPoints.Length != 3 || subControlPoints.Length != 3)
-                        break;
-
-                    // Here we have exactly 3 control points. Attempt to fit a circular arc.
-                    List<Vector2> subpath = new CircularArcApproximator(subControlPoints).CreateArc();
-
-                    // If for some reason a circular arc could not be fit to the 3 given points, fall back to a numerically stable bezier approximation.
-                    if (subpath.Count == 0)
-                        break;
-
-                    return subpath;
-                case PathType.Catmull:
-                    return new CatmullApproximator(subControlPoints).CreateCatmull();
-            }
-
-            return new BezierApproximator(subControlPoints).CreateBezier();
-        }
-
         private void calculatePath()
         {
             calculatedPath.Clear();
@@ -70,23 +36,11 @@ namespace osu.Game.Rulesets.Objects
             // with the same position. The following loop parses these subpaths and computes
             // their shape independently, consecutively appending them to calculatedPath.
 
-            int start = 0;
-            int end = 0;
-
-            for (int i = 0; i < ControlPoints.Length; ++i)
+            foreach (var segment in Segments)
             {
-                end++;
-
-                if (i == ControlPoints.Length - 1 || ControlPoints[i] == ControlPoints[i + 1])
-                {
-                    ReadOnlySpan<Vector2> cpSpan = ControlPoints.AsSpan().Slice(start, end - start);
-
-                    foreach (Vector2 t in calculateSubpath(cpSpan))
-                        if (calculatedPath.Count == 0 || calculatedPath.Last() != t)
-                            calculatedPath.Add(t);
-
-                    start = end;
-                }
+                foreach (Vector2 t in segment.CalculatePath())
+                    if (calculatedPath.Count == 0 || calculatedPath.Last() != t)
+                        calculatedPath.Add(t);
             }
         }
 

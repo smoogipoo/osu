@@ -54,11 +54,7 @@ namespace osu.Game.Tests.Visual
                     new Slider
                     {
                         Position = new Vector2(128, 256),
-                        Path = new SliderPath(PathType.Linear, new[]
-                        {
-                            Vector2.Zero,
-                            new Vector2(216, 0),
-                        }),
+                        Path = new SliderPath(new[] { new SliderSegment(PathType.Linear, Vector2.Zero, new Vector2(216, 0)) }),
                         Scale = 0.5f,
                     }
                 },
