@@ -80,6 +80,8 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
         {
             public override double LifetimeStart => Parent?.LifetimeStart ?? base.LifetimeStart;
             public override double LifetimeEnd => Parent?.LifetimeEnd ?? base.LifetimeEnd;
+
+            public override bool RemoveWhenNotAlive => false;
         }
     }
 
