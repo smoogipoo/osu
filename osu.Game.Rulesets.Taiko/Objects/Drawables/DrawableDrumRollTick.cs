@@ -29,7 +29,11 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
             if (!userTriggered)
             {
                 if (timeOffset > HitObject.HitWindow)
+                {
                     ApplyResult(r => r.Type = HitResult.Miss);
+                    ApplyStrongResult(r => r.Type = HitResult.Miss);
+                }
+
                 return;
             }
 
@@ -37,6 +41,7 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
                 return;
 
             ApplyResult(r => r.Type = HitResult.Great);
+            ApplyStrongResult(r => r.Type = HitResult.Great);
         }
 
         protected override void UpdateState(ArmedState state)
@@ -50,25 +55,5 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
         }
 
         public override bool OnPressed(TaikoAction action) => UpdateResult(true);
-
-        protected override DrawableStrongNestedHit CreateStrongHit(StrongHitObject hitObject) => new StrongNestedHit(hitObject, this);
-
-        private class StrongNestedHit : DrawableStrongNestedHit
-        {
-            public StrongNestedHit(StrongHitObject strong, DrawableDrumRollTick tick)
-                : base(strong, tick)
-            {
-            }
-
-            protected override void CheckForResult(bool userTriggered, double timeOffset)
-            {
-                if (!MainObject.Judged)
-                    return;
-
-                ApplyResult(r => r.Type = MainObject.IsHit ? HitResult.Great : HitResult.Miss);
-            }
-
-            public override bool OnPressed(TaikoAction action) => false;
-        }
     }
 }

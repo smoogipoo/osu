@@ -83,9 +83,15 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
 
             int countHit = NestedHitObjects.Count(o => o.IsHit);
             if (countHit >= HitObject.RequiredGoodHits)
+            {
                 ApplyResult(r => r.Type = countHit >= HitObject.RequiredGreatHits ? HitResult.Great : HitResult.Good);
+                ApplyStrongResult(r => r.Type = HitResult.Great);
+            }
             else
+            {
                 ApplyResult(r => r.Type = HitResult.Miss);
+                ApplyStrongResult(r => r.Type = HitResult.Miss);
+            }
         }
 
         protected override void UpdateState(ArmedState state)
@@ -97,26 +103,6 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
                     this.FadeOut(100).Expire();
                     break;
             }
-        }
-
-        protected override DrawableStrongNestedHit CreateStrongHit(StrongHitObject hitObject) => new StrongNestedHit(hitObject, this);
-
-        private class StrongNestedHit : DrawableStrongNestedHit
-        {
-            public StrongNestedHit(StrongHitObject strong, DrawableDrumRoll drumRoll)
-                : base(strong, drumRoll)
-            {
-            }
-
-            protected override void CheckForResult(bool userTriggered, double timeOffset)
-            {
-                if (!MainObject.Judged)
-                    return;
-
-                ApplyResult(r => r.Type = MainObject.IsHit ? HitResult.Great : HitResult.Miss);
-            }
-
-            public override bool OnPressed(TaikoAction action) => false;
         }
     }
 }

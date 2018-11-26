@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
 using osu.Game.Rulesets.Objects.Drawables;
@@ -11,6 +12,7 @@ using osu.Game.Audio;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Game.Rulesets.Judgements;
 
 namespace osu.Game.Rulesets.Taiko.Objects.Drawables
 {
@@ -96,6 +98,8 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
 
         public new TaikoHitType HitObject;
 
+        private readonly DrawableStrongNestedHit strongHit;
+
         protected DrawableTaikoHitObject(TaikoHitType hitObject)
             : base(hitObject)
         {
@@ -113,12 +117,14 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
             var strongObject = HitObject.NestedHitObjects.OfType<StrongHitObject>().FirstOrDefault();
             if (strongObject != null)
             {
-                var strongHit = CreateStrongHit(strongObject);
+                strongHit = CreateStrongHit(strongObject);
 
                 AddNested(strongHit);
                 AddInternal(strongHit);
             }
         }
+
+        protected void ApplyStrongResult(Action<JudgementResult> application) => strongHit?.ApplyResult(application);
 
         // Normal and clap samples are handled by the drum
         protected override IEnumerable<SampleInfo> GetSamples() => HitObject.Samples.Where(s => s.Name != SampleInfo.HIT_NORMAL && s.Name != SampleInfo.HIT_CLAP);
@@ -133,6 +139,6 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
         /// </summary>
         /// <param name="hitObject">The strong hitobject.</param>
         /// <returns>The strong hitobject handler.</returns>
-        protected virtual DrawableStrongNestedHit CreateStrongHit(StrongHitObject hitObject) => null;
+        protected virtual DrawableStrongNestedHit CreateStrongHit(StrongHitObject hitObject) => new DrawableStrongNestedHit(hitObject, this);
     }
 }
