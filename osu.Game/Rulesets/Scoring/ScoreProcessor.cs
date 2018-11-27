@@ -81,6 +81,8 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         public virtual bool HasFailed { get; private set; }
 
+        public virtual int JudgedHits => 0;
+
         /// <summary>
         /// The default conditions for failing.
         /// </summary>
@@ -179,7 +181,9 @@ namespace osu.Game.Rulesets.Scoring
         public sealed override bool HasCompleted => JudgedHits == MaxHits;
 
         protected int MaxHits { get; private set; }
-        protected int JudgedHits { get; private set; }
+
+        private int judgedHits;
+        public sealed override int JudgedHits => judgedHits;
 
         private double maxHighestCombo;
 
@@ -282,7 +286,7 @@ namespace osu.Game.Rulesets.Scoring
             result.ComboAtJudgement = Combo;
             result.HighestComboAtJudgement = HighestCombo;
 
-            JudgedHits++;
+            judgedHits++;
 
             if (result.Judgement.AffectsCombo)
             {
@@ -321,7 +325,7 @@ namespace osu.Game.Rulesets.Scoring
             Combo.Value = result.ComboAtJudgement;
             HighestCombo.Value = result.HighestComboAtJudgement;
 
-            JudgedHits--;
+            judgedHits--;
 
             if (result.Judgement.IsBonus)
             {
@@ -363,7 +367,7 @@ namespace osu.Game.Rulesets.Scoring
 
             base.Reset(storeResults);
 
-            JudgedHits = 0;
+            judgedHits = 0;
             baseScore = 0;
             rollingMaxBaseScore = 0;
             bonusScore = 0;
