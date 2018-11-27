@@ -168,6 +168,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         protected override bool ShouldBeAlive => base.ShouldBeAlive || Time.Current >= LifetimeEnd && !AllJudged;
 
+        public override bool IsPresent => base.IsPresent || Time.Current >= LifetimeEnd && !AllJudged;
+
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => AllJudged && base.ComputeIsMaskedAway(maskingBounds);
 
         protected override void UpdateAfterChildren()
