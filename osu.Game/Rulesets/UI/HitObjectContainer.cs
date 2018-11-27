@@ -19,6 +19,11 @@ namespace osu.Game.Rulesets.UI
             RelativeSizeAxes = Axes.Both;
         }
 
+        public override bool UpdateSubTree()
+        {
+            return base.UpdateSubTree();
+        }
+
         public virtual void Add(DrawableHitObject hitObject) => AddInternal(hitObject);
         public virtual bool Remove(DrawableHitObject hitObject) => RemoveInternal(hitObject);
 

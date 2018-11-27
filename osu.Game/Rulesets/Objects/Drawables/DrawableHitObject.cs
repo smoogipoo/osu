@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.TypeExtensions;
@@ -58,6 +59,11 @@ namespace osu.Game.Rulesets.Objects.Drawables
         public bool AllJudged => Judged && NestedHitObjects.All(h => h.AllJudged);
 
         /// <summary>
+        /// Whether this <see cref="DrawableHitObject"/> and all of its nested <see cref="DrawableHitObject"/>s are in an <see cref="ArmedState.Idle"/> state.
+        /// </summary>
+        public bool AllIdle => State.Value == ArmedState.Idle && NestedHitObjects.All(h => h.AllIdle);
+
+        /// <summary>
         /// Whether this <see cref="DrawableHitObject"/> has been hit. This occurs if <see cref="Result.IsHit"/> is <see cref="true"/>.
         /// Note: This does NOT include nested hitobjects.
         /// </summary>
@@ -83,6 +89,11 @@ namespace osu.Game.Rulesets.Objects.Drawables
         public override bool RemoveWhenNotAlive => false;
         public override bool RemoveCompletedTransforms => false;
         protected override bool RequiresChildrenUpdate => true;
+
+        /// <summary>
+        /// A version of <see cref="AllJudged"/> computed conservatively post-frame. Used for performance-critical situations.
+        /// </summary>
+        private bool conservativeAllJudged;
 
         public readonly Bindable<ArmedState> State = new Bindable<ArmedState>();
 
@@ -136,6 +147,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
             State.TriggerChange();
         }
 
+        public override bool IsPresent => true;
+
         protected abstract void UpdateState(ArmedState state);
 
         /// <summary>
@@ -148,27 +161,50 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         public void PlaySamples() => Samples?.Play();
 
+        public override bool UpdateSubTree()
+        {
+            bool b = base.IsPresent;
+
+            if (!b)
+            {
+
+            }
+
+            b = IsAlive;
+            if (!b)
+            {
+            }
+
+            double timeBefore = Clock?.CurrentTime ?? 0;
+            double ltsBefore = LifetimeStart;
+            double lteBefore = LifetimeEnd;
+
+            var result = base.UpdateSubTree();
+
+            b = ShouldBeAlive;
+            if (!b && ltsBefore != double.MinValue)
+            {
+            }
+
+            return result;
+        }
+
         protected override void Update()
         {
             base.Update();
 
-            if (Result != null && Result.HasResult)
+            if (Result != null && Result.HasResult && resultTime > Time.Current)
             {
-                var endTime = (HitObject as IHasEndTime)?.EndTime ?? HitObject.StartTime;
+                OnRevertResult?.Invoke(this, Result);
 
-                if (Result.TimeOffset + endTime > Time.Current)
-                {
-                    OnRevertResult?.Invoke(this, Result);
-
-                    Result.Type = HitResult.None;
-                    State.Value = ArmedState.Idle;
-                }
+                Result.Type = HitResult.None;
+                State.Value = ArmedState.Idle;
             }
         }
 
-        protected override bool ShouldBeAlive => base.ShouldBeAlive || Time.Current >= LifetimeEnd && !AllJudged;
+        protected override bool ShouldBeAlive => base.ShouldBeAlive;
 
-        public override bool IsPresent => base.IsPresent || Time.Current >= LifetimeEnd && !AllJudged;
+        private double resultTime => Result == null ? 0 : ((HitObject as IHasEndTime)?.EndTime ?? HitObject.StartTime) + Result.TimeOffset;
 
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => AllJudged && base.ComputeIsMaskedAway(maskingBounds);
 
@@ -177,6 +213,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
             base.UpdateAfterChildren();
 
             UpdateResult(false);
+
+            conservativeAllJudged = AllJudged;
         }
 
         protected virtual void AddNested(DrawableHitObject h)
