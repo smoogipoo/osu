@@ -64,7 +64,7 @@ namespace osu.Game.Screens.Play
         /// <summary>
         /// The decoupled clock used for gameplay. Should be used for seeks and clock control.
         /// </summary>
-        private DecoupleableInterpolatingFramedClock adjustableClock;
+        protected DecoupleableInterpolatingFramedClock AdjustableClock { get; private set; }
 
         private PauseContainer pauseContainer;
 
@@ -74,8 +74,8 @@ namespace osu.Game.Screens.Play
 
         private SampleChannel sampleRestart;
 
-        protected ScoreProcessor ScoreProcessor;
-        protected RulesetContainer RulesetContainer;
+        protected ScoreProcessor ScoreProcessor { get; private set; }
+        protected RulesetContainer RulesetContainer { get; private set; }
 
         private HUDOverlay hudOverlay;
         private FailOverlay failOverlay;
@@ -138,17 +138,17 @@ namespace osu.Game.Screens.Play
             }
 
             sourceClock = (IAdjustableClock)working.Track ?? new StopwatchClock();
-            adjustableClock = new DecoupleableInterpolatingFramedClock { IsCoupled = false };
+            AdjustableClock = new DecoupleableInterpolatingFramedClock { IsCoupled = false };
 
-            adjustableClock.Seek(AllowLeadIn
+            AdjustableClock.Seek(AllowLeadIn
                 ? Math.Min(0, RulesetContainer.GameplayStartTime - beatmap.BeatmapInfo.AudioLeadIn)
                 : RulesetContainer.GameplayStartTime);
 
-            adjustableClock.ProcessFrame();
+            AdjustableClock.ProcessFrame();
 
             // Lazer's audio timings in general doesn't match stable. This is the result of user testing, albeit limited.
             // This only seems to be required on windows. We need to eventually figure out why, with a bit of luck.
-            var platformOffsetClock = new FramedOffsetClock(adjustableClock) { Offset = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? 22 : 0 };
+            var platformOffsetClock = new FramedOffsetClock(AdjustableClock) { Offset = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? 22 : 0 };
 
             // the final usable gameplay clock with user-set offsets applied.
             var offsetClock = new FramedOffsetClock(platformOffsetClock);
@@ -162,7 +162,7 @@ namespace osu.Game.Screens.Play
 
             Children = new Drawable[]
             {
-                pauseContainer = new PauseContainer(offsetClock, adjustableClock)
+                pauseContainer = new PauseContainer(offsetClock, AdjustableClock)
                 {
                     Retries = RestartCount,
                     OnRetry = Restart,
@@ -188,7 +188,7 @@ namespace osu.Game.Screens.Play
                             Breaks = beatmap.Breaks
                         },
                         RulesetContainer.Cursor?.CreateProxy() ?? new Container(),
-                        hudOverlay = new HUDOverlay(ScoreProcessor, RulesetContainer, working, offsetClock, adjustableClock)
+                        hudOverlay = new HUDOverlay(ScoreProcessor, RulesetContainer, working, offsetClock, AdjustableClock)
                         {
                             Clock = Clock, // hud overlay doesn't want to use the audio clock directly
                             ProcessCustomClock = false,
@@ -199,7 +199,7 @@ namespace osu.Game.Screens.Play
                         {
                             Clock = Clock, // skip button doesn't want to use the audio clock directly
                             ProcessCustomClock = false,
-                            AdjustableClock = adjustableClock,
+                            AdjustableClock = AdjustableClock,
                             FramedClock = offsetClock,
                         },
                     }
@@ -291,7 +291,7 @@ namespace osu.Game.Screens.Play
             if (Beatmap.Value.Mods.Value.OfType<IApplicableFailOverride>().Any(m => !m.AllowFail))
                 return false;
 
-            adjustableClock.Stop();
+            AdjustableClock.Stop();
 
             HasFailed = true;
             failOverlay.Retries = RestartCount;
@@ -319,14 +319,14 @@ namespace osu.Game.Screens.Play
 
                 Schedule(() =>
                 {
-                    adjustableClock.ChangeSource(sourceClock);
+                    AdjustableClock.ChangeSource(sourceClock);
                     applyRateFromMods();
 
                     this.Delay(750).Schedule(() =>
                     {
                         if (!pauseContainer.IsPaused)
                         {
-                            adjustableClock.Start();
+                            AdjustableClock.Start();
                         }
                     });
                 });

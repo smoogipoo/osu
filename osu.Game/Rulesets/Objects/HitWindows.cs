@@ -129,11 +129,16 @@ namespace osu.Game.Rulesets.Objects
         }
 
         /// <summary>
+        /// Half the hit window of the entire hittable range.
+        /// </summary>
+        public double HalfHittableWindow => HalfWindowFor(HitResult.Meh);
+
+        /// <summary>
         /// Given a time offset, whether the <see cref="HitObject"/> can ever be hit in the future with a non-<see cref="HitResult.Miss"/> result.
         /// This happens if <paramref name="timeOffset"/> is less than what is required for a <see cref="Meh"/> result.
         /// </summary>
         /// <param name="timeOffset">The time offset.</param>
         /// <returns>Whether the <see cref="HitObject"/> can be hit at any point in the future from this time offset.</returns>
-        public bool CanBeHit(double timeOffset) => timeOffset <= HalfWindowFor(HitResult.Meh);
+        public bool CanBeHit(double timeOffset) => timeOffset <= HalfHittableWindow;
     }
 }
