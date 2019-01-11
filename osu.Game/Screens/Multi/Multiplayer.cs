@@ -74,7 +74,10 @@ namespace osu.Game.Screens.Multi
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Top = Header.HEIGHT },
-                    Child = loungeSubScreen = new LoungeSubScreen(Push),
+                    Child = new RoomManagerNew
+                    {
+                        Child = loungeSubScreen = new LoungeSubScreen(Push),
+                    }
                 },
                 new Header(loungeSubScreen),
                 createButton = new HeaderButton
@@ -94,7 +97,6 @@ namespace osu.Game.Screens.Multi
                         Name = { Value = $"{api.LocalUser}'s awesome room" }
                     }),
                 },
-                roomManager = new RoomManager()
             });
 
             screenAdded(loungeSubScreen);

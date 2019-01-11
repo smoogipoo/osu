@@ -24,8 +24,6 @@ namespace osu.Game.Screens.Multi.Match.Components
         private const float field_padding = 45;
         private const float disabled_alpha = 0.2f;
 
-        private readonly RoomBindings bindings = new RoomBindings();
-
         private readonly Container content;
 
         private readonly OsuSpriteText typeLabel;

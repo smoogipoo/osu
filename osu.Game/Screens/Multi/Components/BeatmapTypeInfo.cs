@@ -1,31 +1,21 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.Chat;
-using osu.Game.Online.Multiplayer;
-using osu.Game.Rulesets;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Components
 {
-    public class BeatmapTypeInfo : CompositeDrawable
+    public class BeatmapTypeInfo : MultiplayerComposite
     {
-        public readonly IBindable<BeatmapInfo> Beatmap = new Bindable<BeatmapInfo>();
-        public readonly IBindable<RulesetInfo> Ruleset = new Bindable<RulesetInfo>();
-        public readonly IBindable<GameType> Type = new Bindable<GameType>();
-
         public BeatmapTypeInfo()
         {
             AutoSizeAxes = Axes.Both;
 
-            BeatmapTitle beatmapTitle;
-            ModeTypeInfo modeTypeInfo;
             LinkFlowContainer beatmapAuthor;
 
             InternalChild = new FillFlowContainer
@@ -36,7 +26,7 @@ namespace osu.Game.Screens.Multi.Components
                 Spacing = new Vector2(5, 0),
                 Children = new Drawable[]
                 {
-                    modeTypeInfo = new ModeTypeInfo(),
+                    new ModeTypeInfo(),
                     new Container
                     {
                         AutoSizeAxes = Axes.X,
@@ -44,7 +34,7 @@ namespace osu.Game.Screens.Multi.Components
                         Margin = new MarginPadding { Left = 5 },
                         Children = new Drawable[]
                         {
-                            beatmapTitle = new BeatmapTitle(),
+                            new BeatmapTitle(),
                             beatmapAuthor = new LinkFlowContainer(s => s.TextSize = 14)
                             {
                                 Anchor = Anchor.BottomLeft,
@@ -56,13 +46,7 @@ namespace osu.Game.Screens.Multi.Components
                 }
             };
 
-            modeTypeInfo.Beatmap.BindTo(Beatmap);
-            modeTypeInfo.Ruleset.BindTo(Ruleset);
-            modeTypeInfo.Type.BindTo(Type);
-
-            beatmapTitle.Beatmap.BindTo(Beatmap);
-
-            Beatmap.BindValueChanged(v =>
+            CurrentBeatmap.BindValueChanged(v =>
             {
                 beatmapAuthor.Clear();
 

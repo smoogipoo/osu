@@ -24,8 +24,6 @@ namespace osu.Game.Screens.Multi.Match
         public override string Title => room.RoomID.Value == null ? "New room" : room.Name.Value;
         public override string ShortTitle => "room";
 
-        private readonly RoomBindings bindings = new RoomBindings();
-
         private readonly MatchLeaderboard leaderboard;
 
         private readonly Action<Screen> pushGameplayScreen;

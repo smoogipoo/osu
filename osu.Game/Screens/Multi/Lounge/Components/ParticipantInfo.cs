@@ -1,10 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using System.Collections.Generic;
 using Humanizer;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
@@ -16,13 +14,9 @@ using osuTK;
 
 namespace osu.Game.Screens.Multi.Lounge.Components
 {
-    public class ParticipantInfo : Container
+    public class ParticipantInfo : MultiplayerComposite
     {
         private readonly FillFlowContainer summaryContainer;
-
-        public readonly IBindable<User> Host = new Bindable<User>();
-        public readonly IBindable<IEnumerable<User>> Participants = new Bindable<IEnumerable<User>>();
-        public readonly IBindable<int> ParticipantCount = new Bindable<int>();
 
         public ParticipantInfo()
         {
@@ -35,7 +29,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
             Container flagContainer;
             LinkFlowContainer hostText;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 new FillFlowContainer
                 {

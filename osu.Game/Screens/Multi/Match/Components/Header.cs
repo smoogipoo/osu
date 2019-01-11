@@ -20,11 +20,9 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Multi.Match.Components
 {
-    public class Header : Container
+    public class Header : MultiplayerComposite
     {
         public const float HEIGHT = 200;
-
-        private readonly RoomBindings bindings = new RoomBindings();
 
         private readonly Box tabStrip;
 
@@ -37,14 +35,10 @@ namespace osu.Game.Screens.Multi.Match.Components
             RelativeSizeAxes = Axes.X;
             Height = HEIGHT;
 
-            bindings.Room = room;
-
-            BeatmapTypeInfo beatmapTypeInfo;
             BeatmapSelectButton beatmapButton;
-            UpdateableBeatmapBackgroundSprite background;
             ModDisplay modDisplay;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 new Container
                 {
@@ -52,7 +46,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                     Masking = true,
                     Children = new Drawable[]
                     {
-                        background = new HeaderBeatmapBackgroundSprite { RelativeSizeAxes = Axes.Both },
+                        new HeaderBeatmapBackgroundSprite { RelativeSizeAxes = Axes.Both },
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -80,7 +74,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                             Direction = FillDirection.Vertical,
                             Children = new Drawable[]
                             {
-                                beatmapTypeInfo = new BeatmapTypeInfo(),
+                                new BeatmapTypeInfo(),
                                 modDisplay = new ModDisplay
                                 {
                                     Scale = new Vector2(0.75f),
@@ -111,11 +105,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                 },
             };
 
-            beatmapTypeInfo.Beatmap.BindTo(bindings.CurrentBeatmap);
-            beatmapTypeInfo.Ruleset.BindTo(bindings.CurrentRuleset);
-            beatmapTypeInfo.Type.BindTo(bindings.Type);
-            background.Beatmap.BindTo(bindings.CurrentBeatmap);
-            bindings.CurrentMods.BindValueChanged(m => modDisplay.Current.Value = m, true);
+            CurrentMods.BindValueChanged(m => modDisplay.Current.Value = m, true);
 
             beatmapButton.Action = () => OnRequestSelectBeatmap?.Invoke();
         }
@@ -139,9 +129,14 @@ namespace osu.Game.Screens.Multi.Match.Components
             }
         }
 
-        private class HeaderBeatmapBackgroundSprite : UpdateableBeatmapBackgroundSprite
+        private class HeaderBeatmapBackgroundSprite : MultiplayerBackgroundSprite
         {
-            protected override double FadeDuration => 200;
+            protected override UpdateableBeatmapBackgroundSprite CreateBackgroundSprite() => new BackgroundSprite { RelativeSizeAxes = Axes.Both };
+
+            private class BackgroundSprite : UpdateableBeatmapBackgroundSprite
+            {
+                protected override double FadeDuration => 200;
+            }
         }
     }
 }

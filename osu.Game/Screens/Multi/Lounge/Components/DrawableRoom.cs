@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
-using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
@@ -22,7 +21,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Multi.Lounge.Components
 {
-    public class DrawableRoom : OsuClickableContainer, IStateful<SelectionState>, IFilterable
+    public class DrawableRoom : CachedModelComposite<Room>, IStateful<SelectionState>, IFilterable
     {
         public const float SELECTION_BORDER_WIDTH = 4;
         private const float corner_radius = 5;
@@ -34,12 +33,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
 
         public event Action<SelectionState> StateChanged;
 
-        private readonly RoomBindings bindings = new RoomBindings();
-
         private readonly Box selectionBox;
-        private UpdateableBeatmapBackgroundSprite background;
-        private BeatmapTitle beatmapTitle;
-        private ModeTypeInfo modeTypeInfo;
 
         [Resolved]
         private BeatmapManager beatmaps { get; set; }
@@ -47,6 +41,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
         public readonly Room Room;
 
         private SelectionState state;
+
         public SelectionState State
         {
             get { return state; }
@@ -67,6 +62,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
         public IEnumerable<string> FilterTerms => new[] { Room.Name.Value };
 
         private bool matchingFilter;
+
         public bool MatchingFilter
         {
             get { return matchingFilter; }
@@ -77,10 +73,12 @@ namespace osu.Game.Screens.Multi.Lounge.Components
             }
         }
 
+        public Action Action;
+
         public DrawableRoom(Room room)
         {
             Room = room;
-            bindings.Room = room;
+            Model = Room;
 
             RelativeSizeAxes = Axes.X;
             Height = height + SELECTION_BORDER_WIDTH * 2;
@@ -99,107 +97,102 @@ namespace osu.Game.Screens.Multi.Lounge.Components
         private void load(OsuColour colours)
         {
             Box sideStrip;
-            ParticipantInfo participantInfo;
             OsuSpriteText name;
 
-            Children = new Drawable[]
+            InternalChild = new OsuClickableContainer
             {
-                selectionBox,
-                new Container
+                RelativeSizeAxes = Axes.Both,
+                Action = () => Action?.Invoke(),
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding(SELECTION_BORDER_WIDTH),
-                    Child = new Container
+                    selectionBox,
+                    new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Masking = true,
-                        CornerRadius = corner_radius,
-                        EdgeEffect = new EdgeEffectParameters
+                        Padding = new MarginPadding(SELECTION_BORDER_WIDTH),
+                        Child = new Container
                         {
-                            Type = EdgeEffectType.Shadow,
-                            Colour = Color4.Black.Opacity(40),
-                            Radius = 5,
-                        },
-                        Children = new Drawable[]
-                        {
-                            new Box
+                            RelativeSizeAxes = Axes.Both,
+                            Masking = true,
+                            CornerRadius = corner_radius,
+                            EdgeEffect = new EdgeEffectParameters
                             {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex(@"212121"),
+                                Type = EdgeEffectType.Shadow,
+                                Colour = Color4.Black.Opacity(40),
+                                Radius = 5,
                             },
-                            sideStrip = new Box
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Y,
-                                Width = side_strip_width,
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Y,
-                                Width = cover_width,
-                                Masking = true,
-                                Margin = new MarginPadding { Left = side_strip_width },
-                                Child = background = new UpdateableBeatmapBackgroundSprite { RelativeSizeAxes = Axes.Both }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Padding = new MarginPadding
+                                new Box
                                 {
-                                    Vertical = content_padding,
-                                    Left = side_strip_width + cover_width + content_padding,
-                                    Right = content_padding,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = OsuColour.FromHex(@"212121"),
                                 },
-                                Children = new Drawable[]
+                                sideStrip = new Box
                                 {
-                                    new FillFlowContainer
+                                    RelativeSizeAxes = Axes.Y,
+                                    Width = side_strip_width,
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Y,
+                                    Width = cover_width,
+                                    Masking = true,
+                                    Margin = new MarginPadding { Left = side_strip_width },
+                                    Child = new MultiplayerBackgroundSprite { RelativeSizeAxes = Axes.Both }
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Padding = new MarginPadding
                                     {
-                                        RelativeSizeAxes = Axes.X,
-                                        AutoSizeAxes = Axes.Y,
-                                        Direction = FillDirection.Vertical,
-                                        Spacing = new Vector2(5f),
-                                        Children = new Drawable[]
-                                        {
-                                            name = new OsuSpriteText { TextSize = 18 },
-                                            participantInfo = new ParticipantInfo(),
-                                        },
+                                        Vertical = content_padding,
+                                        Left = side_strip_width + cover_width + content_padding,
+                                        Right = content_padding,
                                     },
-                                    new FillFlowContainer
+                                    Children = new Drawable[]
                                     {
-                                        Anchor = Anchor.BottomLeft,
-                                        Origin = Anchor.BottomLeft,
-                                        RelativeSizeAxes = Axes.X,
-                                        AutoSizeAxes = Axes.Y,
-                                        Direction = FillDirection.Vertical,
-                                        Spacing = new Vector2(0, 5),
-                                        Children = new Drawable[]
+                                        new FillFlowContainer
                                         {
-                                            new RoomStatusInfo(Room),
-                                            beatmapTitle = new BeatmapTitle { TextSize = 14 },
+                                            RelativeSizeAxes = Axes.X,
+                                            AutoSizeAxes = Axes.Y,
+                                            Direction = FillDirection.Vertical,
+                                            Spacing = new Vector2(5f),
+                                            Children = new Drawable[]
+                                            {
+                                                name = new OsuSpriteText { TextSize = 18 },
+                                                new ParticipantInfo(),
+                                            },
                                         },
-                                    },
-                                    modeTypeInfo = new ModeTypeInfo
-                                    {
-                                        Anchor = Anchor.BottomRight,
-                                        Origin = Anchor.BottomRight,
+                                        new FillFlowContainer
+                                        {
+                                            Anchor = Anchor.BottomLeft,
+                                            Origin = Anchor.BottomLeft,
+                                            RelativeSizeAxes = Axes.X,
+                                            AutoSizeAxes = Axes.Y,
+                                            Direction = FillDirection.Vertical,
+                                            Spacing = new Vector2(0, 5),
+                                            Children = new Drawable[]
+                                            {
+                                                new RoomStatusInfo(),
+                                                new BeatmapTitle { TextSize = 14 },
+                                            },
+                                        },
+                                        new ModeTypeInfo
+                                        {
+                                            Anchor = Anchor.BottomRight,
+                                            Origin = Anchor.BottomRight,
+                                        },
                                     },
                                 },
                             },
                         },
                     },
-                },
+                }
             };
 
-            background.Beatmap.BindTo(bindings.CurrentBeatmap);
-            modeTypeInfo.Beatmap.BindTo(bindings.CurrentBeatmap);
-            modeTypeInfo.Ruleset.BindTo(bindings.CurrentRuleset);
-            modeTypeInfo.Type.BindTo(bindings.Type);
-            beatmapTitle.Beatmap.BindTo(bindings.CurrentBeatmap);
-            participantInfo.Host.BindTo(bindings.Host);
-            participantInfo.Participants.BindTo(bindings.Participants);
-            participantInfo.ParticipantCount.BindTo(bindings.ParticipantCount);
-
-            bindings.Name.BindValueChanged(n => name.Text = n, true);
-            bindings.Status.BindValueChanged(s =>
+            ShadowModel.Name.BindValueChanged(n => name.Text = n, true);
+            ShadowModel.Status.BindValueChanged(s =>
             {
                 foreach (Drawable d in new Drawable[] { selectionBox, sideStrip })
                     d.FadeColour(s.GetAppropriateColour(colours), transition_duration);

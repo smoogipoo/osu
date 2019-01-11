@@ -13,14 +13,10 @@ using osu.Game.Online.Multiplayer.RoomStatuses;
 
 namespace osu.Game.Screens.Multi.Components
 {
-    public class RoomStatusInfo : CompositeDrawable
+    public class RoomStatusInfo : MultiplayerComposite
     {
-        private readonly RoomBindings bindings = new RoomBindings();
-
-        public RoomStatusInfo(Room room)
+        public RoomStatusInfo()
         {
-            bindings.Room = room;
-
             AutoSizeAxes = Axes.Both;
 
             StatusPart statusPart;
@@ -41,10 +37,10 @@ namespace osu.Game.Screens.Multi.Components
                 }
             };
 
-            statusPart.EndDate.BindTo(bindings.EndDate);
-            statusPart.Status.BindTo(bindings.Status);
-            statusPart.Availability.BindTo(bindings.Availability);
-            endDatePart.EndDate.BindTo(bindings.EndDate);
+            statusPart.EndDate.BindTo(EndDate);
+            statusPart.Status.BindTo(Status);
+            statusPart.Availability.BindTo(Availability);
+            endDatePart.EndDate.BindTo(EndDate);
         }
 
         private class EndDatePart : DrawableDate

@@ -1,27 +1,20 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
-using osu.Game.Online.Multiplayer;
-using osu.Game.Rulesets;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Components
 {
-    public class ModeTypeInfo : CompositeDrawable
+    public class ModeTypeInfo : MultiplayerComposite
     {
         private const float height = 30;
         private const float transition_duration = 100;
 
         private readonly Container rulesetContainer;
-
-        public readonly IBindable<BeatmapInfo> Beatmap = new Bindable<BeatmapInfo>();
-        public readonly IBindable<RulesetInfo> Ruleset = new Bindable<RulesetInfo>();
-        public readonly IBindable<GameType> Type = new Bindable<GameType>();
 
         public ModeTypeInfo()
         {
@@ -48,8 +41,8 @@ namespace osu.Game.Screens.Multi.Components
                 },
             };
 
-            Beatmap.BindValueChanged(updateBeatmap);
-            Ruleset.BindValueChanged(_ => updateBeatmap(Beatmap.Value));
+            CurrentBeatmap.BindValueChanged(updateBeatmap);
+            CurrentRuleset.BindValueChanged(_ => updateBeatmap(CurrentBeatmap.Value));
             Type.BindValueChanged(v => gameTypeContainer.Child = new DrawableGameType(v) { Size = new Vector2(height) });
         }
 
@@ -58,7 +51,7 @@ namespace osu.Game.Screens.Multi.Components
             if (beatmap != null)
             {
                 rulesetContainer.FadeIn(transition_duration);
-                rulesetContainer.Child = new DifficultyIcon(beatmap, Ruleset.Value) { Size = new Vector2(height) };
+                rulesetContainer.Child = new DifficultyIcon(beatmap, CurrentRuleset.Value) { Size = new Vector2(height) };
             }
             else
                 rulesetContainer.FadeOut(transition_duration);

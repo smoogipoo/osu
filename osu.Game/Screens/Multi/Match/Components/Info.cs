@@ -14,11 +14,9 @@ using osuTK;
 
 namespace osu.Game.Screens.Multi.Match.Components
 {
-    public class Info : Container
+    public class Info : MultiplayerComposite
     {
         public Action OnStart;
-
-        private readonly RoomBindings bindings = new RoomBindings();
 
         public Info(Room room)
         {
@@ -30,7 +28,7 @@ namespace osu.Game.Screens.Multi.Match.Components
             HostInfo hostInfo;
             RoomStatusInfo statusInfo;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 new Box
                 {
@@ -61,9 +59,9 @@ namespace osu.Game.Screens.Multi.Match.Components
                                         new OsuSpriteText
                                         {
                                             TextSize = 30,
-                                            Current = bindings.Name
+                                            Current = Name
                                         },
-                                        new RoomStatusInfo(room),
+                                        new RoomStatusInfo(),
                                     }
                                 },
                                 hostInfo = new HostInfo(),
@@ -90,11 +88,9 @@ namespace osu.Game.Screens.Multi.Match.Components
                 },
             };
 
-            viewBeatmapButton.Beatmap.BindTo(bindings.CurrentBeatmap);
-            readyButton.Beatmap.BindTo(bindings.CurrentBeatmap);
-            hostInfo.Host.BindTo(bindings.Host);
-
-            bindings.Room = room;
+            viewBeatmapButton.Beatmap.BindTo(CurrentBeatmap);
+            readyButton.Beatmap.BindTo(CurrentBeatmap);
+            hostInfo.Host.BindTo(Host);
         }
     }
 }

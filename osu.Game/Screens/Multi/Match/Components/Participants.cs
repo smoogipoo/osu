@@ -1,9 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Overlays.SearchableList;
@@ -13,16 +11,11 @@ using osuTK;
 
 namespace osu.Game.Screens.Multi.Match.Components
 {
-    public class Participants : CompositeDrawable
+    public class Participants : MultiplayerComposite
     {
-        public readonly IBindable<IEnumerable<User>> Users = new Bindable<IEnumerable<User>>();
-        public readonly IBindable<int> ParticipantCount = new Bindable<int>();
-        public readonly IBindable<int?> MaxParticipants = new Bindable<int?>();
-
         public Participants()
         {
             FillFlowContainer<UserPanel> usersFlow;
-            ParticipantCountDisplay count;
 
             InternalChild = new Container
             {
@@ -36,7 +29,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                         Padding = new MarginPadding { Top = 10 },
                         Children = new Drawable[]
                         {
-                            count = new ParticipantCountDisplay
+                            new ParticipantCountDisplay
                             {
                                 Anchor = Anchor.TopRight,
                                 Origin = Anchor.TopRight,
@@ -55,11 +48,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                 },
             };
 
-            count.Participants.BindTo(Users);
-            count.ParticipantCount.BindTo(ParticipantCount);
-            count.MaxParticipants.BindTo(MaxParticipants);
-
-            Users.BindValueChanged(v =>
+            Participants.BindValueChanged(v =>
             {
                 usersFlow.Children = v.Select(u => new UserPanel(u)
                 {

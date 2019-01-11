@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
-using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API;
@@ -24,7 +23,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Multi.Lounge.Components
 {
-    public class RoomInspector : Container
+    public class RoomInspector : CachedModelComposite<Room>
     {
         private const float transition_duration = 100;
 
@@ -32,16 +31,12 @@ namespace osu.Game.Screens.Multi.Lounge.Components
 
         private readonly MarginPadding contentPadding = new MarginPadding { Horizontal = 20, Vertical = 10 };
 
-        private readonly RoomBindings bindings = new RoomBindings();
-
         private OsuColour colours;
         private Box statusStrip;
-        private UpdateableBeatmapBackgroundSprite background;
         private ParticipantCountDisplay participantCount;
         private OsuSpriteText name, status;
         private BeatmapTypeInfo beatmapTypeInfo;
         private ParticipantInfo participantInfo;
-        private MatchParticipants participants;
 
         [Resolved]
         private BeatmapManager beatmaps { get; set; }
@@ -51,7 +46,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
         {
             this.colours = colours;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 new Box
                 {
@@ -84,7 +79,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                                         Masking = true,
                                         Children = new Drawable[]
                                         {
-                                            background = new UpdateableBeatmapBackgroundSprite { RelativeSizeAxes = Axes.Both },
+                                            new MultiplayerBackgroundSprite { RelativeSizeAxes = Axes.Both },
                                             new Box
                                             {
                                                 RelativeSizeAxes = Axes.Both,
@@ -162,7 +157,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                         },
                         new Drawable[]
                         {
-                            participants = new MatchParticipants
+                            new MatchParticipants
                             {
                                 RelativeSizeAxes = Axes.Both,
                             }
@@ -171,25 +166,15 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                 }
             };
 
-            participantInfo.Host.BindTo(bindings.Host);
-            participantInfo.ParticipantCount.BindTo(bindings.ParticipantCount);
-            participantInfo.Participants.BindTo(bindings.Participants);
-            participantCount.Participants.BindTo(bindings.Participants);
-            participantCount.ParticipantCount.BindTo(bindings.ParticipantCount);
-            participantCount.MaxParticipants.BindTo(bindings.MaxParticipants);
-            beatmapTypeInfo.Beatmap.BindTo(bindings.CurrentBeatmap);
-            beatmapTypeInfo.Ruleset.BindTo(bindings.CurrentRuleset);
-            beatmapTypeInfo.Type.BindTo(bindings.Type);
-            background.Beatmap.BindTo(bindings.CurrentBeatmap);
-            bindings.Status.BindValueChanged(displayStatus);
-            bindings.Name.BindValueChanged(n => name.Text = n);
+            ShadowModel.Status.BindValueChanged(displayStatus);
+            ShadowModel.Name.BindValueChanged(n => name.Text = n);
+
             Room.BindValueChanged(updateRoom, true);
         }
 
         private void updateRoom(Room room)
         {
-            bindings.Room = room;
-            participants.Room = room;
+            Model = room;
 
             if (room != null)
             {
@@ -224,23 +209,9 @@ namespace osu.Game.Screens.Multi.Lounge.Components
             public override Color4 GetAppropriateColour(OsuColour colours) => colours.Gray8;
         }
 
-        private class MatchParticipants : CompositeDrawable
+        private class MatchParticipants : MultiplayerComposite
         {
-            private Room room;
             private readonly FillFlowContainer fill;
-
-            public Room Room
-            {
-                get { return room; }
-                set
-                {
-                    if (room == value)
-                        return;
-
-                    room = value;
-                    updateParticipants();
-                }
-            }
 
             public MatchParticipants()
             {
@@ -257,6 +228,8 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                         Direction = FillDirection.Full,
                     }
                 };
+
+                Participants.BindValueChanged(_ => updateParticipants());
             }
 
             [Resolved]
@@ -266,7 +239,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
 
             private void updateParticipants()
             {
-                var roomId = room.RoomID.Value ?? 0;
+                var roomId = RoomID.Value ?? 0;
 
                 request?.Cancel();
 
@@ -284,7 +257,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                 request = new GetRoomScoresRequest(roomId);
                 request.Success += scores =>
                 {
-                    if (roomId != room.RoomID.Value)
+                    if (roomId != RoomID.Value)
                         return;
 
                     fill.Clear();
