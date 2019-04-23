@@ -41,18 +41,35 @@ namespace osu.Game.Rulesets.Replays
                     return null;
 
                 if (!currentFrameIndex.HasValue)
-                    return (TFrame)Frames[0];
+                {
+                    // We're moving backwards/forwards with no current frame. This occurs if SetFrameFromTime() was _never_ called with a valid frame time.
+                    return currentDirection > 0 ? (TFrame)Frames[0] : null;
+                }
 
                 if (currentDirection > 0)
                     return currentFrameIndex == Frames.Count - 1 ? null : (TFrame)Frames[currentFrameIndex.Value + 1];
                 else
-                    return currentFrameIndex == 0 ? null : (TFrame)Frames[nextFrameIndex];
+                    return currentFrameIndex == 0 ? null : (TFrame)Frames[currentFrameIndex.Value - 1];
             }
         }
 
         private int? currentFrameIndex;
 
-        private int nextFrameIndex => currentFrameIndex.HasValue ? MathHelper.Clamp(currentFrameIndex.Value + (currentDirection > 0 ? 1 : -1), 0, Frames.Count - 1) : 0;
+        private int? nextFrameIndex
+        {
+            get
+            {
+                switch (currentFrameIndex)
+                {
+                    case null when currentDirection < 0:
+                        return null;
+                    case null:
+                        return 0;
+                    default:
+                        return MathHelper.Clamp(currentFrameIndex.Value + (currentDirection > 0 ? 1 : -1), 0, Frames.Count - 1);
+                }
+            }
+        }
 
         protected FramedReplayInputHandler(Replay replay)
         {
@@ -61,7 +78,7 @@ namespace osu.Game.Rulesets.Replays
 
         private bool advanceFrame()
         {
-            int newFrame = nextFrameIndex;
+            int? newFrame = nextFrameIndex;
 
             //ensure we aren't at an extent.
             if (newFrame == currentFrameIndex) return false;

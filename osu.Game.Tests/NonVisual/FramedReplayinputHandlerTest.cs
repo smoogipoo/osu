@@ -39,6 +39,10 @@ namespace osu.Game.Tests.NonVisual
             Assert.IsNull(handler.CurrentFrame);
 
             confirmCurrentFrame(null);
+            confirmNextFrame(null);
+
+            setTime(-200, -200);
+            confirmCurrentFrame(null);
             confirmNextFrame(0);
 
             setTime(0, 0);
@@ -117,6 +121,20 @@ namespace osu.Game.Tests.NonVisual
             setTime(0, 0);
             confirmCurrentFrame(0);
             confirmNextFrame(1);
+        }
+
+        [Test]
+        public void TestRewindFromStart()
+        {
+            // Initial time setting
+            setTime(-250, -250);
+            confirmCurrentFrame(null);
+            confirmNextFrame(0);
+
+            // Moving backwards
+            setTime(-500, -500);
+            confirmCurrentFrame(null);
+            confirmNextFrame(null);
         }
 
         [Test]
