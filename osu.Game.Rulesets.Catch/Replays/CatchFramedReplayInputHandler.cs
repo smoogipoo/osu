@@ -23,14 +23,14 @@ namespace osu.Game.Rulesets.Catch.Replays
         {
             get
             {
-                var frame = CurrentFrame;
+                var frame = StartFrame;
 
                 if (frame == null)
                     return null;
 
                 Debug.Assert(CurrentTime != null);
 
-                return NextFrame != null ? Interpolation.ValueAt(CurrentTime.Value, frame.Position, NextFrame.Position, frame.Time, NextFrame.Time) : frame.Position;
+                return EndFrame != null ? Interpolation.ValueAt(CurrentTime.Value, frame.Position, EndFrame.Position, frame.Time, EndFrame.Time) : frame.Position;
             }
         }
 
@@ -40,12 +40,12 @@ namespace osu.Game.Rulesets.Catch.Replays
 
             var actions = new List<CatchAction>();
 
-            if (CurrentFrame.Dashing)
+            if (StartFrame.Dashing)
                 actions.Add(CatchAction.Dash);
 
-            if (Position.Value > CurrentFrame.Position)
+            if (Position.Value > StartFrame.Position)
                 actions.Add(CatchAction.MoveRight);
-            else if (Position.Value < CurrentFrame.Position)
+            else if (Position.Value < StartFrame.Position)
                 actions.Add(CatchAction.MoveLeft);
 
             return new List<IInput>

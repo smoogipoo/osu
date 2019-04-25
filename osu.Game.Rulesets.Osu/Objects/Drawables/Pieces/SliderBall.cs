@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Logging;
 using osu.Game.Rulesets.Objects.Types;
 using osuTK.Graphics;
 using osu.Game.Skinning;
@@ -191,11 +192,14 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
             Tracking =
                 // in valid time range
-                Time.Current >= slider.StartTime && Time.Current < slider.EndTime &&
+                Time.Current >= slider.StartTime && Time.Current <= slider.EndTime &&
                 // in valid position range
                 lastScreenSpaceMousePosition.HasValue && base.ReceivePositionalInputAt(lastScreenSpaceMousePosition.Value) &&
                 // valid action
                 (actions?.Any(isValidTrackingAction) ?? false);
+
+            Logger.Log($"Tracking = {Tracking} ({Time.Current >= slider.StartTime}, {Time.Current < slider.EndTime}, {lastScreenSpaceMousePosition.HasValue}, "
+                       + $"{lastScreenSpaceMousePosition.HasValue && base.ReceivePositionalInputAt(lastScreenSpaceMousePosition.Value)}, {actions?.Any(isValidTrackingAction) ?? false})");
         }
 
         /// <summary>

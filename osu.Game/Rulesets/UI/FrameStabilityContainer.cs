@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 using osu.Framework.Timing;
 using osu.Game.Input.Handlers;
 using osu.Game.Screens.Play;
@@ -81,6 +82,8 @@ namespace osu.Game.Rulesets.UI
 
                 if (validState)
                 {
+                    Logger.Log($"Update | CurrentTime: {framedClock.CurrentTime}");
+
                     base.UpdateSubTree();
                     UpdateSubTreeMasking(this, ScreenSpaceDrawQuad.AABBFloat);
                 }

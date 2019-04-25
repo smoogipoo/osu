@@ -23,6 +23,7 @@ using osu.Game.Screens.Play;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual;
 using osuTK;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -297,6 +298,8 @@ namespace osu.Game.Rulesets.Osu.Tests
 
         private void performTest(List<ReplayFrame> frames)
         {
+            AddStep("log", () => Logger.Log(TestContext.CurrentContext.Test.MethodName));
+
             AddStep("load player", () =>
             {
                 Beatmap.Value = new TestWorkingBeatmap(new Beatmap<OsuHitObject>

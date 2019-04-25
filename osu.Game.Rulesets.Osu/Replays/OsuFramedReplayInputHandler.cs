@@ -25,14 +25,14 @@ namespace osu.Game.Rulesets.Osu.Replays
         {
             get
             {
-                var frame = CurrentFrame;
+                var frame = StartFrame;
 
                 if (frame == null)
                     return null;
 
                 Debug.Assert(CurrentTime != null);
 
-                return NextFrame != null ? Interpolation.ValueAt(CurrentTime.Value, frame.Position, NextFrame.Position, frame.Time, NextFrame.Time) : frame.Position;
+                return EndFrame != null ? Interpolation.ValueAt(CurrentTime.Value, frame.Position, EndFrame.Position, frame.Time, EndFrame.Time) : frame.Position;
             }
         }
 
@@ -46,7 +46,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 },
                 new ReplayState<OsuAction>
                 {
-                    PressedActions = CurrentFrame?.Actions ?? new List<OsuAction>()
+                    PressedActions = StartFrame?.Actions ?? new List<OsuAction>()
                 }
             };
         }
