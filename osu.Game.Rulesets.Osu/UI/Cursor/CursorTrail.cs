@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
@@ -14,13 +15,14 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
+using osu.Game.Skinning;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Game.Rulesets.Osu.UI.Cursor
 {
-    internal class CursorTrail : Drawable, IRequireHighFrequencyMousePosition
+    internal class CursorTrail : SkinReloadableDrawable, IRequireHighFrequencyMousePosition
     {
         private int currentIndex;
 
@@ -66,8 +68,14 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
         private void load(ShaderManager shaders, TextureStore textures)
         {
             shader = shaders.Load(@"CursorTrail", FragmentShaderDescriptor.TEXTURE);
-            texture = textures.Get(@"Cursor/cursortrail");
-            Scale = new Vector2(1 / texture.ScaleAdjust);
+        }
+
+        protected override void SkinChanged(ISkinSource skin, bool allowFallback)
+        {
+            base.SkinChanged(skin, allowFallback);
+
+            texture = skin.GetTexture("Play/Osu/cursortrail");
+            Invalidate(Invalidation.DrawNode);
         }
 
         protected override void LoadComplete()
@@ -75,6 +83,8 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
             base.LoadComplete();
             resetTime();
         }
+
+        protected override bool CanBeFlattened => false;
 
         protected override void Update()
         {
@@ -150,7 +160,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
             public long InvalidationID;
         }
 
-        private class TrailDrawNode : DrawNode
+        private class TrailDrawNode : DrawNode, ICompositeDrawNode
         {
             protected new CursorTrail Source => (CursorTrail)base.Source;
 
@@ -236,6 +246,9 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
                     });
                 }
             }
+
+            public List<DrawNode> Children { get; set; }
+            public bool AddChildDrawNodes => false;
         }
 
         [StructLayout(LayoutKind.Sequential)]

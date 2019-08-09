@@ -31,7 +31,11 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    cursorTrail = new CursorTrail { Depth = 1 }
+                    cursorTrail = new CursorTrail
+                    {
+                        Depth = 1,
+                        Blending = BlendingMode.Additive
+                    }
                 }
             };
         }
