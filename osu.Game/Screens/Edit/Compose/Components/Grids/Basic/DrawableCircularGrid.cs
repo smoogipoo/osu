@@ -21,7 +21,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
         {
             for (int i = 0; i < 10; i++)
             {
-                float radius = (i + 1) * grid.Spacing.Value;
+                float radius = grid.CentreRadius * 2 + (i + 1) * grid.Spacing.Value;
 
                 AddInternal(new CircularProgress
                 {

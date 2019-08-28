@@ -20,7 +20,9 @@ namespace osu.Game.Tests.Visual.Editor
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(IGrid),
-            typeof(CircularGrid)
+            typeof(DrawableGrid),
+            typeof(CircularGrid),
+            typeof(DrawableCircularGrid)
         };
 
         private GridLayer gridLayer;

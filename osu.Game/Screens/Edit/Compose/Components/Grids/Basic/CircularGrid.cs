@@ -13,6 +13,14 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
 
         public Bindable<int> SnapDistance { get; } = new Bindable<int>(20);
 
+        /// <summary>
+        /// The radius around <see cref="Centre"/> for which the grid should remain empty.
+        /// </summary>
+        public float CentreRadius = 50;
+
+        /// <summary>
+        /// The centre point of the grid.
+        /// </summary>
         public readonly Vector2 Centre;
 
         public CircularGrid(Vector2 centre)
@@ -28,10 +36,16 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
             float distance = direction.Length;
 
             float radius = Spacing.Value / 2f;
+            int radialCount = (int)Math.Round((distance - CentreRadius) / radius);
 
-            int count = (int)Math.Round(distance / radius);
+            if (radialCount <= 0)
+                return position;
 
-            return Centre + direction / distance * count * radius;
+            Vector2 normalisedDirection = direction * new Vector2(1f / distance);
+
+            return Centre +
+                   normalisedDirection * CentreRadius +
+                   normalisedDirection * radialCount * radius;
         }
     }
 }
