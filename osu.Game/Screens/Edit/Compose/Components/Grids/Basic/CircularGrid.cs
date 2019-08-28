@@ -35,7 +35,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
             Vector2 direction = position - Centre;
             float distance = direction.Length;
 
-            float radius = Spacing.Value / 2f;
+            float radius = Spacing.Value;
             int radialCount = (int)Math.Round((distance - CentreRadius) / radius);
 
             if (radialCount <= 0)
