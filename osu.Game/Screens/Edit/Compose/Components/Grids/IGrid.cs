@@ -11,12 +11,12 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
         /// <summary>
         /// The spacing between lines of the grid.
         /// </summary>
-        Bindable<int> Spacing { get; }
+        Bindable<float> Spacing { get; }
 
         /// <summary>
         /// The maximum distance from the lines of the grid at which snapping can occur.
         /// </summary>
-        Bindable<int> SnapDistance { get; }
+        Bindable<float> SnapDistance { get; }
 
         /// <summary>
         /// Creates the visual representation for this grid.

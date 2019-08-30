@@ -9,9 +9,9 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
 {
     public class CircularGrid : IGrid
     {
-        public Bindable<int> Spacing { get; } = new Bindable<int>(20);
+        public Bindable<float> Spacing { get; } = new Bindable<float>(20);
 
-        public Bindable<int> SnapDistance { get; } = new Bindable<int>(20);
+        public Bindable<float> SnapDistance { get; } = new Bindable<float>(20);
 
         /// <summary>
         /// The radius around <see cref="Centre"/> for which the grid should remain empty.
