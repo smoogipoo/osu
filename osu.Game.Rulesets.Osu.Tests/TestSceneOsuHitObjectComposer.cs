@@ -4,32 +4,28 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Timing;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
-using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Edit;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles.Components;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Screens.Edit.Compose.Components;
+using osu.Game.Tests.Visual;
 using osuTK;
 
-namespace osu.Game.Tests.Visual.Editor
+namespace osu.Game.Rulesets.Osu.Tests
 {
-    [TestFixture]
-    public class TestSceneHitObjectComposer : OsuTestScene
+    public class TestSceneOsuHitObjectComposer : EditorClockTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(SelectionHandler),
             typeof(DragBox),
             typeof(HitObjectComposer),
-            typeof(OsuHitObjectComposer),
             typeof(BlueprintContainer),
             typeof(NotNullAttribute),
             typeof(HitCirclePiece),
@@ -58,10 +54,6 @@ namespace osu.Game.Tests.Visual.Editor
                     }
                 },
             });
-
-            var clock = new DecoupleableInterpolatingFramedClock { IsCoupled = false };
-            Dependencies.CacheAs<IAdjustableClock>(clock);
-            Dependencies.CacheAs<IFrameBasedClock>(clock);
 
             Child = new OsuHitObjectComposer(new OsuRuleset());
         }
