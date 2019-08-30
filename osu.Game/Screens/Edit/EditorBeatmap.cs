@@ -37,7 +37,7 @@ namespace osu.Game.Screens.Edit
 
         public double TotalBreakTime => beatmap.TotalBreakTime;
 
-        IReadOnlyList<T> IBeatmap<T>.HitObjects => beatmap.HitObjects;
+        public IReadOnlyList<T> HitObjects => beatmap.HitObjects;
 
         IReadOnlyList<HitObject> IBeatmap.HitObjects => beatmap.HitObjects;
 
