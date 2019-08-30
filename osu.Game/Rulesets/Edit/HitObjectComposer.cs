@@ -22,6 +22,7 @@ using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components.RadioButtons;
 using osu.Game.Screens.Edit.Compose;
 using osu.Game.Screens.Edit.Compose.Components;
+using osu.Game.Screens.Edit.Compose.Components.Grids;
 
 namespace osu.Game.Rulesets.Edit
 {
@@ -40,6 +41,7 @@ namespace osu.Game.Rulesets.Edit
 
         private DrawableEditRulesetWrapper<TObject> drawableRulesetWrapper;
         private BlueprintContainer blueprintContainer;
+        private GridLayer gridLayer;
         private readonly List<Container> layerContainers = new List<Container>();
 
         private InputManager inputManager;
@@ -66,8 +68,11 @@ namespace osu.Game.Rulesets.Edit
                 return;
             }
 
-            var layerBelowRuleset = drawableRulesetWrapper.CreatePlayfieldAdjustmentContainer();
-            layerBelowRuleset.Child = new EditorPlayfieldBorder { RelativeSizeAxes = Axes.Both };
+            var layerBelowRuleset = drawableRulesetWrapper.CreatePlayfieldAdjustmentContainer().WithChildren(new Drawable[]
+            {
+                new EditorPlayfieldBorder { RelativeSizeAxes = Axes.Both },
+                gridLayer = CreateGridLayer()
+            });
 
             var layerAboveRuleset = drawableRulesetWrapper.CreatePlayfieldAdjustmentContainer();
             layerAboveRuleset.Child = blueprintContainer = new BlueprintContainer();
@@ -162,6 +167,13 @@ namespace osu.Game.Rulesets.Edit
             });
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            gridLayer.ShowFor(null);
+        }
+
         private void addHitObject(HitObject hitObject)
         {
             beatmapProcessor?.PreProcess();
@@ -179,6 +191,8 @@ namespace osu.Game.Rulesets.Edit
         public override bool CursorInPlacementArea => drawableRulesetWrapper.Playfield.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
 
         protected abstract IReadOnlyList<HitObjectCompositionTool> CompositionTools { get; }
+
+        protected virtual GridLayer CreateGridLayer() => new GridLayer();
 
         protected abstract DrawableRuleset<TObject> CreateDrawableRuleset(Ruleset ruleset, IWorkingBeatmap beatmap, IReadOnlyList<Mod> mods);
 

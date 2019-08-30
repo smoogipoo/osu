@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Game.Tournament", "osu.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Game.Tournament.Tests", "osu.Game.Tournament.Tests\osu.Game.Tournament.Tests.csproj", "{5789E78D-38F9-4072-AB7B-978F34B2C17F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework", "..\osu-framework\osu.Framework\osu.Framework.csproj", "{B08631B4-7EA7-4889-BFB2-9331FF5C26AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.NativeLibs", "..\osu-framework\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj", "{84BDF172-421A-4065-B640-6C66DE723B82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +91,14 @@ Global
 		{5789E78D-38F9-4072-AB7B-978F34B2C17F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5789E78D-38F9-4072-AB7B-978F34B2C17F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5789E78D-38F9-4072-AB7B-978F34B2C17F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B08631B4-7EA7-4889-BFB2-9331FF5C26AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B08631B4-7EA7-4889-BFB2-9331FF5C26AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B08631B4-7EA7-4889-BFB2-9331FF5C26AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B08631B4-7EA7-4889-BFB2-9331FF5C26AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84BDF172-421A-4065-B640-6C66DE723B82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84BDF172-421A-4065-B640-6C66DE723B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84BDF172-421A-4065-B640-6C66DE723B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84BDF172-421A-4065-B640-6C66DE723B82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

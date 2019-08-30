@@ -14,6 +14,7 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Compose.Components;
+using osu.Game.Screens.Edit.Compose.Components.Grids;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
@@ -23,6 +24,8 @@ namespace osu.Game.Rulesets.Osu.Edit
             : base(ruleset)
         {
         }
+
+        protected override GridLayer CreateGridLayer() => new OsuGridLayer();
 
         protected override DrawableRuleset<OsuHitObject> CreateDrawableRuleset(Ruleset ruleset, IWorkingBeatmap beatmap, IReadOnlyList<Mod> mods)
             => new DrawableOsuEditRuleset(ruleset, beatmap, mods);
