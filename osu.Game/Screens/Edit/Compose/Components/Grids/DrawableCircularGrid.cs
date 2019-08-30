@@ -4,11 +4,12 @@
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
+using osu.Game.Rulesets.Objects;
 using osuTK;
 
-namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
+namespace osu.Game.Screens.Edit.Compose.Components.Grids
 {
-    public class DrawableCircularGrid : DrawableGrid
+    public abstract class DrawableCircularGrid : DrawableGrid
     {
         private readonly Vector2 centre;
         private readonly float centreRadius;
@@ -16,9 +17,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
         /// <summary>
         /// Creates a new <see cref="DrawableCircularGrid"/>.
         /// </summary>
+        /// <param name="hitObject"></param>
         /// <param name="centre">The centre point of the grid.</param>
         /// <param name="centreRadius">The radius around <see cref="centre"/> for which the grid should remain empty.</param>
-        public DrawableCircularGrid(Vector2 centre, float centreRadius = 50)
+        protected DrawableCircularGrid(HitObject hitObject, Vector2 centre, float centreRadius = 50)
+            : base(hitObject, centre)
         {
             this.centre = centre;
             this.centreRadius = centreRadius;
@@ -36,11 +39,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
                         Vector2.Distance(centre, new Vector2(0, DrawHeight)),
                         Vector2.Distance(centre, DrawSize))));
 
-            int requiredCircles = (int)((maxDistance - centreRadius) / Spacing.Value);
+            int requiredCircles = (int)((maxDistance - centreRadius) / DistanceSpacing);
 
             for (int i = 0; i < requiredCircles; i++)
             {
-                float radius = centreRadius * 2 + (i + 1) * Spacing.Value * 2;
+                float radius = centreRadius * 2 + (i + 1) * DistanceSpacing * 2;
 
                 AddInternal(new CircularProgress
                 {
@@ -49,7 +52,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
                     Current = { Value = 1 },
                     Size = new Vector2(radius),
                     InnerRadius = 2 * 1f / radius,
-                    Alpha = 0.5f
+                    Colour = GetColourForBeatIndex(i),
                 });
             }
         }
@@ -59,7 +62,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
             Vector2 direction = position - centre;
             float distance = direction.Length;
 
-            float radius = Spacing.Value;
+            float radius = DistanceSpacing;
             int radialCount = (int)Math.Round((distance - centreRadius) / radius);
 
             if (radialCount <= 0)
