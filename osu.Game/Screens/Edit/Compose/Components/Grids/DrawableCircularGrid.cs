@@ -51,7 +51,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
                     Position = centre,
                     Current = { Value = 1 },
                     Size = new Vector2(radius),
-                    InnerRadius = 2 * 1f / radius,
+                    InnerRadius = 4 * 1f / radius,
                     Colour = GetColourForBeatIndex(i),
                 });
             }

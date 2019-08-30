@@ -1,19 +1,68 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Bindables;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Timing;
+using osu.Game.Beatmaps;
+using osu.Game.Beatmaps.ControlPoints;
+using osu.Game.Graphics;
+using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
 using osuTK;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Grids
 {
     public abstract class DrawableGrid : CompositeDrawable
     {
-        public Bindable<float> Spacing { get; } = new Bindable<float>(20);
+        protected float DistanceSpacing { get; private set; }
 
-        public Bindable<float> SnapDistance { get; } = new Bindable<float>(20);
+        [Resolved]
+        private IFrameBasedClock framedClock { get; set; }
+
+        [Resolved]
+        private IEditorBeatmap beatmap { get; set; }
+
+        [Resolved]
+        private BindableBeatDivisor beatDivisor { get; set; }
+
+        [Resolved]
+        private OsuColour colours { get; set; }
+
+        private readonly HitObject hitObject;
+        private readonly Vector2 startPosition;
+
+        private double startTime;
+        private double beatLength;
+
+        protected DrawableGrid(HitObject hitObject, Vector2 startPosition)
+        {
+            this.hitObject = hitObject;
+            this.startPosition = startPosition;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            startTime = (hitObject as IHasEndTime)?.EndTime ?? hitObject.StartTime;
+            beatLength = beatmap.ControlPointInfo.TimingPointAt(startTime).BeatLength;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            beatDivisor.BindValueChanged(_ => updateSpacing(), true);
+        }
+
+        private void updateSpacing()
+        {
+            DistanceSpacing = (float)(beatLength / beatDivisor.Value * GetDistanceSpacing(startTime, beatmap.ControlPointInfo, beatmap.BeatmapInfo.BaseDifficulty));
+            gridCache.Invalidate();
+        }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -36,6 +85,19 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
                 gridCache.Validate();
             }
         }
+
+        protected ColourInfo GetColourForBeatIndex(int index)
+        {
+            int repeatIndex = index / beatDivisor.Value;
+
+            var colour = beatDivisor.GetColourFor(beatDivisor.Value - (index % beatDivisor.Value), colours);
+
+            return colour.MultiplyAlpha(1f / (repeatIndex + 1));
+        }
+
+        public double GetSnappedTime(Vector2 snappedPosition) => (snappedPosition - startPosition).Length / DistanceSpacing;
+
+        protected abstract float GetDistanceSpacing(double time, ControlPointInfo controlPointInfo, BeatmapDifficulty difficulty);
 
         protected abstract void CreateGrid();
 
