@@ -41,7 +41,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             Vector2 localSnappedPosition = ToLocalSpace(screenSpacePosition);
 
             foreach (var g in activeGrids)
-                localSnappedPosition = g.GetSnappedPosition(localSnappedPosition);
+                localSnappedPosition = g.GetSnapPosition(localSnappedPosition);
 
             return ToScreenSpace(localSnappedPosition);
         }

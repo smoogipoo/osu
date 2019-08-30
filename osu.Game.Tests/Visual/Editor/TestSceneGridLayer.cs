@@ -107,7 +107,7 @@ namespace osu.Game.Tests.Visual.Editor
             {
             }
 
-            protected override float GetDistanceSpacing(double time, ControlPointInfo controlPointInfo, BeatmapDifficulty difficulty) => 0.05f;
+            protected override float GetVelocity(double time, ControlPointInfo controlPointInfo, BeatmapDifficulty difficulty) => 0.05f;
         }
     }
 }

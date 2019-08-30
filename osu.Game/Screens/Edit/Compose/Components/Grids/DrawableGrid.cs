@@ -32,6 +32,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
         [Resolved]
         private OsuColour colours { get; set; }
 
+        private readonly Cached gridCache = new Cached();
         private readonly HitObject hitObject;
         private readonly Vector2 startPosition;
 
@@ -60,7 +61,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
         private void updateSpacing()
         {
-            DistanceSpacing = (float)(beatLength / beatDivisor.Value * GetDistanceSpacing(startTime, beatmap.ControlPointInfo, beatmap.BeatmapInfo.BaseDifficulty));
+            DistanceSpacing = (float)(beatLength / beatDivisor.Value * GetVelocity(startTime, beatmap.ControlPointInfo, beatmap.BeatmapInfo.BaseDifficulty));
             gridCache.Invalidate();
         }
 
@@ -72,8 +73,6 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
-        private readonly Cached gridCache = new Cached();
-
         protected override void Update()
         {
             base.Update();
@@ -81,11 +80,44 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             if (!gridCache.IsValid)
             {
                 ClearInternal();
-                CreateGrid();
+                DrawGrid();
                 gridCache.Validate();
             }
         }
 
+        /// <summary>
+        /// Draws the grid.
+        /// </summary>
+        protected abstract void DrawGrid();
+
+        /// <summary>
+        /// Retrieves the velocity of gameplay at a time.
+        /// </summary>
+        /// <param name="time">The time to retrieve the velocity at.</param>
+        /// <param name="controlPointInfo">The beatmap's <see cref="ControlPointInfo"/> at the requested time.</param>
+        /// <param name="difficulty">The beatmap's <see cref="BeatmapDifficulty"/> at the requested time.</param>
+        /// <returns>The velocity in pixels per millisecond.</returns>
+        protected abstract float GetVelocity(double time, ControlPointInfo controlPointInfo, BeatmapDifficulty difficulty);
+
+        /// <summary>
+        /// Snaps a position to this grid.
+        /// </summary>
+        /// <param name="screenSpacePosition">The original screen-space position.</param>
+        /// <returns>The snapped position.</returns>
+        public abstract Vector2 GetSnapPosition(Vector2 screenSpacePosition);
+
+        /// <summary>
+        /// Retrieves the time at a snapped position.
+        /// </summary>
+        /// <param name="snappedPosition">The snapped position.</param>
+        /// <returns>The time at the snapped position.</returns>
+        public double GetSnapTime(Vector2 snappedPosition) => startTime + (snappedPosition - startPosition).Length / DistanceSpacing;
+
+        /// <summary>
+        /// Retrieves the applicable colour for a beat index.
+        /// </summary>
+        /// <param name="index">The 0-based beat index.</param>
+        /// <returns>The applicable colour.</returns>
         protected ColourInfo GetColourForBeatIndex(int index)
         {
             int repeatIndex = index / beatDivisor.Value;
@@ -94,18 +126,5 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
             return colour.MultiplyAlpha(1f / (repeatIndex + 1));
         }
-
-        public double GetSnappedTime(Vector2 snappedPosition) => (snappedPosition - startPosition).Length / DistanceSpacing;
-
-        protected abstract float GetDistanceSpacing(double time, ControlPointInfo controlPointInfo, BeatmapDifficulty difficulty);
-
-        protected abstract void CreateGrid();
-
-        /// <summary>
-        /// Snaps a position to this grid.
-        /// </summary>
-        /// <param name="screenSpacePosition">The original screen-space position.</param>
-        /// <returns>The snapped position.</returns>
-        public abstract Vector2 GetSnappedPosition(Vector2 screenSpacePosition);
     }
 }

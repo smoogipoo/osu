@@ -29,7 +29,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             RelativeSizeAxes = Axes.Both;
         }
 
-        protected override void CreateGrid()
+        protected override void DrawGrid()
         {
             float maxDistance = Math.Max(
                 Vector2.Distance(centre, Vector2.Zero),
@@ -57,7 +57,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             }
         }
 
-        public override Vector2 GetSnappedPosition(Vector2 position)
+        public override Vector2 GetSnapPosition(Vector2 position)
         {
             Vector2 direction = position - centre;
             float distance = direction.Length;
