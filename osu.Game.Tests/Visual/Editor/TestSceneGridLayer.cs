@@ -19,9 +19,7 @@ namespace osu.Game.Tests.Visual.Editor
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(IGrid),
             typeof(DrawableGrid),
-            typeof(CircularGrid),
             typeof(DrawableCircularGrid)
         };
 
@@ -60,12 +58,6 @@ namespace osu.Game.Tests.Visual.Editor
                 },
             };
         });
-
-        [Test]
-        public void TestCircularGrid()
-        {
-            AddStep("set grid", () => gridLayer.ShowGrid(new CircularGrid(new Vector2(250))));
-        }
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {

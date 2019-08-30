@@ -10,40 +10,66 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids.Basic
 {
     public class DrawableCircularGrid : DrawableGrid
     {
-        private readonly CircularGrid grid;
+        private readonly Vector2 centre;
+        private readonly float centreRadius;
 
-        public DrawableCircularGrid(CircularGrid grid)
-            : base(grid)
+        /// <summary>
+        /// Creates a new <see cref="DrawableCircularGrid"/>.
+        /// </summary>
+        /// <param name="centre">The centre point of the grid.</param>
+        /// <param name="centreRadius">The radius around <see cref="centre"/> for which the grid should remain empty.</param>
+        public DrawableCircularGrid(Vector2 centre, float centreRadius = 50)
         {
-            this.grid = grid;
+            this.centre = centre;
+            this.centreRadius = centreRadius;
+
+            RelativeSizeAxes = Axes.Both;
         }
 
         protected override void CreateGrid()
         {
             float maxDistance = Math.Max(
-                Vector2.Distance(grid.Centre, Vector2.Zero),
+                Vector2.Distance(centre, Vector2.Zero),
                 Math.Max(
-                    Vector2.Distance(grid.Centre, new Vector2(DrawWidth, 0)),
+                    Vector2.Distance(centre, new Vector2(DrawWidth, 0)),
                     Math.Max(
-                        Vector2.Distance(grid.Centre, new Vector2(0, DrawHeight)),
-                        Vector2.Distance(grid.Centre, DrawSize))));
+                        Vector2.Distance(centre, new Vector2(0, DrawHeight)),
+                        Vector2.Distance(centre, DrawSize))));
 
-            int requiredCircles = (int)((maxDistance - grid.CentreRadius) / grid.Spacing.Value);
+            int requiredCircles = (int)((maxDistance - centreRadius) / Spacing.Value);
 
             for (int i = 0; i < requiredCircles; i++)
             {
-                float radius = grid.CentreRadius * 2 + (i + 1) * grid.Spacing.Value * 2;
+                float radius = centreRadius * 2 + (i + 1) * Spacing.Value * 2;
 
                 AddInternal(new CircularProgress
                 {
                     Origin = Anchor.Centre,
-                    Position = grid.Centre,
+                    Position = centre,
                     Current = { Value = 1 },
                     Size = new Vector2(radius),
                     InnerRadius = 2 * 1f / radius,
                     Alpha = 0.5f
                 });
             }
+        }
+
+        public override Vector2 GetSnappedPosition(Vector2 position)
+        {
+            Vector2 direction = position - centre;
+            float distance = direction.Length;
+
+            float radius = Spacing.Value;
+            int radialCount = (int)Math.Round((distance - centreRadius) / radius);
+
+            if (radialCount <= 0)
+                return position;
+
+            Vector2 normalisedDirection = direction * new Vector2(1f / distance);
+
+            return centre +
+                   normalisedDirection * centreRadius +
+                   normalisedDirection * radialCount * radius;
         }
     }
 }

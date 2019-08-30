@@ -1,27 +1,19 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osuTK;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Grids
 {
     public abstract class DrawableGrid : CompositeDrawable
     {
-        protected readonly IGrid Grid;
+        public Bindable<float> Spacing { get; } = new Bindable<float>(20);
 
-        protected DrawableGrid(IGrid grid)
-        {
-            Grid = grid;
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            Grid.Spacing.BindValueChanged(_ => gridCache.Invalidate());
-        }
+        public Bindable<float> SnapDistance { get; } = new Bindable<float>(20);
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -46,5 +38,12 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
         }
 
         protected abstract void CreateGrid();
+
+        /// <summary>
+        /// Snaps a position to this grid.
+        /// </summary>
+        /// <param name="screenSpacePosition">The original screen-space position.</param>
+        /// <returns>The snapped position.</returns>
+        public abstract Vector2 GetSnappedPosition(Vector2 screenSpacePosition);
     }
 }
