@@ -124,7 +124,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
             var colour = beatDivisor.GetColourFor(beatDivisor.Value - (index % beatDivisor.Value), colours);
 
-            return colour.MultiplyAlpha(1f / (repeatIndex + 1));
+            return colour.MultiplyAlpha(0.5f / (repeatIndex + 1));
         }
     }
 }
