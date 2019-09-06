@@ -26,10 +26,10 @@ namespace osu.Game.Screens.Edit.Compose.Components
     {
         public const float BORDER_RADIUS = 2;
 
-        protected IEnumerable<SelectionBlueprint> SelectedBlueprints => selectedBlueprints;
-        private readonly List<SelectionBlueprint> selectedBlueprints;
+        public IEnumerable<HitObject> SelectedHitObjects => selectedBlueprints.Select(b => b.HitObject.HitObject);
 
-        protected IEnumerable<HitObject> SelectedHitObjects => selectedBlueprints.Select(b => b.HitObject.HitObject);
+        public IEnumerable<SelectionBlueprint> SelectedBlueprints => selectedBlueprints;
+        private readonly List<SelectionBlueprint> selectedBlueprints;
 
         private Drawable outline;
 

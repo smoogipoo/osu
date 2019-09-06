@@ -27,7 +27,9 @@ namespace osu.Game.Rulesets.Osu.Edit
 
         protected override IEnumerable<DrawableGrid> CreateGrids(IEnumerable<HitObject> hitObjects)
         {
-            if (hitObjects == null)
+            var objects = hitObjects?.ToList();
+
+            if (objects == null || objects.Count == 0)
             {
                 var lastObject = beatmap.HitObjects.LastOrDefault(h => h.StartTime < clock.CurrentTime);
 
@@ -36,8 +38,17 @@ namespace osu.Game.Rulesets.Osu.Edit
 
                 return new DrawableCircularOsuGrid(lastObject).Yield();
             }
+            else
+            {
+                double minTime = objects.Min(h => h.StartTime);
 
-            return Enumerable.Empty<DrawableGrid>();
+                var lastObject = beatmap.HitObjects.LastOrDefault(h => h.StartTime < minTime);
+
+                if (lastObject == null)
+                    return Enumerable.Empty<DrawableGrid>();
+
+                return new DrawableCircularOsuGrid(lastObject).Yield();
+            }
         }
     }
 }

@@ -118,11 +118,13 @@ namespace osu.Game.Rulesets.Edit
             };
 
             toolboxCollection.Items =
-                CompositionTools.Select(t => new RadioButton(t.Name, () => blueprintContainer.CurrentTool = t))
-                                .Prepend(new RadioButton("Select", () => blueprintContainer.CurrentTool = null))
+                CompositionTools.Select(t => new RadioButton(t.Name, () => selectTool(t)))
+                                .Prepend(new RadioButton("Select", () => selectTool(null)))
                                 .ToList();
 
             toolboxCollection.Items[0].Select();
+
+            blueprintContainer.SelectionChanged += objects => gridLayer.ShowFor(objects);
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
@@ -154,6 +156,22 @@ namespace osu.Game.Rulesets.Edit
             inputManager = GetContainingInputManager();
         }
 
+        private void selectTool(HitObjectCompositionTool tool)
+        {
+            blueprintContainer.CurrentTool = tool;
+
+            if (tool == null)
+                gridLayer.HideGrid();
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (blueprintContainer.CurrentTool != null)
+                gridLayer.ShowFor(null);
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -165,13 +183,6 @@ namespace osu.Game.Rulesets.Edit
                 l.Position = drawableRulesetWrapper.Playfield.Position;
                 l.Size = drawableRulesetWrapper.Playfield.Size;
             });
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            gridLayer.ShowFor(null);
         }
 
         private void addHitObject(HitObject hitObject)

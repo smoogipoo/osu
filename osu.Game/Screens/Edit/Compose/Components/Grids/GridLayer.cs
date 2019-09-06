@@ -22,13 +22,18 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
         public void ShowFor(IEnumerable<HitObject> hitObjects)
         {
-            activeGrids.Clear();
-            ClearInternal();
+            HideGrid();
 
             activeGrids.AddRange(CreateGrids(hitObjects));
 
             foreach (var g in activeGrids)
                 AddInternal(g);
+        }
+
+        public void HideGrid()
+        {
+            activeGrids.Clear();
+            ClearInternal();
         }
 
         protected virtual IEnumerable<DrawableGrid> CreateGrids(IEnumerable<HitObject> hitObjects) => Enumerable.Empty<DrawableGrid>();

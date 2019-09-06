@@ -122,7 +122,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
         {
             int repeatIndex = index / beatDivisor.Value;
 
-            var colour = beatDivisor.GetColourFor(beatDivisor.Value - (index % beatDivisor.Value), colours);
+            var colour = BindableBeatDivisor.GetColourFor(beatDivisor.Value, colours);
 
             return colour.MultiplyAlpha(0.5f / (repeatIndex + 1));
         }

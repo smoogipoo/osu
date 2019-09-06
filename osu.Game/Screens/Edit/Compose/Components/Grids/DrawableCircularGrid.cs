@@ -52,7 +52,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
                     Current = { Value = 1 },
                     Size = new Vector2(radius),
                     InnerRadius = 4 * 1f / radius,
-                    Colour = GetColourForBeatIndex(i),
+                    Colour = GetColourForBeatIndex(i)
                 });
             }
         }
