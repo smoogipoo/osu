@@ -23,7 +23,9 @@ using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Difficulty;
+using osu.Game.Rulesets.Osu.Skinning;
 using osu.Game.Scoring;
+using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.Osu
 {
@@ -32,6 +34,8 @@ namespace osu.Game.Rulesets.Osu
         public override DrawableRuleset CreateDrawableRulesetWith(IWorkingBeatmap beatmap, IReadOnlyList<Mod> mods) => new DrawableOsuRuleset(this, beatmap, mods);
         public override IBeatmapConverter CreateBeatmapConverter(IBeatmap beatmap) => new OsuBeatmapConverter(beatmap);
         public override IBeatmapProcessor CreateBeatmapProcessor(IBeatmap beatmap) => new OsuBeatmapProcessor(beatmap);
+
+        public const string SHORT_NAME = "osu";
 
         public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => new[]
         {
@@ -159,9 +163,11 @@ namespace osu.Game.Rulesets.Osu
 
         public override string Description => "osu!";
 
-        public override string ShortName => "osu";
+        public override string ShortName => SHORT_NAME;
 
         public override RulesetSettingsSubsection CreateSettings() => new OsuSettingsSubsection(this);
+
+        public override ISkin CreateLegacySkinProvider(ISkinSource source) => new OsuLegacySkinTransformer(source);
 
         public override int? LegacyID => 0;
 

@@ -7,6 +7,7 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
+using osu.Framework.IO.Stores;
 using osu.Game.Beatmaps;
 using osu.Game.Overlays.Settings;
 using osu.Game.Rulesets.Edit;
@@ -18,6 +19,7 @@ using osu.Game.Configuration;
 using osu.Game.Rulesets.Configuration;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Scoring;
+using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets
 {
@@ -43,6 +45,8 @@ namespace osu.Game.Rulesets
         public virtual IEnumerable<Mod> ConvertLegacyMods(LegacyMods mods) => new Mod[] { };
 
         public ModAutoplay GetAutoplayMod() => GetAllMods().OfType<ModAutoplay>().First();
+
+        public virtual ISkin CreateLegacySkinProvider(ISkinSource source) => null;
 
         protected Ruleset(RulesetInfo rulesetInfo = null)
         {
@@ -79,6 +83,8 @@ namespace osu.Game.Rulesets
         public virtual HitObjectComposer CreateHitObjectComposer() => null;
 
         public virtual Drawable CreateIcon() => new SpriteIcon { Icon = FontAwesome.Solid.QuestionCircle };
+
+        public virtual IResourceStore<byte[]> CreateReourceStore() => new NamespacedResourceStore<byte[]>(new DllResourceStore(GetType().Assembly.Location), @"Resources");
 
         public abstract string Description { get; }
 
