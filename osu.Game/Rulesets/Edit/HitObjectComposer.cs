@@ -23,6 +23,7 @@ using osu.Game.Screens.Edit.Components.RadioButtons;
 using osu.Game.Screens.Edit.Compose;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Screens.Edit.Compose.Components.Grids;
+using osuTK;
 
 namespace osu.Game.Rulesets.Edit
 {
@@ -206,6 +207,8 @@ namespace osu.Game.Rulesets.Edit
             beatmapProcessor?.PostProcess();
         }
 
+        public override Vector2 GetSnappedPosition(Vector2 screenSpacePosition) => gridLayer.GetSnappedPosition(screenSpacePosition);
+
         public override IEnumerable<DrawableHitObject> HitObjects => drawableRulesetWrapper.Playfield.AllHitObjects;
         public override bool CursorInPlacementArea => drawableRulesetWrapper.Playfield.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
 
@@ -252,6 +255,8 @@ namespace osu.Game.Rulesets.Edit
         /// Whether the user's cursor is currently in an area of the <see cref="HitObjectComposer"/> that is valid for placement.
         /// </summary>
         public abstract bool CursorInPlacementArea { get; }
+
+        public abstract Vector2 GetSnappedPosition(Vector2 screenSpacePosition);
 
         /// <summary>
         /// Creates a <see cref="SelectionBlueprint"/> for a specific <see cref="DrawableHitObject"/>.

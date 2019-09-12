@@ -34,10 +34,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles
             return true;
         }
 
-        protected override bool OnMouseMove(MouseMoveEvent e)
+        public override void UpdatePosition(Vector2 screenSpacePosition)
         {
-            HitObject.Position = e.MousePosition;
-            return true;
+            HitObject.Position = ToLocalSpace(screenSpacePosition);
         }
     }
 }

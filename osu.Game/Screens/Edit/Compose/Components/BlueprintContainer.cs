@@ -135,6 +135,17 @@ namespace osu.Game.Screens.Edit.Compose.Components
             return true;
         }
 
+        protected override bool OnMouseMove(MouseMoveEvent e)
+        {
+            if (currentPlacement != null)
+            {
+                currentPlacement.UpdatePosition(composer.GetSnappedPosition(e.ScreenSpaceMousePosition));
+                return true;
+            }
+
+            return base.OnMouseMove(e);
+        }
+
         protected override void Update()
         {
             base.Update();

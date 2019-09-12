@@ -114,6 +114,8 @@ namespace osu.Game.Rulesets.Edit
         /// </summary>
         protected void ApplyDefaultsToHitObject() => HitObject.ApplyDefaults(beatmap.Value.Beatmap.ControlPointInfo, beatmap.Value.Beatmap.BeatmapInfo.BaseDifficulty);
 
+        public abstract void UpdatePosition(Vector2 screenSpacePosition);
+
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Parent?.ReceivePositionalInputAt(screenSpacePos) ?? false;
 
         protected override bool Handle(UIEvent e)
@@ -124,9 +126,6 @@ namespace osu.Game.Rulesets.Edit
             {
                 case ScrollEvent _:
                     return false;
-
-                case MouseEvent _:
-                    return true;
 
                 default:
                     return false;
