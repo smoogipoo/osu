@@ -43,7 +43,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
             for (int i = 0; i < requiredCircles; i++)
             {
-                float radius = centreRadius * 2 + (i + 1) * DistanceSpacing * 2;
+                float radius = (i + 1) * DistanceSpacing * 2;
 
                 AddInternal(new CircularProgress
                 {
@@ -63,16 +63,14 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             float distance = direction.Length;
 
             float radius = DistanceSpacing;
-            int radialCount = (int)Math.Round((distance - centreRadius) / radius);
+            int radialCount = (int)Math.Round(distance / radius);
 
             if (radialCount <= 0)
                 return position;
 
             Vector2 normalisedDirection = direction * new Vector2(1f / distance);
 
-            return centre +
-                   normalisedDirection * centreRadius +
-                   normalisedDirection * radialCount * radius;
+            return centre + normalisedDirection * radialCount * radius;
         }
     }
 }
