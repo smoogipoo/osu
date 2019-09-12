@@ -50,5 +50,15 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
             return ToScreenSpace(localSnappedPosition);
         }
+
+        public double GetSnappedTime(double startTime, Vector2 screenSpacePosition)
+        {
+            double snappedTime = startTime;
+
+            foreach (var g in activeGrids)
+                snappedTime = g.GetSnapTime(screenSpacePosition);
+
+            return snappedTime;
+        }
     }
 }

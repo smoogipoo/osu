@@ -29,7 +29,6 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles
 
         protected override bool OnClick(ClickEvent e)
         {
-            HitObject.StartTime = EditorClock.CurrentTime;
             EndPlacement();
             return true;
         }

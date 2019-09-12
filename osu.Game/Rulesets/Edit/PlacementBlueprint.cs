@@ -91,8 +91,9 @@ namespace osu.Game.Rulesets.Edit
         /// <summary>
         /// Signals that the placement of <see cref="HitObject"/> has started.
         /// </summary>
-        protected void BeginPlacement()
+        protected void BeginPlacement(double? startTime = null)
         {
+            HitObject.StartTime = startTime ?? EditorClock.CurrentTime;
             placementHandler.BeginPlacement(HitObject);
             PlacementBegun = true;
         }
