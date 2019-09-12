@@ -111,7 +111,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
         /// </summary>
         /// <param name="snappedPosition">The snapped position.</param>
         /// <returns>The time at the snapped position.</returns>
-        public double GetSnapTime(Vector2 snappedPosition) => startTime + (snappedPosition - startPosition).Length / DistanceSpacing;
+        public double GetSnapTime(Vector2 snappedPosition) => startTime + (ToLocalSpace(snappedPosition) - startPosition).Length / DistanceSpacing * beatLength;
 
         /// <summary>
         /// Retrieves the applicable colour for a beat index.
