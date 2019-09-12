@@ -36,6 +36,8 @@ namespace osu.Game.Rulesets.Osu.Tests
         [BackgroundDependencyLoader]
         private void load()
         {
+            BeatDivisor.Value = 8;
+
             Beatmap.Value = CreateWorkingBeatmap(new Beatmap
             {
                 HitObjects = new List<HitObject>
