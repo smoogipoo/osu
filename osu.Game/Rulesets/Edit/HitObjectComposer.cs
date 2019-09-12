@@ -124,7 +124,7 @@ namespace osu.Game.Rulesets.Edit
 
             toolboxCollection.Items[0].Select();
 
-            blueprintContainer.SelectionChanged += objects => gridLayer.ShowFor(objects);
+            blueprintContainer.SelectionChanged += selectionChanged;
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
@@ -154,6 +154,14 @@ namespace osu.Game.Rulesets.Edit
             base.LoadComplete();
 
             inputManager = GetContainingInputManager();
+        }
+
+        private void selectionChanged(IEnumerable<HitObject> hitObjects)
+        {
+            if (hitObjects.Any())
+                gridLayer.ShowFor(hitObjects);
+            else
+                gridLayer.HideGrid();
         }
 
         private void selectTool(HitObjectCompositionTool tool)
