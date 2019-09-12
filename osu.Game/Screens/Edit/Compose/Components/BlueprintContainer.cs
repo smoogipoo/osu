@@ -169,7 +169,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             foreach (var blueprint in selectionBlueprints)
             {
-                if (blueprint.IsPresent && rect.Contains(blueprint.SelectionPoint))
+                if (blueprint.IsAlive && blueprint.IsPresent && rect.Contains(blueprint.SelectionPoint))
                     blueprint.Select();
                 else
                     blueprint.Deselect();
