@@ -103,7 +103,7 @@ namespace osu.Game.Tests.Visual.Editor
         private class TestDrawableCircularGrid : DrawableCircularGrid
         {
             public TestDrawableCircularGrid()
-                : base(new HitObject(), new Vector2(256), 25)
+                : base(new HitObject(), new Vector2(256))
             {
             }
 

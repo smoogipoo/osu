@@ -12,19 +12,16 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
     public abstract class DrawableCircularGrid : DrawableGrid
     {
         private readonly Vector2 centre;
-        private readonly float centreRadius;
 
         /// <summary>
         /// Creates a new <see cref="DrawableCircularGrid"/>.
         /// </summary>
         /// <param name="hitObject"></param>
         /// <param name="centre">The centre point of the grid.</param>
-        /// <param name="centreRadius">The radius around <see cref="centre"/> for which the grid should remain empty.</param>
-        protected DrawableCircularGrid(HitObject hitObject, Vector2 centre, float centreRadius = 50)
+        protected DrawableCircularGrid(HitObject hitObject, Vector2 centre)
             : base(hitObject, centre)
         {
             this.centre = centre;
-            this.centreRadius = centreRadius;
 
             RelativeSizeAxes = Axes.Both;
         }
@@ -39,7 +36,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
                         Vector2.Distance(centre, new Vector2(0, DrawHeight)),
                         Vector2.Distance(centre, DrawSize))));
 
-            int requiredCircles = (int)((maxDistance - centreRadius) / DistanceSpacing);
+            int requiredCircles = (int)(maxDistance / DistanceSpacing);
 
             for (int i = 0; i < requiredCircles; i++)
             {
@@ -63,7 +60,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
             float distance = direction.Length;
 
             float radius = DistanceSpacing;
-            int radialCount = (int)Math.Round(distance / radius);
+            int radialCount = Math.Max(1, (int)Math.Round(distance / radius));
 
             if (radialCount <= 0)
                 return position;

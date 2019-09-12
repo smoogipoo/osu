@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Grids
         private const float base_scoring_distance = 100;
 
         public DrawableCircularOsuGrid(OsuHitObject hitObject)
-            : base(hitObject, hitObject.StackedEndPosition, (float)hitObject.Radius)
+            : base(hitObject, hitObject.StackedEndPosition)
         {
         }
 
