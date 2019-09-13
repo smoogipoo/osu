@@ -77,6 +77,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         public JudgementResult Result { get; private set; }
 
         private readonly Bindable<double> startTimeBindable = new Bindable<double>();
+        private Bindable<int> comboIndexBindable;
 
         public override bool RemoveWhenNotAlive => false;
         public override bool RemoveCompletedTransforms => false;
@@ -132,6 +133,12 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 base.ClearTransformsAfter(double.NegativeInfinity, true);
                 updateState(ArmedState.Idle, true);
             }, true);
+
+            if (HitObject is IHasComboInformation combo)
+            {
+                comboIndexBindable = combo.ComboIndexBindable.GetBoundCopy();
+                comboIndexBindable.BindValueChanged(_ => updateAccentColour());
+            }
         }
 
         #region State / Transform Management
@@ -246,10 +253,14 @@ namespace osu.Game.Rulesets.Objects.Drawables
         protected override void SkinChanged(ISkinSource skin, bool allowFallback)
         {
             base.SkinChanged(skin, allowFallback);
+            updateAccentColour();
+        }
 
+        private void updateAccentColour()
+        {
             if (HitObject is IHasComboInformation combo)
             {
-                var comboColours = skin.GetConfig<GlobalSkinConfiguration, List<Color4>>(GlobalSkinConfiguration.ComboColours)?.Value;
+                var comboColours = CurrentSkin.GetConfig<GlobalSkinConfiguration, List<Color4>>(GlobalSkinConfiguration.ComboColours)?.Value;
 
                 AccentColour.Value = comboColours?.Count > 0 ? comboColours[combo.ComboIndex % comboColours.Count] : Color4.White;
             }
