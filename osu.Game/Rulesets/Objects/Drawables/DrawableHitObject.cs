@@ -128,6 +128,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
             startTimeBindable.BindTo(HitObject.StartTimeBindable);
             startTimeBindable.BindValueChanged(_ =>
             {
+                base.ApplyTransformsAt(double.NegativeInfinity, true);
                 base.ClearTransformsAfter(double.NegativeInfinity, true);
                 updateState(ArmedState.Idle, true);
             }, true);
