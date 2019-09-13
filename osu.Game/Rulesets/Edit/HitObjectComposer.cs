@@ -209,6 +209,8 @@ namespace osu.Game.Rulesets.Edit
 
         public override Vector2 GetSnappedPosition(Vector2 screenSpacePosition) => gridLayer.GetSnappedPosition(screenSpacePosition);
 
+        public override double GetSnappedTime(double startTime, Vector2 screenSpacePosition) => gridLayer.GetSnappedTime(startTime, screenSpacePosition);
+
         public override IEnumerable<DrawableHitObject> HitObjects => drawableRulesetWrapper.Playfield.AllHitObjects;
         public override bool CursorInPlacementArea => drawableRulesetWrapper.Playfield.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
 
@@ -258,6 +260,8 @@ namespace osu.Game.Rulesets.Edit
         public abstract bool CursorInPlacementArea { get; }
 
         public abstract Vector2 GetSnappedPosition(Vector2 screenSpacePosition);
+
+        public abstract double GetSnappedTime(double startTime, Vector2 screenSpacePosition);
 
         /// <summary>
         /// Creates a <see cref="SelectionBlueprint"/> for a specific <see cref="DrawableHitObject"/>.

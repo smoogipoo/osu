@@ -2,17 +2,19 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
-using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Screens.Edit.Compose.Components;
+using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
     public class OsuSelectionHandler : SelectionHandler
     {
-        public override void HandleDrag(SelectionBlueprint blueprint, DragEvent dragEvent)
+        public override void HandleDrag(SelectionBlueprint blueprint, Vector2 screenSpacePosition)
         {
+            var delta = blueprint.ToLocalSpace(screenSpacePosition) - blueprint.HitObject.Position;
+
             foreach (var h in SelectedHitObjects.OfType<OsuHitObject>())
             {
                 if (h is Spinner)
@@ -21,10 +23,10 @@ namespace osu.Game.Rulesets.Osu.Edit
                     continue;
                 }
 
-                h.Position += dragEvent.Delta;
+                h.Position += delta;
             }
 
-            base.HandleDrag(blueprint, dragEvent);
+            base.HandleDrag(blueprint, screenSpacePosition);
         }
     }
 }

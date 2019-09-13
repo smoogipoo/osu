@@ -68,8 +68,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// Handles the selected <see cref="DrawableHitObject"/>s being dragged.
         /// </summary>
         /// <param name="blueprint">The <see cref="SelectionBlueprint"/> that received the drag event.</param>
-        /// <param name="dragEvent">The drag event.</param>
-        public virtual void HandleDrag(SelectionBlueprint blueprint, DragEvent dragEvent)
+        /// <param name="screenSpacePosition"></param>
+        public virtual void HandleDrag(SelectionBlueprint blueprint, Vector2 screenSpacePosition)
         {
         }
 

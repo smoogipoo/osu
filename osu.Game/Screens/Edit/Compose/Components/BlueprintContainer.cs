@@ -218,9 +218,13 @@ namespace osu.Game.Screens.Edit.Compose.Components
             SelectionChanged?.Invoke(selectionHandler.SelectedHitObjects);
         }
 
-        private void onSelectionRequested(SelectionBlueprint blueprint, InputState state) => selectionHandler.HandleSelectionRequested(blueprint, state);
+        private void onSelectionRequested(SelectionBlueprint blueprint, InputState state)
+            => selectionHandler.HandleSelectionRequested(blueprint, state);
 
-        private void onDragRequested(SelectionBlueprint blueprint, DragEvent dragEvent) => selectionHandler.HandleDrag(blueprint, dragEvent);
+        private void onDragRequested(SelectionBlueprint blueprint, DragEvent dragEvent)
+        {
+            selectionHandler.HandleDrag(blueprint, composer.GetSnappedPosition(dragEvent.ScreenSpaceMousePosition));
+        }
 
         protected override void Dispose(bool isDisposing)
         {
