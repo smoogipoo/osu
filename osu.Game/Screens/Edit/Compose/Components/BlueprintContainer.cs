@@ -15,6 +15,7 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Edit.Tools;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
+using osuTK;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -223,7 +224,16 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         private void onDragRequested(SelectionBlueprint blueprint, DragEvent dragEvent)
         {
+            HitObject draggedObject = blueprint.HitObject.HitObject;
+            Vector2 snappedPosition = composer.GetSnappedPosition(dragEvent.ScreenSpaceMousePosition);
+
             selectionHandler.HandleDrag(blueprint, composer.GetSnappedPosition(dragEvent.ScreenSpaceMousePosition));
+
+            // Apply time offsets to all selected hitobjects
+            double offset = composer.GetSnappedTime(draggedObject.StartTime, snappedPosition) - draggedObject.StartTime;
+
+            foreach (var obj in selectionHandler.SelectedHitObjects)
+                obj.StartTime += offset;
         }
 
         protected override void Dispose(bool isDisposing)
