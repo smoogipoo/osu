@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Beatmaps.Timing;
@@ -15,12 +16,16 @@ namespace osu.Game.Screens.Edit
     {
         public event Action<HitObject> HitObjectAdded;
         public event Action<HitObject> HitObjectRemoved;
+        public event Action<HitObject> HitObjectChanged;
 
         private readonly Beatmap<T> beatmap;
 
         public EditorBeatmap(Beatmap<T> beatmap)
         {
             this.beatmap = beatmap;
+
+            foreach (var obj in HitObjects)
+                trackStartTime(obj);
         }
 
         public BeatmapInfo BeatmapInfo
@@ -45,12 +50,16 @@ namespace osu.Game.Screens.Edit
 
         public IBeatmap Clone() => (EditorBeatmap<T>)MemberwiseClone();
 
+        private readonly Dictionary<T, Bindable<double>> startTimeBindables = new Dictionary<T, Bindable<double>>();
+
         /// <summary>
         /// Adds a <see cref="HitObject"/> to this <see cref="EditorBeatmap{T}"/>.
         /// </summary>
         /// <param name="hitObject">The <see cref="HitObject"/> to add.</param>
         public void Add(T hitObject)
         {
+            trackStartTime(hitObject);
+
             // Preserve existing sorting order in the beatmap
             var insertionIndex = beatmap.HitObjects.FindLastIndex(h => h.StartTime <= hitObject.StartTime);
             beatmap.HitObjects.Insert(insertionIndex + 1, hitObject);
@@ -65,7 +74,10 @@ namespace osu.Game.Screens.Edit
         public void Remove(T hitObject)
         {
             if (beatmap.HitObjects.Remove(hitObject))
+            {
+                startTimeBindables.Remove(hitObject);
                 HitObjectRemoved?.Invoke(hitObject);
+            }
         }
 
         /// <summary>
@@ -79,5 +91,20 @@ namespace osu.Game.Screens.Edit
         /// </summary>
         /// <param name="hitObject">The <see cref="HitObject"/> to add.</param>
         public void Remove(HitObject hitObject) => Remove((T)hitObject);
+
+        private void trackStartTime(T hitObject)
+        {
+            startTimeBindables[hitObject] = hitObject.StartTimeBindable.GetBoundCopy();
+            startTimeBindables[hitObject].ValueChanged += _ =>
+            {
+                // For now we'll remove and re-add the hitobject. This is not optimal and can be improved if required.
+                beatmap.HitObjects.Remove(hitObject);
+
+                var insertionIndex = beatmap.HitObjects.FindLastIndex(h => h.StartTime <= hitObject.StartTime);
+                beatmap.HitObjects.Insert(insertionIndex + 1, hitObject);
+
+                HitObjectChanged?.Invoke(hitObject);
+            };
+        }
     }
 }

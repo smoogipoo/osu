@@ -140,6 +140,7 @@ namespace osu.Game.Rulesets.Edit
             editorBeatmap = new EditorBeatmap<TObject>(playableBeatmap);
             editorBeatmap.HitObjectAdded += addHitObject;
             editorBeatmap.HitObjectRemoved += removeHitObject;
+            editorBeatmap.HitObjectChanged += updateHitObject;
 
             var dependencies = new DependencyContainer(parent);
             dependencies.CacheAs<IEditorBeatmap>(editorBeatmap);
@@ -204,6 +205,13 @@ namespace osu.Game.Rulesets.Edit
         private void removeHitObject(HitObject hitObject)
         {
             beatmapProcessor?.PreProcess();
+            beatmapProcessor?.PostProcess();
+        }
+
+        private void updateHitObject(HitObject hitObject)
+        {
+            beatmapProcessor?.PreProcess();
+            hitObject.ApplyDefaults(playableBeatmap.ControlPointInfo, playableBeatmap.BeatmapInfo.BaseDifficulty);
             beatmapProcessor?.PostProcess();
         }
 
