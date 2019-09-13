@@ -73,6 +73,17 @@ namespace osu.Game.Rulesets.Objects
         [JsonIgnore]
         public IReadOnlyList<HitObject> NestedHitObjects => nestedHitObjects;
 
+        public HitObject()
+        {
+            StartTimeBindable.ValueChanged += time =>
+            {
+                double offset = time.NewValue - time.OldValue;
+
+                foreach (var nested in NestedHitObjects)
+                    nested.StartTime += offset;
+            };
+        }
+
         /// <summary>
         /// Applies default values to this HitObject.
         /// </summary>
