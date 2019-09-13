@@ -76,6 +76,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         public JudgementResult Result { get; private set; }
 
+        private readonly Bindable<double> startTimeBindable = new Bindable<double>();
+
         public override bool RemoveWhenNotAlive => false;
         public override bool RemoveCompletedTransforms => false;
         protected override bool RequiresChildrenUpdate => true;
@@ -122,7 +124,13 @@ namespace osu.Game.Rulesets.Objects.Drawables
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updateState(ArmedState.Idle, true);
+
+            startTimeBindable.BindTo(HitObject.StartTimeBindable);
+            startTimeBindable.BindValueChanged(_ =>
+            {
+                base.ClearTransformsAfter(double.NegativeInfinity, true);
+                updateState(ArmedState.Idle, true);
+            }, true);
         }
 
         #region State / Transform Management
