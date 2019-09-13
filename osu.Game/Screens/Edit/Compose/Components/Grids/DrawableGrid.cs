@@ -18,6 +18,8 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 {
     public abstract class DrawableGrid : CompositeDrawable
     {
+        protected double Velocity { get; private set; }
+
         protected float DistanceSpacing { get; private set; }
 
         [Resolved]
@@ -61,7 +63,8 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
 
         private void updateSpacing()
         {
-            DistanceSpacing = (float)(beatLength / beatDivisor.Value * GetVelocity(startTime, beatmap.ControlPointInfo, beatmap.BeatmapInfo.BaseDifficulty));
+            Velocity = GetVelocity(startTime, beatmap.ControlPointInfo, beatmap.BeatmapInfo.BaseDifficulty);
+            DistanceSpacing = (float)(beatLength / beatDivisor.Value * Velocity);
             gridCache.Invalidate();
         }
 
@@ -111,7 +114,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Grids
         /// </summary>
         /// <param name="snappedPosition">The snapped position.</param>
         /// <returns>The time at the snapped position.</returns>
-        public double GetSnapTime(Vector2 snappedPosition) => startTime + (ToLocalSpace(snappedPosition) - startPosition).Length / DistanceSpacing * beatLength;
+        public double GetSnapTime(Vector2 snappedPosition) => startTime + (ToLocalSpace(snappedPosition) - startPosition).Length / Velocity;
 
         /// <summary>
         /// Retrieves the applicable colour for a beat index.
