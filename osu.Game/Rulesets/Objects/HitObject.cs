@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Bindables;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -26,10 +27,16 @@ namespace osu.Game.Rulesets.Objects
         /// </summary>
         private const double control_point_leniency = 1;
 
+        public readonly Bindable<double> StartTimeBindable = new Bindable<double>();
+
         /// <summary>
         /// The time at which the HitObject starts.
         /// </summary>
-        public virtual double StartTime { get; set; }
+        public virtual double StartTime
+        {
+            get => StartTimeBindable.Value;
+            set => StartTimeBindable.Value = value;
+        }
 
         private List<HitSampleInfo> samples;
 
