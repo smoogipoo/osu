@@ -262,6 +262,9 @@ namespace osu.Game.Screens.Multi
 
         private void subScreenChanged(IScreen newScreen)
         {
+            if (!this.IsCurrentScreen())
+                return;
+
             updatePollingRate(isIdle.Value);
             createButton.FadeTo(newScreen is LoungeSubScreen ? 1 : 0, 200);
 
