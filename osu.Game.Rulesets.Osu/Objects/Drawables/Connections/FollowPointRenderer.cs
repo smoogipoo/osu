@@ -102,15 +102,15 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
 
                         using (fp.BeginAbsoluteSequence(fadeInTime))
                         {
-                            fp.FadeIn(currHitObject.TimeFadeIn);
-                            fp.ScaleTo(currHitObject.Scale, currHitObject.TimeFadeIn, Easing.Out);
+                            // Expire calls are separated due to https://github.com/ppy/osu-framework/issues/2941
 
-                            fp.MoveTo(pointEndPosition, currHitObject.TimeFadeIn, Easing.Out);
+                            fp.FadeIn(currHitObject.TimeFadeIn).Expire(true);
 
-                            fp.Delay(fadeOutTime - fadeInTime).FadeOut(currHitObject.TimeFadeIn);
+                            fp.ScaleTo(currHitObject.Scale, currHitObject.TimeFadeIn, Easing.Out)
+                              .MoveTo(pointEndPosition, currHitObject.TimeFadeIn, Easing.Out)
+                              .Delay(fadeOutTime - fadeInTime).FadeOut(currHitObject.TimeFadeIn)
+                              .Expire();
                         }
-
-                        fp.Expire(true);
                     }
                 }
 
