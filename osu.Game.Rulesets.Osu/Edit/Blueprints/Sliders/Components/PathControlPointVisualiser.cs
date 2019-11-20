@@ -10,15 +10,19 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Screens.Edit.Compose;
 using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
+    public delegate void SegmentsChangedDelegate(PathSegment[] segments);
+
     public class PathControlPointVisualiser : CompositeDrawable, IKeyBindingHandler<PlatformAction>
     {
         public ControlPointsChangedDelegate ControlPointsChanged;
+        public SegmentsChangedDelegate SegmentsChanged;
 
         internal readonly Container<PathControlPointPiece> Pieces;
         private readonly Slider slider;
@@ -105,36 +109,68 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             switch (action.ActionMethod)
             {
                 case PlatformActionMethod.Delete:
-                    var newControlPoints = new List<Vector2>();
+                    var newSegments = new List<PathSegment>(slider.Path.Segments.ToArray());
 
-                    foreach (var piece in Pieces)
+                    bool anyDeleted = false;
+                    Vector2 offset = Vector2.Zero;
+
+                    for (int s = 0; s < newSegments.Count; s++)
                     {
-                        if (!piece.IsSelected.Value)
-                            newControlPoints.Add(slider.Path.Segments[0].ControlPoints[piece.ControlPointIndex]);
+                        // Find the new control points for this segment by going through all the non-selected pieces
+                        Vector2[] newControlPoints = Pieces.Where(p => p.SegmentIndex == s && !p.IsSelected.Value)
+                                                           .Select(p => newSegments[s].ControlPoints[p.ControlPointIndex])
+                                                           .ToArray();
+
+                        // Make sure any control points were altered before continuing
+                        if (newControlPoints.Length == newSegments[s].ControlPoints.Length)
+                            continue;
+
+                        anyDeleted = true;
+
+                        // Remove segments with 0 remaining control points
+                        if (newControlPoints.Length == 0)
+                        {
+                            newSegments.RemoveAt(s--);
+                            continue;
+                        }
+
+                        // If the first segment is altered, it may be required to bring all other control points relative to the first control point
+                        // We're iterating through the segments from first to last so this will always touch the first segment first before the offset is applied to other segments
+                        if (s == 0)
+                            offset = newControlPoints[0];
+                        for (int c = 0; c < newControlPoints.Length; c++)
+                            newControlPoints[c] = newControlPoints[c] - offset;
+
+                        PathType newType = newSegments[s].Type;
+
+                        switch (newType)
+                        {
+                            case PathType.PerfectCurve when newControlPoints.Length != 3:
+                                newType = PathType.Linear;
+                                break;
+                        }
+
+                        newSegments[s] = new PathSegment(newType, newControlPoints);
                     }
 
-                    // Ensure that there are any points to be deleted
-                    if (newControlPoints.Count == slider.Path.Segments[0].ControlPoints.Length)
+                    if (!anyDeleted)
                         return false;
 
-                    // If there are 0 remaining control points, treat the slider as being deleted
-                    if (newControlPoints.Count == 0)
+                    // Delete the slider if there are no remaining segments
+                    if (newSegments.Count == 0)
                     {
                         placementHandler?.Delete(slider);
                         return true;
                     }
 
-                    // Make control points relative
-                    Vector2 first = newControlPoints[0];
-                    for (int i = 0; i < newControlPoints.Count; i++)
-                        newControlPoints[i] = newControlPoints[i] - first;
-
-                    // The slider's position defines the position of the first control point, and all further control points are relative to that point
-                    slider.Position = slider.Position + first;
+                    // In case the first control point was deleted, the slider position must match the new first control point position
+                    slider.Position = slider.Position + offset;
 
                     // Since pieces are re-used, they will not point to the deleted control points while remaining selected
                     foreach (var piece in Pieces)
                         piece.IsSelected.Value = false;
+
+                    SegmentsChanged?.Invoke(newSegments.ToArray());
 
                     return true;
             }

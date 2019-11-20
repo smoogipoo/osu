@@ -40,7 +40,11 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
                 BodyPiece = new SliderBodyPiece(),
                 HeadBlueprint = CreateCircleSelectionBlueprint(slider, SliderPosition.Start),
                 TailBlueprint = CreateCircleSelectionBlueprint(slider, SliderPosition.End),
-                ControlPointVisualiser = new PathControlPointVisualiser(sliderObject, true) { ControlPointsChanged = onNewControlPoints },
+                ControlPointVisualiser = new PathControlPointVisualiser(sliderObject, true)
+                {
+                    ControlPointsChanged = onNewControlPoints,
+                    SegmentsChanged = onNewSegments
+                },
             };
         }
 
@@ -137,10 +141,15 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
             var newSegments = HitObject.Path.Segments.ToArray();
             newSegments[segmentIndex] = new PathSegment(controlPoints.Length > 2 ? PathType.Bezier : PathType.Linear, controlPoints);
 
-            var unsnappedPath = new SliderPath(newSegments);
+            onNewSegments(newSegments);
+        }
+
+        private void onNewSegments(PathSegment[] segments)
+        {
+            var unsnappedPath = new SliderPath(segments);
             var snappedDistance = composer?.GetSnappedDistanceFromDistance(HitObject.StartTime, (float)unsnappedPath.Distance) ?? (float)unsnappedPath.Distance;
 
-            HitObject.Path = new SliderPath(newSegments, snappedDistance);
+            HitObject.Path = new SliderPath(segments, snappedDistance);
 
             UpdateHitObject();
         }
