@@ -1,14 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Screens.Edit.Compose;
 using osuTK;
@@ -17,7 +18,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
     public class PathControlPointVisualiser : CompositeDrawable, IKeyBindingHandler<PlatformAction>
     {
-        public Action<Vector2[]> ControlPointsChanged;
+        public ControlPointsChangedDelegate ControlPointsChanged;
 
         internal readonly Container<PathControlPointPiece> Pieces;
         private readonly Slider slider;
@@ -49,20 +50,35 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         {
             base.Update();
 
-            while (slider.Path.Segments[0].ControlPoints.Length > Pieces.Count)
+            int totalControlPoints = 0;
+
+            for (int s = 0; s < slider.Path.Segments.Length; s++)
             {
-                var piece = new PathControlPointPiece(slider, Pieces.Count)
+                PathSegment segment = slider.Path.Segments[s];
+
+                for (int c = 0; c < segment.ControlPoints.Length; c++)
                 {
-                    ControlPointsChanged = c => ControlPointsChanged?.Invoke(c),
-                };
+                    totalControlPoints++;
 
-                if (allowSelection)
-                    piece.RequestSelection = selectPiece;
+                    if (totalControlPoints > Pieces.Count)
+                    {
+                        var piece = new PathControlPointPiece(slider)
+                        {
+                            ControlPointsChanged = (segmentIndex, points) => ControlPointsChanged?.Invoke(segmentIndex, points),
+                        };
 
-                Pieces.Add(piece);
+                        if (allowSelection)
+                            piece.RequestSelection = selectPiece;
+
+                        Pieces.Add(piece);
+                    }
+
+                    Pieces[totalControlPoints - 1].SegmentIndex = s;
+                    Pieces[totalControlPoints - 1].ControlPointIndex = c;
+                }
             }
 
-            while (slider.Path.Segments[0].ControlPoints.Length < Pieces.Count)
+            while (totalControlPoints < Pieces.Count)
                 Pieces.Remove(Pieces[Pieces.Count - 1]);
         }
 
@@ -73,14 +89,14 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             return false;
         }
 
-        private void selectPiece(int index)
+        private void selectPiece(int segmentIndex, int controlPointIndex)
         {
             if (inputManager.CurrentState.Keyboard.ControlPressed)
-                Pieces[index].IsSelected.Toggle();
+                Pieces.Single(p => p.SegmentIndex == segmentIndex && p.ControlPointIndex == controlPointIndex).IsSelected.Toggle();
             else
             {
                 foreach (var piece in Pieces)
-                    piece.IsSelected.Value = piece.Index == index;
+                    piece.IsSelected.Value = piece.SegmentIndex == segmentIndex && piece.ControlPointIndex == controlPointIndex;
             }
         }
 
@@ -94,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                     foreach (var piece in Pieces)
                     {
                         if (!piece.IsSelected.Value)
-                            newControlPoints.Add(slider.Path.Segments[0].ControlPoints[piece.Index]);
+                            newControlPoints.Add(slider.Path.Segments[0].ControlPoints[piece.ControlPointIndex]);
                     }
 
                     // Ensure that there are any points to be deleted
@@ -119,8 +135,6 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                     // Since pieces are re-used, they will not point to the deleted control points while remaining selected
                     foreach (var piece in Pieces)
                         piece.IsSelected.Value = false;
-
-                    ControlPointsChanged?.Invoke(newControlPoints.ToArray());
 
                     return true;
             }

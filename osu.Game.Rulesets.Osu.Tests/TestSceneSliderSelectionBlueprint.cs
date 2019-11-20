@@ -173,6 +173,40 @@ namespace osu.Game.Rulesets.Osu.Tests
             checkControlPointSelected(1, false);
         }
 
+        [Test]
+        public void TestSegmentedSliderPaths()
+        {
+            AddStep("init", () =>
+            {
+                Clear();
+
+                slider = new Slider
+                {
+                    Position = new Vector2(256, 192),
+                    Path = new SliderPath(new[]
+                    {
+                        new PathSegment(PathType.Bezier, new[]
+                        {
+                            Vector2.Zero,
+                            new Vector2(470, 200),
+                            new Vector2(457, 222),
+                        }),
+                        new PathSegment(PathType.Bezier, new[]
+                        {
+                            new Vector2(457, 222),
+                            new Vector2(488, 256),
+                            new Vector2(476, 308),
+                        }),
+                    })
+                };
+
+                slider.ApplyDefaults(new ControlPointInfo(), new BeatmapDifficulty { CircleSize = 2 });
+
+                Add(drawableObject = new DrawableSlider(slider));
+                AddBlueprint(blueprint = new TestSliderBlueprint(drawableObject));
+            });
+        }
+
         private void moveHitObject()
         {
             AddStep("move hitobject", () =>

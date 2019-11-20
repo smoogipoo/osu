@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -17,13 +16,19 @@ using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
+    public delegate void RequestSelectionDelegate(int segmentIndex, int controlPointIndex);
+
+    public delegate void ControlPointsChangedDelegate(int segmentIndex, Vector2[] controlPoints);
+
     public class PathControlPointPiece : BlueprintPiece<Slider>
     {
-        public Action<int> RequestSelection;
-        public Action<Vector2[]> ControlPointsChanged;
+        public RequestSelectionDelegate RequestSelection;
+        public ControlPointsChangedDelegate ControlPointsChanged;
+
+        public int SegmentIndex;
+        public int ControlPointIndex;
 
         public readonly BindableBool IsSelected = new BindableBool();
-        public readonly int Index;
 
         private readonly Slider slider;
         private readonly Path path;
@@ -36,10 +41,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         [Resolved]
         private OsuColour colours { get; set; }
 
-        public PathControlPointPiece(Slider slider, int index)
+        public PathControlPointPiece(Slider slider)
         {
             this.slider = slider;
-            Index = index;
 
             Origin = Anchor.Centre;
             AutoSizeAxes = Axes.Both;
@@ -89,7 +93,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         {
             base.Update();
 
-            Position = slider.StackedPosition + slider.Path.Segments[0].ControlPoints[Index];
+            Position = slider.StackedPosition + slider.Path.Segments[SegmentIndex].ControlPoints[ControlPointIndex];
 
             updateMarkerDisplay();
             updateConnectingPath();
@@ -115,10 +119,10 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         {
             path.ClearVertices();
 
-            if (Index != slider.Path.Segments[0].ControlPoints.Length - 1)
+            if (ControlPointIndex != slider.Path.Segments[SegmentIndex].ControlPoints.Length - 1)
             {
                 path.AddVertex(Vector2.Zero);
-                path.AddVertex(slider.Path.Segments[0].ControlPoints[Index + 1] - slider.Path.Segments[0].ControlPoints[Index]);
+                path.AddVertex(slider.Path.Segments[SegmentIndex].ControlPoints[ControlPointIndex + 1] - slider.Path.Segments[SegmentIndex].ControlPoints[ControlPointIndex]);
             }
 
             path.OriginPosition = path.PositionInBoundingBox(Vector2.Zero);
@@ -131,7 +135,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         {
             if (RequestSelection != null)
             {
-                RequestSelection.Invoke(Index);
+                RequestSelection.Invoke(SegmentIndex, ControlPointIndex);
                 return true;
             }
 
@@ -146,9 +150,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
         protected override bool OnDrag(DragEvent e)
         {
-            var newControlPoints = slider.Path.Segments[0].ControlPoints.ToArray();
+            var newControlPoints = slider.Path.Segments[SegmentIndex].ControlPoints.ToArray();
 
-            if (Index == 0)
+            if (SegmentIndex == 0 && ControlPointIndex == 0)
             {
                 // Special handling for the head control point - the position of the slider changes which means the snapped position and time have to be taken into account
                 (Vector2 snappedPosition, double snappedTime) = snapProvider?.GetSnappedPosition(e.MousePosition, slider.StartTime) ?? (e.MousePosition, slider.StartTime);
@@ -162,29 +166,35 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                     newControlPoints[i] -= movementDelta;
             }
             else
-                newControlPoints[Index] += e.Delta;
+                applyMovementDelta(SegmentIndex, ControlPointIndex, e.Delta);
 
             if (isSegmentSeparatorWithNext)
-                newControlPoints[Index + 1] = newControlPoints[Index];
+                applyMovementDelta(SegmentIndex + 1, 0, e.Delta);
 
             if (isSegmentSeparatorWithPrevious)
-                newControlPoints[Index - 1] = newControlPoints[Index];
-
-            ControlPointsChanged?.Invoke(newControlPoints);
+                applyMovementDelta(SegmentIndex - 1, slider.Path.Segments[SegmentIndex - 1].ControlPoints.Length - 1, e.Delta);
 
             return true;
         }
 
         protected override bool OnDragEnd(DragEndEvent e) => true;
 
+        private void applyMovementDelta(int segmentIndex, int controlPointIndex, Vector2 delta)
+        {
+            var newControlPoints = slider.Path.Segments[segmentIndex].ControlPoints.ToArray();
+            newControlPoints[controlPointIndex] += delta;
+
+            ControlPointsChanged?.Invoke(segmentIndex, newControlPoints);
+        }
+
         private bool isSegmentSeparator => isSegmentSeparatorWithNext || isSegmentSeparatorWithPrevious;
 
         private bool isSegmentSeparatorWithNext
-            => Index < slider.Path.Segments[0].ControlPoints.Length - 1
-               && slider.Path.Segments[0].ControlPoints[Index + 1] == slider.Path.Segments[0].ControlPoints[Index];
+            => SegmentIndex < slider.Path.Segments.Length - 1
+               && ControlPointIndex == slider.Path.Segments[SegmentIndex].ControlPoints.Length - 1;
 
         private bool isSegmentSeparatorWithPrevious
-            => Index > 0
-               && slider.Path.Segments[0].ControlPoints[Index - 1] == slider.Path.Segments[0].ControlPoints[Index];
+            => SegmentIndex > 0
+               && ControlPointIndex == 0;
     }
 }
