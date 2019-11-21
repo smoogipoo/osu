@@ -150,7 +150,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
         private void addPoint(ref PathSegment[] segments, Vector2 point)
         {
             if (segments.Length == 0)
-                segments = new PathSegment[1];
+                segments = new[] { new PathSegment(PathType.Bezier, Array.Empty<Vector2>()) };
 
             segments[segments.Length - 1] = new PathSegment(
                 segments[segments.Length - 1].Type,
