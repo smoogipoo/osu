@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -27,7 +27,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
         private HitCirclePiece headCirclePiece;
         private HitCirclePiece tailCirclePiece;
 
-        private readonly List<Segment> segments = new List<Segment>();
+        private PathSegment[] completeSegments = Array.Empty<PathSegment>();
         private Vector2 cursor;
         private InputManager inputManager;
 
@@ -40,7 +40,6 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
             : base(new Objects.Slider())
         {
             RelativeSizeAxes = Axes.Both;
-            segments.Add(new Segment(Vector2.Zero));
         }
 
         [BackgroundDependencyLoader]
@@ -91,7 +90,8 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
                     switch (e.Button)
                     {
                         case MouseButton.Left:
-                            segments.Last().ControlPoints.Add(cursor);
+                            addPoint(ref completeSegments, cursor);
+                            HitObject.Path = new SliderPath(completeSegments, HitObject.Path.ExpectedDistance);
                             break;
                     }
 
@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            segments.Add(new Segment(segments[segments.Count - 1].ControlPoints.Last()));
+            HitObject.Path = new SliderPath(HitObject.Path.Segments.ToArray().Concat(new PathSegment(PathType.Bezier, Array.Empty<Vector2>()).Yield()).ToArray(), HitObject.Path.ExpectedDistance);
             return true;
         }
 
@@ -134,16 +134,27 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
 
         private void updateSlider()
         {
-            Vector2[] newControlPoints = segments.SelectMany(s => s.ControlPoints).Concat(cursor.Yield()).ToArray();
+            var segments = completeSegments.ToArray();
+            addPoint(ref segments, cursor);
 
-            var unsnappedPath = new SliderPath(new[] { new PathSegment(newControlPoints.Length > 2 ? PathType.Bezier : PathType.Linear, newControlPoints) });
+            var unsnappedPath = new SliderPath(segments);
             var snappedDistance = composer?.GetSnappedDistanceFromDistance(HitObject.StartTime, (float)unsnappedPath.Distance) ?? (float)unsnappedPath.Distance;
 
-            HitObject.Path = new SliderPath(new[] { unsnappedPath.Segments[0] }, snappedDistance);
+            HitObject.Path = new SliderPath(segments, snappedDistance);
 
             bodyPiece.UpdateFrom(HitObject);
             headCirclePiece.UpdateFrom(HitObject.HeadCircle);
             tailCirclePiece.UpdateFrom(HitObject.TailCircle);
+        }
+
+        private void addPoint(ref PathSegment[] segments, Vector2 point)
+        {
+            if (segments.Length == 0)
+                segments = new PathSegment[1];
+
+            segments[segments.Length - 1] = new PathSegment(
+                segments[segments.Length - 1].Type,
+                segments[segments.Length - 1].ControlPoints.ToArray().Concat(point.Yield()).ToArray());
         }
 
         private void setState(PlacementState newState)
@@ -155,16 +166,6 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
         {
             Initial,
             Body,
-        }
-
-        private class Segment
-        {
-            public readonly List<Vector2> ControlPoints = new List<Vector2>();
-
-            public Segment(Vector2 offset)
-            {
-                ControlPoints.Add(offset);
-            }
         }
     }
 }

@@ -142,6 +142,9 @@ namespace osu.Game.Rulesets.Objects
 
             foreach (var segment in segments)
             {
+                if (segment.ControlPoints.Length == 0)
+                    continue;
+
                 foreach (Vector2 pos in segment.ComputePath(lastControlPoint))
                     calculatedPath.Add(pos);
 
