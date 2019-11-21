@@ -18,8 +18,8 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         [Resolved]
         private OsuColour colours { get; set; }
 
-        public SegmentControlPointPiece(Slider slider)
-            : base(slider)
+        public SegmentControlPointPiece(Slider slider, bool allowSelection)
+            : base(slider, allowSelection)
         {
         }
 

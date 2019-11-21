@@ -27,9 +27,12 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         protected readonly Container Marker;
         protected readonly Drawable MarkerRing;
 
-        protected PathControlPointPiece(Slider slider)
+        private readonly bool allowSelection;
+
+        protected PathControlPointPiece(Slider slider, bool allowSelection)
         {
             Slider = slider;
+            this.allowSelection = allowSelection;
 
             Origin = Anchor.Centre;
             AutoSizeAxes = Axes.Both;
@@ -106,7 +109,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (RequestSelection != null)
+            if (allowSelection)
             {
                 RequestSelection.Invoke(this);
                 return true;
@@ -115,9 +118,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             return false;
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e) => RequestSelection != null;
+        protected override bool OnMouseUp(MouseUpEvent e) => allowSelection;
 
-        protected override bool OnClick(ClickEvent e) => RequestSelection != null;
+        protected override bool OnClick(ClickEvent e) => allowSelection;
 
         protected override bool OnDragStart(DragStartEvent e) => true;
 

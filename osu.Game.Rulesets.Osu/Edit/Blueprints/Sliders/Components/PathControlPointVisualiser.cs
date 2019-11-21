@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
             InternalChildren = new Drawable[]
             {
-                HeadPiece = new HeadControlPointPiece(slider)
+                HeadPiece = new HeadControlPointPiece(slider, allowSelection)
                 {
                     ControlPointsChanged = (segmentIndex, points) => ControlPointsChanged?.Invoke(segmentIndex, points),
                     RequestSelection = selectPiece
@@ -73,7 +73,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
                     if (totalControlPoints > SegmentPieces.Count)
                     {
-                        SegmentPieces.Add(new SegmentControlPointPiece(slider)
+                        SegmentPieces.Add(new SegmentControlPointPiece(slider, allowSelection)
                         {
                             ControlPointsChanged = (segmentIndex, points) => ControlPointsChanged?.Invoke(segmentIndex, points),
                             RequestSelection = selectPiece
@@ -129,9 +129,6 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
         private void selectPiece(PathControlPointPiece piece)
         {
-            if (!allowSelection)
-                return;
-
             if (!inputManager.CurrentState.Keyboard.ControlPressed)
             {
                 HeadPiece.IsSelected.Value = false;

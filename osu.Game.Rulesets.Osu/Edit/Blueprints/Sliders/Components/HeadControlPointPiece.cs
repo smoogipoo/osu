@@ -19,8 +19,8 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         [Resolved]
         private OsuColour colours { get; set; }
 
-        public HeadControlPointPiece(Slider slider)
-            : base(slider)
+        public HeadControlPointPiece(Slider slider, bool allowSelection)
+            : base(slider, allowSelection)
         {
         }
 
