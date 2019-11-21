@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            HitObject.Path = new SliderPath(HitObject.Path.Segments.ToArray().Concat(new PathSegment(PathType.Bezier, Array.Empty<Vector2>()).Yield()).ToArray(), HitObject.Path.ExpectedDistance);
+            completeSegments = completeSegments.Concat(new PathSegment(PathType.Bezier, Array.Empty<Vector2>()).Yield()).ToArray();
             return true;
         }
 
