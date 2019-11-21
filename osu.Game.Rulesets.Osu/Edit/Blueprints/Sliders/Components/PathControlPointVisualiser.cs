@@ -102,11 +102,23 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                 case PlatformActionMethod.Delete:
                     PathSegment[] segments = slider.Path.Segments.ToArray();
 
+                    bool anyRemoved = false;
+
                     if (HeadPiece.IsSelected.Value)
+                    {
                         removeHead(segments);
+                        anyRemoved = true;
+                    }
 
                     foreach (var piece in SegmentPieces.Where(p => p.IsSelected.Value))
+                    {
                         removePoint(segments, piece.SegmentIndex, piece.ControlPointIndex);
+                        anyRemoved = true;
+                    }
+
+                    // If no control points were removed, other components should be able to handle the deletion
+                    if (!anyRemoved)
+                        return false;
 
                     removeEmptySegments(ref segments);
 
