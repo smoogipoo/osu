@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -92,10 +91,38 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
         protected override bool OnClick(ClickEvent e)
         {
-            HeadPiece.IsSelected.Value = false;
+            deselectAll();
+            return false;
+        }
 
-            foreach (var piece in SegmentPieces)
-                piece.IsSelected.Value = false;
+        public bool OnPressed(PlatformAction action)
+        {
+            switch (action.ActionMethod)
+            {
+                case PlatformActionMethod.Delete:
+                    PathSegment[] segments = slider.Path.Segments.ToArray();
+
+                    if (HeadPiece.IsSelected.Value)
+                        removeHead(segments);
+
+                    foreach (var piece in SegmentPieces.Where(p => p.IsSelected.Value))
+                        removePoint(segments, piece.SegmentIndex, piece.ControlPointIndex);
+
+                    removeEmptySegments(ref segments);
+
+                    deselectAll();
+
+                    if (segments.Length == 0)
+                    {
+                        // Special case for when all control points are deleted
+                        placementHandler?.Delete(slider);
+                        return true;
+                    }
+
+                    SegmentsChanged?.Invoke(segments.ToArray());
+
+                    return true;
+            }
 
             return false;
         }
@@ -105,10 +132,10 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             if (!allowSelection)
                 return;
 
-            HeadPiece.IsSelected.Value = false;
-
             if (!inputManager.CurrentState.Keyboard.ControlPressed)
             {
+                HeadPiece.IsSelected.Value = false;
+
                 foreach (var p in SegmentPieces)
                     p.IsSelected.Value = false;
             }
@@ -116,79 +143,44 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             piece.IsSelected.Toggle();
         }
 
-        public bool OnPressed(PlatformAction action)
+        private void deselectAll()
         {
-            switch (action.ActionMethod)
-            {
-                case PlatformActionMethod.Delete:
-                    var newSegments = new List<PathSegment>(slider.Path.Segments.ToArray());
+            HeadPiece.IsSelected.Value = false;
 
-                    bool anyDeleted = false;
-                    Vector2 offset = Vector2.Zero;
-
-                    for (int s = 0; s < newSegments.Count; s++)
-                    {
-                        // Find the new control points for this segment by going through all the non-selected pieces
-                        Vector2[] newControlPoints = SegmentPieces.Where(p => p.SegmentIndex == s && !p.IsSelected.Value)
-                                                                  .Select(p => newSegments[s].ControlPoints[p.ControlPointIndex])
-                                                                  .ToArray();
-
-                        // Make sure any control points were altered before continuing
-                        if (newControlPoints.Length == newSegments[s].ControlPoints.Length)
-                            continue;
-
-                        anyDeleted = true;
-
-                        // Remove segments with 0 remaining control points
-                        if (newControlPoints.Length == 0)
-                        {
-                            newSegments.RemoveAt(s--);
-                            continue;
-                        }
-
-                        // If the first segment is altered, it may be required to bring all other control points relative to the first control point
-                        // We're iterating through the segments from first to last so this will always touch the first segment first before the offset is applied to other segments
-                        if (s == 0)
-                            offset = newControlPoints[0];
-                        for (int c = 0; c < newControlPoints.Length; c++)
-                            newControlPoints[c] = newControlPoints[c] - offset;
-
-                        PathType newType = newSegments[s].Type;
-
-                        switch (newType)
-                        {
-                            case PathType.PerfectCurve when newControlPoints.Length != 3:
-                                newType = PathType.Linear;
-                                break;
-                        }
-
-                        newSegments[s] = new PathSegment(newType, newControlPoints);
-                    }
-
-                    if (!anyDeleted)
-                        return false;
-
-                    // Delete the slider if there are no remaining segments
-                    if (newSegments.Count == 0)
-                    {
-                        placementHandler?.Delete(slider);
-                        return true;
-                    }
-
-                    // In case the first control point was deleted, the slider position must match the new first control point position
-                    slider.Position = slider.Position + offset;
-
-                    // Since pieces are re-used, they will not point to the deleted control points while remaining selected
-                    foreach (var piece in SegmentPieces)
-                        piece.IsSelected.Value = false;
-
-                    SegmentsChanged?.Invoke(newSegments.ToArray());
-
-                    return true;
-            }
-
-            return false;
+            foreach (var piece in SegmentPieces)
+                piece.IsSelected.Value = false;
         }
+
+        private void removeHead(PathSegment[] segments)
+        {
+            Vector2 offset = segments[0].ControlPoints[0];
+
+            // Offset the slider position
+            slider.Position += offset;
+
+            removePoint(segments, 0, 0);
+            offsetPoints(segments, -offset);
+        }
+
+        private void removePoint(PathSegment[] segments, int segmentIndex, int controlPointIndex)
+        {
+            PathType newType = segments[segmentIndex].Type == PathType.PerfectCurve ? PathType.Linear : segments[segmentIndex].Type;
+
+            segments[segmentIndex] = new PathSegment(newType, Enumerable.Range(0, segments[segmentIndex].ControlPoints.Length)
+                                                                        .Where(i => i != controlPointIndex)
+                                                                        .Select(i => segments[segmentIndex].ControlPoints[i]).ToArray());
+        }
+
+        private void offsetPoints(PathSegment[] segments, Vector2 offset)
+        {
+            for (int s = 0; s < segments.Length; s++)
+            {
+                segments[s] = new PathSegment(segments[s].Type, Enumerable.Range(0, segments[s].ControlPoints.Length)
+                                                                          .Select(i => segments[s].ControlPoints[i] + offset).ToArray());
+            }
+        }
+
+        private void removeEmptySegments(ref PathSegment[] segments) => segments = segments.Where(s => s.ControlPoints.Length > 0).ToArray();
 
         public bool OnReleased(PlatformAction action) => action.ActionMethod == PlatformActionMethod.Delete;
     }
