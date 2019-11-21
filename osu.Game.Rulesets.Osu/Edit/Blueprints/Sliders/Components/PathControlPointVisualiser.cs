@@ -17,8 +17,6 @@ using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
-    public delegate void SegmentsChangedDelegate(PathSegment[] segments);
-
     public class PathControlPointVisualiser : CompositeDrawable, IKeyBindingHandler<PlatformAction>
     {
         public ControlPointsChangedDelegate ControlPointsChanged;
@@ -194,4 +192,10 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
         public bool OnReleased(PlatformAction action) => action.ActionMethod == PlatformActionMethod.Delete;
     }
+
+    public delegate void SegmentsChangedDelegate(PathSegment[] segments);
+
+    public delegate void RequestSelectionDelegate(PathControlPointPiece piece);
+
+    public delegate void ControlPointsChangedDelegate(int segmentIndex, Vector2[] controlPoints);
 }

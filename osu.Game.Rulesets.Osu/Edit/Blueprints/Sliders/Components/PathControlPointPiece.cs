@@ -14,10 +14,6 @@ using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
-    public delegate void RequestSelectionDelegate(PathControlPointPiece piece);
-
-    public delegate void ControlPointsChangedDelegate(int segmentIndex, Vector2[] controlPoints);
-
     public abstract class PathControlPointPiece : BlueprintPiece<Slider>
     {
         public RequestSelectionDelegate RequestSelection;
