@@ -24,7 +24,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         public ControlPointsChangedDelegate ControlPointsChanged;
         public SegmentsChangedDelegate SegmentsChanged;
 
-        internal readonly Container<PathControlPointPiece> Pieces;
+        internal readonly Container<SegmentControlPointPiece> SegmentPieces;
+        internal readonly HeadControlPointPiece HeadPiece;
+
         private readonly Slider slider;
         private readonly bool allowSelection;
 
@@ -40,7 +42,15 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
             RelativeSizeAxes = Axes.Both;
 
-            InternalChild = Pieces = new Container<PathControlPointPiece> { RelativeSizeAxes = Axes.Both };
+            InternalChildren = new Drawable[]
+            {
+                HeadPiece = new HeadControlPointPiece(slider)
+                {
+                    ControlPointsChanged = (segmentIndex, points) => ControlPointsChanged?.Invoke(segmentIndex, points),
+                    RequestSelection = selectPiece
+                },
+                SegmentPieces = new Container<SegmentControlPointPiece> { RelativeSizeAxes = Axes.Both }
+            };
         }
 
         protected override void LoadComplete()
@@ -64,44 +74,48 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                 {
                     totalControlPoints++;
 
-                    if (totalControlPoints > Pieces.Count)
+                    if (totalControlPoints > SegmentPieces.Count)
                     {
-                        var piece = new PathControlPointPiece(slider)
+                        SegmentPieces.Add(new SegmentControlPointPiece(slider)
                         {
                             ControlPointsChanged = (segmentIndex, points) => ControlPointsChanged?.Invoke(segmentIndex, points),
-                        };
-
-                        if (allowSelection)
-                            piece.RequestSelection = selectPiece;
-
-                        Pieces.Add(piece);
+                            RequestSelection = selectPiece
+                        });
                     }
 
-                    Pieces[totalControlPoints - 1].SegmentIndex = s;
-                    Pieces[totalControlPoints - 1].ControlPointIndex = c;
+                    SegmentPieces[totalControlPoints - 1].SegmentIndex = s;
+                    SegmentPieces[totalControlPoints - 1].ControlPointIndex = c;
                 }
             }
 
-            while (totalControlPoints < Pieces.Count)
-                Pieces.Remove(Pieces[Pieces.Count - 1]);
+            while (totalControlPoints < SegmentPieces.Count)
+                SegmentPieces.Remove(SegmentPieces[SegmentPieces.Count - 1]);
         }
 
         protected override bool OnClick(ClickEvent e)
         {
-            foreach (var piece in Pieces)
+            HeadPiece.IsSelected.Value = false;
+
+            foreach (var piece in SegmentPieces)
                 piece.IsSelected.Value = false;
+
             return false;
         }
 
-        private void selectPiece(int segmentIndex, int controlPointIndex)
+        private void selectPiece(PathControlPointPiece piece)
         {
-            if (inputManager.CurrentState.Keyboard.ControlPressed)
-                Pieces.Single(p => p.SegmentIndex == segmentIndex && p.ControlPointIndex == controlPointIndex).IsSelected.Toggle();
-            else
+            if (!allowSelection)
+                return;
+
+            HeadPiece.IsSelected.Value = false;
+
+            if (!inputManager.CurrentState.Keyboard.ControlPressed)
             {
-                foreach (var piece in Pieces)
-                    piece.IsSelected.Value = piece.SegmentIndex == segmentIndex && piece.ControlPointIndex == controlPointIndex;
+                foreach (var p in SegmentPieces)
+                    p.IsSelected.Value = false;
             }
+
+            piece.IsSelected.Toggle();
         }
 
         public bool OnPressed(PlatformAction action)
@@ -117,9 +131,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                     for (int s = 0; s < newSegments.Count; s++)
                     {
                         // Find the new control points for this segment by going through all the non-selected pieces
-                        Vector2[] newControlPoints = Pieces.Where(p => p.SegmentIndex == s && !p.IsSelected.Value)
-                                                           .Select(p => newSegments[s].ControlPoints[p.ControlPointIndex])
-                                                           .ToArray();
+                        Vector2[] newControlPoints = SegmentPieces.Where(p => p.SegmentIndex == s && !p.IsSelected.Value)
+                                                                  .Select(p => newSegments[s].ControlPoints[p.ControlPointIndex])
+                                                                  .ToArray();
 
                         // Make sure any control points were altered before continuing
                         if (newControlPoints.Length == newSegments[s].ControlPoints.Length)
@@ -167,7 +181,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                     slider.Position = slider.Position + offset;
 
                     // Since pieces are re-used, they will not point to the deleted control points while remaining selected
-                    foreach (var piece in Pieces)
+                    foreach (var piece in SegmentPieces)
                         piece.IsSelected.Value = false;
 
                     SegmentsChanged?.Invoke(newSegments.ToArray());

@@ -46,7 +46,6 @@ namespace osu.Game.Rulesets.Osu.Tests
                 Position = new Vector2(256, 192),
                 Path = new SliderPath(PathType.Bezier, new[]
                 {
-                    Vector2.Zero,
                     new Vector2(150, 150),
                     new Vector2(300, 0)
                 })
@@ -236,7 +235,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         }
 
         private void checkControlPointSelected(int index, bool selected)
-            => AddAssert($"control point {index} {(selected ? "selected" : "not selected")}", () => blueprint.ControlPointVisualiser.Pieces[index].IsSelected.Value == selected);
+            => AddAssert($"control point {index} {(selected ? "selected" : "not selected")}", () => blueprint.ControlPointVisualiser.SegmentPieces[index].IsSelected.Value == selected);
 
         private class TestSliderBlueprint : SliderSelectionBlueprint
         {
