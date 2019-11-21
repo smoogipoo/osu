@@ -139,7 +139,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
         private void onNewControlPoints(int segmentIndex, Vector2[] controlPoints)
         {
             var newSegments = HitObject.Path.Segments.ToArray();
-            newSegments[segmentIndex] = new PathSegment(controlPoints.Length > 2 ? PathType.Bezier : PathType.Linear, controlPoints);
+            newSegments[segmentIndex] = new PathSegment(controlPoints.Length > 1 ? PathType.Bezier : PathType.Linear, controlPoints);
 
             onNewSegments(newSegments);
         }
