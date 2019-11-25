@@ -186,13 +186,11 @@ namespace osu.Game.Rulesets.Osu.Tests
                     {
                         new PathSegment(PathType.Bezier, new[]
                         {
-                            Vector2.Zero,
                             new Vector2(470, 200),
                             new Vector2(457, 222),
                         }),
                         new PathSegment(PathType.Bezier, new[]
                         {
-                            new Vector2(457, 222),
                             new Vector2(488, 256),
                             new Vector2(476, 308),
                         }),
