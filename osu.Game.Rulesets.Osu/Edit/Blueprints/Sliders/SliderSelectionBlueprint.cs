@@ -40,7 +40,10 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
                 BodyPiece = new SliderBodyPiece(),
                 HeadBlueprint = CreateCircleSelectionBlueprint(slider, SliderPosition.Start),
                 TailBlueprint = CreateCircleSelectionBlueprint(slider, SliderPosition.End),
-                ControlPointVisualiser = new PathControlPointVisualiser(sliderObject, true) { ControlPointsChanged = onNewControlPoints },
+                ControlPointVisualiser = new PathControlPointVisualiser(sliderObject, true)
+                {
+                    ControlPointsChanged = onNewControlPoints
+                },
             };
         }
 
@@ -62,27 +65,29 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
                     return false; // Allow right click to be handled by context menu
 
                 case MouseButton.Left when e.ControlPressed && IsSelected:
-                    placementControlPointIndex = addControlPoint(e.MousePosition);
+                    (placementSegmentIndex, placementControlPointIndex) = addControlPoint(e.MousePosition);
                     return true; // Stop input from being handled and modifying the selection
             }
 
             return false;
         }
 
+        private int? placementSegmentIndex;
         private int? placementControlPointIndex;
 
         protected override bool OnDragStart(DragStartEvent e) => placementControlPointIndex != null;
 
         protected override bool OnDrag(DragEvent e)
         {
+            Debug.Assert(placementSegmentIndex != null);
             Debug.Assert(placementControlPointIndex != null);
 
             Vector2 position = e.MousePosition - HitObject.Position;
 
-            var controlPoints = HitObject.Path.Segments[0].ControlPoints.ToArray();
-            controlPoints[placementControlPointIndex.Value] = position;
+            var newControlPoints = HitObject.Path.Segments[placementSegmentIndex.Value].ControlPoints.ToArray();
+            newControlPoints[placementControlPointIndex.Value] = position;
 
-            onNewControlPoints(controlPoints);
+            onNewControlPoints(placementSegmentIndex.Value, newControlPoints);
 
             return true;
         }
@@ -93,42 +98,57 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
             return true;
         }
 
-        private int addControlPoint(Vector2 position)
+        private (int segmentIndex, int controlPointIndex) addControlPoint(Vector2 position)
         {
             position -= HitObject.Position;
 
-            var controlPoints = new Vector2[HitObject.Path.Segments[0].ControlPoints.Length + 1];
-            HitObject.Path.Segments[0].ControlPoints.CopyTo(controlPoints);
-
+            int segmentIndex = 0;
             int insertionIndex = 0;
             float minDistance = float.MaxValue;
 
-            for (int i = 0; i < controlPoints.Length - 2; i++)
+            for (int s = 0; s < HitObject.Path.Segments.Length; s++)
             {
-                float dist = new Line(controlPoints[i], controlPoints[i + 1]).DistanceToPoint(position);
+                PathSegment segment = HitObject.Path.Segments[s];
 
-                if (dist < minDistance)
+                for (int c = 0; c < segment.ControlPoints.Length - 1; c++)
                 {
-                    insertionIndex = i + 1;
-                    minDistance = dist;
+                    float dist = new Line(segment.ControlPoints[c], segment.ControlPoints[c + 1]).DistanceToPoint(position);
+
+                    if (dist < minDistance)
+                    {
+                        segmentIndex = s;
+                        insertionIndex = c + 1;
+                        minDistance = dist;
+                    }
                 }
             }
 
+            var newControlPoints = new Vector2[HitObject.Path.Segments[segmentIndex].ControlPoints.Length + 1];
+            HitObject.Path.Segments[segmentIndex].ControlPoints.CopyTo(newControlPoints);
+
             // Move the control points from the insertion index onwards to make room for the insertion
-            Array.Copy(controlPoints, insertionIndex, controlPoints, insertionIndex + 1, controlPoints.Length - insertionIndex - 1);
-            controlPoints[insertionIndex] = position;
+            Array.Copy(newControlPoints, insertionIndex, newControlPoints, insertionIndex + 1, newControlPoints.Length - insertionIndex - 1);
+            newControlPoints[insertionIndex] = position;
 
-            onNewControlPoints(controlPoints);
+            onNewControlPoints(segmentIndex, newControlPoints);
 
-            return insertionIndex;
+            return (segmentIndex, insertionIndex);
         }
 
-        private void onNewControlPoints(Vector2[] controlPoints)
+        private void onNewControlPoints(int segmentIndex, Vector2[] controlPoints)
         {
-            var unsnappedPath = new SliderPath(new[] { new PathSegment(controlPoints.Length > 2 ? PathType.Bezier : PathType.Linear, controlPoints) });
+            var newSegments = HitObject.Path.Segments.ToArray();
+            newSegments[segmentIndex] = new PathSegment(controlPoints.Length > 1 ? PathType.Bezier : PathType.Linear, controlPoints);
+
+            onNewSegments(newSegments);
+        }
+
+        private void onNewSegments(PathSegment[] segments)
+        {
+            var unsnappedPath = new SliderPath(segments);
             var snappedDistance = composer?.GetSnappedDistanceFromDistance(HitObject.StartTime, (float)unsnappedPath.Distance) ?? (float)unsnappedPath.Distance;
 
-            HitObject.Path = new SliderPath(new[] { unsnappedPath.Segments[0] }, snappedDistance);
+            HitObject.Path = new SliderPath(segments, snappedDistance);
 
             UpdateHitObject();
         }

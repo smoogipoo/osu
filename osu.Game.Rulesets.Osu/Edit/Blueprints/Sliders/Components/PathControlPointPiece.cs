@@ -2,15 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osu.Game.Graphics;
-using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Osu.Objects;
 using osuTK;
 using osuTK.Graphics;
@@ -18,41 +15,37 @@ using osuTK.Input;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
-    public class PathControlPointPiece : BlueprintPiece<Slider>
+    public abstract class PathControlPointPiece : BlueprintPiece<Slider>
     {
-        public Action<int, MouseButtonEvent> RequestSelection;
-        public Action<Vector2[]> ControlPointsChanged;
+        public RequestSelectionDelegate RequestSelection;
+        public ControlPointsChangedDelegate ControlPointsChanged;
 
         public readonly BindableBool IsSelected = new BindableBool();
-        public readonly int Index;
 
-        private readonly Slider slider;
-        private readonly Path path;
-        private readonly Container marker;
-        private readonly Drawable markerRing;
+        protected readonly Slider Slider;
+        protected readonly Path Path;
 
-        [Resolved(CanBeNull = true)]
-        private IDistanceSnapProvider snapProvider { get; set; }
+        protected readonly Container Marker;
+        protected readonly Drawable MarkerRing;
 
-        [Resolved]
-        private OsuColour colours { get; set; }
+        private readonly bool allowSelection;
 
-        public PathControlPointPiece(Slider slider, int index)
+        protected PathControlPointPiece(Slider slider, bool allowSelection)
         {
-            this.slider = slider;
-            Index = index;
+            Slider = slider;
+            this.allowSelection = allowSelection;
 
             Origin = Anchor.Centre;
             AutoSizeAxes = Axes.Both;
 
             InternalChildren = new Drawable[]
             {
-                path = new SmoothPath
+                Path = new SmoothPath
                 {
                     Anchor = Anchor.Centre,
                     PathRadius = 1
                 },
-                marker = new Container
+                Marker = new Container
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -65,7 +58,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                             Origin = Anchor.Centre,
                             Size = new Vector2(10),
                         },
-                        markerRing = new CircularContainer
+                        MarkerRing = new CircularContainer
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -90,10 +83,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         {
             base.Update();
 
-            Position = slider.StackedPosition + slider.Path.Segments[0].ControlPoints[Index];
+            Position = GetPosition();
 
             updateMarkerDisplay();
-            updateConnectingPath();
         }
 
         /// <summary>
@@ -101,100 +93,53 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
         /// </summary>
         private void updateMarkerDisplay()
         {
-            markerRing.Alpha = IsSelected.Value ? 1 : 0;
+            MarkerRing.Alpha = IsSelected.Value ? 1 : 0;
 
-            Color4 colour = isSegmentSeparator ? colours.Red : colours.Yellow;
+            Color4 colour = GetColour();
             if (IsHovered || IsSelected.Value)
                 colour = Color4.White;
-            marker.Colour = colour;
+            Marker.Colour = colour;
         }
 
-        /// <summary>
-        /// Updates the path connecting this control point to the previous one.
-        /// </summary>
-        private void updateConnectingPath()
-        {
-            path.ClearVertices();
+        protected abstract Vector2 GetPosition();
 
-            if (Index != slider.Path.Segments[0].ControlPoints.Length - 1)
-            {
-                path.AddVertex(Vector2.Zero);
-                path.AddVertex(slider.Path.Segments[0].ControlPoints[Index + 1] - slider.Path.Segments[0].ControlPoints[Index]);
-            }
-
-            path.OriginPosition = path.PositionInBoundingBox(Vector2.Zero);
-        }
+        protected abstract Color4 GetColour();
 
         // The connecting path is excluded from positional input
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => marker.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Marker.ReceivePositionalInputAt(screenSpacePos);
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (RequestSelection == null)
+            if (allowSelection)
                 return false;
 
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    RequestSelection.Invoke(Index, e);
+                    RequestSelection.Invoke(this, e);
                     return true;
 
                 case MouseButton.Right:
                     if (!IsSelected.Value)
-                        RequestSelection.Invoke(Index, e);
+                        RequestSelection.Invoke(this, e);
                     return false; // Allow context menu to show
             }
 
             return false;
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e) => RequestSelection != null;
+        protected override bool OnMouseUp(MouseUpEvent e) => allowSelection;
 
-        protected override bool OnClick(ClickEvent e) => RequestSelection != null;
+        protected override bool OnClick(ClickEvent e) => allowSelection;
 
         protected override bool OnDragStart(DragStartEvent e) => e.Button == MouseButton.Left;
 
-        protected override bool OnDrag(DragEvent e)
-        {
-            var newControlPoints = slider.Path.Segments[0].ControlPoints.ToArray();
-
-            if (Index == 0)
-            {
-                // Special handling for the head control point - the position of the slider changes which means the snapped position and time have to be taken into account
-                (Vector2 snappedPosition, double snappedTime) = snapProvider?.GetSnappedPosition(e.MousePosition, slider.StartTime) ?? (e.MousePosition, slider.StartTime);
-                Vector2 movementDelta = snappedPosition - slider.Position;
-
-                slider.Position += movementDelta;
-                slider.StartTime = snappedTime;
-
-                // Since control points are relative to the position of the slider, they all need to be offset backwards by the delta
-                for (int i = 1; i < newControlPoints.Length; i++)
-                    newControlPoints[i] -= movementDelta;
-            }
-            else
-                newControlPoints[Index] += e.Delta;
-
-            if (isSegmentSeparatorWithNext)
-                newControlPoints[Index + 1] = newControlPoints[Index];
-
-            if (isSegmentSeparatorWithPrevious)
-                newControlPoints[Index - 1] = newControlPoints[Index];
-
-            ControlPointsChanged?.Invoke(newControlPoints);
-
-            return true;
-        }
+        protected override bool OnDrag(DragEvent e) => true;
 
         protected override bool OnDragEnd(DragEndEvent e) => true;
 
-        private bool isSegmentSeparator => isSegmentSeparatorWithNext || isSegmentSeparatorWithPrevious;
+        protected void SetControlPoints(int segmentIndex, Vector2[] controlPoints) => ControlPointsChanged?.Invoke(segmentIndex, controlPoints);
 
-        private bool isSegmentSeparatorWithNext
-            => Index < slider.Path.Segments[0].ControlPoints.Length - 1
-               && slider.Path.Segments[0].ControlPoints[Index + 1] == slider.Path.Segments[0].ControlPoints[Index];
-
-        private bool isSegmentSeparatorWithPrevious
-            => Index > 0
-               && slider.Path.Segments[0].ControlPoints[Index - 1] == slider.Path.Segments[0].ControlPoints[Index];
+        protected ReadOnlySpan<Vector2> GetControlPoints(int segmentIndex) => Slider.Path.Segments[segmentIndex].ControlPoints;
     }
 }

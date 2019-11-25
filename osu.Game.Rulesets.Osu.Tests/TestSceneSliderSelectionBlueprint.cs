@@ -235,7 +235,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         }
 
         private void checkControlPointSelected(int index, bool selected)
-            => AddAssert($"control point {index} {(selected ? "selected" : "not selected")}", () => blueprint.ControlPointVisualiser.Pieces[index].IsSelected.Value == selected);
+            => AddAssert($"control point {index} {(selected ? "selected" : "not selected")}", () => blueprint.ControlPointVisualiser.SegmentPieces[index].IsSelected.Value == selected);
 
         private class TestSliderBlueprint : SliderSelectionBlueprint
         {
