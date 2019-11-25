@@ -135,9 +135,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                 anyRemoved = true;
             }
 
-            foreach (var piece in SegmentPieces.Where(p => p.IsSelected.Value))
+            foreach (var piece in SegmentPieces.Where(p => p.IsSelected.Value).GroupBy(p => p.SegmentIndex))
             {
-                removePoint(segments, piece.SegmentIndex, piece.ControlPointIndex);
+                removePoints(segments, piece.Key, piece.Select(g => g.ControlPointIndex).ToArray());
                 anyRemoved = true;
             }
 
@@ -168,17 +168,17 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             // Offset the slider position
             slider.Position += offset;
 
-            removePoint(segments, 0, 0);
+            removePoints(segments, 0, 0);
             offsetPoints(segments, -offset);
         }
 
-        private void removePoint(PathSegment[] segments, int segmentIndex, int controlPointIndex)
+        private void removePoints(PathSegment[] segments, int segmentIndex, params int[] controlPointIndices)
         {
             PathType newType = segments[segmentIndex].Type == PathType.PerfectCurve ? PathType.Linear : segments[segmentIndex].Type;
 
-            segments[segmentIndex] = new PathSegment(newType, Enumerable.Range(0, segments[segmentIndex].ControlPoints.Length)
-                                                                        .Where(i => i != controlPointIndex)
-                                                                        .Select(i => segments[segmentIndex].ControlPoints[i]).ToArray());
+            segments[segmentIndex] = new PathSegment(newType, segments[segmentIndex].ControlPoints.ToArray()
+                                                                                    .Where((_, i) => !controlPointIndices.Contains(i))
+                                                                                    .Select(c => c).ToArray());
         }
 
         private void offsetPoints(PathSegment[] segments, Vector2 offset)
