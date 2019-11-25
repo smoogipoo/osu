@@ -16,6 +16,8 @@ namespace osu.Game.Rulesets.Objects
     public class SliderPath
     {
         private readonly Bindable<int> version = new Bindable<int>();
+
+        [JsonIgnore]
         public IBindable<int> Version => version;
 
         private double? expectedDistance;
