@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (allowSelection)
+            if (!allowSelection)
                 return false;
 
             switch (e.Button)
