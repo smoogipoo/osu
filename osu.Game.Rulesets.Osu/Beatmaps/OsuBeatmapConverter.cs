@@ -35,7 +35,12 @@ namespace osu.Game.Rulesets.Osu.Beatmaps
                 {
                     StartTime = original.StartTime,
                     Samples = original.Samples,
-                    Path = curveData.Path,
+                    Path =
+                    {
+                        Type = curveData.Path.Type,
+                        ControlPoints = curveData.Path.ControlPoints,
+                        ExpectedDistance = curveData.Path.ExpectedDistance
+                    },
                     NodeSamples = curveData.NodeSamples,
                     RepeatCount = curveData.RepeatCount,
                     Position = positionData?.Position ?? Vector2.Zero,

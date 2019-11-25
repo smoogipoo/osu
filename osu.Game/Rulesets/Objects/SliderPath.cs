@@ -5,65 +5,77 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.MathUtils;
 using osu.Game.Rulesets.Objects.Types;
 using osuTK;
 
 namespace osu.Game.Rulesets.Objects
 {
-    public struct SliderPath : IEquatable<SliderPath>
+    public class SliderPath
     {
-        /// <summary>
-        /// The user-set distance of the path. If non-null, <see cref="Distance"/> will match this value,
-        /// and the path will be shortened/lengthened to match this length.
-        /// </summary>
-        public readonly double? ExpectedDistance;
+        private readonly Bindable<int> version = new Bindable<int>();
+        public IBindable<int> Version => version;
+
+        private double? expectedDistance;
 
         /// <summary>
-        /// The type of path.
+        /// The distance to lengthen or shorten the path to. If null, the path will use its true distance.
         /// </summary>
-        public readonly PathType Type;
-
-        [JsonProperty]
-        private Vector2[] controlPoints;
-
-        private List<Vector2> calculatedPath;
-        private List<double> cumulativeLength;
-
-        private bool isInitialised;
-
-        /// <summary>
-        /// Creates a new <see cref="SliderPath"/>.
-        /// </summary>
-        /// <param name="type">The type of path.</param>
-        /// <param name="controlPoints">The control points of the path.</param>
-        /// <param name="expectedDistance">A user-set distance of the path that may be shorter or longer than the true distance between all
-        /// <paramref name="controlPoints"/>. The path will be shortened/lengthened to match this length.
-        /// If null, the path will use the true distance between all <paramref name="controlPoints"/>.</param>
-        [JsonConstructor]
-        public SliderPath(PathType type, Vector2[] controlPoints, double? expectedDistance = null)
+        public double? ExpectedDistance
         {
-            this = default;
-            this.controlPoints = controlPoints;
+            get => expectedDistance;
+            set
+            {
+                expectedDistance = value;
 
-            Type = type;
-            ExpectedDistance = expectedDistance;
+                pathCache.Invalidate();
 
-            ensureInitialised();
+                version.Value++;
+            }
         }
+
+        private PathType type;
+
+        /// <summary>
+        /// The type of the path.
+        /// </summary>
+        public PathType Type
+        {
+            get => type;
+            set
+            {
+                type = value;
+
+                pathCache.Invalidate();
+
+                version.Value++;
+            }
+        }
+
+        private ReadOnlyMemory<Vector2> controlPoints;
 
         /// <summary>
         /// The control points of the path.
         /// </summary>
-        [JsonIgnore]
-        public ReadOnlySpan<Vector2> ControlPoints
+        public ReadOnlyMemory<Vector2> ControlPoints
         {
-            get
+            get => controlPoints;
+            set
             {
-                ensureInitialised();
-                return controlPoints.AsSpan();
+                controlPoints = value;
+
+                pathCache.Invalidate();
+
+                version.Value++;
             }
         }
+
+        private readonly Cached pathCache = new Cached();
+
+        private List<Vector2> calculatedPath;
+        private List<double> cumulativeLength;
 
         /// <summary>
         /// The distance of the path after lengthening/shortening to account for <see cref="ExpectedDistance"/>.
@@ -73,7 +85,7 @@ namespace osu.Game.Rulesets.Objects
         {
             get
             {
-                ensureInitialised();
+                ensureValid();
                 return cumulativeLength.Count == 0 ? 0 : cumulativeLength[cumulativeLength.Count - 1];
             }
         }
@@ -87,7 +99,7 @@ namespace osu.Game.Rulesets.Objects
         /// <param name="p1">End progress. Ranges from 0 (beginning of the slider) to 1 (end of the slider).</param>
         public void GetPathToProgress(List<Vector2> path, double p0, double p1)
         {
-            ensureInitialised();
+            ensureValid();
 
             double d0 = progressToDistance(p0);
             double d1 = progressToDistance(p1);
@@ -116,25 +128,24 @@ namespace osu.Game.Rulesets.Objects
         /// <returns></returns>
         public Vector2 PositionAt(double progress)
         {
-            ensureInitialised();
+            ensureValid();
 
             double d = progressToDistance(progress);
             return interpolateVertices(indexOfDistance(d), d);
         }
 
-        private void ensureInitialised()
+        private void ensureValid()
         {
-            if (isInitialised)
+            if (pathCache.IsValid)
                 return;
 
-            isInitialised = true;
-
-            controlPoints = controlPoints ?? Array.Empty<Vector2>();
             calculatedPath = new List<Vector2>();
             cumulativeLength = new List<double>();
 
             calculatePath();
             calculateCumulativeLength();
+
+            pathCache.Validate();
         }
 
         private List<Vector2> calculateSubpath(ReadOnlySpan<Vector2> subControlPoints)
@@ -180,9 +191,9 @@ namespace osu.Game.Rulesets.Objects
             {
                 end++;
 
-                if (i == ControlPoints.Length - 1 || ControlPoints[i] == ControlPoints[i + 1])
+                if (i == ControlPoints.Length - 1 || ControlPoints.Span[i] == ControlPoints.Span[i + 1])
                 {
-                    ReadOnlySpan<Vector2> cpSpan = ControlPoints.Slice(start, end - start);
+                    ReadOnlySpan<Vector2> cpSpan = ControlPoints.Span.Slice(start, end - start);
 
                     foreach (Vector2 t in calculateSubpath(cpSpan))
                     {
@@ -271,16 +282,6 @@ namespace osu.Game.Rulesets.Objects
 
             double w = (d - d0) / (d1 - d0);
             return p0 + (p1 - p0) * (float)w;
-        }
-
-        public bool Equals(SliderPath other)
-        {
-            if (ControlPoints == null && other.ControlPoints != null)
-                return false;
-            if (other.ControlPoints == null && ControlPoints != null)
-                return false;
-
-            return ControlPoints.SequenceEqual(other.ControlPoints) && ExpectedDistance.Equals(other.ExpectedDistance) && Type == other.Type;
         }
     }
 }

@@ -136,10 +136,17 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
         {
             Vector2[] newControlPoints = segments.SelectMany(s => s.ControlPoints).Concat(cursor.Yield()).ToArray();
 
-            var unsnappedPath = new SliderPath(newControlPoints.Length > 2 ? PathType.Bezier : PathType.Linear, newControlPoints);
+            var unsnappedPath = new SliderPath
+            {
+                Type = newControlPoints.Length > 2 ? PathType.Bezier : PathType.Linear,
+                ControlPoints = newControlPoints
+            };
+
             var snappedDistance = composer?.GetSnappedDistanceFromDistance(HitObject.StartTime, (float)unsnappedPath.Distance) ?? (float)unsnappedPath.Distance;
 
-            HitObject.Path = new SliderPath(unsnappedPath.Type, newControlPoints, snappedDistance);
+            HitObject.Path.Type = unsnappedPath.Type;
+            HitObject.Path.ControlPoints = newControlPoints;
+            HitObject.Path.ExpectedDistance = snappedDistance;
 
             bodyPiece.UpdateFrom(HitObject);
             headCirclePiece.UpdateFrom(HitObject.HeadCircle);

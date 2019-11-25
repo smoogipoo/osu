@@ -51,7 +51,12 @@ namespace osu.Game.Rulesets.Objects.Legacy.Catch
                 X = position.X,
                 NewCombo = FirstObject || newCombo,
                 ComboOffset = comboOffset,
-                Path = new SliderPath(pathType, controlPoints, length),
+                Path =
+                {
+                    Type = pathType,
+                    ControlPoints = controlPoints,
+                    ExpectedDistance = length
+                },
                 NodeSamples = nodeSamples,
                 RepeatCount = repeatCount
             };
@@ -63,7 +68,6 @@ namespace osu.Game.Rulesets.Objects.Legacy.Catch
             // Their combo offset is still added to that next hitobject's combo index
             forceNewCombo |= FormatVersion <= 8 || newCombo;
             extraComboOffset += comboOffset;
-
             return new ConvertSpinner
             {
                 EndTime = endTime

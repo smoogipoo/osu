@@ -28,7 +28,12 @@ namespace osu.Game.Rulesets.Objects.Legacy.Taiko
         {
             return new ConvertSlider
             {
-                Path = new SliderPath(pathType, controlPoints, length),
+                Path =
+                {
+                    Type = pathType,
+                    ControlPoints = controlPoints,
+                    ExpectedDistance = length
+                },
                 NodeSamples = nodeSamples,
                 RepeatCount = repeatCount
             };

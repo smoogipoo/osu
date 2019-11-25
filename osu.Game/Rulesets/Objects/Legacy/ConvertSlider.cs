@@ -16,10 +16,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
         /// </summary>
         private const float base_scoring_distance = 100;
 
-        /// <summary>
-        /// <see cref="ConvertSlider"/>s don't need a curve since they're converted to ruleset-specific hitobjects.
-        /// </summary>
-        public SliderPath Path { get; set; }
+        public SliderPath Path { get; } = new SliderPath();
 
         public double Distance => Path.Distance;
 

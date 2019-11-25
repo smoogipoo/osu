@@ -7,7 +7,6 @@ using NUnit.Framework;
 using osu.Framework.MathUtils;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles.Components;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders;
@@ -44,12 +43,16 @@ namespace osu.Game.Rulesets.Osu.Tests
             slider = new Slider
             {
                 Position = new Vector2(256, 192),
-                Path = new SliderPath(PathType.Bezier, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(150, 150),
-                    new Vector2(300, 0)
-                })
+                    Type = PathType.Bezier,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(150, 150),
+                        new Vector2(300, 0)
+                    }
+                }
             };
 
             slider.ApplyDefaults(new ControlPointInfo(), new BeatmapDifficulty { CircleSize = 2 });
@@ -196,7 +199,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         {
             AddStep($"move mouse to control point {index}", () =>
             {
-                Vector2 position = slider.Position + slider.Path.ControlPoints[index];
+                Vector2 position = slider.Position + slider.Path.ControlPoints.Span[index];
                 InputManager.MoveMouseTo(drawableObject.Parent.ToScreenSpace(position));
             });
         }

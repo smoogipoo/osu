@@ -49,11 +49,15 @@ namespace osu.Game.Tests.Visual.Editor
                     new Slider
                     {
                         Position = new Vector2(128, 256),
-                        Path = new SliderPath(PathType.Linear, new[]
+                        Path =
                         {
-                            Vector2.Zero,
-                            new Vector2(216, 0),
-                        }),
+                            Type = PathType.Linear,
+                            ControlPoints = new[]
+                            {
+                                Vector2.Zero,
+                                new Vector2(216, 0),
+                            }
+                        },
                         Scale = 0.5f,
                     }
                 },

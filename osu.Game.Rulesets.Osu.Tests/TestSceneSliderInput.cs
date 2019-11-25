@@ -10,7 +10,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Replays;
 using osu.Game.Rulesets.Judgements;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -306,11 +305,16 @@ namespace osu.Game.Rulesets.Osu.Tests
                         {
                             StartTime = time_slider_start,
                             Position = new Vector2(0, 0),
-                            Path = new SliderPath(PathType.PerfectCurve, new[]
+                            Path =
                             {
-                                Vector2.Zero,
-                                new Vector2(25, 0),
-                            }, 25),
+                                Type = PathType.PerfectCurve,
+                                ControlPoints = new[]
+                                {
+                                    Vector2.Zero,
+                                    new Vector2(25, 0),
+                                },
+                                ExpectedDistance = 25
+                            }
                         }
                     },
                     BeatmapInfo =

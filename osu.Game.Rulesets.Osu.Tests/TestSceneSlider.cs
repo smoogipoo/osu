@@ -197,12 +197,17 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(239, 176),
-                Path = new SliderPath(PathType.PerfectCurve, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(154, 28),
-                    new Vector2(52, -34)
-                }, 700),
+                    Type = PathType.PerfectCurve,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(154, 28),
+                        new Vector2(52, -34)
+                    },
+                    ExpectedDistance = 700
+                },
                 RepeatCount = repeats,
                 StackHeight = 10
             };
@@ -228,11 +233,16 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(-(distance / 2), 0),
-                Path = new SliderPath(PathType.PerfectCurve, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(distance, 0),
-                }, distance),
+                    Type = PathType.PerfectCurve,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(distance, 0),
+                    },
+                    ExpectedDistance = distance,
+                },
                 RepeatCount = repeats,
                 StackHeight = stackHeight
             };
@@ -246,12 +256,16 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(-200, 0),
-                Path = new SliderPath(PathType.PerfectCurve, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(200, 200),
-                    new Vector2(400, 0)
-                }, 600),
+                    Type = PathType.PerfectCurve,
+                    ControlPoints = new[]
+                    {
+                        new Vector2(200, 200),
+                        new Vector2(400, 0)
+                    },
+                    ExpectedDistance = 600,
+                },
                 RepeatCount = repeats,
             };
 
@@ -266,15 +280,19 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(-200, 0),
-                Path = new SliderPath(PathType.Linear, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(150, 75),
-                    new Vector2(200, 0),
-                    new Vector2(300, -200),
-                    new Vector2(400, 0),
-                    new Vector2(430, 0)
-                }),
+                    Type = PathType.Linear,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(150, 75),
+                        new Vector2(200, 0),
+                        new Vector2(300, -200),
+                        new Vector2(400, 0),
+                        new Vector2(430, 0)
+                    },
+                },
                 RepeatCount = repeats,
             };
 
@@ -289,14 +307,18 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(-200, 0),
-                Path = new SliderPath(PathType.Bezier, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(150, 75),
-                    new Vector2(200, 100),
-                    new Vector2(300, -200),
-                    new Vector2(430, 0)
-                }),
+                    Type = PathType.Bezier,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(150, 75),
+                        new Vector2(200, 100),
+                        new Vector2(300, -200),
+                        new Vector2(430, 0)
+                    },
+                },
                 RepeatCount = repeats,
             };
 
@@ -311,15 +333,19 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(0, 0),
-                Path = new SliderPath(PathType.Linear, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(-200, 0),
-                    new Vector2(0, 0),
-                    new Vector2(0, -200),
-                    new Vector2(-200, -200),
-                    new Vector2(0, -200)
-                }),
+                    Type = PathType.Linear,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(-200, 0),
+                        new Vector2(0, 0),
+                        new Vector2(0, -200),
+                        new Vector2(-200, -200),
+                        new Vector2(0, -200)
+                    },
+                },
                 RepeatCount = repeats,
             };
 
@@ -338,13 +364,17 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 1000,
                 Position = new Vector2(-100, 0),
-                Path = new SliderPath(PathType.Catmull, new[]
+                Path =
                 {
-                    Vector2.Zero,
-                    new Vector2(50, -50),
-                    new Vector2(150, 50),
-                    new Vector2(200, 0)
-                }),
+                    Type = PathType.Catmull,
+                    ControlPoints = new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(50, -50),
+                        new Vector2(150, 50),
+                        new Vector2(200, 0)
+                    },
+                },
                 RepeatCount = repeats,
                 NodeSamples = repeatSamples
             };

@@ -32,7 +32,12 @@ namespace osu.Game.Rulesets.Objects.Legacy.Mania
             return new ConvertSlider
             {
                 X = position.X,
-                Path = new SliderPath(pathType, controlPoints, length),
+                Path =
+                {
+                    Type = pathType,
+                    ControlPoints = controlPoints,
+                    ExpectedDistance = length
+                },
                 NodeSamples = nodeSamples,
                 RepeatCount = repeatCount
             };

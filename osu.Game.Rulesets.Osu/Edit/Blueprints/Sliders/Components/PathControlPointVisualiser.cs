@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             foreach (var piece in Pieces)
             {
                 if (!piece.IsSelected.Value)
-                    newControlPoints.Add(slider.Path.ControlPoints[piece.Index]);
+                    newControlPoints.Add(slider.Path.ControlPoints.Span[piece.Index]);
             }
 
             // Ensure that there are any points to be deleted

@@ -28,19 +28,9 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public Vector2 StackedPositionAt(double t) => StackedPosition + this.CurvePositionAt(t);
 
-        public readonly Bindable<SliderPath> PathBindable = new Bindable<SliderPath>();
+        public SliderPath Path { get; } = new SliderPath();
 
-        public SliderPath Path
-        {
-            get => PathBindable.Value;
-            set
-            {
-                PathBindable.Value = value;
-                endPositionCache.Invalidate();
-
-                updateNestedPositions();
-            }
-        }
+        public IBindable<int> PathVersion => Path.Version;
 
         public double Distance => Path.Distance;
 
@@ -112,6 +102,7 @@ namespace osu.Game.Rulesets.Osu.Objects
         {
             SamplesBindable.ItemsAdded += _ => updateNestedSamples();
             SamplesBindable.ItemsRemoved += _ => updateNestedSamples();
+            PathVersion.BindValueChanged(_ => endPositionCache.Invalidate());
         }
 
         protected override void ApplyDefaultsToSelf(ControlPointInfo controlPointInfo, BeatmapDifficulty difficulty)
