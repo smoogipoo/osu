@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Layout;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Edit;
 using osuTK;
@@ -50,7 +50,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         [Resolved]
         private BindableBeatDivisor beatDivisor { get; set; }
 
-        private readonly Cached gridCache = new Cached();
+        private readonly LayoutCached gridCache = new LayoutCached(Invalidation.RequiredParentSizeToFit);
         private readonly double? endTime;
 
         /// <summary>
@@ -66,6 +66,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
             StartTime = startTime;
 
             RelativeSizeAxes = Axes.Both;
+
+            Layout.AddDependency(gridCache);
         }
 
         protected override void LoadComplete()
@@ -89,14 +91,6 @@ namespace osu.Game.Screens.Edit.Compose.Components
             }
 
             gridCache.Invalidate();
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                gridCache.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
         }
 
         protected override void Update()

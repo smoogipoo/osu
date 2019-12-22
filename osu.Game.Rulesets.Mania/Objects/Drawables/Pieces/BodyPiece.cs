@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Caching;
 using osuTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Layout;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 
@@ -65,6 +65,8 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
                     }
                 }
             };
+
+            Layout.AddDependency(subtractionCache);
         }
 
         protected override void LoadComplete()
@@ -100,15 +102,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
             }
         }
 
-        private readonly Cached subtractionCache = new Cached();
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                subtractionCache.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
+        private readonly LayoutCached subtractionCache = new LayoutCached(Invalidation.DrawSize);
 
         protected override void Update()
         {

@@ -104,7 +104,7 @@ namespace osu.Game.Graphics.Backgrounds
         {
             base.Update();
 
-            Invalidate(Invalidation.DrawNode, shallPropagate: false);
+            Invalidate(Invalidation.DrawNode);
 
             if (CreateNewTriangles)
                 addTriangles(false);

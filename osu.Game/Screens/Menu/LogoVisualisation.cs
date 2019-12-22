@@ -149,7 +149,7 @@ namespace osu.Game.Screens.Menu
                     frequencyAmplitudes[i] = 0;
             }
 
-            Invalidate(Invalidation.DrawNode, shallPropagate: false);
+            Invalidate(Invalidation.DrawNode);
         }
 
         protected override DrawNode CreateDrawNode() => new VisualisationDrawNode(this);
