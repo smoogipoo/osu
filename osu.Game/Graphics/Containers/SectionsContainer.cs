@@ -136,22 +136,20 @@ namespace osu.Game.Graphics.Containers
                 RelativeSizeAxes = Axes.X
             });
             originalSectionsMargin = scrollContentContainer.Margin;
+
+            Layout.OnInvalidate += invalidation =>
+            {
+                if ((invalidation & Invalidation.DrawSize) != 0)
+                {
+                    // We need to recalculate the positions if the ExpandableHeader changed its size
+                    lastKnownScroll = -1;
+                }
+            };
         }
 
         public void ScrollTo(Drawable section) => scrollContainer.ScrollTo(scrollContainer.GetChildPosInContent(section) - (FixedHeader?.BoundingBox.Height ?? 0));
 
         public void ScrollToTop() => scrollContainer.ScrollTo(0);
-
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            base.InvalidateFromChild(invalidation, source);
-
-            if ((invalidation & Invalidation.DrawSize) != 0)
-            {
-                if (source == ExpandableHeader) //We need to recalculate the positions if the ExpandableHeader changed its size
-                    lastKnownScroll = -1;
-            }
-        }
 
         private float lastKnownScroll;
 
