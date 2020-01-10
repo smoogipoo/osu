@@ -636,9 +636,11 @@ namespace osu.Game.Tests.Beatmaps.IO
         }
 
         [Test]
-        public async Task TestAddFile()
+        public async Task TestAddBeatmapFile()
         {
-            using (HeadlessGameHost host = new CleanRunHeadlessGameHost(nameof(TestAddFile)))
+            const string new_beatmap_version = "new beatmap";
+
+            using (HeadlessGameHost host = new CleanRunHeadlessGameHost(nameof(TestAddBeatmapFile)))
             {
                 try
                 {
@@ -650,7 +652,6 @@ namespace osu.Game.Tests.Beatmaps.IO
 
                     BeatmapSetInfo setToUpdate = manager.GetAllUsableBeatmapSets()[0];
                     Beatmap beatmapToUpdate = (Beatmap)manager.GetWorkingBeatmap(setToUpdate.Beatmaps.First(b => b.RulesetID == 0)).Beatmap;
-                    BeatmapSetFileInfo fileToUpdate = setToUpdate.Files.First(f => beatmapToUpdate.BeatmapInfo.Path.Contains(f.Filename));
 
                     using (var stream = new MemoryStream())
                     {
@@ -659,18 +660,29 @@ namespace osu.Game.Tests.Beatmaps.IO
                             beatmapToUpdate.HitObjects.Clear();
                             beatmapToUpdate.HitObjects.Add(new HitCircle { StartTime = 5000 });
 
+                            // Clone the beatmap info so it's isolated from the database model
+                            beatmapToUpdate.BeatmapInfo = beatmapToUpdate.BeatmapInfo.Clone();
+                            beatmapToUpdate.BeatmapInfo.Version = new_beatmap_version;
+
                             new LegacyBeatmapEncoder(beatmapToUpdate).Encode(writer);
                         }
 
                         stream.Seek(0, SeekOrigin.Begin);
 
-                        manager.UpdateFile(setToUpdate, fileToUpdate, stream);
+                        manager.AddFile(setToUpdate, "new-beatmap.osu", stream);
                     }
 
-                    Beatmap updatedBeatmap = (Beatmap)manager.GetWorkingBeatmap(manager.QueryBeatmap(b => b.ID == beatmapToUpdate.BeatmapInfo.ID)).Beatmap;
+                    // Ensure that the set has the new beatmap
+                    Assert.That(manager.QueryBeatmap(b => b.Version == new_beatmap_version), Is.Not.Null);
 
-                    Assert.That(updatedBeatmap.HitObjects.Count, Is.EqualTo(1));
-                    Assert.That(updatedBeatmap.HitObjects[0].StartTime, Is.EqualTo(5000));
+                    // Ensure that the existing beatmap hasn't changed (the new beatmap has only 1 hitobject)
+                    Beatmap existingBeatmap = (Beatmap)manager.GetWorkingBeatmap(manager.QueryBeatmap(b => b.ID == beatmapToUpdate.BeatmapInfo.ID)).Beatmap;
+                    Assert.That(existingBeatmap.HitObjects, Has.Count.GreaterThan(1));
+
+                    // Ensure that the new beatmap has the correct data (1 hitobject)
+                    Beatmap newBeatmap = (Beatmap)manager.GetWorkingBeatmap(manager.QueryBeatmap(b => b.Version == new_beatmap_version)).Beatmap;
+                    Assert.That(existingBeatmap.HitObjects.Count, Is.EqualTo(1));
+                    Assert.That(existingBeatmap.HitObjects[0].StartTime, Is.EqualTo(5000));
                 }
                 finally
                 {

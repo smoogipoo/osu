@@ -89,19 +89,29 @@ namespace osu.Game.Beatmaps
 
         protected override Task Populate(BeatmapSetInfo beatmapSet, ArchiveReader archive, CancellationToken cancellationToken = default)
         {
+            if (beatmapSet.Beatmaps != null)
+            {
+                using (var usage = ContextFactory.GetForWrite())
+                    usage.Context.BeatmapInfo.RemoveRange(beatmapSet.Beatmaps);
+                beatmapSet.Beatmaps.Clear();
+            }
+
             if (archive != null)
                 beatmapSet.Beatmaps = createBeatmapDifficulties(beatmapSet.Files);
 
-            foreach (BeatmapInfo b in beatmapSet.Beatmaps)
+            if (beatmapSet.Beatmaps != null)
             {
-                // remove metadata from difficulties where it matches the set
-                if (beatmapSet.Metadata.Equals(b.Metadata))
-                    b.Metadata = null;
+                foreach (BeatmapInfo b in beatmapSet.Beatmaps)
+                {
+                    // remove metadata from difficulties where it matches the set
+                    if (beatmapSet.Metadata.Equals(b.Metadata))
+                        b.Metadata = null;
 
-                b.BeatmapSet = beatmapSet;
+                    b.BeatmapSet = beatmapSet;
+                }
+
+                validateOnlineIds(beatmapSet);
             }
-
-            validateOnlineIds(beatmapSet);
 
             return updateQueue.UpdateAsync(beatmapSet, cancellationToken);
         }

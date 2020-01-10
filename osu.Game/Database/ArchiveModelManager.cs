@@ -364,6 +364,21 @@ namespace osu.Game.Database
             return item;
         }, cancellationToken, TaskCreationOptions.HideScheduler, import_scheduler).Unwrap();
 
+        public void AddFile(TModel model, string filename, Stream contents)
+        {
+            using (ContextFactory.GetForWrite())
+            {
+                model.Files.Add(new TFileModel
+                {
+                    Filename = filename,
+                    FileInfo = Files.Add(contents)
+                });
+
+                Populate(model, new EmptyArchiveReader());
+                Update(model);
+            }
+        }
+
         public void UpdateFile(TModel model, TFileModel file, Stream contents)
         {
             using (ContextFactory.GetForWrite())
