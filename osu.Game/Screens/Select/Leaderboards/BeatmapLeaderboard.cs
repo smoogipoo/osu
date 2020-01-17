@@ -184,11 +184,32 @@ namespace osu.Game.Screens.Select.Leaderboards
 
             req.Success += r =>
             {
-                var scoreProcessor = reqRuleset.CreateInstance().CreateScoreProcessor();
-                scoreProcessor.ApplyBeatmap(beatmaps.GetWorkingBeatmap(Beatmap).GetPlayableBeatmap(reqRuleset));
+                BeatmapInfo localBeatmap = Beatmap;
 
-                scoresCallback?.Invoke(r.Scores.Select(s => s.CreateScoreInfo(rulesets, scoreProcessor)));
-                TopScore = r.UserScore;
+                Task.Run(() =>
+                {
+                    var scoreProcessor = reqRuleset.CreateInstance().CreateScoreProcessor();
+                    scoreProcessor.ApplyBeatmap(beatmaps.GetWorkingBeatmap(localBeatmap).GetPlayableBeatmap(reqRuleset));
+
+                    var scores = new List<ScoreInfo>();
+
+                    foreach (var s in r.Scores)
+                    {
+                        if (req.Cancelled)
+                            break;
+
+                        scores.Add(s.CreateScoreInfo(rulesets, scoreProcessor));
+                    }
+
+                    Schedule(() =>
+                    {
+                        if (req.Cancelled)
+                            return;
+
+                        scoresCallback?.Invoke(scores);
+                        TopScore = r.UserScore;
+                    });
+                });
             };
 
             return req;

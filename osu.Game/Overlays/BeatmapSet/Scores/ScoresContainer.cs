@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -9,6 +10,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osuTK;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
@@ -16,6 +18,7 @@ using osu.Game.Online.API.Requests;
 using osu.Framework.Bindables;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Scoring;
+using osu.Game.Scoring;
 using osu.Game.Screens.Select.Leaderboards;
 using osu.Game.Users;
 
@@ -52,40 +55,68 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
         protected APILegacyScores Scores
         {
-            set => Schedule(() =>
+            set
             {
-                topScoresContainer.Clear();
+                APIRequest request = getScoresRequest;
+                RulesetInfo localRuleset = ruleset.Value;
+                BeatmapInfo localBeatmap = Beatmap.Value;
 
-                if (value?.Scores.Any() != true)
+                Schedule(() =>
                 {
-                    scoreTable.Scores = null;
-                    scoreTable.Hide();
-                    return;
-                }
+                    topScoresContainer.Clear();
 
-                ScoreProcessor scoreProcessor = null;
-                BeatmapInfo databasedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == Beatmap.Value.OnlineBeatmapID);
+                    if (value?.Scores.Any() != true)
+                    {
+                        scoreTable.Scores = null;
+                        scoreTable.Hide();
+                        return;
+                    }
 
-                if (databasedBeatmap != null)
-                {
-                    scoreProcessor = ruleset.Value.CreateInstance().CreateScoreProcessor();
-                    scoreProcessor.ApplyBeatmap(beatmaps.GetWorkingBeatmap(databasedBeatmap).GetPlayableBeatmap(ruleset.Value));
-                }
+                    Task.Run(() =>
+                    {
+                        ScoreProcessor scoreProcessor = null;
+                        BeatmapInfo databasedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == localBeatmap.OnlineBeatmapID);
 
-                var scoreInfos = value.Scores.Select(s => s.CreateScoreInfo(rulesets, scoreProcessor)).ToList();
+                        if (databasedBeatmap != null)
+                        {
+                            scoreProcessor = localRuleset.CreateInstance().CreateScoreProcessor();
+                            scoreProcessor.ApplyBeatmap(beatmaps.GetWorkingBeatmap(databasedBeatmap).GetPlayableBeatmap(localRuleset));
+                        }
 
-                scoreTable.Scores = scoreInfos;
-                scoreTable.Show();
+                        var scores = new List<ScoreInfo>();
 
-                var topScore = scoreInfos.First();
-                var userScore = value.UserScore;
-                var userScoreInfo = userScore?.Score.CreateScoreInfo(rulesets, scoreProcessor);
+                        foreach (var score in value.Scores)
+                        {
+                            if (request.Cancelled)
+                                break;
 
-                topScoresContainer.Add(new DrawableTopScore(topScore));
+                            scores.Add(score.CreateScoreInfo(rulesets, scoreProcessor));
+                        }
 
-                if (userScoreInfo != null && userScoreInfo.OnlineScoreID != topScore.OnlineScoreID)
-                    topScoresContainer.Add(new DrawableTopScore(userScoreInfo, userScore.Position));
-            });
+                        Schedule(() =>
+                        {
+                            if (request.Cancelled)
+                                return;
+
+                            displayScores(scores, value.UserScore);
+                        });
+                    });
+                });
+            }
+        }
+
+        private void displayScores(List<ScoreInfo> scores, APILegacyUserTopScoreInfo userScore)
+        {
+            scoreTable.Scores = scores;
+            scoreTable.Show();
+
+            var topScore = scores.First();
+            var userScoreInfo = userScore?.Score.CreateScoreInfo(rulesets);
+
+            topScoresContainer.Add(new DrawableTopScore(topScore));
+
+            if (userScoreInfo != null && userScoreInfo.OnlineScoreID != topScore.OnlineScoreID)
+                topScoresContainer.Add(new DrawableTopScore(userScoreInfo, userScore.Position));
         }
 
         public ScoresContainer()

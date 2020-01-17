@@ -68,7 +68,7 @@ namespace osu.Game.Online.API
         /// </summary>
         public event APIFailureHandler Failure;
 
-        private bool cancelled;
+        public bool Cancelled { get; private set; }
 
         private Action pendingFailure;
 
@@ -104,7 +104,7 @@ namespace osu.Game.Online.API
 
             API.Schedule(delegate
             {
-                if (cancelled) return;
+                if (Cancelled) return;
 
                 Success?.Invoke();
             });
@@ -117,10 +117,10 @@ namespace osu.Game.Online.API
             if (WebRequest?.Completed == true)
                 return;
 
-            if (cancelled)
+            if (Cancelled)
                 return;
 
-            cancelled = true;
+            Cancelled = true;
             WebRequest?.Abort();
 
             string responseString = WebRequest?.GetResponseString();
@@ -150,7 +150,7 @@ namespace osu.Game.Online.API
         /// <returns>Whether we are in a failed or cancelled state.</returns>
         private bool checkAndScheduleFailure()
         {
-            if (API == null || pendingFailure == null) return cancelled;
+            if (API == null || pendingFailure == null) return Cancelled;
 
             API.Schedule(pendingFailure);
             pendingFailure = null;
