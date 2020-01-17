@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
@@ -76,6 +77,9 @@ namespace osu.Game.Screens.Select.Leaderboards
                 UpdateScores();
             }
         }
+
+        [Resolved]
+        private BeatmapManager beatmaps { get; set; }
 
         [Resolved]
         private ScoreManager scoreManager { get; set; }
@@ -175,11 +179,15 @@ namespace osu.Game.Screens.Select.Leaderboards
             else if (filterMods)
                 requestMods = mods.Value;
 
-            var req = new GetScoresRequest(Beatmap, ruleset.Value ?? Beatmap.Ruleset, Scope, requestMods);
+            var reqRuleset = ruleset.Value ?? Beatmap.Ruleset;
+            var req = new GetScoresRequest(Beatmap, reqRuleset, Scope, requestMods);
 
             req.Success += r =>
             {
-                scoresCallback?.Invoke(r.Scores.Select(s => s.CreateScoreInfo(rulesets)));
+                var scoreProcessor = reqRuleset.CreateInstance().CreateScoreProcessor();
+                scoreProcessor.ApplyBeatmap(beatmaps.GetWorkingBeatmap(Beatmap).GetPlayableBeatmap(reqRuleset));
+
+                scoresCallback?.Invoke(r.Scores.Select(s => s.CreateScoreInfo(rulesets, scoreProcessor)));
                 TopScore = r.UserScore;
             };
 

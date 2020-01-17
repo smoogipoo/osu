@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using osu.Framework.Extensions;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
 using osu.Game.Users;
@@ -17,7 +19,7 @@ namespace osu.Game.Online.API.Requests.Responses
 {
     public class APILegacyScoreInfo
     {
-        public ScoreInfo CreateScoreInfo(RulesetStore rulesets)
+        public ScoreInfo CreateScoreInfo(RulesetStore rulesets, ScoreProcessor processor = null)
         {
             var ruleset = rulesets.GetRuleset(OnlineRulesetID);
 
@@ -71,6 +73,43 @@ namespace osu.Game.Online.API.Requests.Responses
                             break;
                     }
                 }
+            }
+
+            if (processor != null)
+            {
+                processor.Reset(false);
+                processor.Mods.Value = mods;
+
+                (HitResult result, int count)[] availableResults =
+                {
+                    (HitResult.Perfect, scoreInfo.Statistics.GetOrDefault(HitResult.Perfect)),
+                    (HitResult.Great, scoreInfo.Statistics.GetOrDefault(HitResult.Great)),
+                    (HitResult.Good, scoreInfo.Statistics.GetOrDefault(HitResult.Good)),
+                    (HitResult.Ok, scoreInfo.Statistics.GetOrDefault(HitResult.Ok)),
+                    (HitResult.Meh, scoreInfo.Statistics.GetOrDefault(HitResult.Meh)),
+                };
+
+                processor.Simulate((h, j) =>
+                {
+                    if (processor.Combo.Value >= MaxCombo && j.AffectsCombo)
+                        return HitResult.Miss;
+
+                    for (int i = availableResults.Length - 1; i >= 0; i--)
+                    {
+                        if (availableResults[i].count == 0)
+                            continue;
+
+                        if (!h.HitWindows.IsHitResultAllowed(availableResults[i].result))
+                            continue;
+
+                        availableResults[i].count--;
+                        return availableResults[i].result;
+                    }
+
+                    return j.MaxResult;
+                });
+
+                scoreInfo.TotalScore = (int)Math.Round(processor.GetStandardisedScore());
             }
 
             return scoreInfo;

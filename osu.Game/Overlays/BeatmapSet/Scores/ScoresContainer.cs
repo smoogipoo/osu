@@ -15,6 +15,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Framework.Bindables;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Select.Leaderboards;
 using osu.Game.Users;
 
@@ -39,6 +40,9 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         private readonly NotSupporterPlaceholder notSupporterPlaceholder;
 
         [Resolved]
+        private BeatmapManager beatmaps { get; set; }
+
+        [Resolved]
         private IAPIProvider api { get; set; }
 
         [Resolved]
@@ -59,14 +63,23 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     return;
                 }
 
-                var scoreInfos = value.Scores.Select(s => s.CreateScoreInfo(rulesets)).ToList();
+                ScoreProcessor scoreProcessor = null;
+                BeatmapInfo databasedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == Beatmap.Value.OnlineBeatmapID);
+
+                if (databasedBeatmap != null)
+                {
+                    scoreProcessor = ruleset.Value.CreateInstance().CreateScoreProcessor();
+                    scoreProcessor.ApplyBeatmap(beatmaps.GetWorkingBeatmap(databasedBeatmap).GetPlayableBeatmap(ruleset.Value));
+                }
+
+                var scoreInfos = value.Scores.Select(s => s.CreateScoreInfo(rulesets, scoreProcessor)).ToList();
 
                 scoreTable.Scores = scoreInfos;
                 scoreTable.Show();
 
                 var topScore = scoreInfos.First();
                 var userScore = value.UserScore;
-                var userScoreInfo = userScore?.Score.CreateScoreInfo(rulesets);
+                var userScoreInfo = userScore?.Score.CreateScoreInfo(rulesets, scoreProcessor);
 
                 topScoresContainer.Add(new DrawableTopScore(topScore));
 
