@@ -38,13 +38,23 @@ namespace osu.Game.Rulesets.Scoring
         public bool HasCompleted => JudgedHits == MaxHits;
 
         /// <summary>
+        /// The <see cref="IBeatmap"/> applied to this <see cref="JudgementProcessor"/>.
+        /// </summary>
+        public IBeatmap Beatmap { get; private set; }
+
+        /// <summary>
         /// Applies a <see cref="IBeatmap"/> to this <see cref="ScoreProcessor"/>.
         /// </summary>
         /// <param name="beatmap">The <see cref="IBeatmap"/> to read properties from.</param>
         public virtual void ApplyBeatmap(IBeatmap beatmap)
         {
+            Beatmap = beatmap;
+
             Reset(false);
-            SimulateAutoplay(beatmap);
+
+            // Simulate an auto play
+            Simulate((h, j) => j.MaxResult);
+
             Reset(true);
         }
 
@@ -110,13 +120,12 @@ namespace osu.Game.Rulesets.Scoring
         protected virtual JudgementResult CreateResult(HitObject hitObject, Judgement judgement) => new JudgementResult(hitObject, judgement);
 
         /// <summary>
-        /// Simulates an autoplay of the <see cref="IBeatmap"/> to determine scoring values.
+        /// Simulates a play-through of the <see cref="IBeatmap"/> applied to this <see cref="JudgementProcessor"/>.
         /// </summary>
-        /// <remarks>This provided temporarily. DO NOT USE.</remarks>
-        /// <param name="beatmap">The <see cref="IBeatmap"/> to simulate.</param>
-        protected virtual void SimulateAutoplay(IBeatmap beatmap)
+        /// <param name="resultFunc">A function that determines the <see cref="HitResult"/> to apply for each judgement.</param>
+        public void Simulate(Func<HitObject, Judgement, HitResult> resultFunc)
         {
-            foreach (var obj in beatmap.HitObjects)
+            foreach (var obj in Beatmap.HitObjects)
                 simulate(obj);
 
             void simulate(HitObject obj)
@@ -132,7 +141,7 @@ namespace osu.Game.Rulesets.Scoring
                 if (result == null)
                     throw new InvalidOperationException($"{GetType().ReadableName()} must provide a {nameof(JudgementResult)} through {nameof(CreateResult)}.");
 
-                result.Type = judgement.MaxResult;
+                result.Type = resultFunc(obj, judgement);
                 ApplyResult(result);
             }
         }
