@@ -88,7 +88,7 @@ namespace osu.Game.Rulesets.Scoring
             healthIncreases.Add((result.HitObject.GetEndTime() + result.TimeOffset, GetHealthIncreaseFor(result)));
         }
 
-        protected override void Reset(bool storeResults)
+        public override void Reset(bool storeResults)
         {
             base.Reset(storeResults);
 

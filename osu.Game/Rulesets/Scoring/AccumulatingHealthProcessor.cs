@@ -22,7 +22,7 @@ namespace osu.Game.Rulesets.Scoring
             this.requiredHealth = requiredHealth;
         }
 
-        protected override void Reset(bool storeResults)
+        public override void Reset(bool storeResults)
         {
             base.Reset(storeResults);
 

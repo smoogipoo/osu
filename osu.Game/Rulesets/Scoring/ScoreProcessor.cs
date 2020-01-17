@@ -202,7 +202,7 @@ namespace osu.Game.Rulesets.Scoring
         /// Resets this ScoreProcessor to a default state.
         /// </summary>
         /// <param name="storeResults">Whether to store the current state of the <see cref="ScoreProcessor"/> for future use.</param>
-        protected override void Reset(bool storeResults)
+        public override void Reset(bool storeResults)
         {
             base.Reset(storeResults);
 

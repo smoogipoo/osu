@@ -94,7 +94,7 @@ namespace osu.Game.Rulesets.Scoring
         /// Resets this <see cref="JudgementProcessor"/> to a default state.
         /// </summary>
         /// <param name="storeResults">Whether to store the current state of the <see cref="JudgementProcessor"/> for future use.</param>
-        protected virtual void Reset(bool storeResults)
+        public virtual void Reset(bool storeResults)
         {
             if (storeResults)
                 MaxHits = JudgedHits;

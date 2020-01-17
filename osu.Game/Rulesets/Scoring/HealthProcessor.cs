@@ -72,7 +72,7 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         protected virtual bool DefaultFailCondition => Precision.AlmostBigger(Health.MinValue, Health.Value);
 
-        protected override void Reset(bool storeResults)
+        public override void Reset(bool storeResults)
         {
             base.Reset(storeResults);
 
