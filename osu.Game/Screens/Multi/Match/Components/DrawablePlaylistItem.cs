@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -9,6 +11,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
+using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
@@ -19,14 +22,25 @@ namespace osu.Game.Screens.Multi.Match.Components
 {
     public class DrawablePlaylistItem : RearrangeableListItem<PlaylistItem>
     {
-        private readonly ItemHandle handle;
+        public Action RequestSelection;
+
+        private Container maskingContainer;
+        private ItemHandle handle;
+
+        private readonly PlaylistItem item;
 
         public DrawablePlaylistItem(PlaylistItem item)
             : base(item)
         {
+            this.item = item;
+
             RelativeSizeAxes = Axes.X;
             Height = 50;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load(OsuColour colours)
+        {
             InternalChild = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -41,11 +55,12 @@ namespace osu.Game.Screens.Multi.Match.Components
                             Size = new Vector2(12),
                             Alpha = 0,
                         },
-                        new Container
+                        maskingContainer = new Container
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = true,
                             CornerRadius = 10,
+                            BorderColour = colours.Yellow,
                             Children = new Drawable[]
                             {
                                 new PanelBackground(item.Beatmap) { RelativeSizeAxes = Axes.Both },
@@ -112,6 +127,16 @@ namespace osu.Game.Screens.Multi.Match.Components
         }
 
         protected override void OnHoverLost(HoverLostEvent e) => handle.UpdateHoverState(false);
+
+        protected override bool OnClick(ClickEvent e)
+        {
+            RequestSelection?.Invoke();
+            return true;
+        }
+
+        public void Select() => maskingContainer.BorderThickness = 5;
+
+        public void Deselect() => maskingContainer.BorderThickness = 0;
 
         // For now, this is the same implementation as in PanelBackground, but supports a beatmap info rather than a working beatmap
         private class PanelBackground : Container // todo: should be a buffered container (https://github.com/ppy/osu-framework/issues/3222)

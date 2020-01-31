@@ -23,6 +23,8 @@ namespace osu.Game.Online.Multiplayer
         [JsonProperty("ruleset_id")]
         public int RulesetID { get; set; }
 
+        private BeatmapInfo beatmap;
+
         [JsonIgnore]
         public BeatmapInfo Beatmap
         {
@@ -34,8 +36,18 @@ namespace osu.Game.Online.Multiplayer
             }
         }
 
+        private RulesetInfo ruleset;
+
         [JsonIgnore]
-        public RulesetInfo Ruleset { get; set; }
+        public RulesetInfo Ruleset
+        {
+            get => ruleset;
+            set
+            {
+                ruleset = value;
+                RulesetID = value?.ID ?? 0;
+            }
+        }
 
         [JsonIgnore]
         public readonly List<Mod> AllowedMods = new List<Mod>();
@@ -63,8 +75,6 @@ namespace osu.Game.Online.Multiplayer
             get => RequiredMods.Select(m => new APIMod(m)).ToArray();
             set => requiredModsBacking = value;
         }
-
-        private BeatmapInfo beatmap;
 
         public void MapObjects(BeatmapManager beatmaps, RulesetStore rulesets)
         {

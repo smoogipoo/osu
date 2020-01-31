@@ -81,14 +81,7 @@ namespace osu.Game.Screens.Multi.Match
                                 Depth = -1,
                                 RequestBeatmapSelection = () =>
                                 {
-                                    this.Push(new MatchSongSelect
-                                    {
-                                        Selected = item =>
-                                        {
-                                            Playlist.Clear();
-                                            Playlist.Add(item);
-                                        }
-                                    });
+                                    this.Push(new MatchSongSelect());
                                 }
                             }
                         },
