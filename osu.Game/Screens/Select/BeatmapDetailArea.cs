@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps;
+using osu.Game.Screens.Select.Details;
 using osu.Game.Screens.Select.Leaderboards;
 
 namespace osu.Game.Screens.Select
