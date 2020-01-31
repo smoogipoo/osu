@@ -3,18 +3,21 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Threading;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Rulesets;
 using osuTK;
 using osuTK.Graphics;
 
@@ -25,7 +28,13 @@ namespace osu.Game.Screens.Multi.Match.Components
         public Action RequestSelection;
 
         private Container maskingContainer;
+        private Container difficultyIconContainer;
+        private LinkFlowContainer beatmapText;
+        private LinkFlowContainer authorText;
         private ItemHandle handle;
+
+        private readonly Bindable<BeatmapInfo> beatmap = new Bindable<BeatmapInfo>();
+        private readonly Bindable<RulesetInfo> ruleset = new Bindable<RulesetInfo>();
 
         private readonly PlaylistItem item;
 
@@ -36,6 +45,9 @@ namespace osu.Game.Screens.Multi.Match.Components
 
             RelativeSizeAxes = Axes.X;
             Height = 50;
+
+            beatmap.BindTo(item.Beatmap);
+            ruleset.BindTo(item.Ruleset);
         }
 
         [BackgroundDependencyLoader]
@@ -63,7 +75,11 @@ namespace osu.Game.Screens.Multi.Match.Components
                             BorderColour = colours.Yellow,
                             Children = new Drawable[]
                             {
-                                new PanelBackground(item.Beatmap.Value) { RelativeSizeAxes = Axes.Both },
+                                new PanelBackground
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Beatmap = { BindTarget = beatmap }
+                                },
                                 new FillFlowContainer
                                 {
                                     RelativeSizeAxes = Axes.Both,
@@ -72,11 +88,11 @@ namespace osu.Game.Screens.Multi.Match.Components
                                     Direction = FillDirection.Horizontal,
                                     Children = new Drawable[]
                                     {
-                                        new DifficultyIcon(item.Beatmap.Value, item.Ruleset.Value)
+                                        difficultyIconContainer = new Container
                                         {
                                             Anchor = Anchor.CentreLeft,
                                             Origin = Anchor.CentreLeft,
-                                            Size = new Vector2(32)
+                                            AutoSizeAxes = Axes.Both,
                                         },
                                         new FillFlowContainer
                                         {
@@ -86,18 +102,8 @@ namespace osu.Game.Screens.Multi.Match.Components
                                             Direction = FillDirection.Vertical,
                                             Children = new Drawable[]
                                             {
-                                                new LinkFlowContainer { AutoSizeAxes = Axes.Both }.With(d =>
-                                                {
-                                                    d.AddLink(item.Beatmap.ToString(), LinkAction.OpenBeatmap, item.Beatmap.Value.OnlineBeatmapID.ToString());
-                                                }),
-                                                new LinkFlowContainer { AutoSizeAxes = Axes.Both }.With(d =>
-                                                {
-                                                    if (item.Beatmap?.Value?.Metadata?.Author != null)
-                                                    {
-                                                        d.AddText("mapped by ");
-                                                        d.AddUserLink(item.Beatmap.Value?.Metadata.Author);
-                                                    }
-                                                })
+                                                beatmapText = new LinkFlowContainer { AutoSizeAxes = Axes.Both },
+                                                authorText = new LinkFlowContainer { AutoSizeAxes = Axes.Both }
                                             }
                                         }
                                     }
@@ -116,6 +122,40 @@ namespace osu.Game.Screens.Multi.Match.Components
                 },
                 ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            beatmap.BindValueChanged(_ => scheduleRefresh());
+            ruleset.BindValueChanged(_ => scheduleRefresh());
+
+            refresh();
+        }
+
+        private ScheduledDelegate scheduledRefresh;
+
+        private void scheduleRefresh()
+        {
+            scheduledRefresh?.Cancel();
+            scheduledRefresh = Schedule(refresh);
+        }
+
+        private void refresh()
+        {
+            difficultyIconContainer.Child = new DifficultyIcon(beatmap.Value, ruleset.Value) { Size = new Vector2(32) };
+
+            beatmapText.Clear();
+            beatmapText.AddLink(item.Beatmap.ToString(), LinkAction.OpenBeatmap, item.Beatmap.Value.OnlineBeatmapID.ToString());
+
+            authorText.Clear();
+
+            if (item.Beatmap?.Value?.Metadata?.Author != null)
+            {
+                authorText.AddText("mapped by ");
+                authorText.AddUserLink(item.Beatmap.Value?.Metadata.Author);
+            }
         }
 
         protected override bool IsDraggableAt(Vector2 screenSpacePos) => handle.HandlingDrag;
@@ -141,7 +181,9 @@ namespace osu.Game.Screens.Multi.Match.Components
         // For now, this is the same implementation as in PanelBackground, but supports a beatmap info rather than a working beatmap
         private class PanelBackground : Container // todo: should be a buffered container (https://github.com/ppy/osu-framework/issues/3222)
         {
-            public PanelBackground(BeatmapInfo beatmapInfo)
+            public readonly Bindable<BeatmapInfo> Beatmap = new Bindable<BeatmapInfo>();
+
+            public PanelBackground()
             {
                 InternalChildren = new Drawable[]
                 {
@@ -149,7 +191,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                     {
                         RelativeSizeAxes = Axes.Both,
                         FillMode = FillMode.Fill,
-                        Beatmap = { Value = beatmapInfo }
+                        Beatmap = { BindTarget = Beatmap }
                     },
                     new Container
                     {
