@@ -23,7 +23,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Backgrounds;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Menu;
-using osu.Game.Screens.Play;
 using osu.Game.Screens.Select.Options;
 using osu.Game.Skinning;
 using osuTK;
@@ -80,7 +79,8 @@ namespace osu.Game.Screens.Select
         protected BeatmapCarousel Carousel { get; private set; }
 
         private BeatmapInfoWedge beatmapInfoWedge;
-        private DialogOverlay dialogOverlay;
+
+        protected DialogOverlay DialogOverlay { get; private set; }
 
         [Resolved]
         private BeatmapManager beatmaps { get; set; }
@@ -204,11 +204,11 @@ namespace osu.Game.Screens.Select
                                                     Left = left_area_padding,
                                                     Right = left_area_padding * 2,
                                                 },
-                                                Child = BeatmapDetails = new BeatmapDetailArea
+                                                Child = BeatmapDetails = CreateBeatmapDetailArea().With(d =>
                                                 {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Padding = new MarginPadding { Top = 10, Right = 5 },
-                                                },
+                                                    d.RelativeSizeAxes = Axes.Both;
+                                                    d.Padding = new MarginPadding { Top = 10, Right = 5 };
+                                                })
                                             },
                                         }
                                     },
@@ -245,8 +245,6 @@ namespace osu.Game.Screens.Select
                 });
             }
 
-            BeatmapDetails.Leaderboard.ScoreSelected += score => this.Push(new SoloResults(score));
-
             if (Footer != null)
             {
                 Footer.AddButton(new FooterButtonMods { Current = Mods }, ModSelect);
@@ -254,24 +252,23 @@ namespace osu.Game.Screens.Select
                 Footer.AddButton(new FooterButtonOptions(), BeatmapOptions);
 
                 BeatmapOptions.AddButton(@"Remove", @"from unplayed", FontAwesome.Regular.TimesCircle, colours.Purple, null, Key.Number1);
-                BeatmapOptions.AddButton(@"Clear", @"local scores", FontAwesome.Solid.Eraser, colours.Purple, () => clearScores(Beatmap.Value.BeatmapInfo), Key.Number2);
                 BeatmapOptions.AddButton(@"Delete", @"all difficulties", FontAwesome.Solid.Trash, colours.Pink, () => delete(Beatmap.Value.BeatmapSetInfo), Key.Number3);
             }
 
-            dialogOverlay = dialog;
+            DialogOverlay = dialog;
 
             sampleChangeDifficulty = audio.Samples.Get(@"SongSelect/select-difficulty");
             sampleChangeBeatmap = audio.Samples.Get(@"SongSelect/select-expand");
             SampleConfirm = audio.Samples.Get(@"SongSelect/confirm-selection");
 
-            if (dialogOverlay != null)
+            if (DialogOverlay != null)
             {
                 Schedule(() =>
                 {
                     // if we have no beatmaps but osu-stable is found, let's prompt the user to import.
                     if (!beatmaps.GetAllUsableBeatmapSetsEnumerable().Any() && beatmaps.StableInstallationAvailable)
                     {
-                        dialogOverlay.Push(new ImportFromStablePopup(() =>
+                        DialogOverlay.Push(new ImportFromStablePopup(() =>
                         {
                             Task.Run(beatmaps.ImportFromStableAsync).ContinueWith(_ => scores.ImportFromStableAsync(), TaskContinuationOptions.OnlyOnRanToCompletion);
                             Task.Run(skins.ImportFromStableAsync);
@@ -301,6 +298,8 @@ namespace osu.Game.Screens.Select
 
             return dependencies;
         }
+
+        protected abstract BeatmapDetailArea CreateBeatmapDetailArea();
 
         public void Edit(BeatmapInfo beatmap = null)
         {
@@ -500,8 +499,6 @@ namespace osu.Game.Screens.Select
 
         public override void OnResuming(IScreen last)
         {
-            BeatmapDetails.Leaderboard.RefreshScores();
-
             Beatmap.Value.Track.Looping = true;
             music?.ResetTrackAdjustments();
 
@@ -676,16 +673,7 @@ namespace osu.Game.Screens.Select
         {
             if (beatmap == null || beatmap.ID <= 0) return;
 
-            dialogOverlay?.Push(new BeatmapDeleteDialog(beatmap));
-        }
-
-        private void clearScores(BeatmapInfo beatmap)
-        {
-            if (beatmap == null || beatmap.ID <= 0) return;
-
-            dialogOverlay?.Push(new BeatmapClearScoresDialog(beatmap, () =>
-                // schedule done here rather than inside the dialog as the dialog may fade out and never callback.
-                Schedule(() => BeatmapDetails.Leaderboard.RefreshScores())));
+            DialogOverlay?.Push(new BeatmapDeleteDialog(beatmap));
         }
 
         public virtual bool OnPressed(GlobalAction action)

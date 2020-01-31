@@ -7,7 +7,6 @@ using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
 
 namespace osu.Game.Configuration
@@ -19,8 +18,6 @@ namespace osu.Game.Configuration
             // UI/selection defaults
             Set(OsuSetting.Ruleset, 0, 0, int.MaxValue);
             Set(OsuSetting.Skin, 0, -1, int.MaxValue);
-
-            Set(OsuSetting.BeatmapDetailTab, BeatmapDetailTab.Details);
 
             Set(OsuSetting.ShowConvertedBeatmaps, true);
             Set(OsuSetting.DisplayStarsMinimum, 0.0, 0, 10, 0.1);

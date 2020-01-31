@@ -5,6 +5,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Screens;
+using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
@@ -29,6 +30,10 @@ namespace osu.Game.Screens.Select
                 ValidForResume = false;
                 Edit();
             }, Key.Number4);
+
+            BeatmapOptions.AddButton(@"Clear", @"local scores", FontAwesome.Solid.Eraser, colours.Purple, () => clearScores(Beatmap.Value.BeatmapInfo), Key.Number2);
+
+            ((PlayBeatmapDetailArea)BeatmapDetails).Leaderboard.ScoreSelected += score => this.Push(new SoloResults(score));
         }
 
         public override void OnResuming(IScreen last)
@@ -42,8 +47,12 @@ namespace osu.Game.Screens.Select
                 removeAutoModOnResume = false;
             }
 
+            ((PlayBeatmapDetailArea)BeatmapDetails).Leaderboard.RefreshScores();
+
             base.OnResuming(last);
         }
+
+        protected override BeatmapDetailArea CreateBeatmapDetailArea() => new PlayBeatmapDetailArea();
 
         protected override bool OnStart()
         {
@@ -74,6 +83,15 @@ namespace osu.Game.Screens.Select
             });
 
             return true;
+        }
+
+        private void clearScores(BeatmapInfo beatmap)
+        {
+            if (beatmap == null || beatmap.ID <= 0) return;
+
+            DialogOverlay?.Push(new BeatmapClearScoresDialog(beatmap, () =>
+                // schedule done here rather than inside the dialog as the dialog may fade out and never callback.
+                Schedule(() => ((PlayBeatmapDetailArea)BeatmapDetails).Leaderboard.RefreshScores())));
         }
     }
 }

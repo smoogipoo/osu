@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps;
 using osu.Game.Screens.Select.Details;
-using osu.Game.Screens.Select.Leaderboards;
 
 namespace osu.Game.Screens.Select
 {
-    public class BeatmapDetailArea : Container
+    public abstract class BeatmapDetailArea : Container
     {
         private const float details_padding = 10;
 
@@ -18,22 +18,20 @@ namespace osu.Game.Screens.Select
         protected override Container<Drawable> Content => content;
 
         public readonly BeatmapDetails Details;
-        public readonly BeatmapLeaderboard Leaderboard;
 
         private WorkingBeatmap beatmap;
 
-        public WorkingBeatmap Beatmap
+        public virtual WorkingBeatmap Beatmap
         {
             get => beatmap;
             set
             {
                 beatmap = value;
                 Details.Beatmap = beatmap?.BeatmapInfo;
-                Leaderboard.Beatmap = beatmap is DummyWorkingBeatmap ? null : beatmap?.BeatmapInfo;
             }
         }
 
-        public BeatmapDetailArea()
+        protected BeatmapDetailArea()
         {
             AddRangeInternal(new Drawable[]
             {
@@ -45,39 +43,16 @@ namespace osu.Game.Screens.Select
                 new BeatmapDetailAreaTabControl
                 {
                     RelativeSizeAxes = Axes.X,
-                    OnFilter = (tab, mods) =>
-                    {
-                        Leaderboard.FilterMods = mods;
-
-                        switch (tab)
-                        {
-                            case BeatmapDetailTab.Details:
-                                Details.Show();
-                                Leaderboard.Hide();
-                                break;
-
-                            default:
-                                Details.Hide();
-                                Leaderboard.Scope = (BeatmapLeaderboardScope)tab - 1;
-                                Leaderboard.Show();
-                                break;
-                        }
-                    },
+                    TabItems = CreateTabItems().Prepend(new BeatmapDetailsAreaDetailsTabItem()).ToArray(),
+                    OnFilter = OnFilter
                 },
             });
 
-            AddRange(new Drawable[]
+            Add(Details = new BeatmapDetails
             {
-                Details = new BeatmapDetails
-                {
-                    RelativeSizeAxes = Axes.X,
-                    Alpha = 0,
-                    Margin = new MarginPadding { Top = details_padding },
-                },
-                Leaderboard = new BeatmapLeaderboard
-                {
-                    RelativeSizeAxes = Axes.Both,
-                }
+                RelativeSizeAxes = Axes.X,
+                Alpha = 0,
+                Margin = new MarginPadding { Top = details_padding },
             });
         }
 
@@ -87,5 +62,21 @@ namespace osu.Game.Screens.Select
 
             Details.Height = Math.Min(DrawHeight - details_padding * 3 - BeatmapDetailAreaTabControl.HEIGHT, 450);
         }
+
+        protected virtual void OnFilter(BeatmapDetailsAreaTabItem tab, bool selectedMods)
+        {
+            switch (tab)
+            {
+                case BeatmapDetailsAreaDetailsTabItem _:
+                    Details.Show();
+                    break;
+
+                default:
+                    Details.Hide();
+                    break;
+            }
+        }
+
+        protected abstract BeatmapDetailsAreaTabItem[] CreateTabItems();
     }
 }

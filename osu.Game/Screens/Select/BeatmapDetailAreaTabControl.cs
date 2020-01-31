@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -18,13 +18,17 @@ namespace osu.Game.Screens.Select
     public class BeatmapDetailAreaTabControl : Container
     {
         public const float HEIGHT = 24;
+
+        public BeatmapDetailsAreaTabItem[] TabItems
+        {
+            set => tabs.Items = value;
+        }
+
         private readonly OsuTabControlCheckbox modsCheckbox;
-        private readonly OsuTabControl<BeatmapDetailTab> tabs;
+        private readonly OsuTabControl<BeatmapDetailsAreaTabItem> tabs;
         private readonly Container tabsContainer;
 
-        public Action<BeatmapDetailTab, bool> OnFilter; //passed the selected tab and if mods is checked
-
-        private Bindable<BeatmapDetailTab> selectedTab;
+        public Action<BeatmapDetailsAreaTabItem, bool> OnFilter; //passed the selected tab and if mods is checked
 
         public BeatmapDetailAreaTabControl()
         {
@@ -43,7 +47,7 @@ namespace osu.Game.Screens.Select
                 tabsContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Child = tabs = new OsuTabControl<BeatmapDetailTab>
+                    Child = tabs = new OsuTabControl<BeatmapDetailsAreaTabItem>
                     {
                         Anchor = Anchor.BottomLeft,
                         Origin = Anchor.BottomLeft,
@@ -68,29 +72,29 @@ namespace osu.Game.Screens.Select
         private void load(OsuColour colour, OsuConfigManager config)
         {
             modsCheckbox.AccentColour = tabs.AccentColour = colour.YellowLight;
+        }
 
-            selectedTab = config.GetBindable<BeatmapDetailTab>(OsuSetting.BeatmapDetailTab);
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
-            tabs.Current.BindTo(selectedTab);
-            tabs.Current.TriggerChange();
+            tabs.Current.Value = tabs.Items.OfType<BeatmapDetailsAreaDetailsTabItem>().Single();
         }
 
         private void invokeOnFilter()
         {
             OnFilter?.Invoke(tabs.Current.Value, modsCheckbox.Current.Value);
 
-            modsCheckbox.FadeTo(tabs.Current.Value == BeatmapDetailTab.Details ? 0 : 1, 200, Easing.OutQuint);
-
-            tabsContainer.Padding = new MarginPadding { Right = tabs.Current.Value == BeatmapDetailTab.Details ? 0 : 100 };
+            if (tabs.Current.Value is BeatmapDetailsAreaDetailsTabItem)
+            {
+                modsCheckbox.FadeTo(0, 200, Easing.OutQuint);
+                tabsContainer.Padding = new MarginPadding();
+            }
+            else
+            {
+                modsCheckbox.FadeTo(1, 200, Easing.OutQuint);
+                tabsContainer.Padding = new MarginPadding { Right = 100 };
+            }
         }
-    }
-
-    public enum BeatmapDetailTab
-    {
-        Details,
-        Local,
-        Country,
-        Global,
-        Friends
     }
 }
