@@ -15,6 +15,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets;
@@ -25,7 +26,8 @@ namespace osu.Game.Screens.Multi.Match.Components
 {
     public class DrawablePlaylistItem : RearrangeableListItem<PlaylistItem>
     {
-        public Action RequestSelection;
+        public Action<PlaylistItem> RequestSelection;
+        public Action<PlaylistItem> RequestDeletion;
 
         private Container maskingContainer;
         private Container difficultyIconContainer;
@@ -108,13 +110,13 @@ namespace osu.Game.Screens.Multi.Match.Components
                                         }
                                     }
                                 },
-                                new SpriteIcon
+                                new IconButton
                                 {
                                     Anchor = Anchor.CentreRight,
                                     Origin = Anchor.CentreRight,
                                     X = -18,
-                                    Size = new Vector2(14),
-                                    Icon = FontAwesome.Solid.MinusSquare
+                                    Icon = FontAwesome.Solid.MinusSquare,
+                                    Action = () => RequestDeletion?.Invoke(Model)
                                 }
                             }
                         }
@@ -170,7 +172,7 @@ namespace osu.Game.Screens.Multi.Match.Components
 
         protected override bool OnClick(ClickEvent e)
         {
-            RequestSelection?.Invoke();
+            RequestSelection?.Invoke(Model);
             return true;
         }
 

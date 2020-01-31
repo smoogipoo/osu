@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Containers;
@@ -43,7 +44,31 @@ namespace osu.Game.Screens.Multi.Match
 
         protected override RearrangeableListItem<PlaylistItem> CreateDrawable(PlaylistItem item) => new DrawablePlaylistItem(item)
         {
-            RequestSelection = () => SelectedItem.Value = item
+            RequestSelection = requestSelection,
+            RequestDeletion = requestDeletion
         };
+
+        private void requestSelection(PlaylistItem item)
+        {
+            SelectedItem.Value = item;
+        }
+
+        private void requestDeletion(PlaylistItem item)
+        {
+            if (Items.Count == 1)
+            {
+                // Don't allow deletion of the only item
+                return;
+            }
+
+            if (SelectedItem.Value == item)
+            {
+                // Attempt to select the next item in the list, falling back to the second item from the end.
+                // We are guaranteed to have at least 2 items here.
+                SelectedItem.Value = Items.GetNext(item) ?? Items[^2];
+            }
+
+            Items.Remove(item);
+        }
     }
 }
