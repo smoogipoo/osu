@@ -31,6 +31,14 @@ namespace osu.Game.Screens.Select
             Padding = new MarginPadding { Horizontal = HORIZONTAL_OVERFLOW_PADDING };
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (Playlist.Count > 0)
+                selectedItem.Value = Playlist[^1];
+        }
+
         protected override BeatmapDetailArea CreateBeatmapDetailArea() => new MatchBeatmapDetailArea
         {
             SelectedItem = { BindTarget = selectedItem },
@@ -81,8 +89,6 @@ namespace osu.Game.Screens.Select
 
             if (Playlist.Count == 0)
                 addNewItem();
-
-            selectedItem.Value = Playlist[^1];
         }
 
         public override bool OnExiting(IScreen next)
