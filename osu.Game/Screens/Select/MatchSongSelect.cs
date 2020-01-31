@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using Humanizer;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -15,7 +14,7 @@ namespace osu.Game.Screens.Select
     public class MatchSongSelect : SongSelect, IMultiplayerSubScreen
     {
         public string ShortTitle => "song selection";
-        public override string Title => ShortTitle.Humanize();
+        public override string Title => "SS";
 
         [Resolved(typeof(Room))]
         protected BindableList<PlaylistItem> Playlist { get; private set; }
@@ -48,8 +47,8 @@ namespace osu.Game.Screens.Select
 
         private PlaylistItem populate(PlaylistItem item)
         {
-            item.Beatmap = Beatmap.Value.BeatmapInfo;
-            item.Ruleset = Ruleset.Value;
+            item.Beatmap.Value = Beatmap.Value.BeatmapInfo;
+            item.Ruleset.Value = Ruleset.Value;
 
             item.RequiredMods.Clear();
             item.RequiredMods.AddRange(Mods.Value);

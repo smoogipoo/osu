@@ -63,7 +63,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                             BorderColour = colours.Yellow,
                             Children = new Drawable[]
                             {
-                                new PanelBackground(item.Beatmap) { RelativeSizeAxes = Axes.Both },
+                                new PanelBackground(item.Beatmap.Value) { RelativeSizeAxes = Axes.Both },
                                 new FillFlowContainer
                                 {
                                     RelativeSizeAxes = Axes.Both,
@@ -72,7 +72,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                                     Direction = FillDirection.Horizontal,
                                     Children = new Drawable[]
                                     {
-                                        new DifficultyIcon(item.Beatmap, item.Ruleset)
+                                        new DifficultyIcon(item.Beatmap.Value, item.Ruleset.Value)
                                         {
                                             Anchor = Anchor.CentreLeft,
                                             Origin = Anchor.CentreLeft,
@@ -88,14 +88,14 @@ namespace osu.Game.Screens.Multi.Match.Components
                                             {
                                                 new LinkFlowContainer { AutoSizeAxes = Axes.Both }.With(d =>
                                                 {
-                                                    d.AddLink(item.Beatmap.ToString(), LinkAction.OpenBeatmap, item.Beatmap.OnlineBeatmapID.ToString());
+                                                    d.AddLink(item.Beatmap.ToString(), LinkAction.OpenBeatmap, item.Beatmap.Value.OnlineBeatmapID.ToString());
                                                 }),
                                                 new LinkFlowContainer { AutoSizeAxes = Axes.Both }.With(d =>
                                                 {
-                                                    if (item.Beatmap?.Metadata?.Author != null)
+                                                    if (item.Beatmap?.Value?.Metadata?.Author != null)
                                                     {
                                                         d.AddText("mapped by ");
-                                                        d.AddUserLink(item.Beatmap.Metadata.Author);
+                                                        d.AddUserLink(item.Beatmap.Value?.Metadata.Author);
                                                     }
                                                 })
                                             }

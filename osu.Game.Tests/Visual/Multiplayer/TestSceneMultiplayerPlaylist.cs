@@ -40,12 +40,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 list.Items.Add(new PlaylistItem
                 {
-                    Beatmap = beatmapSets[RNG.Next(0, beatmapSets.Count)].Beatmaps[0],
-                    Ruleset = rulesets.GetRuleset(RNG.Next(0, 4))
+                    Beatmap = { Value = beatmapSets[RNG.Next(0, beatmapSets.Count)].Beatmaps[0] },
+                    Ruleset = { Value = rulesets.GetRuleset(RNG.Next(0, 4)) }
                 });
             }
         });
-
-
     }
 }
