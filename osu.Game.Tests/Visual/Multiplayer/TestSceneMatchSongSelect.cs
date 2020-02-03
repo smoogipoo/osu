@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using osu.Framework.Screens;
 using osu.Game.Screens.Multi.Match;
 using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Screens.Select;
@@ -24,12 +23,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            LoadScreen(new TestMatchSongSelect());
+            LoadScreen(new MatchSongSelect());
         });
-
-        private class TestMatchSongSelect : MatchSongSelect
-        {
-            public override bool OnExiting(IScreen next) => true;
-        }
     }
 }

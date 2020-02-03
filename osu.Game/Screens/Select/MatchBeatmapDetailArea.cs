@@ -15,7 +15,7 @@ namespace osu.Game.Screens.Select
 {
     public class MatchBeatmapDetailArea : BeatmapDetailArea
     {
-        public Action AddNewItem;
+        public Action CreateNewItem;
 
         public readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
 
@@ -52,10 +52,10 @@ namespace osu.Game.Screens.Select
                         {
                             new TriangleButton
                             {
-                                Text = "add new item",
+                                Text = "create new item",
                                 RelativeSizeAxes = Axes.Both,
                                 Size = Vector2.One,
-                                Action = () => AddNewItem?.Invoke()
+                                Action = () => CreateNewItem?.Invoke()
                             }
                         },
                     },

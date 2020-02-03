@@ -42,35 +42,12 @@ namespace osu.Game.Screens.Select
         protected override BeatmapDetailArea CreateBeatmapDetailArea() => new MatchBeatmapDetailArea
         {
             SelectedItem = { BindTarget = selectedItem },
-            AddNewItem = addNewItem
+            CreateNewItem = createNewItem
         };
-
-        private void addNewItem()
-        {
-            PlaylistItem item = populate(new PlaylistItem());
-
-            Playlist.Add(item);
-            selectedItem.Value = item;
-        }
-
-        private PlaylistItem populate(PlaylistItem item)
-        {
-            item.Beatmap.Value = Beatmap.Value.BeatmapInfo;
-            item.Ruleset.Value = Ruleset.Value;
-
-            item.RequiredMods.Clear();
-            item.RequiredMods.AddRange(Mods.Value);
-
-            return item;
-        }
 
         protected override bool OnStart()
         {
-            populate(selectedItem.Value);
-
-            if (this.IsCurrentScreen())
-                this.Exit();
-
+            this.Exit();
             return true;
         }
 
@@ -88,7 +65,9 @@ namespace osu.Game.Screens.Select
             base.UpdateBeatmap(beatmap);
 
             if (Playlist.Count == 0)
-                addNewItem();
+                createNewItem();
+
+            populate(selectedItem.Value);
         }
 
         public override bool OnExiting(IScreen next)
@@ -101,6 +80,25 @@ namespace osu.Game.Screens.Select
             Mods.Disabled = true;
 
             return false;
+        }
+
+        private void createNewItem()
+        {
+            PlaylistItem item = populate(new PlaylistItem());
+
+            Playlist.Add(item);
+            selectedItem.Value = item;
+        }
+
+        private PlaylistItem populate(PlaylistItem item)
+        {
+            item.Beatmap.Value = Beatmap.Value.BeatmapInfo;
+            item.Ruleset.Value = Ruleset.Value;
+
+            item.RequiredMods.Clear();
+            item.RequiredMods.AddRange(Mods.Value);
+
+            return item;
         }
     }
 }
