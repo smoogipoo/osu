@@ -67,6 +67,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Size = new Vector2(12),
+                            AlwaysPresent = true,
                             Alpha = 0,
                         },
                         maskingContainer = new Container
