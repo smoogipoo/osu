@@ -10,7 +10,9 @@ using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets;
 using osu.Game.Screens.Multi.Match;
+using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Users;
+using Header = osu.Game.Screens.Multi.Header;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -22,6 +24,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             typeof(Screens.Multi.Multiplayer),
             typeof(MatchSubScreen),
+            typeof(Header),
+            typeof(OverlinedContainer)
         };
 
         [Cached]

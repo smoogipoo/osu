@@ -32,130 +32,93 @@ namespace osu.Game.Screens.Multi.Match.Components
 
         public Action RequestBeatmapSelection;
 
-        private MatchBeatmapPanel beatmapPanel;
-
         public Header()
         {
             RelativeSizeAxes = Axes.X;
             Height = HEIGHT;
+            Masking = true;
         }
 
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
-            BeatmapSelectButton beatmapButton;
-            ModDisplay modDisplay;
-
-            InternalChildren = new Drawable[]
-            {
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Masking = true,
-                    Children = new Drawable[]
-                    {
-                        new HeaderBackgroundSprite { RelativeSizeAxes = Axes.Both },
-                        new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = ColourInfo.GradientVertical(Color4.Black.Opacity(0.7f), Color4.Black.Opacity(0.8f)),
-                        },
-                        beatmapPanel = new MatchBeatmapPanel
-                        {
-                            Anchor = Anchor.CentreRight,
-                            Origin = Anchor.CentreRight,
-                            Margin = new MarginPadding { Right = 100 },
-                        }
-                    }
-                },
-                new Box
-                {
-                    Anchor = Anchor.BottomLeft,
-                    Origin = Anchor.BottomLeft,
-                    RelativeSizeAxes = Axes.X,
-                    Height = 1,
-                    Colour = colours.Yellow
-                },
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Horizontal = SearchableListOverlay.WIDTH_PADDING + OsuScreen.HORIZONTAL_OVERFLOW_PADDING },
-                    Children = new Drawable[]
-                    {
-                        new FillFlowContainer
-                        {
-                            AutoSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 20 },
-                            Direction = FillDirection.Vertical,
-                            Children = new Drawable[]
-                            {
-                                new BeatmapTypeInfo(),
-                                modDisplay = new ModDisplay
-                                {
-                                    Scale = new Vector2(0.75f),
-                                    DisplayUnrankedText = false
-                                },
-                            }
-                        },
-                        new Container
-                        {
-                            Anchor = Anchor.TopRight,
-                            Origin = Anchor.TopRight,
-                            RelativeSizeAxes = Axes.Y,
-                            Width = 200,
-                            Padding = new MarginPadding { Vertical = 10 },
-                            Child = beatmapButton = new BeatmapSelectButton
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Height = 1,
-                            },
-                        },
-                        Tabs = new MatchTabControl
-                        {
-                            Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.BottomLeft,
-                            RelativeSizeAxes = Axes.X
-                        },
-                    },
-                },
-            };
-
-            CurrentItem.BindValueChanged(item => modDisplay.Current.Value = item.NewValue?.RequiredMods?.ToArray() ?? Array.Empty<Mod>(), true);
-
-            beatmapButton.Action = () => RequestBeatmapSelection?.Invoke();
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            ShowBeatmapPanel.BindValueChanged(value => beatmapPanel.FadeTo(value.NewValue ? 1 : 0, 200, Easing.OutQuint), true);
-        }
-
-        private class BeatmapSelectButton : HeaderButton
-        {
-            [Resolved(typeof(Room), nameof(Room.RoomID))]
-            private Bindable<int?> roomId { get; set; }
-
-            public BeatmapSelectButton()
-            {
-                Text = "Select beatmap";
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                roomId.BindValueChanged(id => this.FadeTo(id.NewValue.HasValue ? 0 : 1), true);
-            }
-        }
-
-        private class HeaderBackgroundSprite : MultiplayerBackgroundSprite
-        {
-            protected override UpdateableBeatmapBackgroundSprite CreateBackgroundSprite() => new BackgroundSprite { RelativeSizeAxes = Axes.Both };
-
-            private class BackgroundSprite : UpdateableBeatmapBackgroundSprite
-            {
-                protected override double TransformDuration => 200;
-            }
+            // InternalChildren = new Drawable[]
+            // {
+            //     new Container
+            //     {
+            //         RelativeSizeAxes = Axes.Both,
+            //         Masking = true,
+            //         Children = new Drawable[]
+            //         {
+            //             new HeaderBackgroundSprite { RelativeSizeAxes = Axes.Both },
+            //             new Box
+            //             {
+            //                 RelativeSizeAxes = Axes.Both,
+            //                 Colour = ColourInfo.GradientVertical(Color4.Black.Opacity(0.7f), Color4.Black.Opacity(0.8f)),
+            //             },
+            //             beatmapPanel = new MatchBeatmapPanel
+            //             {
+            //                 Anchor = Anchor.CentreRight,
+            //                 Origin = Anchor.CentreRight,
+            //                 Margin = new MarginPadding { Right = 100 },
+            //             }
+            //         }
+            //     },
+            //     new Box
+            //     {
+            //         Anchor = Anchor.BottomLeft,
+            //         Origin = Anchor.BottomLeft,
+            //         RelativeSizeAxes = Axes.X,
+            //         Height = 1,
+            //         Colour = colours.Yellow
+            //     },
+            //     new Container
+            //     {
+            //         RelativeSizeAxes = Axes.Both,
+            //         Padding = new MarginPadding { Horizontal = SearchableListOverlay.WIDTH_PADDING + OsuScreen.HORIZONTAL_OVERFLOW_PADDING },
+            //         Children = new Drawable[]
+            //         {
+            //             new FillFlowContainer
+            //             {
+            //                 AutoSizeAxes = Axes.Both,
+            //                 Padding = new MarginPadding { Top = 20 },
+            //                 Direction = FillDirection.Vertical,
+            //                 Children = new Drawable[]
+            //                 {
+            //                     new BeatmapTypeInfo(),
+            //                     modDisplay = new ModDisplay
+            //                     {
+            //                         Scale = new Vector2(0.75f),
+            //                         DisplayUnrankedText = false
+            //                     },
+            //                 }
+            //             },
+            //             new Container
+            //             {
+            //                 Anchor = Anchor.TopRight,
+            //                 Origin = Anchor.TopRight,
+            //                 RelativeSizeAxes = Axes.Y,
+            //                 Width = 200,
+            //                 Padding = new MarginPadding { Vertical = 10 },
+            //                 Child = beatmapButton = new BeatmapSelectButton
+            //                 {
+            //                     RelativeSizeAxes = Axes.Both,
+            //                     Height = 1,
+            //                 },
+            //             },
+            //             Tabs = new MatchTabControl
+            //             {
+            //                 Anchor = Anchor.BottomLeft,
+            //                 Origin = Anchor.BottomLeft,
+            //                 RelativeSizeAxes = Axes.X
+            //             },
+            //         },
+            //     },
+            // };
+            //
+            // CurrentItem.BindValueChanged(item => modDisplay.Current.Value = item.NewValue?.RequiredMods?.ToArray() ?? Array.Empty<Mod>(), true);
+            //
+            // beatmapButton.Action = () => RequestBeatmapSelection?.Invoke();
         }
     }
 }
