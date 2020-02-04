@@ -6,8 +6,11 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Rulesets;
 using osu.Game.Screens.Multi.Match;
+using osu.Game.Users;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -24,19 +27,15 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Cached]
         private readonly Bindable<Room> currentRoom = new Bindable<Room>();
 
+        [Resolved]
+        private BeatmapManager beatmaps { get; set; }
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; }
+
         public TestSceneMatchSubScreen()
         {
             currentRoom.Value = new Room();
-        }
-
-        [Test]
-        public void TestShowSettings()
-        {
-            AddStep(@"show", () =>
-            {
-                currentRoom.Value.RoomID.Value = null;
-                LoadScreen(new MatchSubScreen(currentRoom.Value));
-            });
         }
 
         [Test]
@@ -45,6 +44,31 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep(@"show", () =>
             {
                 currentRoom.Value.RoomID.Value = 1;
+                currentRoom.Value.Availability.Value = RoomAvailability.Public;
+                currentRoom.Value.Duration.Value = TimeSpan.FromHours(24);
+                currentRoom.Value.Host.Value = new User { Username = "peppy", Id = 2 };
+                currentRoom.Value.Name.Value = "super secret room";
+                currentRoom.Value.Participants.Value = new[]
+                {
+                    new User { Username = "peppy", Id = 2 },
+                    new User { Username = "smoogipoo", Id = 1040328 }
+                };
+                currentRoom.Value.Playlist.Add(new PlaylistItem
+                {
+                    Beatmap = { Value = beatmaps.GetAllUsableBeatmapSets()[0].Beatmaps[0] },
+                    Ruleset = { Value = rulesets.GetRuleset(2) },
+                });
+
+                LoadScreen(new MatchSubScreen(currentRoom.Value));
+            });
+        }
+
+        [Test]
+        public void TestShowSettings()
+        {
+            AddStep(@"show", () =>
+            {
+                currentRoom.Value.RoomID.Value = null;
                 LoadScreen(new MatchSubScreen(currentRoom.Value));
             });
         }
