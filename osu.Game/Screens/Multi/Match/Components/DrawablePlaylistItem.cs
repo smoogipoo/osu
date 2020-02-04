@@ -78,6 +78,12 @@ namespace osu.Game.Screens.Multi.Match.Components
                             BorderColour = colours.Yellow,
                             Children = new Drawable[]
                             {
+                                new Box // A transparent box that forces the border to be drawn if the panel background is opaque
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Alpha = 0,
+                                    AlwaysPresent = true
+                                },
                                 new PanelBackground
                                 {
                                     RelativeSizeAxes = Axes.Both,
