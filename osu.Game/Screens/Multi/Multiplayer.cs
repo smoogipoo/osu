@@ -17,6 +17,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Overlays;
 using osu.Game.Overlays.BeatmapSet.Buttons;
 using osu.Game.Screens.Menu;
 using osu.Game.Screens.Multi.Lounge;
@@ -50,6 +51,9 @@ namespace osu.Game.Screens.Multi
 
         [Cached(Type = typeof(IRoomManager))]
         private RoomManager roomManager;
+
+        [Cached]
+        private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);
 
         [Resolved]
         private OsuGameBase game { get; set; }

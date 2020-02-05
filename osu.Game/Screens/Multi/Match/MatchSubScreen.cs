@@ -19,7 +19,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Screens.Multi.Play;
-using osu.Game.Screens.Select;
 using osuTK.Graphics;
 using PlaylistItem = osu.Game.Online.Multiplayer.PlaylistItem;
 
@@ -73,103 +72,71 @@ namespace osu.Game.Screens.Multi.Match
                     RelativeSizeAxes = Axes.X,
                     Height = 200,
                     Colour = ColourInfo.GradientVertical(Color4.White.Opacity(0.4f), Color4.White.Opacity(0))
+                },
+                new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding
+                    {
+                        Horizontal = 105,
+                        Vertical = 20
+                    },
+                    Child = new GridContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Content = new[]
+                        {
+                            new Drawable[] { new Components.Header() },
+                            new Drawable[]
+                            {
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Padding = new MarginPadding { Top = 65 },
+                                    Child = new GridContainer
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Content = new[]
+                                        {
+                                            new Drawable[]
+                                            {
+                                                new Container
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Padding = new MarginPadding { Right = 5 },
+                                                    Child = new OverlinedParticipants()
+                                                },
+                                                new Container
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Padding = new MarginPadding { Horizontal = 5 },
+                                                    Child = new OverlinedPlaylist()
+                                                },
+                                                new Container
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Padding = new MarginPadding { Left = 5 },
+                                                    Child = new LeaderboardChatDisplay()
+                                                }
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            new Drawable[]
+                            {
+                                new Container { }
+                            }
+                        },
+                        RowDimensions = new[]
+                        {
+                            new Dimension(GridSizeMode.AutoSize),
+                            new Dimension(),
+                            new Dimension(GridSizeMode.Absolute, 200),
+                        }
+                    }
                 }
-
-                // header = new Components.Header
-                // {
-                //     Depth = -1,
-                //     RequestBeatmapSelection = () =>
-                //     {
-                //         this.Push(new MatchSongSelect());
-                //     }
-                // }
             };
-
-            // InternalChildren = new Drawable[]
-            // {
-            //     new GridContainer
-            //     {
-            //         RelativeSizeAxes = Axes.Both,
-            //         Content = new[]
-            //         {
-            //             new Drawable[]
-            //             {
-            //                 header = new Components.Header
-            //                 {
-            //                     Depth = -1,
-            //                     RequestBeatmapSelection = () =>
-            //                     {
-            //                         this.Push(new MatchSongSelect());
-            //                     }
-            //                 }
-            //             },
-            //             new Drawable[] { info = new Info { OnStart = onStart } },
-            //             new Drawable[]
-            //             {
-            //                 bottomRow = new GridContainer
-            //                 {
-            //                     RelativeSizeAxes = Axes.Both,
-            //                     Content = new[]
-            //                     {
-            //                         new Drawable[]
-            //                         {
-            //                             leaderboard = new MatchLeaderboard
-            //                             {
-            //                                 Padding = new MarginPadding
-            //                                 {
-            //                                     Left = 10 + HORIZONTAL_OVERFLOW_PADDING,
-            //                                     Right = 10,
-            //                                     Vertical = 10,
-            //                                 },
-            //                                 RelativeSizeAxes = Axes.Both
-            //                             },
-            //                             new Container
-            //                             {
-            //                                 Padding = new MarginPadding
-            //                                 {
-            //                                     Left = 10,
-            //                                     Right = 10 + HORIZONTAL_OVERFLOW_PADDING,
-            //                                     Vertical = 10,
-            //                                 },
-            //                                 RelativeSizeAxes = Axes.Both,
-            //                                 Child = new MatchChatDisplay
-            //                                 {
-            //                                     RelativeSizeAxes = Axes.Both
-            //                                 }
-            //                             },
-            //                         },
-            //                     },
-            //                 }
-            //             },
-            //         },
-            //         RowDimensions = new[]
-            //         {
-            //             new Dimension(GridSizeMode.AutoSize),
-            //             new Dimension(GridSizeMode.AutoSize),
-            //             new Dimension(GridSizeMode.Distributed),
-            //         }
-            //     },
-            //     new Container
-            //     {
-            //         RelativeSizeAxes = Axes.Both,
-            //         Padding = new MarginPadding { Top = Components.Header.HEIGHT },
-            //         Child = settings = new MatchSettingsOverlay { RelativeSizeAxes = Axes.Both },
-            //     },
-            // };
-            //
-            // header.Tabs.Current.BindValueChanged(tab =>
-            // {
-            //     const float fade_duration = 500;
-            //
-            //     var settingsDisplayed = tab.NewValue is SettingsMatchPage;
-            //
-            //     header.ShowBeatmapPanel.Value = !settingsDisplayed;
-            //     settings.State.Value = settingsDisplayed ? Visibility.Visible : Visibility.Hidden;
-            //     info.FadeTo(settingsDisplayed ? 0 : 1, fade_duration, Easing.OutQuint);
-            //     bottomRow.FadeTo(settingsDisplayed ? 0 : 1, fade_duration, Easing.OutQuint);
-            // }, true);
-            //
-            // beatmapManager.ItemAdded += beatmapAdded;
         }
 
         protected override void LoadComplete()
