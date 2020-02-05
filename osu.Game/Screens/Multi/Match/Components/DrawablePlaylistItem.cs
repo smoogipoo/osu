@@ -18,6 +18,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Overlays.Direct;
 using osu.Game.Rulesets;
 using osuTK;
 using osuTK.Graphics;
@@ -126,14 +127,26 @@ namespace osu.Game.Screens.Multi.Match.Components
                                         }
                                     }
                                 },
-                                new IconButton
+                                new Container
                                 {
                                     Anchor = Anchor.CentreRight,
                                     Origin = Anchor.CentreRight,
+                                    AutoSizeAxes = Axes.Both,
                                     X = -18,
-                                    Icon = FontAwesome.Solid.MinusSquare,
-                                    Alpha = allowEdit ? 1 : 0,
-                                    Action = () => RequestDeletion?.Invoke(Model),
+                                    Children = new Drawable[]
+                                    {
+                                        new IconButton
+                                        {
+                                            Icon = FontAwesome.Solid.MinusSquare,
+                                            Alpha = allowEdit ? 1 : 0,
+                                            Action = () => RequestDeletion?.Invoke(Model),
+                                        },
+                                        new PanelDownloadButton(item.Beatmap.Value.BeatmapSet)
+                                        {
+                                            Size = new Vector2(50, 30),
+                                            Alpha = allowEdit ? 0 : 1
+                                        }
+                                    }
                                 }
                             }
                         }
