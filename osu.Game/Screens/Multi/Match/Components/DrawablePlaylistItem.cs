@@ -39,11 +39,15 @@ namespace osu.Game.Screens.Multi.Match.Components
         private readonly Bindable<RulesetInfo> ruleset = new Bindable<RulesetInfo>();
 
         private readonly PlaylistItem item;
+        private readonly bool allowEdit;
+        private readonly bool allowSelection;
 
-        public DrawablePlaylistItem(PlaylistItem item)
+        public DrawablePlaylistItem(PlaylistItem item, bool allowEdit, bool allowSelection)
             : base(item)
         {
             this.item = item;
+            this.allowEdit = allowEdit;
+            this.allowSelection = allowSelection;
 
             RelativeSizeAxes = Axes.X;
             Height = 50;
@@ -62,13 +66,18 @@ namespace osu.Game.Screens.Multi.Match.Components
                 {
                     new Drawable[]
                     {
-                        handle = new ItemHandle
+                        new Container
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Size = new Vector2(12),
-                            AlwaysPresent = true,
-                            Alpha = 0,
+                            AutoSizeAxes = Axes.Both,
+                            Alpha = allowEdit ? 1 : 0,
+                            Child = handle = new ItemHandle
+                            {
+                                Size = new Vector2(12),
+                                AlwaysPresent = true,
+                                Alpha = 0,
+                            },
                         },
                         maskingContainer = new Container
                         {
@@ -123,7 +132,8 @@ namespace osu.Game.Screens.Multi.Match.Components
                                     Origin = Anchor.CentreRight,
                                     X = -18,
                                     Icon = FontAwesome.Solid.MinusSquare,
-                                    Action = () => RequestDeletion?.Invoke(Model)
+                                    Alpha = allowEdit ? 1 : 0,
+                                    Action = () => RequestDeletion?.Invoke(Model),
                                 }
                             }
                         }
@@ -179,7 +189,8 @@ namespace osu.Game.Screens.Multi.Match.Components
 
         protected override bool OnClick(ClickEvent e)
         {
-            RequestSelection?.Invoke(Model);
+            if (allowSelection)
+                RequestSelection?.Invoke(Model);
             return true;
         }
 

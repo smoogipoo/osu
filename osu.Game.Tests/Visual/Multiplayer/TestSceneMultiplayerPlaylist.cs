@@ -27,7 +27,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public void Setup() => Schedule(() =>
         {
             Playlist list;
-            Add(list = new Playlist
+            Add(list = new Playlist(true, true)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,

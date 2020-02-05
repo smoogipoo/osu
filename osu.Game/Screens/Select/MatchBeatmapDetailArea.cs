@@ -42,7 +42,7 @@ namespace osu.Game.Screens.Select
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Padding = new MarginPadding { Bottom = 10 },
-                                Child = playlist = new Playlist
+                                Child = playlist = new Playlist(true, true)
                                 {
                                     RelativeSizeAxes = Axes.Both
                                 }

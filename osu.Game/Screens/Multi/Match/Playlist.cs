@@ -16,6 +16,15 @@ namespace osu.Game.Screens.Multi.Match
     {
         public readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
 
+        private readonly bool allowEdit;
+        private readonly bool allowSelection;
+
+        public Playlist(bool allowEdit, bool allowSelection)
+        {
+            this.allowEdit = allowEdit;
+            this.allowSelection = allowSelection;
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -42,7 +51,7 @@ namespace osu.Game.Screens.Multi.Match
             Spacing = new Vector2(0, 2)
         };
 
-        protected override RearrangeableListItem<PlaylistItem> CreateDrawable(PlaylistItem item) => new DrawablePlaylistItem(item)
+        protected override RearrangeableListItem<PlaylistItem> CreateDrawable(PlaylistItem item) => new DrawablePlaylistItem(item, allowEdit, allowSelection)
         {
             RequestSelection = requestSelection,
             RequestDeletion = requestDeletion
