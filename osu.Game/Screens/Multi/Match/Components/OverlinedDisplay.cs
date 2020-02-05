@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osu.Game.Overlays;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Match.Components
@@ -57,10 +56,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                                     Text = title,
                                     Font = OsuFont.GetFont(size: 14)
                                 },
-                                details = new OsuSpriteText
-                                {
-                                    Font = OsuFont.GetFont(size: 14, weight: FontWeight.Light)
-                                },
+                                details = new OsuSpriteText { Font = OsuFont.GetFont(size: 14) },
                             }
                         },
                     },
@@ -82,10 +78,10 @@ namespace osu.Game.Screens.Multi.Match.Components
         }
 
         [BackgroundDependencyLoader]
-        private void load(OverlayColourProvider colourProvider)
+        private void load(OsuColour colours)
         {
-            line.Colour = colourProvider.Light3;
-            details.Colour = colourProvider.Light3;
+            line.Colour = colours.Yellow;
+            details.Colour = colours.Yellow;
         }
     }
 }

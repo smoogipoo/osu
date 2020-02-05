@@ -3,10 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Overlays;
 using osu.Game.Screens.Multi.Match.Components;
 using osuTK;
 
@@ -18,9 +16,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             typeof(LeaderboardChatDisplay)
         };
-
-        [Cached]
-        private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);
 
         public TestSceneMatchLeaderboardChatDisplay()
         {

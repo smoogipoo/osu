@@ -2,14 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
-using osu.Game.Graphics.Containers;
-using osu.Game.Graphics.Sprites;
-using osu.Game.Overlays;
-using osuTK.Graphics;
+using osu.Game.Graphics.UserInterface;
 
 namespace osu.Game.Screens.Multi.Match.Components
 {
@@ -17,8 +15,7 @@ namespace osu.Game.Screens.Multi.Match.Components
     {
         private const double fade_duration = 100;
 
-        private readonly Button leaderboardButton;
-        private readonly Button chatButton;
+        private readonly OsuTabControl<DisplayMode> tabControl;
         private readonly MatchLeaderboard leaderboard;
         private readonly MatchChatDisplay chat;
 
@@ -33,27 +30,10 @@ namespace osu.Game.Screens.Multi.Match.Components
                 {
                     new Drawable[]
                     {
-                        new GridContainer
+                        tabControl = new DisplayModeTabControl
                         {
                             RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Content = new[]
-                            {
-                                new Drawable[]
-                                {
-                                    leaderboardButton = new Button("Leaderboard")
-                                    {
-                                        Padding = new MarginPadding { Right = 1 },
-                                        Action = showLeaderboard
-                                    },
-                                    chatButton = new Button("Chat")
-                                    {
-                                        Padding = new MarginPadding { Left = 1 },
-                                        Action = showChat
-                                    },
-                                },
-                            },
-                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
+                            Height = 24,
                         }
                     },
                     new Drawable[]
@@ -79,74 +59,40 @@ namespace osu.Game.Screens.Multi.Match.Components
                     new Dimension(GridSizeMode.AutoSize),
                 }
             };
-
-            leaderboardButton.SetSelected(true);
         }
 
-        private void showLeaderboard()
+        [BackgroundDependencyLoader]
+        private void load(OsuColour colours)
         {
-            chatButton.SetSelected(false);
-            leaderboardButton.SetSelected(true);
-
-            chat.FadeTo(0, fade_duration);
-            leaderboard.FadeTo(1, fade_duration);
+            tabControl.AccentColour = colours.Yellow;
         }
 
-        private void showChat()
+        protected override void LoadComplete()
         {
-            chatButton.SetSelected(true);
-            leaderboardButton.SetSelected(false);
+            base.LoadComplete();
 
-            chat.FadeTo(1, fade_duration);
-            leaderboard.FadeTo(0, fade_duration);
+            tabControl.Current.BindValueChanged(changeTab);
         }
 
-        private class Button : OsuClickableContainer
+        private void changeTab(ValueChangedEvent<DisplayMode> mode)
         {
-            private readonly Drawable colouredContents;
-            private readonly Box fill;
+            chat.FadeTo(mode.NewValue == DisplayMode.Chat ? 1 : 0, fade_duration);
+            leaderboard.FadeTo(mode.NewValue == DisplayMode.Leaderboard ? 1 : 0, fade_duration);
+        }
 
-            public Button(string text)
+        private class DisplayModeTabControl : OsuTabControl<DisplayMode>
+        {
+            protected override TabItem<DisplayMode> CreateTabItem(DisplayMode value) => base.CreateTabItem(value).With(d =>
             {
-                RelativeSizeAxes = Axes.X;
-                Height = 35;
+                d.Anchor = Anchor.Centre;
+                d.Origin = Anchor.Centre;
+            });
+        }
 
-                AddRange(new Drawable[]
-                {
-                    colouredContents = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Masking = true,
-                        CornerRadius = 10,
-                        BorderThickness = 3,
-                        BorderColour = Color4.White,
-                        Children = new Drawable[]
-                        {
-                            fill = new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                AlwaysPresent = true,
-                                Alpha = 0
-                            },
-                        }
-                    },
-                    new OsuSpriteText
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Text = text,
-                        Font = OsuFont.GetFont(size: 14)
-                    }
-                });
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(OverlayColourProvider colourProvider)
-            {
-                colouredContents.Colour = colourProvider.Dark1;
-            }
-
-            public void SetSelected(bool selected) => fill.FadeTo(selected ? 1 : 0, fade_duration, Easing.OutQuint);
+        private enum DisplayMode
+        {
+            Leaderboard,
+            Chat,
         }
     }
 }

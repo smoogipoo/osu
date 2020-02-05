@@ -8,7 +8,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Screens.Multi.Match;
 using osu.Game.Screens.Multi.Match.Components;
@@ -31,9 +30,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
             typeof(OverlinedPlaylist),
             typeof(LeaderboardChatDisplay)
         };
-
-        [Cached]
-        private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);
 
         [Cached]
         private readonly Bindable<Room> currentRoom = new Bindable<Room>();
