@@ -66,7 +66,7 @@ namespace osu.Game.Screens.Multi.Components
             if (roomId == 0) return;
 
             request = new GetRoomScoresRequest(roomId);
-            request.Success += scores =>
+            request.Success += scores => Schedule(() =>
             {
                 if (roomId != RoomID.Value)
                     return;
@@ -76,7 +76,7 @@ namespace osu.Game.Screens.Multi.Components
                     fill.Add(new UserTile(s.User));
 
                 fill.FadeInFromZero(1000, Easing.OutQuint);
-            };
+            });
 
             api.Queue(request);
         }
