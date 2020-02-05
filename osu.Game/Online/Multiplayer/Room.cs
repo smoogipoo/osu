@@ -135,13 +135,13 @@ namespace osu.Game.Online.Multiplayer
             if (DateTimeOffset.Now >= EndDate.Value)
                 Status.Value = new RoomStatusEnded();
 
-            foreach (var removedItem in Playlist.Except(other.Playlist))
+            foreach (var removedItem in Playlist.Except(other.Playlist).ToArray())
                 Playlist.Remove(removedItem);
-            Playlist.AddRange(other.Playlist.Except(Playlist));
+            Playlist.AddRange(other.Playlist.Except(Playlist).ToArray());
 
-            foreach (var removedItem in Participants.Except(other.Participants))
+            foreach (var removedItem in Participants.Except(other.Participants).ToArray())
                 Participants.Remove(removedItem);
-            Participants.AddRange(other.Participants.Except(Participants));
+            Participants.AddRange(other.Participants.Except(Participants).ToArray());
 
             Position = other.Position;
         }
