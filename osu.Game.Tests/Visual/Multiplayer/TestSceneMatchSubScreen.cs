@@ -52,11 +52,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 currentRoom.Value.Duration.Value = TimeSpan.FromHours(24);
                 currentRoom.Value.Host.Value = new User { Username = "peppy", Id = 2 };
                 currentRoom.Value.Name.Value = "super secret room";
-                currentRoom.Value.Participants.Value = new[]
+                currentRoom.Value.Participants.AddRange(new[]
                 {
                     new User { Username = "peppy", Id = 2 },
                     new User { Username = "smoogipoo", Id = 1040328 }
-                };
+                });
                 currentRoom.Value.Playlist.Add(new PlaylistItem
                 {
                     Beatmap = { Value = beatmaps.GetAllUsableBeatmapSets()[0].Beatmaps[0] },
