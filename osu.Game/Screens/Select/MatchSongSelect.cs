@@ -1,12 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Multi;
 
 namespace osu.Game.Screens.Select
@@ -37,6 +39,9 @@ namespace osu.Game.Screens.Select
 
             if (Playlist.Count > 0)
                 SelectedItem.Value = Playlist[^1];
+
+            Mods.BindValueChanged(_ => populateSelected());
+            Ruleset.BindValueChanged(_ => populateSelected());
         }
 
         protected override BeatmapDetailArea CreateBeatmapDetailArea() => new MatchBeatmapDetailArea
@@ -67,7 +72,7 @@ namespace osu.Game.Screens.Select
             if (Playlist.Count == 0)
                 createNewItem();
 
-            populate(SelectedItem.Value);
+            populateSelected();
         }
 
         public override bool OnExiting(IScreen next)
@@ -88,6 +93,17 @@ namespace osu.Game.Screens.Select
 
             Playlist.Add(item);
             SelectedItem.Value = item;
+
+            // Reset the mods for new new item
+            Mods.Value = Array.Empty<Mod>();
+        }
+
+        private void populateSelected()
+        {
+            if (SelectedItem.Value == null)
+                return;
+
+            populate(SelectedItem.Value);
         }
 
         private PlaylistItem populate(PlaylistItem item)
