@@ -28,7 +28,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
             typeof(OverlinedDisplay),
             typeof(OverlinedParticipants),
             typeof(OverlinedPlaylist),
-            typeof(LeaderboardChatDisplay)
+            typeof(LeaderboardChatDisplay),
+            typeof(Footer)
         };
 
         [Cached]

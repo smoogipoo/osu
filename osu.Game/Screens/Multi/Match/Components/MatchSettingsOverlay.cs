@@ -25,6 +25,8 @@ namespace osu.Game.Screens.Multi.Match.Components
         private const float transition_duration = 350;
         private const float field_padding = 45;
 
+        public Action EditPlaylist;
+
         protected MatchSettings Settings { get; private set; }
 
         [BackgroundDependencyLoader]
@@ -35,7 +37,8 @@ namespace osu.Game.Screens.Multi.Match.Components
             Child = Settings = new MatchSettings
             {
                 RelativeSizeAxes = Axes.Both,
-                RelativePositionAxes = Axes.Y
+                RelativePositionAxes = Axes.Y,
+                EditPlaylist = () => EditPlaylist?.Invoke()
             };
         }
 
@@ -53,6 +56,8 @@ namespace osu.Game.Screens.Multi.Match.Components
         {
             private const float disabled_alpha = 0.2f;
 
+            public Action EditPlaylist;
+
             public OsuTextBox NameField, MaxParticipantsField;
             public OsuDropdown<TimeSpan> DurationField;
             public RoomAvailabilityPicker AvailabilityPicker;
@@ -63,6 +68,7 @@ namespace osu.Game.Screens.Multi.Match.Components
 
             private OsuSpriteText typeLabel;
             private ProcessingOverlay processingOverlay;
+            private Playlist playlist;
 
             [Resolved(CanBeNull = true)]
             private IRoomManager manager { get; set; }
@@ -206,6 +212,36 @@ namespace osu.Game.Screens.Multi.Match.Components
                                                                 OnCommit = (sender, text) => apply()
                                                             },
                                                         },
+                                                        new Section("Playlist")
+                                                        {
+                                                            Child = new GridContainer
+                                                            {
+                                                                RelativeSizeAxes = Axes.X,
+                                                                Height = 300,
+                                                                Content = new[]
+                                                                {
+                                                                    new Drawable[]
+                                                                    {
+                                                                        playlist = new Playlist(true, true) { RelativeSizeAxes = Axes.Both }
+                                                                    },
+                                                                    new Drawable[]
+                                                                    {
+                                                                        new OsuButton
+                                                                        {
+                                                                            RelativeSizeAxes = Axes.X,
+                                                                            Height = 40,
+                                                                            Text = "Edit playlist",
+                                                                            Action = () => EditPlaylist?.Invoke()
+                                                                        }
+                                                                    }
+                                                                },
+                                                                RowDimensions = new[]
+                                                                {
+                                                                    new Dimension(),
+                                                                    new Dimension(GridSizeMode.AutoSize),
+                                                                }
+                                                            }
+                                                        },
                                                     },
                                                 },
                                             },
@@ -271,6 +307,8 @@ namespace osu.Game.Screens.Multi.Match.Components
                 Type.BindValueChanged(type => TypePicker.Current.Value = type.NewValue, true);
                 MaxParticipants.BindValueChanged(count => MaxParticipantsField.Text = count.NewValue?.ToString(), true);
                 Duration.BindValueChanged(duration => DurationField.Current.Value = duration.NewValue, true);
+
+                playlist.Items.BindTo(Playlist);
             }
 
             protected override void Update()
@@ -300,6 +338,10 @@ namespace osu.Game.Screens.Multi.Match.Components
                 manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
 
                 processingOverlay.Show();
+            }
+
+            private void editPlaylist()
+            {
             }
 
             private void hideError() => ErrorText.FadeOut(50);

@@ -19,7 +19,9 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Screens.Multi.Play;
+using osu.Game.Screens.Select;
 using osuTK.Graphics;
+using Footer = osu.Game.Screens.Multi.Match.Components.Footer;
 using PlaylistItem = osu.Game.Online.Multiplayer.PlaylistItem;
 
 namespace osu.Game.Screens.Multi.Match
@@ -57,6 +59,8 @@ namespace osu.Game.Screens.Multi.Match
         [Resolved(CanBeNull = true)]
         private OsuGame game { get; set; }
 
+        private MatchSettingsOverlay settingsOverlay;
+
         public MatchSubScreen(Room room)
         {
             Title = room.RoomID.Value == null ? "New room" : room.Name.Value;
@@ -73,68 +77,88 @@ namespace osu.Game.Screens.Multi.Match
                     Height = 200,
                     Colour = ColourInfo.GradientVertical(Color4.White.Opacity(0.4f), Color4.White.Opacity(0))
                 },
-                new Container
+                new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding
+                    Content = new[]
                     {
-                        Horizontal = 105,
-                        Vertical = 20
-                    },
-                    Child = new GridContainer
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Content = new[]
+                        new Drawable[]
                         {
-                            new Drawable[] { new Components.Header() },
-                            new Drawable[]
+                            new Container
                             {
-                                new Container
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding
+                                {
+                                    Horizontal = 105,
+                                    Vertical = 20
+                                },
+                                Child = new GridContainer
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Padding = new MarginPadding { Top = 65 },
-                                    Child = new GridContainer
+                                    Content = new[]
                                     {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Content = new[]
+                                        new Drawable[] { new Components.Header() },
+                                        new Drawable[]
                                         {
-                                            new Drawable[]
+                                            new Container
                                             {
-                                                new Container
+                                                RelativeSizeAxes = Axes.Both,
+                                                Padding = new MarginPadding { Top = 65 },
+                                                Child = new GridContainer
                                                 {
                                                     RelativeSizeAxes = Axes.Both,
-                                                    Padding = new MarginPadding { Right = 5 },
-                                                    Child = new OverlinedParticipants()
-                                                },
-                                                new Container
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Padding = new MarginPadding { Horizontal = 5 },
-                                                    Child = new OverlinedPlaylist()
-                                                },
-                                                new Container
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Padding = new MarginPadding { Left = 5 },
-                                                    Child = new LeaderboardChatDisplay()
+                                                    Content = new[]
+                                                    {
+                                                        new Drawable[]
+                                                        {
+                                                            new Container
+                                                            {
+                                                                RelativeSizeAxes = Axes.Both,
+                                                                Padding = new MarginPadding { Right = 5 },
+                                                                Child = new OverlinedParticipants()
+                                                            },
+                                                            new Container
+                                                            {
+                                                                RelativeSizeAxes = Axes.Both,
+                                                                Padding = new MarginPadding { Horizontal = 5 },
+                                                                Child = new OverlinedPlaylist()
+                                                            },
+                                                            new Container
+                                                            {
+                                                                RelativeSizeAxes = Axes.Both,
+                                                                Padding = new MarginPadding { Left = 5 },
+                                                                Child = new LeaderboardChatDisplay()
+                                                            }
+                                                        },
+                                                    }
                                                 }
-                                            },
+                                            }
                                         }
+                                    },
+                                    RowDimensions = new[]
+                                    {
+                                        new Dimension(GridSizeMode.AutoSize),
+                                        new Dimension(),
                                     }
                                 }
-                            },
-                            new Drawable[]
-                            {
-                                new Container { }
                             }
                         },
-                        RowDimensions = new[]
+                        new Drawable[]
                         {
-                            new Dimension(GridSizeMode.AutoSize),
-                            new Dimension(),
-                            new Dimension(GridSizeMode.Absolute, 200),
+                            new Footer()
                         }
+                    },
+                    RowDimensions = new[]
+                    {
+                        new Dimension(),
+                        new Dimension(GridSizeMode.AutoSize),
                     }
+                },
+                settingsOverlay = new MatchSettingsOverlay
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    EditPlaylist = onEditPlaylist,
+                    State = { Value = roomId.Value == null ? Visibility.Visible : Visibility.Hidden }
                 }
             };
         }
@@ -143,8 +167,18 @@ namespace osu.Game.Screens.Multi.Match
         {
             base.LoadComplete();
 
+            roomId.BindValueChanged(id =>
+            {
+                if (id.NewValue == null)
+                    settingsOverlay.Show();
+                else
+                    settingsOverlay.Hide();
+            }, true);
+
             CurrentItem.BindValueChanged(currentItemChanged, true);
         }
+
+        private void onEditPlaylist() => this.Push(new MatchSongSelect());
 
         public override bool OnExiting(IScreen next)
         {
