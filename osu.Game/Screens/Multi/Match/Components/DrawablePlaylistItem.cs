@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -20,6 +21,8 @@ using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays.Direct;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Mods;
+using osu.Game.Screens.Play.HUD;
 using osuTK;
 using osuTK.Graphics;
 
@@ -35,9 +38,11 @@ namespace osu.Game.Screens.Multi.Match.Components
         private LinkFlowContainer beatmapText;
         private LinkFlowContainer authorText;
         private ItemHandle handle;
+        private ModDisplay modDisplay;
 
         private readonly Bindable<BeatmapInfo> beatmap = new Bindable<BeatmapInfo>();
         private readonly Bindable<RulesetInfo> ruleset = new Bindable<RulesetInfo>();
+        private readonly BindableList<Mod> requiredMods = new BindableList<Mod>();
 
         private readonly PlaylistItem item;
         private readonly bool allowEdit;
@@ -55,6 +60,7 @@ namespace osu.Game.Screens.Multi.Match.Components
 
             beatmap.BindTo(item.Beatmap);
             ruleset.BindTo(item.Ruleset);
+            requiredMods.BindTo(item.RequiredMods);
         }
 
         [BackgroundDependencyLoader]
@@ -122,7 +128,25 @@ namespace osu.Game.Screens.Multi.Match.Components
                                             Children = new Drawable[]
                                             {
                                                 beatmapText = new LinkFlowContainer { AutoSizeAxes = Axes.Both },
-                                                authorText = new LinkFlowContainer { AutoSizeAxes = Axes.Both }
+                                                new FillFlowContainer
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Direction = FillDirection.Horizontal,
+                                                    Spacing = new Vector2(10, 0),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        authorText = new LinkFlowContainer { AutoSizeAxes = Axes.Both },
+                                                        modDisplay = new ModDisplay
+                                                        {
+                                                            Anchor = Anchor.CentreLeft,
+                                                            Origin = Anchor.CentreLeft,
+                                                            AutoSizeAxes = Axes.Both,
+                                                            Scale = new Vector2(0.4f),
+                                                            DisplayUnrankedText = false,
+                                                            ExpansionMode = ExpansionMode.AlwaysExpanded
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -163,6 +187,9 @@ namespace osu.Game.Screens.Multi.Match.Components
             beatmap.BindValueChanged(_ => scheduleRefresh());
             ruleset.BindValueChanged(_ => scheduleRefresh());
 
+            requiredMods.ItemsAdded += _ => scheduleRefresh();
+            requiredMods.ItemsRemoved += _ => scheduleRefresh();
+
             refresh();
         }
 
@@ -188,6 +215,8 @@ namespace osu.Game.Screens.Multi.Match.Components
                 authorText.AddText("mapped by ");
                 authorText.AddUserLink(item.Beatmap.Value?.Metadata.Author);
             }
+
+            modDisplay.Current.Value = requiredMods.ToArray();
         }
 
         protected override bool IsDraggableAt(Vector2 screenSpacePos) => handle.HandlingDrag;
