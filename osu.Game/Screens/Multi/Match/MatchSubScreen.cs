@@ -121,7 +121,7 @@ namespace osu.Game.Screens.Multi.Match
                                                             {
                                                                 RelativeSizeAxes = Axes.Both,
                                                                 Padding = new MarginPadding { Horizontal = 5 },
-                                                                Child = new OverlinedPlaylist()
+                                                                Child = new OverlinedPlaylist(true) // Temporarily always allow selection
                                                             },
                                                             new Container
                                                             {

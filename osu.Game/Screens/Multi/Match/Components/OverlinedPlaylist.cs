@@ -2,20 +2,25 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Game.Online.Multiplayer;
 
 namespace osu.Game.Screens.Multi.Match.Components
 {
     public class OverlinedPlaylist : OverlinedDisplay
     {
+        public readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
+
         private readonly Playlist playlist;
 
-        public OverlinedPlaylist()
+        public OverlinedPlaylist(bool allowSelection)
             : base("Playlist")
         {
-            Content.Add(playlist = new Playlist(false, true)
+            Content.Add(playlist = new Playlist(false, allowSelection)
             {
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                SelectedItem = { BindTarget = SelectedItem }
             });
         }
 

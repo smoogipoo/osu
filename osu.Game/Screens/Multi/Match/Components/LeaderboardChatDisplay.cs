@@ -74,6 +74,8 @@ namespace osu.Game.Screens.Multi.Match.Components
             tabControl.Current.BindValueChanged(changeTab);
         }
 
+        public void RefreshScores() => leaderboard.RefreshScores();
+
         private void changeTab(ValueChangedEvent<DisplayMode> mode)
         {
             chat.FadeTo(mode.NewValue == DisplayMode.Chat ? 1 : 0, fade_duration);
