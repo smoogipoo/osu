@@ -19,7 +19,7 @@ namespace osu.Game.Screens.Select
         [Resolved(typeof(Room))]
         protected BindableList<PlaylistItem> Playlist { get; private set; }
 
-        private readonly Bindable<PlaylistItem> selectedItem = new Bindable<PlaylistItem>();
+        protected readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
 
         public override bool AllowEditing => false;
 
@@ -36,12 +36,12 @@ namespace osu.Game.Screens.Select
             base.LoadComplete();
 
             if (Playlist.Count > 0)
-                selectedItem.Value = Playlist[^1];
+                SelectedItem.Value = Playlist[^1];
         }
 
         protected override BeatmapDetailArea CreateBeatmapDetailArea() => new MatchBeatmapDetailArea
         {
-            SelectedItem = { BindTarget = selectedItem },
+            SelectedItem = { BindTarget = SelectedItem },
             CreateNewItem = createNewItem
         };
 
@@ -67,7 +67,7 @@ namespace osu.Game.Screens.Select
             if (Playlist.Count == 0)
                 createNewItem();
 
-            populate(selectedItem.Value);
+            populate(SelectedItem.Value);
         }
 
         public override bool OnExiting(IScreen next)
@@ -87,7 +87,7 @@ namespace osu.Game.Screens.Select
             PlaylistItem item = populate(new PlaylistItem());
 
             Playlist.Add(item);
-            selectedItem.Value = item;
+            SelectedItem.Value = item;
         }
 
         private PlaylistItem populate(PlaylistItem item)
