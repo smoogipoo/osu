@@ -36,7 +36,7 @@ namespace osu.Game.Screens.Multi.Match
 
                 if (item.NewValue != null)
                     ((DrawablePlaylistItem)ItemMap[item.NewValue]).Select();
-            });
+            }, true);
         }
 
         protected override ScrollContainer<Drawable> CreateScrollContainer() => new OsuScrollContainer
