@@ -1,7 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -15,6 +17,9 @@ namespace osu.Game.Screens.Multi.Match.Components
     {
         public const float HEIGHT = 100;
 
+        public Action OnStart;
+        public readonly BindableBool AllowStart = new BindableBool();
+
         private readonly Drawable background;
         private readonly OsuButton startButton;
 
@@ -23,7 +28,7 @@ namespace osu.Game.Screens.Multi.Match.Components
             RelativeSizeAxes = Axes.X;
             Height = HEIGHT;
 
-            InternalChildren = new Drawable[]
+            InternalChildren = new[]
             {
                 background = new Box { RelativeSizeAxes = Axes.Both },
                 startButton = new OsuButton
@@ -32,7 +37,8 @@ namespace osu.Game.Screens.Multi.Match.Components
                     Origin = Anchor.Centre,
                     Size = new Vector2(600, 50),
                     Text = "Start",
-                    Action = () => { }
+                    Enabled = { BindTarget = AllowStart },
+                    Action = () => OnStart?.Invoke()
                 }
             };
         }

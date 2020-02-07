@@ -38,27 +38,21 @@ namespace osu.Game.Screens.Multi.Match
         [Resolved(typeof(Room), nameof(Room.RoomID))]
         private Bindable<int?> roomId { get; set; }
 
-        [Resolved(typeof(Room), nameof(Room.Name))]
-        private Bindable<string> name { get; set; }
-
         [Resolved(typeof(Room), nameof(Room.Type))]
         private Bindable<GameType> type { get; set; }
 
-        [Resolved(typeof(Room))]
-        protected BindableList<PlaylistItem> Playlist { get; private set; }
-
-        [Resolved(typeof(Room))]
-        protected Bindable<PlaylistItem> CurrentItem { get; private set; }
+        [Resolved(typeof(Room), nameof(Room.Playlist))]
+        private BindableList<PlaylistItem> playlist { get; set; }
 
         [Resolved]
         private BeatmapManager beatmapManager { get; set; }
 
-        [Resolved]
-        private PreviewTrackManager previewTrackManager { get; set; }
+        [Resolved(canBeNull: true)]
+        private Multiplayer multiplayer { get; set; }
 
-        [Resolved(CanBeNull = true)]
-        private OsuGame game { get; set; }
-
+        private readonly Bindable<PlaylistItem> selectedItem = new Bindable<PlaylistItem>();
+        private LeaderboardChatDisplay leaderboardChatDisplay;
+        private Footer footer;
         private MatchSettingsOverlay settingsOverlay;
 
         public MatchSubScreen(Room room)
@@ -122,12 +116,15 @@ namespace osu.Game.Screens.Multi.Match
                                                                 RelativeSizeAxes = Axes.Both,
                                                                 Padding = new MarginPadding { Horizontal = 5 },
                                                                 Child = new OverlinedPlaylist(true) // Temporarily always allow selection
+                                                                {
+                                                                    SelectedItem = { BindTarget = selectedItem }
+                                                                }
                                                             },
                                                             new Container
                                                             {
                                                                 RelativeSizeAxes = Axes.Both,
                                                                 Padding = new MarginPadding { Left = 5 },
-                                                                Child = new LeaderboardChatDisplay()
+                                                                Child = leaderboardChatDisplay = new LeaderboardChatDisplay()
                                                             }
                                                         },
                                                     }
@@ -145,7 +142,7 @@ namespace osu.Game.Screens.Multi.Match
                         },
                         new Drawable[]
                         {
-                            new Footer()
+                            footer = new Footer { OnStart = onStart }
                         }
                     },
                     RowDimensions = new[]
@@ -157,7 +154,7 @@ namespace osu.Game.Screens.Multi.Match
                 settingsOverlay = new MatchSettingsOverlay
                 {
                     RelativeSizeAxes = Axes.Both,
-                    EditPlaylist = onEditPlaylist,
+                    EditPlaylist = () => this.Push(new MatchSongSelect()),
                     State = { Value = roomId.Value == null ? Visibility.Visible : Visibility.Hidden }
                 }
             };
@@ -175,68 +172,59 @@ namespace osu.Game.Screens.Multi.Match
                     settingsOverlay.Hide();
             }, true);
 
-            CurrentItem.BindValueChanged(currentItemChanged, true);
-        }
+            selectedItem.BindValueChanged(selectedItemChanged);
+            selectedItem.Value = playlist.FirstOrDefault();
 
-        private void onEditPlaylist() => this.Push(new MatchSongSelect());
+            beatmapManager.ItemAdded += beatmapAdded;
+        }
 
         public override bool OnExiting(IScreen next)
         {
             RoomManager?.PartRoom();
             Mods.Value = Array.Empty<Mod>();
-            previewTrackManager.StopAnyPlaying(this);
 
             return base.OnExiting(next);
         }
 
-        /// <summary>
-        /// Handles propagation of the current playlist item's content to game-wide mechanisms.
-        /// </summary>
-        private void currentItemChanged(ValueChangedEvent<PlaylistItem> e)
+        private void selectedItemChanged(ValueChangedEvent<PlaylistItem> e)
         {
-            // Retrieve the corresponding local beatmap, since we can't directly use the playlist's beatmap info
-            var localBeatmap = e.NewValue?.Beatmap == null ? null : beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == e.NewValue.Beatmap.Value.OnlineBeatmapID);
+            updateWorkingBeatmap();
 
-            Beatmap.Value = beatmapManager.GetWorkingBeatmap(localBeatmap);
             Mods.Value = e.NewValue?.RequiredMods?.ToArray() ?? Array.Empty<Mod>();
 
             if (e.NewValue?.Ruleset != null)
                 Ruleset.Value = e.NewValue.Ruleset.Value;
-
-            previewTrackManager.StopAnyPlaying(this);
         }
 
-        /// <summary>
-        /// Handle the case where a beatmap is imported (and can be used by this match).
-        /// </summary>
+        private void updateWorkingBeatmap()
+        {
+            var beatmap = selectedItem.Value?.Beatmap.Value;
+
+            // Retrieve the corresponding local beatmap, since we can't directly use the playlist's beatmap info
+            var localBeatmap = beatmap == null ? null : beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == beatmap.OnlineBeatmapID);
+
+            Beatmap.Value = beatmapManager.GetWorkingBeatmap(localBeatmap);
+
+            footer.AllowStart.Value = Beatmap.Value != beatmapManager.DefaultBeatmap;
+        }
+
         private void beatmapAdded(BeatmapSetInfo model) => Schedule(() =>
         {
             if (Beatmap.Value != beatmapManager.DefaultBeatmap)
                 return;
 
-            if (CurrentItem.Value == null)
-                return;
-
-            // Try to retrieve the corresponding local beatmap
-            var localBeatmap = beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == CurrentItem.Value.Beatmap.Value.OnlineBeatmapID);
-
-            if (localBeatmap != null)
-                Beatmap.Value = beatmapManager.GetWorkingBeatmap(localBeatmap);
+            updateWorkingBeatmap();
         });
-
-        [Resolved(canBeNull: true)]
-        private Multiplayer multiplayer { get; set; }
 
         private void onStart()
         {
-            previewTrackManager.StopAnyPlaying(this);
-
             switch (type.Value)
             {
                 default:
                 case GameTypeTimeshift _:
-                    multiplayer?.Start(() => new TimeshiftPlayer(CurrentItem.Value)
+                    multiplayer?.Start(() => new TimeshiftPlayer(selectedItem.Value)
                     {
+                        Exited = () => leaderboardChatDisplay.RefreshScores()
                     });
                     break;
             }

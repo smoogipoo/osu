@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -33,6 +34,8 @@ namespace osu.Game.Screens.Select
             Padding = new MarginPadding { Horizontal = HORIZONTAL_OVERFLOW_PADDING };
         }
 
+        private bool cancel = false;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -42,6 +45,20 @@ namespace osu.Game.Screens.Select
 
             Mods.BindValueChanged(_ => populateSelected());
             Ruleset.BindValueChanged(_ => populateSelected());
+
+            SelectedItem.BindValueChanged(item =>
+            {
+                if (item.NewValue != null)
+                {
+                    cancel = true;
+
+                    Carousel.SelectBeatmap(item.NewValue.Beatmap.Value, true);
+                    Ruleset.Value = item.NewValue.Ruleset.Value;
+                    Mods.Value = item.NewValue.RequiredMods.ToArray();
+
+                    cancel = false;
+                }
+            });
         }
 
         protected override BeatmapDetailArea CreateBeatmapDetailArea() => new MatchBeatmapDetailArea
@@ -108,6 +125,9 @@ namespace osu.Game.Screens.Select
 
         private PlaylistItem populate(PlaylistItem item)
         {
+            if (cancel)
+                return item;
+
             item.Beatmap.Value = Beatmap.Value.BeatmapInfo;
             item.Ruleset.Value = Ruleset.Value;
 
