@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Match;
@@ -41,7 +40,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
             createSongSelect();
 
             AddUntilStep("playlist has one item", () => Room.Playlist.Count == 1);
-            AddUntilStep("item 1 is selected", () => songSelect.SelectedItem.Value == Room.Playlist[0]);
         }
 
         [Test]
@@ -61,7 +59,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
             createSongSelect();
 
             AddUntilStep("playlist has one item", () => Room.Playlist.Count == 1);
-            AddUntilStep("item 1 is selected", () => songSelect.SelectedItem.Value == Room.Playlist[0]);
         }
 
         private void createSongSelect() => AddStep("create song select", () =>
@@ -71,7 +68,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private class TestMatchSongSelect : MatchSongSelect
         {
-            public new Bindable<PlaylistItem> SelectedItem => base.SelectedItem;
         }
     }
 }
