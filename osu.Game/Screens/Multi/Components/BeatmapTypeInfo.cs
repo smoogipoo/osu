@@ -63,7 +63,7 @@ namespace osu.Game.Screens.Multi.Components
 
             var beatmap = Playlist.FirstOrDefault()?.Beatmap;
 
-            if (beatmap != null)
+            if (beatmap?.Value?.Metadata?.Author != null)
             {
                 beatmapAuthor.AddText("mapped by ", s => s.Colour = OsuColour.Gray(0.8f));
                 beatmapAuthor.AddUserLink(beatmap.Value.Metadata.Author);
