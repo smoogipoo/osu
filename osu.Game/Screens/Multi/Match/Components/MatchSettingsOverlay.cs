@@ -161,15 +161,6 @@ namespace osu.Game.Screens.Multi.Match.Components
                                                                 },
                                                             },
                                                         },
-                                                    },
-                                                },
-                                                new SectionContainer
-                                                {
-                                                    Anchor = Anchor.TopRight,
-                                                    Origin = Anchor.TopRight,
-                                                    Padding = new MarginPadding { Left = field_padding / 2 },
-                                                    Children = new[]
-                                                    {
                                                         new Section("Max participants")
                                                         {
                                                             Alpha = disabled_alpha,
@@ -212,6 +203,15 @@ namespace osu.Game.Screens.Multi.Match.Components
                                                                 OnCommit = (sender, text) => apply()
                                                             },
                                                         },
+                                                    },
+                                                },
+                                                new SectionContainer
+                                                {
+                                                    Anchor = Anchor.TopRight,
+                                                    Origin = Anchor.TopRight,
+                                                    Padding = new MarginPadding { Left = field_padding / 2 },
+                                                    Children = new[]
+                                                    {
                                                         new Section("Playlist")
                                                         {
                                                             Child = new GridContainer
