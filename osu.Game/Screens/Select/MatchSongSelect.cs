@@ -43,27 +43,13 @@ namespace osu.Game.Screens.Select
             return true;
         }
 
-        public override void OnEntering(IScreen last)
-        {
-            base.OnEntering(last);
-
-            Beatmap.Disabled = false;
-            Ruleset.Disabled = false;
-            Mods.Disabled = false;
-        }
-
         public override bool OnExiting(IScreen next)
         {
             if (base.OnExiting(next))
                 return true;
 
-            Beatmap.Disabled = true;
-            Ruleset.Disabled = true;
-            Mods.Disabled = true;
-
             return false;
         }
-
         private void createNewItem()
         {
             PlaylistItem item = new PlaylistItem

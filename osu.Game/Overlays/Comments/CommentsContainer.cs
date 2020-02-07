@@ -12,6 +12,7 @@ using osu.Game.Online.API.Requests.Responses;
 using System.Threading;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Game.Users;
 
 namespace osu.Game.Overlays.Comments
 {
@@ -22,6 +23,8 @@ namespace osu.Game.Overlays.Comments
 
         public readonly Bindable<CommentsSortCriteria> Sort = new Bindable<CommentsSortCriteria>();
         public readonly BindableBool ShowDeleted = new BindableBool();
+
+        protected readonly Bindable<User> User = new Bindable<User>();
 
         [Resolved]
         private IAPIProvider api { get; set; }
@@ -68,6 +71,7 @@ namespace osu.Game.Overlays.Comments
                         },
                         new Container
                         {
+                            Name = @"Footer",
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
                             Children = new Drawable[]
@@ -108,10 +112,13 @@ namespace osu.Game.Overlays.Comments
                     }
                 }
             });
+
+            User.BindTo(api.LocalUser);
         }
 
         protected override void LoadComplete()
         {
+            User.BindValueChanged(_ => refetchComments());
             Sort.BindValueChanged(_ => refetchComments(), true);
             base.LoadComplete();
         }
@@ -147,13 +154,14 @@ namespace osu.Game.Overlays.Comments
             loadCancellation?.Cancel();
             request = new GetCommentsRequest(type, id.Value, Sort.Value, currentPage++);
             request.Success += onSuccess;
-            api.Queue(request);
+            api.PerformAsync(request);
         }
 
         private void clearComments()
         {
             currentPage = 1;
             deletedCommentsCounter.Count.Value = 0;
+            moreButton.Show();
             moreButton.IsLoading = true;
             content.Clear();
         }
@@ -162,25 +170,10 @@ namespace osu.Game.Overlays.Comments
         {
             loadCancellation = new CancellationTokenSource();
 
-            var page = new FillFlowContainer
+            LoadComponentAsync(new CommentsPage(response)
             {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Direction = FillDirection.Vertical,
-            };
-
-            foreach (var c in response.Comments)
-            {
-                if (c.IsTopLevel)
-                {
-                    page.Add(new DrawableComment(c)
-                    {
-                        ShowDeleted = { BindTarget = ShowDeleted }
-                    });
-                }
-            }
-
-            LoadComponentAsync(page, loaded =>
+                ShowDeleted = { BindTarget = ShowDeleted }
+            }, loaded =>
             {
                 content.Add(loaded);
 
@@ -194,10 +187,12 @@ namespace osu.Game.Overlays.Comments
                     moreButton.Current.Value = response.TopLevelCount - loadedTopLevelComments;
                     moreButton.IsLoading = false;
                 }
+                else
+                {
+                    moreButton.Hide();
+                }
 
                 commentCounter.Current.Value = response.Total;
-
-                moreButton.FadeTo(response.HasMore ? 1 : 0);
             }, loadCancellation.Token);
         }
 
