@@ -50,6 +50,7 @@ namespace osu.Game.Screens.Select
 
             return false;
         }
+
         private void createNewItem()
         {
             PlaylistItem item = new PlaylistItem

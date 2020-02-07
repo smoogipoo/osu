@@ -48,8 +48,8 @@ namespace osu.Game.Screens.Select
                 ModSelect.DeselectTypes(new[] { autoType }, true);
                 removeAutoModOnResume = false;
             }
-            ((PlayBeatmapDetailArea)BeatmapDetails).Leaderboard.RefreshScores();
 
+            ((PlayBeatmapDetailArea)BeatmapDetails).Leaderboard.RefreshScores();
         }
 
         protected override BeatmapDetailArea CreateBeatmapDetailArea() => new PlayBeatmapDetailArea();
