@@ -9,6 +9,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.Multiplayer;
+using osu.Game.Screens.Multi.Components;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Match.Components
@@ -18,7 +20,7 @@ namespace osu.Game.Screens.Multi.Match.Components
         public const float HEIGHT = 100;
 
         public Action OnStart;
-        public readonly BindableBool AllowStart = new BindableBool();
+        public readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
 
         private readonly Drawable background;
         private readonly OsuButton startButton;
@@ -31,13 +33,12 @@ namespace osu.Game.Screens.Multi.Match.Components
             InternalChildren = new[]
             {
                 background = new Box { RelativeSizeAxes = Axes.Both },
-                startButton = new OsuButton
+                startButton = new StartButton
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(600, 50),
-                    Text = "Start",
-                    Enabled = { BindTarget = AllowStart },
+                    SelectedItem = { BindTarget = SelectedItem },
                     Action = () => OnStart?.Invoke()
                 }
             };

@@ -1,0 +1,95 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
+using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Game.Beatmaps;
+using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.Multiplayer;
+
+namespace osu.Game.Screens.Multi.Components
+{
+    public class StartButton : OsuButton
+    {
+        public readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
+
+        [Resolved(typeof(Room), nameof(Room.EndDate))]
+        private Bindable<DateTimeOffset> endDate { get; set; }
+
+        [Resolved]
+        private IBindable<WorkingBeatmap> gameBeatmap { get; set; }
+
+        [Resolved]
+        private BeatmapManager beatmaps { get; set; }
+
+        private bool hasBeatmap;
+
+        public StartButton()
+        {
+            Text = "Start";
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            beatmaps.ItemAdded += beatmapAdded;
+            beatmaps.ItemRemoved += beatmapRemoved;
+
+            SelectedItem.BindValueChanged(b => updateSelectedItem(b.NewValue), true);
+        }
+
+        private void updateSelectedItem(PlaylistItem item)
+        {
+            hasBeatmap = false;
+
+            int? beatmapId = SelectedItem.Value?.Beatmap.Value?.OnlineBeatmapID;
+            if (beatmapId == null)
+                return;
+
+            hasBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == beatmapId) != null;
+        }
+
+        private void beatmapAdded(BeatmapSetInfo model)
+        {
+            int? beatmapId = SelectedItem.Value?.Beatmap.Value?.OnlineBeatmapID;
+            if (beatmapId == null)
+                return;
+
+            if (model.Beatmaps.Any(b => b.OnlineBeatmapID == beatmapId))
+                Schedule(() => hasBeatmap = true);
+        }
+
+        private void beatmapRemoved(BeatmapSetInfo model)
+        {
+            int? beatmapSetId = SelectedItem.Value?.Beatmap.Value?.BeatmapSet?.OnlineBeatmapSetID;
+            if (beatmapSetId == null)
+                return;
+
+            if (model.OnlineBeatmapSetID == beatmapSetId)
+                Schedule(() => hasBeatmap = false);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            updateEnabledState();
+        }
+
+        private void updateEnabledState()
+        {
+            if (gameBeatmap.Value == null || SelectedItem.Value == null)
+            {
+                Enabled.Value = false;
+                return;
+            }
+
+            bool hasEnoughTime = DateTimeOffset.UtcNow.AddSeconds(30).AddMilliseconds(gameBeatmap.Value.Track.Length) < endDate.Value;
+
+            Enabled.Value = hasBeatmap && hasEnoughTime;
+        }
+    }
+}

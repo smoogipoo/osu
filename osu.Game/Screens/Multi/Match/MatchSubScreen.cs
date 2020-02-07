@@ -142,7 +142,11 @@ namespace osu.Game.Screens.Multi.Match
                         },
                         new Drawable[]
                         {
-                            footer = new Footer { OnStart = onStart }
+                            footer = new Footer
+                            {
+                                OnStart = onStart,
+                                SelectedItem = { BindTarget = selectedItem }
+                            }
                         }
                     },
                     RowDimensions = new[]
@@ -204,8 +208,6 @@ namespace osu.Game.Screens.Multi.Match
             var localBeatmap = beatmap == null ? null : beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == beatmap.OnlineBeatmapID);
 
             Beatmap.Value = beatmapManager.GetWorkingBeatmap(localBeatmap);
-
-            footer.AllowStart.Value = Beatmap.Value != beatmapManager.DefaultBeatmap;
         }
 
         private void beatmapAdded(BeatmapSetInfo model) => Schedule(() =>
