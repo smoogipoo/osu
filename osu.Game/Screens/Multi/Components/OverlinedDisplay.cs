@@ -9,7 +9,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osuTK;
 
-namespace osu.Game.Screens.Multi.Match.Components
+namespace osu.Game.Screens.Multi.Components
 {
     public abstract class OverlinedDisplay : MultiplayerComposite
     {
@@ -25,8 +25,6 @@ namespace osu.Game.Screens.Multi.Match.Components
 
         protected OverlinedDisplay(string title)
         {
-            RelativeSizeAxes = Axes.Both;
-
             InternalChild = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
