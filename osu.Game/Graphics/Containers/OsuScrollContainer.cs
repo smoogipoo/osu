@@ -112,14 +112,12 @@ namespace osu.Game.Graphics.Containers
 
                 CornerRadius = 5;
 
-                const float margin = 3;
-
                 Margin = new MarginPadding
                 {
-                    Left = scrollDir == Direction.Vertical ? margin : 0,
-                    Right = scrollDir == Direction.Vertical ? margin : 0,
-                    Top = scrollDir == Direction.Horizontal ? margin : 0,
-                    Bottom = scrollDir == Direction.Horizontal ? margin : 0,
+                    Left = scrollDir == Direction.Vertical ? SCROLL_BAR_PADDING : 0,
+                    Right = scrollDir == Direction.Vertical ? SCROLL_BAR_PADDING : 0,
+                    Top = scrollDir == Direction.Horizontal ? SCROLL_BAR_PADDING : 0,
+                    Bottom = scrollDir == Direction.Horizontal ? SCROLL_BAR_PADDING : 0,
                 };
 
                 Masking = true;
