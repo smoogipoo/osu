@@ -7,19 +7,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Screens;
 using osu.Game.Configuration;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Catch;
-using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
-using osu.Game.Rulesets.Taiko;
 using osu.Game.Screens.Play;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
-    /// <summary>
-    /// A base class which runs <see cref="Player"/> test for all available rulesets.
-    /// Steps to be run for each ruleset should be added via <see cref="AddCheckSteps"/>.
-    /// </summary>
     public abstract class TestSceneAllRulesetPlayers : RateAdjustedBeatmapTestScene
     {
         protected Player Player;
@@ -35,34 +28,28 @@ namespace osu.Game.Tests.Visual.Gameplay
         [Test]
         public void TestOsu() => runForRuleset(new OsuRuleset().RulesetInfo);
 
-        [Test]
-        public void TestTaiko() => runForRuleset(new TaikoRuleset().RulesetInfo);
-
-        [Test]
-        public void TestCatch() => runForRuleset(new CatchRuleset().RulesetInfo);
-
-        [Test]
-        public void TestMania() => runForRuleset(new ManiaRuleset().RulesetInfo);
-
         private void runForRuleset(RulesetInfo ruleset)
         {
-            Player p = null;
-            AddStep($"load {ruleset.Name} player", () => p = loadPlayerFor(ruleset));
-            AddUntilStep("player loaded", () =>
-            {
-                if (p?.IsLoaded == true)
-                {
-                    p = null;
-                    return true;
-                }
-
-                return false;
-            });
-
-            AddCheckSteps();
+            AddStep($"load {ruleset.Name} player", () => loadPlayerFor(ruleset));
         }
 
-        protected abstract void AddCheckSteps();
+        protected override void Update()
+        {
+            base.Update();
+
+            var p = (TestPlayer)Player;
+
+            if (p?.IsLoaded == true)
+            {
+                if (p.DrawableRuleset.FrameStableClock.TimeInfo.Elapsed > 0)
+                {
+                    if (p.DrawableRuleset.FrameStableClock.CurrentTime >= 150000)
+                        p.GameplayClockContainer.Seek(0);
+                    else
+                        p.GameplayClockContainer.Seek(200000);
+                }
+            }
+        }
 
         private Player loadPlayerFor(RulesetInfo rulesetInfo)
         {
