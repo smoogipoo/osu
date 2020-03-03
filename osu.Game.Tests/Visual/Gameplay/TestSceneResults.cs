@@ -27,7 +27,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(Results),
+            typeof(Screens.Ranking.Results),
             typeof(ResultsPage),
             typeof(ScoreResultsPage),
             typeof(RetryButton),
