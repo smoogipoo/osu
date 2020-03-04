@@ -5,7 +5,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osuTK;
@@ -29,7 +28,6 @@ namespace osu.Game.Tests.Visual.Results
             private const float accuracy_circle_radius = 0.2f;
             private const float rank_circle_radius = 0.03f;
 
-            private CircularProgress rankSSCircle;
             private CircularProgress rankSCircle;
             private CircularProgress rankACircle;
             private CircularProgress rankBCircle;
@@ -59,7 +57,6 @@ namespace osu.Game.Tests.Visual.Results
                         RelativeSizeAxes = Axes.Both,
                         Colour = ColourInfo.GradientVertical(OsuColour.FromHex("#7CF6FF"), OsuColour.FromHex("#BAFFA9")),
                         InnerRadius = accuracy_circle_radius,
-                        Current = { Value = 0.97f }
                     },
                     new Container
                     {
@@ -70,7 +67,7 @@ namespace osu.Game.Tests.Visual.Results
                         Padding = new MarginPadding(2),
                         Children = new Drawable[]
                         {
-                            rankSSCircle = new CircularProgress
+                            new CircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
@@ -86,7 +83,7 @@ namespace osu.Game.Tests.Visual.Results
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = OsuColour.FromHex("#0096A2"),
                                 InnerRadius = rank_circle_radius,
-                                Current = { Value = 0.95f }
+                                Current = { Value = 0.99f }
                             },
                             rankACircle = new CircularProgress
                             {
@@ -95,7 +92,7 @@ namespace osu.Game.Tests.Visual.Results
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = OsuColour.FromHex("#72C904"),
                                 InnerRadius = rank_circle_radius,
-                                Current = { Value = 0.9f }
+                                Current = { Value = 0.95f }
                             },
                             rankBCircle = new CircularProgress
                             {
@@ -104,7 +101,7 @@ namespace osu.Game.Tests.Visual.Results
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = OsuColour.FromHex("#D99D03"),
                                 InnerRadius = rank_circle_radius,
-                                Current = { Value = 0.85f }
+                                Current = { Value = 0.9f }
                             },
                             rankCCircle = new CircularProgress
                             {
@@ -127,6 +124,14 @@ namespace osu.Game.Tests.Visual.Results
                         }
                     }
                 };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                this.ScaleTo(0).Then().ScaleTo(1, 500, Easing.Out);
+                accuracyCircle.Delay(300).FillTo(0.97f, 4000, Easing.OutPow10);
             }
         }
     }
