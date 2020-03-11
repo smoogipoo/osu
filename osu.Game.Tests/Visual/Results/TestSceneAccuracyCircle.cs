@@ -2,9 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osuTK;
@@ -28,22 +32,20 @@ namespace osu.Game.Tests.Visual.Results
             private const float accuracy_circle_radius = 0.2f;
             private const float rank_circle_radius = 0.03f;
 
-            private Container<CircularProgress> rankCircleContainers;
-
-            private CircularProgress rankSSCircle;
-            private CircularProgress rankSCircle;
-            private CircularProgress rankACircle;
-            private CircularProgress rankBCircle;
-            private CircularProgress rankCCircle;
-            private CircularProgress rankDCircle;
-            private CircularProgress accuracyCircle;
+            private SmoothedCircularProgress rankSSCircle;
+            private SmoothedCircularProgress rankSCircle;
+            private SmoothedCircularProgress rankACircle;
+            private SmoothedCircularProgress rankBCircle;
+            private SmoothedCircularProgress rankCCircle;
+            private SmoothedCircularProgress rankDCircle;
+            private SmoothedCircularProgress accuracyCircle;
 
             [BackgroundDependencyLoader]
             private void load()
             {
                 InternalChildren = new Drawable[]
                 {
-                    new CircularProgress
+                    new SmoothedCircularProgress
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -53,15 +55,15 @@ namespace osu.Game.Tests.Visual.Results
                         InnerRadius = accuracy_circle_radius,
                         Current = { Value = 1 },
                     },
-                    accuracyCircle = new CircularProgress
+                    accuracyCircle = new SmoothedCircularProgress
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = ColourInfo.GradientVertical(OsuColour.FromHex("#7CF6FF"), OsuColour.FromHex("#BAFFA9")),
+                        Colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#7CF6FF"), Color4Extensions.FromHex("#BAFFA9")),
                         InnerRadius = accuracy_circle_radius,
                     },
-                    rankCircleContainers = new Container<CircularProgress>
+                    new Container<SmoothedCircularProgress>
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -70,52 +72,52 @@ namespace osu.Game.Tests.Visual.Results
                         Padding = new MarginPadding(2),
                         Children = new[]
                         {
-                            rankSSCircle = new CircularProgress
+                            rankSSCircle = new SmoothedCircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex("#BE0089"),
+                                Colour = Color4Extensions.FromHex("#BE0089"),
                                 InnerRadius = rank_circle_radius,
                             },
-                            rankSCircle = new CircularProgress
+                            rankSCircle = new SmoothedCircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex("#0096A2"),
+                                Colour = Color4Extensions.FromHex("#0096A2"),
                                 InnerRadius = rank_circle_radius,
                             },
-                            rankACircle = new CircularProgress
+                            rankACircle = new SmoothedCircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex("#72C904"),
+                                Colour = Color4Extensions.FromHex("#72C904"),
                                 InnerRadius = rank_circle_radius,
                             },
-                            rankBCircle = new CircularProgress
+                            rankBCircle = new SmoothedCircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex("#D99D03"),
+                                Colour = Color4Extensions.FromHex("#D99D03"),
                                 InnerRadius = rank_circle_radius,
                             },
-                            rankCCircle = new CircularProgress
+                            rankCCircle = new SmoothedCircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex("#EA7948"),
+                                Colour = Color4Extensions.FromHex("#EA7948"),
                                 InnerRadius = rank_circle_radius,
                             },
-                            rankDCircle = new CircularProgress
+                            rankDCircle = new SmoothedCircularProgress
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = OsuColour.FromHex("#FF5858"),
+                                Colour = Color4Extensions.FromHex("#FF5858"),
                                 InnerRadius = rank_circle_radius,
                             },
                         }
@@ -144,6 +146,106 @@ namespace osu.Game.Tests.Visual.Results
                     }
                 }
             }
+        }
+
+        private class SmoothedCircularProgress : CompositeDrawable
+        {
+            public Bindable<double> Current
+            {
+                get => progress.Current;
+                set => progress.Current = value;
+            }
+
+            public float InnerRadius
+            {
+                get => progress.InnerRadius;
+                set
+                {
+                    progress.InnerRadius = value;
+                    innerSmoothingContainer.Size = new Vector2(1 - value);
+                    smoothingWedge.Height = value / 2;
+                }
+            }
+
+            private readonly CircularProgress progress;
+            private readonly Container innerSmoothingContainer;
+            private readonly Drawable smoothingWedge;
+
+            public SmoothedCircularProgress()
+            {
+                Container smoothingWedgeContainer;
+
+                InternalChild = new BufferedContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        progress = new CircularProgress { RelativeSizeAxes = Axes.Both },
+                        smoothingWedgeContainer = new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = smoothingWedge = new Box
+                            {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
+                                RelativeSizeAxes = Axes.Y,
+                                Width = 1f,
+                                EdgeSmoothness = new Vector2(2, 0),
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding(-1),
+                            Child = new CircularContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                BorderThickness = 2,
+                                Masking = true,
+                                Blending = new BlendingParameters { AlphaEquation = BlendingEquation.ReverseSubtract },
+                                Child = new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Alpha = 0,
+                                    AlwaysPresent = true
+                                }
+                            }
+                        },
+                        innerSmoothingContainer = new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            RelativeSizeAxes = Axes.Both,
+                            Size = Vector2.Zero,
+                            Padding = new MarginPadding(-1),
+                            Child = new CircularContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                BorderThickness = 2,
+                                Masking = true,
+                                Blending = new BlendingParameters { AlphaEquation = BlendingEquation.ReverseSubtract },
+                                Child = new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Alpha = 0,
+                                    AlwaysPresent = true
+                                }
+                            }
+                        },
+                    }
+                };
+
+                Current.BindValueChanged(c =>
+                {
+                    smoothingWedgeContainer.Alpha = c.NewValue > 0 ? 1 : 0;
+                    smoothingWedgeContainer.Rotation = (float)(360 * c.NewValue);
+                }, true);
+            }
+
+            public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
+                => progress.FillTo(newValue, duration, easing);
         }
     }
 }
