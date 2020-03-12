@@ -8,7 +8,7 @@ using osu.Game.Screens.Ranking.Types;
 
 namespace osu.Game.Screens.Play
 {
-    public class SoloResults : Results
+    public class SoloResults : Ranking.Results
     {
         public SoloResults(ScoreInfo score)
             : base(score)

@@ -24,7 +24,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
-using osu.Game.Screens.Ranking;
 using osu.Game.Skinning;
 using osu.Game.Users;
 
@@ -416,7 +415,7 @@ namespace osu.Game.Screens.Play
 
         protected override bool OnScroll(ScrollEvent e) => mouseWheelDisabled.Value && !GameplayClockContainer.IsPaused.Value;
 
-        protected virtual Results CreateResults(ScoreInfo score) => new SoloResults(score);
+        protected virtual Ranking.Results CreateResults(ScoreInfo score) => new SoloResults(score);
 
         #region Fail Logic
 

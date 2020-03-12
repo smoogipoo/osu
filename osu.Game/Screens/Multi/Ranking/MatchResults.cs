@@ -9,7 +9,7 @@ using osu.Game.Screens.Ranking.Types;
 
 namespace osu.Game.Screens.Multi.Ranking
 {
-    public class MatchResults : Results
+    public class MatchResults : Screens.Ranking.Results
     {
         public MatchResults(ScoreInfo score)
             : base(score)

@@ -16,7 +16,6 @@ using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.Multi.Ranking;
 using osu.Game.Screens.Play;
-using osu.Game.Screens.Ranking;
 
 namespace osu.Game.Screens.Multi.Play
 {
@@ -116,6 +115,6 @@ namespace osu.Game.Screens.Multi.Play
             Exited = null;
         }
 
-        protected override Results CreateResults(ScoreInfo score) => new MatchResults(score);
+        protected override Screens.Ranking.Results CreateResults(ScoreInfo score) => new MatchResults(score);
     }
 }
