@@ -66,6 +66,7 @@ namespace osu.Game.Tests.Visual.Results
                     },
                     accuracyCircle = new SmoothedCircularProgress
                     {
+                        Name = "Accuracy circle",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
@@ -74,6 +75,7 @@ namespace osu.Game.Tests.Visual.Results
                     },
                     new BufferedContainer
                     {
+                        Name = "Graded circles",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
@@ -131,6 +133,7 @@ namespace osu.Game.Tests.Visual.Results
                             new Notch(0.7f, rank_circle_radius),
                             new BufferedContainer
                             {
+                                Name = "Graded circle mask",
                                 RelativeSizeAxes = Axes.Both,
                                 Padding = new MarginPadding(1),
                                 Blending = new BlendingParameters
