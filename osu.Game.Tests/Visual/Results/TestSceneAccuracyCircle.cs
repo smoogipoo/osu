@@ -1,16 +1,22 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Utils;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Sprites;
+using osu.Game.Online.Leaderboards;
+using osu.Game.Scoring;
 using osuTK;
 
 namespace osu.Game.Tests.Visual.Results
@@ -45,11 +51,12 @@ namespace osu.Game.Tests.Visual.Results
         {
             private const float accuracy_circle_radius = 0.2f;
             private const float rank_circle_radius = 0.04f;
-            private const float accuracy_target = 1;
+            private const float accuracy_target = 0.92f;
 
             private SmoothedCircularProgress accuracyCircle;
             private SmoothedCircularProgress innerMask;
             private Container<Badge> badges;
+            private RankText rankText;
 
             [BackgroundDependencyLoader]
             private void load()
@@ -168,6 +175,7 @@ namespace osu.Game.Tests.Visual.Results
                             new Badge(0.7f, ScoreRank.C),
                         }
                     },
+                    rankText = new RankText(ScoreRank.X)
                 };
             }
 
@@ -193,6 +201,9 @@ namespace osu.Game.Tests.Visual.Results
                             using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / accuracy_target) * 3000, true))
                                 badge.Appear();
                         }
+
+                        using (BeginDelayedSequence(1400, true))
+                            rankText.Appear();
                     }
                 }
             }
@@ -216,6 +227,65 @@ namespace osu.Game.Tests.Visual.Results
                 return test;
             }
         }
+
+        private class RankText : CompositeDrawable
+        {
+            private readonly Drawable flash;
+
+            public RankText(ScoreRank rank)
+            {
+                Anchor = Anchor.Centre;
+                Origin = Anchor.Centre;
+
+                Alpha = 0;
+                AutoSizeAxes = Axes.Both;
+
+                InternalChildren = new[]
+                {
+                    new GlowingSpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Spacing = new Vector2(-15, 0),
+                        Text = DrawableRank.GetRankName(rank),
+                        Font = OsuFont.Numeric.With(size: 96),
+                        UseFullGlyphHeight = false
+                    },
+                    flash = new BufferedContainer
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        BlurSigma = new Vector2(35),
+                        BypassAutoSizeAxes = Axes.Both,
+                        RelativeSizeAxes = Axes.Both,
+                        Blending = BlendingParameters.Additive,
+                        Size = new Vector2(2f),
+                        Scale = new Vector2(1.8f),
+                        Children = new[]
+                        {
+                            new OsuSpriteText
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Spacing = new Vector2(-15, 0),
+                                Text = DrawableRank.GetRankName(rank),
+                                Font = OsuFont.Numeric.With(size: 96),
+                                UseFullGlyphHeight = false,
+                                Shadow = false
+                            },
+                        },
+                    },
+                };
+            }
+
+            public void Appear()
+            {
+                this.FadeIn(0, Easing.In);
+
+                flash.FadeIn(0, Easing.In).Then().FadeOut(800, Easing.OutQuint);
+            }
+        }
+
         private class Badge : CompositeDrawable
         {
             public readonly float Value;
