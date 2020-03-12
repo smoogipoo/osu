@@ -19,6 +19,20 @@ namespace osu.Game.Tests.Visual.Results
     {
         public TestSceneAccuracyCircle()
         {
+            Child = new Container
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(500, 700),
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#555"), Color4Extensions.FromHex("#333"))
+                    }
+                }
+            };
             Add(new AccuracyCircle
             {
                 Anchor = Anchor.Centre,
@@ -30,15 +44,10 @@ namespace osu.Game.Tests.Visual.Results
         private class AccuracyCircle : CompositeDrawable
         {
             private const float accuracy_circle_radius = 0.2f;
-            private const float rank_circle_radius = 0.03f;
+            private const float rank_circle_radius = 0.04f;
 
-            private SmoothedCircularProgress rankSSCircle;
-            private SmoothedCircularProgress rankSCircle;
-            private SmoothedCircularProgress rankACircle;
-            private SmoothedCircularProgress rankBCircle;
-            private SmoothedCircularProgress rankCCircle;
-            private SmoothedCircularProgress rankDCircle;
             private SmoothedCircularProgress accuracyCircle;
+            private SmoothedCircularProgress innerMask;
 
             [BackgroundDependencyLoader]
             private void load()
@@ -52,7 +61,7 @@ namespace osu.Game.Tests.Visual.Results
                         RelativeSizeAxes = Axes.Both,
                         Colour = OsuColour.Gray(47),
                         Alpha = 0.5f,
-                        InnerRadius = accuracy_circle_radius,
+                        InnerRadius = accuracy_circle_radius + 0.01f, // Extends a little bit into the circle
                         Current = { Value = 1 },
                     },
                     accuracyCircle = new SmoothedCircularProgress
@@ -63,63 +72,80 @@ namespace osu.Game.Tests.Visual.Results
                         Colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#7CF6FF"), Color4Extensions.FromHex("#BAFFA9")),
                         InnerRadius = accuracy_circle_radius,
                     },
-                    new Container<SmoothedCircularProgress>
+                    new BufferedContainer
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.8f),
                         Padding = new MarginPadding(2),
-                        Children = new[]
+                        Children = new Drawable[]
                         {
-                            rankSSCircle = new SmoothedCircularProgress
+                            new SmoothedCircularProgress
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = Color4Extensions.FromHex("#BE0089"),
                                 InnerRadius = rank_circle_radius,
+                                Current = { Value = 1 }
                             },
-                            rankSCircle = new SmoothedCircularProgress
+                            new SmoothedCircularProgress
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = Color4Extensions.FromHex("#0096A2"),
                                 InnerRadius = rank_circle_radius,
+                                Current = { Value = 0.99f }
                             },
-                            rankACircle = new SmoothedCircularProgress
+                            new SmoothedCircularProgress
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = Color4Extensions.FromHex("#72C904"),
                                 InnerRadius = rank_circle_radius,
+                                Current = { Value = 0.95f }
                             },
-                            rankBCircle = new SmoothedCircularProgress
+                            new SmoothedCircularProgress
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = Color4Extensions.FromHex("#D99D03"),
                                 InnerRadius = rank_circle_radius,
+                                Current = { Value = 0.9f }
                             },
-                            rankCCircle = new SmoothedCircularProgress
+                            new SmoothedCircularProgress
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = Color4Extensions.FromHex("#EA7948"),
                                 InnerRadius = rank_circle_radius,
+                                Current = { Value = 0.8f }
                             },
-                            rankDCircle = new SmoothedCircularProgress
+                            new SmoothedCircularProgress
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = Color4Extensions.FromHex("#FF5858"),
                                 InnerRadius = rank_circle_radius,
+                                Current = { Value = 0.7f }
                             },
+                            new Notch(0, rank_circle_radius),
+                            new Notch(0.99f, rank_circle_radius),
+                            new Notch(0.95f, rank_circle_radius),
+                            new Notch(0.9f, rank_circle_radius),
+                            new Notch(0.8f, rank_circle_radius),
+                            new Notch(0.7f, rank_circle_radius),
+                            new BufferedContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding(1),
+                                Blending = new BlendingParameters
+                                {
+                                    Source = BlendingType.DstColor,
+                                    Destination = BlendingType.OneMinusSrcAlpha,
+                                    SourceAlpha = BlendingType.One,
+                                    DestinationAlpha = BlendingType.SrcAlpha
+                                },
+                                Child = innerMask = new SmoothedCircularProgress
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    InnerRadius = rank_circle_radius - 0.01f,
+                                }
+                            }
                         }
                     }
                 };
@@ -133,18 +159,37 @@ namespace osu.Game.Tests.Visual.Results
 
                 using (BeginDelayedSequence(150, true))
                 {
-                    rankSSCircle.FillTo(1, 800, Easing.OutPow10);
-                    rankSCircle.FillTo(0.99f, 800, Easing.OutPow10);
-                    rankACircle.FillTo(0.95f, 800, Easing.OutPow10);
-                    rankBCircle.FillTo(0.9f, 800, Easing.OutPow10);
-                    rankCCircle.FillTo(0.8f, 800, Easing.OutPow10);
-                    rankDCircle.FillTo(0.7f, 800, Easing.OutPow10);
+                    innerMask.FillTo(1f, 800, Easing.OutPow10);
 
                     using (BeginDelayedSequence(300, true))
-                    {
                         accuracyCircle.FillTo(0.97f, 3000, Easing.OutPow10);
-                    }
                 }
+            }
+        }
+
+        private class Notch : CompositeDrawable
+        {
+            public Notch(float position, float height)
+            {
+                RelativeSizeAxes = Axes.Both;
+
+                InternalChild = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                    Rotation = position * 360f,
+                    Child = new Box
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        RelativeSizeAxes = Axes.Y,
+                        Height = height,
+                        Width = 1f,
+                        Colour = OsuColour.Gray(0.3f),
+                        EdgeSmoothness = new Vector2(1f)
+                    }
+                };
             }
         }
 
@@ -204,7 +249,10 @@ namespace osu.Game.Tests.Visual.Results
                                 RelativeSizeAxes = Axes.Both,
                                 BorderThickness = 2,
                                 Masking = true,
-                                Blending = new BlendingParameters { AlphaEquation = BlendingEquation.ReverseSubtract },
+                                Blending = new BlendingParameters
+                                {
+                                    AlphaEquation = BlendingEquation.ReverseSubtract,
+                                },
                                 Child = new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
@@ -225,7 +273,10 @@ namespace osu.Game.Tests.Visual.Results
                                 RelativeSizeAxes = Axes.Both,
                                 BorderThickness = 2,
                                 Masking = true,
-                                Blending = new BlendingParameters { AlphaEquation = BlendingEquation.ReverseSubtract },
+                                Blending = new BlendingParameters
+                                {
+                                    AlphaEquation = BlendingEquation.ReverseSubtract,
+                                },
                                 Child = new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
