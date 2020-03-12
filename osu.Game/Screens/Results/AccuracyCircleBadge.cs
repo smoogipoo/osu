@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -16,17 +17,23 @@ namespace osu.Game.Screens.Results
     public class AccuracyCircleBadge : CompositeDrawable
     {
         public readonly float Value;
+        private readonly ScoreRank rank;
 
-        private readonly Drawable rankContainer;
-        private readonly Drawable overlay;
+        private Drawable rankContainer;
+        private Drawable overlay;
 
         public AccuracyCircleBadge(float value, ScoreRank rank)
         {
             Value = value;
+            this.rank = rank;
 
             RelativeSizeAxes = Axes.Both;
             Alpha = 0;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChild = rankContainer = new Container
             {
                 Origin = Anchor.Centre,

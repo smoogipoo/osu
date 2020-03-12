@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
@@ -13,16 +14,24 @@ namespace osu.Game.Screens.Results
 {
     public class AccuracyCircleText : CompositeDrawable
     {
-        private readonly Drawable flash;
+        private readonly ScoreRank rank;
+
+        private Drawable flash;
 
         public AccuracyCircleText(ScoreRank rank)
         {
+            this.rank = rank;
+
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
 
             Alpha = 0;
             AutoSizeAxes = Axes.Both;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChildren = new[]
             {
                 new GlowingSpriteText
