@@ -37,7 +37,7 @@ namespace osu.Game.Tests.Visual.Results
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(300)
+                Size = new Vector2(320)
             });
         }
 
@@ -45,9 +45,11 @@ namespace osu.Game.Tests.Visual.Results
         {
             private const float accuracy_circle_radius = 0.2f;
             private const float rank_circle_radius = 0.04f;
+            private const float accuracy_target = 1;
 
             private SmoothedCircularProgress accuracyCircle;
             private SmoothedCircularProgress innerMask;
+            private Container<Badge> badges;
 
             [BackgroundDependencyLoader]
             private void load()
@@ -56,6 +58,7 @@ namespace osu.Game.Tests.Visual.Results
                 {
                     new SmoothedCircularProgress
                     {
+                        Name = "Background circle",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
@@ -150,7 +153,21 @@ namespace osu.Game.Tests.Visual.Results
                                 }
                             }
                         }
-                    }
+                    },
+                    badges = new Container<Badge>
+                    {
+                        Name = "Rank badges",
+                        RelativeSizeAxes = Axes.Both,
+                        Padding = new MarginPadding(-20),
+                        Children = new[]
+                        {
+                            new Badge(0.99f, ScoreRank.X),
+                            new Badge(0.95f, ScoreRank.S),
+                            new Badge(0.9f, ScoreRank.A),
+                            new Badge(0.8f, ScoreRank.B),
+                            new Badge(0.7f, ScoreRank.C),
+                        }
+                    },
                 };
             }
 
@@ -165,9 +182,97 @@ namespace osu.Game.Tests.Visual.Results
                     innerMask.FillTo(1f, 800, Easing.OutPow10);
 
                     using (BeginDelayedSequence(300, true))
-                        accuracyCircle.FillTo(0.97f, 3000, Easing.OutPow10);
+                    {
+                        accuracyCircle.FillTo(accuracy_target, 3000, Easing.OutPow10);
+
+                        foreach (var badge in badges)
+                        {
+                            if (badge.Value > accuracy_target)
+                                continue;
+
+                            using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / accuracy_target) * 3000, true))
+                                badge.Appear();
+                        }
+                    }
                 }
             }
+
+            private double inverseEasing(Easing easing, double targetValue)
+            {
+                double test = 0;
+                double result = 0;
+                int count = 2;
+
+                while (Math.Abs(result - targetValue) > 0.005)
+                {
+                    int dir = Math.Sign(targetValue - result);
+
+                    test += dir * 1.0 / count;
+                    result = Interpolation.ApplyEasing(easing, test);
+
+                    count++;
+                }
+
+                return test;
+            }
+        }
+        private class Badge : CompositeDrawable
+        {
+            public readonly float Value;
+
+            private readonly Drawable rankContainer;
+            private readonly Drawable overlay;
+
+            public Badge(float value, ScoreRank rank)
+            {
+                Value = value;
+
+                RelativeSizeAxes = Axes.Both;
+                Alpha = 0;
+
+                InternalChild = rankContainer = new Container
+                {
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(32, 16),
+                    Children = new[]
+                    {
+                        new DrawableRank(rank),
+                        overlay = new CircularContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Blending = BlendingParameters.Additive,
+                            Masking = true,
+                            EdgeEffect = new EdgeEffectParameters
+                            {
+                                Type = EdgeEffectType.Glow,
+                                Colour = DrawableRank.GetRankColour(rank).Opacity(0.2f),
+                                Radius = 10,
+                            },
+                            Child = new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Alpha = 0,
+                                AlwaysPresent = true,
+                            }
+                        }
+                    }
+                };
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+                rankContainer.Position = circlePosition(-MathF.PI / 2 - (1 - Value) * MathF.PI * 2);
+            }
+
+            public void Appear()
+            {
+                this.FadeIn(50);
+                overlay.FadeIn().FadeOut(500, Easing.In);
+            }
+
+            private Vector2 circlePosition(float t)
+                => DrawSize / 2 + new Vector2(MathF.Cos(t), MathF.Sin(t)) * DrawSize / 2;
         }
 
         private class Notch : CompositeDrawable
