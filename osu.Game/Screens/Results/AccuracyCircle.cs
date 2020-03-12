@@ -16,8 +16,9 @@ namespace osu.Game.Screens.Results
 {
     public class AccuracyCircle : CompositeDrawable
     {
+        public const float RANK_CIRCLE_RADIUS = 0.04f;
+
         private const float accuracy_circle_radius = 0.2f;
-        private const float rank_circle_radius = 0.04f;
         private const float accuracy_target = 0.92f;
 
         private SmoothCircularProgress accuracyCircle;
@@ -64,50 +65,50 @@ namespace osu.Game.Screens.Results
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#BE0089"),
-                            InnerRadius = rank_circle_radius,
+                            InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 1 }
                         },
                         new SmoothCircularProgress
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#0096A2"),
-                            InnerRadius = rank_circle_radius,
+                            InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 0.99f }
                         },
                         new SmoothCircularProgress
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#72C904"),
-                            InnerRadius = rank_circle_radius,
+                            InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 0.95f }
                         },
                         new SmoothCircularProgress
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#D99D03"),
-                            InnerRadius = rank_circle_radius,
+                            InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 0.9f }
                         },
                         new SmoothCircularProgress
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#EA7948"),
-                            InnerRadius = rank_circle_radius,
+                            InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 0.8f }
                         },
                         new SmoothCircularProgress
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#FF5858"),
-                            InnerRadius = rank_circle_radius,
+                            InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 0.7f }
                         },
-                        new AccuracyCircleNotch(0, rank_circle_radius),
-                        new AccuracyCircleNotch(0.99f, rank_circle_radius),
-                        new AccuracyCircleNotch(0.95f, rank_circle_radius),
-                        new AccuracyCircleNotch(0.9f, rank_circle_radius),
-                        new AccuracyCircleNotch(0.8f, rank_circle_radius),
-                        new AccuracyCircleNotch(0.7f, rank_circle_radius),
+                        new AccuracyCircleNotch(0),
+                        new AccuracyCircleNotch(0.99f),
+                        new AccuracyCircleNotch(0.95f),
+                        new AccuracyCircleNotch(0.9f),
+                        new AccuracyCircleNotch(0.8f),
+                        new AccuracyCircleNotch(0.7f),
                         new BufferedContainer
                         {
                             Name = "Graded circle mask",
@@ -123,7 +124,7 @@ namespace osu.Game.Screens.Results
                             Child = innerMask = new SmoothCircularProgress
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                InnerRadius = rank_circle_radius - 0.01f,
+                                InnerRadius = RANK_CIRCLE_RADIUS - 0.01f,
                             }
                         }
                     }

@@ -11,7 +11,7 @@ namespace osu.Game.Screens.Results
 {
     public class AccuracyCircleNotch : CompositeDrawable
     {
-        public AccuracyCircleNotch(float position, float height)
+        public AccuracyCircleNotch(float position)
         {
             RelativeSizeAxes = Axes.Both;
 
@@ -26,7 +26,7 @@ namespace osu.Game.Screens.Results
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Y,
-                    Height = height,
+                    Height = AccuracyCircle.RANK_CIRCLE_RADIUS,
                     Width = 1f,
                     Colour = OsuColour.Gray(0.3f),
                     EdgeSmoothness = new Vector2(1f)
