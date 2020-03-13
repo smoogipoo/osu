@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -20,13 +21,19 @@ namespace osu.Game.Tests.Visual.Results
 {
     public class TestSceneExpandedPanelMiddleContent : OsuTestScene
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(ExpandedPanelMiddleContent),
+            typeof(AccuracyCircle)
+        };
+
         public TestSceneExpandedPanelMiddleContent()
         {
             Child = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(500, 300),
+                Size = new Vector2(500, 700),
                 Children = new Drawable[]
                 {
                     new Box
@@ -49,7 +56,7 @@ namespace osu.Game.Tests.Visual.Results
             Beatmap = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo,
             Mods = new Mod[] { new OsuModHardRock(), new OsuModDoubleTime() },
             TotalScore = 999999,
-            Accuracy = 99.99,
+            Accuracy = 0.95,
             MaxCombo = 999,
             Rank = ScoreRank.S,
             Date = DateTimeOffset.Now,

@@ -11,8 +11,11 @@ namespace osu.Game.Screens.Results
 {
     public class ExpandedPanelMiddleContent : CompositeDrawable
     {
+        private readonly ScoreInfo score;
+
         public ExpandedPanelMiddleContent(ScoreInfo score)
         {
+            this.score = score;
             RelativeSizeAxes = Axes.Both;
             Masking = true;
         }
@@ -27,7 +30,7 @@ namespace osu.Game.Screens.Results
                 Y = 50,
                 Children = new Drawable[]
                 {
-                    new AccuracyCircle
+                    new AccuracyCircle(score)
                     {
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,

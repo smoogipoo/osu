@@ -19,7 +19,7 @@ namespace osu.Game.Tests.Visual.Results
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(500, 300),
+                Size = new Vector2(500, 200),
                 Children = new Drawable[]
                 {
                     new Box

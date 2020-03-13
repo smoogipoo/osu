@@ -17,14 +17,19 @@ namespace osu.Game.Screens.Results
     public class AccuracyCircle : CompositeDrawable
     {
         public const float RANK_CIRCLE_RADIUS = 0.04f;
-
         private const float accuracy_circle_radius = 0.2f;
-        private const float accuracy_target = 0.92f;
+
+        private readonly ScoreInfo score;
 
         private SmoothCircularProgress accuracyCircle;
         private SmoothCircularProgress innerMask;
         private Container<AccuracyCircleBadge> badges;
         private AccuracyCircleText rankText;
+
+        public AccuracyCircle(ScoreInfo score)
+        {
+            this.score = score;
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -143,7 +148,7 @@ namespace osu.Game.Screens.Results
                         new AccuracyCircleBadge(0.7f, ScoreRank.C),
                     }
                 },
-                rankText = new AccuracyCircleText(ScoreRank.X)
+                rankText = new AccuracyCircleText(score.Rank)
             };
         }
 
@@ -159,14 +164,14 @@ namespace osu.Game.Screens.Results
 
                 using (BeginDelayedSequence(300, true))
                 {
-                    accuracyCircle.FillTo(accuracy_target, 3000, Easing.OutPow10);
+                    accuracyCircle.FillTo(score.Accuracy, 3000, Easing.OutPow10);
 
                     foreach (var badge in badges)
                     {
-                        if (badge.Value > accuracy_target)
+                        if (badge.Value > score.Accuracy)
                             continue;
 
-                        using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / accuracy_target) * 3000, true))
+                        using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / score.Accuracy) * 3000, true))
                             badge.Appear();
                     }
 

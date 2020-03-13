@@ -8,6 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Game.Scoring;
 using osu.Game.Screens.Results;
 using osuTK;
 
@@ -40,7 +41,7 @@ namespace osu.Game.Tests.Visual.Results
                     }
                 }
             };
-            Add(new AccuracyCircle
+            Add(new AccuracyCircle(new ScoreInfo { Accuracy = 0.95, Rank = ScoreRank.S })
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
