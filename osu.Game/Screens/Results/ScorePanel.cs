@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Results
 {
-    public class ThreeLayerPanel : CompositeDrawable, IStateful<PanelState>
+    public class ScorePanel : CompositeDrawable, IStateful<PanelState>
     {
         private const float contracted_width = 160;
         private const float contracted_height = 320;

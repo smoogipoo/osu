@@ -9,20 +9,20 @@ using osu.Game.Screens.Results;
 
 namespace osu.Game.Tests.Visual.Results
 {
-    public class TestSceneThreeLayerPanel : OsuTestScene
+    public class TestSceneScorePanel : OsuTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(ThreeLayerPanel),
+            typeof(ScorePanel),
             typeof(PanelState),
         };
 
-        private ThreeLayerPanel panel;
+        private ScorePanel panel;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = panel = new ThreeLayerPanel
+            Child = panel = new ScorePanel
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
