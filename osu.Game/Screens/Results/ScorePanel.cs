@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Scoring;
-using osu.Game.Users;
 using osuTK;
 using osuTK.Graphics;
 
@@ -35,12 +34,19 @@ namespace osu.Game.Screens.Results
 
         public event Action<PanelState> StateChanged;
 
+        private readonly ScoreInfo score;
+
         private Container topLayer;
         private Container middleLayer;
         private Drawable topLayerBackground;
         private Drawable middleLayerBackground;
         private Container topLayerContent;
         private Container middleLayerContent;
+
+        public ScorePanel(ScoreInfo score)
+        {
+            this.score = score;
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -140,8 +146,8 @@ namespace osu.Game.Screens.Results
                     topLayerBackground.FadeColour(expanded_top_layer_colour, 200, Easing.OutQuint);
                     middleLayerBackground.FadeColour(expanded_middle_layer_colour, 200, Easing.OutQuint);
 
-                    topLayerContent.Add(new ExpandedPanelTopContent(new User { Id = 2, Username = "peppy" }));
-                    middleLayerContent.Add(new ExpandedPanelMiddleContent(new ScoreInfo()));
+                    topLayerContent.Add(new ExpandedPanelTopContent(score.User));
+                    middleLayerContent.Add(new ExpandedPanelMiddleContent(score));
 
                     using (BeginDelayedSequence(appear_delay, true))
                     {
