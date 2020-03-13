@@ -16,6 +16,8 @@ namespace osu.Game.Screens.Results
 {
     public class AccuracyCircle : CompositeDrawable
     {
+        public const double ACCURACY_TRANSFORM_DELAY = 450;
+        public const double ACCURACY_TRANSFORM_DURATION = 3000;
         public const float RANK_CIRCLE_RADIUS = 0.04f;
         private const float accuracy_circle_radius = 0.2f;
 
@@ -159,25 +161,23 @@ namespace osu.Game.Screens.Results
             this.ScaleTo(0).Then().ScaleTo(1, 200, Easing.OutQuint);
 
             using (BeginDelayedSequence(150, true))
-            {
                 innerMask.FillTo(1f, 800, Easing.OutPow10);
 
-                using (BeginDelayedSequence(300, true))
+            using (BeginDelayedSequence(ACCURACY_TRANSFORM_DELAY, true))
+            {
+                accuracyCircle.FillTo(score.Accuracy, ACCURACY_TRANSFORM_DURATION, Easing.OutPow10);
+
+                foreach (var badge in badges)
                 {
-                    accuracyCircle.FillTo(score.Accuracy, 3000, Easing.OutPow10);
+                    if (badge.Value > score.Accuracy)
+                        continue;
 
-                    foreach (var badge in badges)
-                    {
-                        if (badge.Value > score.Accuracy)
-                            continue;
-
-                        using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / score.Accuracy) * 3000, true))
-                            badge.Appear();
-                    }
-
-                    using (BeginDelayedSequence(1400, true))
-                        rankText.Appear();
+                    using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / score.Accuracy) * ACCURACY_TRANSFORM_DURATION, true))
+                        badge.Appear();
                 }
+
+                using (BeginDelayedSequence(ACCURACY_TRANSFORM_DURATION / 2, true))
+                    rankText.Appear();
             }
         }
 
