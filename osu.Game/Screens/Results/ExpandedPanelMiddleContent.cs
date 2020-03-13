@@ -11,7 +11,7 @@ namespace osu.Game.Screens.Results
 {
     public class ExpandedPanelMiddleContent : CompositeDrawable
     {
-        public ExpandedPanelMiddleContent(Score score)
+        public ExpandedPanelMiddleContent(ScoreInfo score)
         {
             RelativeSizeAxes = Axes.Both;
             Masking = true;

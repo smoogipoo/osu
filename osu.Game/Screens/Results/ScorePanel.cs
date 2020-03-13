@@ -141,7 +141,7 @@ namespace osu.Game.Screens.Results
                     middleLayerBackground.FadeColour(expanded_middle_layer_colour, 200, Easing.OutQuint);
 
                     topLayerContent.Add(new ExpandedPanelTopContent(new User { Id = 2, Username = "peppy" }));
-                    middleLayerContent.Add(new ExpandedPanelMiddleContent(new Score()));
+                    middleLayerContent.Add(new ExpandedPanelMiddleContent(new ScoreInfo()));
 
                     using (BeginDelayedSequence(appear_delay, true))
                     {

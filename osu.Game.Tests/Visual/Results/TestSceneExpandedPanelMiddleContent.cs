@@ -1,0 +1,65 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
+using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Osu;
+using osu.Game.Rulesets.Osu.Mods;
+using osu.Game.Rulesets.Scoring;
+using osu.Game.Scoring;
+using osu.Game.Screens.Results;
+using osu.Game.Tests.Beatmaps;
+using osu.Game.Users;
+using osuTK;
+
+namespace osu.Game.Tests.Visual.Results
+{
+    public class TestSceneExpandedPanelMiddleContent : OsuTestScene
+    {
+        public TestSceneExpandedPanelMiddleContent()
+        {
+            Child = new Container
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(500, 300),
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4Extensions.FromHex("#444"),
+                    },
+                    new ExpandedPanelMiddleContent(createTestScore()),
+                }
+            };
+        }
+
+        private ScoreInfo createTestScore() => new ScoreInfo
+        {
+            User = new User
+            {
+                Id = 2,
+                Username = "peppy",
+            },
+            Beatmap = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo,
+            Mods = new Mod[] { new OsuModHardRock(), new OsuModDoubleTime() },
+            TotalScore = 999999,
+            Accuracy = 99.99,
+            MaxCombo = 999,
+            Rank = ScoreRank.S,
+            Date = DateTimeOffset.Now,
+            Statistics =
+            {
+                { HitResult.Miss, 1 },
+                { HitResult.Meh, 50 },
+                { HitResult.Good, 100 },
+                { HitResult.Great, 300 },
+            }
+        };
+    }
+}
