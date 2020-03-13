@@ -26,6 +26,8 @@ namespace osu.Game.Screens.Results
         private const float expanded_top_layer_height = 70;
         private const float contracted_top_layer_height = 40;
 
+        private const double appear_delay = 300;
+
         private static readonly ColourInfo expanded_top_layer_colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#444"), Color4Extensions.FromHex("#333"));
         private static readonly ColourInfo expanded_middle_layer_colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#555"), Color4Extensions.FromHex("#333"));
         private static readonly Color4 contracted_top_layer_colour = Color4Extensions.FromHex("#353535");
@@ -127,7 +129,6 @@ namespace osu.Game.Screens.Results
 
             foreach (var c in topLayerContent)
                 c.FadeOut(50).Expire();
-
             foreach (var c in middleLayerContent)
                 c.FadeOut(50).Expire();
 
@@ -139,14 +140,14 @@ namespace osu.Game.Screens.Results
                     topLayerBackground.FadeColour(expanded_top_layer_colour, 200, Easing.OutQuint);
                     middleLayerBackground.FadeColour(expanded_middle_layer_colour, 200, Easing.OutQuint);
 
-                    using (BeginDelayedSequence(300, true))
+                    topLayerContent.Add(new ExpandedPanelTopContent(new User { Id = 2, Username = "peppy" }));
+                    middleLayerContent.Add(new ExpandedPanelMiddleContent(new Score()));
+
+                    using (BeginDelayedSequence(appear_delay, true))
                     {
                         topLayer.MoveToY(-expanded_top_layer_height / 2, 200, Easing.OutQuint);
                         middleLayer.MoveToY(expanded_top_layer_height / 2, 200, Easing.OutQuint);
                     }
-
-                    topLayerContent.Add(new ExpandedPanelTopContent(new User { Id = 2, Username = "peppy" }));
-                    middleLayerContent.Add(new ExpandedPanelMiddleContent(new Score()));
 
                     break;
 
@@ -156,7 +157,7 @@ namespace osu.Game.Screens.Results
                     topLayerBackground.FadeColour(contracted_top_layer_colour, 200, Easing.OutQuint);
                     middleLayerBackground.FadeColour(contracted_middle_layer_colour, 200, Easing.OutQuint);
 
-                    using (BeginDelayedSequence(300, true))
+                    using (BeginDelayedSequence(appear_delay, true))
                     {
                         topLayer.MoveToY(-contracted_top_layer_height / 2, 200, Easing.OutQuint);
                         middleLayer.MoveToY(contracted_top_layer_height / 2, 200, Easing.OutQuint);
@@ -164,6 +165,11 @@ namespace osu.Game.Screens.Results
 
                     break;
             }
+
+            foreach (var c in topLayerContent)
+                c.FadeOut().Delay(appear_delay).FadeIn(50);
+            foreach (var c in middleLayerContent)
+                c.FadeOut().Delay(appear_delay).FadeIn(50);
         }
     }
 }
