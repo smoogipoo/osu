@@ -31,11 +31,7 @@ namespace osu.Game.Screens.Results
         private static readonly Color4 contracted_top_layer_colour = Color4Extensions.FromHex("#353535");
         private static readonly Color4 contracted_middle_layer_colour = Color4Extensions.FromHex("#444");
 
-        event Action<PanelState> IStateful<PanelState>.StateChanged
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
+        public event Action<PanelState> StateChanged;
 
         private Container topLayer;
         private Container middleLayer;
@@ -119,6 +115,8 @@ namespace osu.Game.Screens.Results
 
                 if (LoadState >= LoadState.Ready)
                     updateState();
+
+                StateChanged?.Invoke(value);
             }
         }
 
