@@ -108,6 +108,7 @@ namespace osu.Game.Screens.Results
                                 Margin = new MarginPadding { Vertical = 10 },
                                 Current = { Value = 0 },
                                 Alpha = 0,
+                                AlwaysPresent = true
                             },
                             new FillFlowContainer
                             {
