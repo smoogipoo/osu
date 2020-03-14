@@ -227,6 +227,9 @@ namespace osu.Game.Screens.Results
         {
             private readonly string header;
 
+            private Drawable content;
+            private Drawable blurredContent;
+
             protected StatisticDisplay(string header)
             {
                 this.header = header;
@@ -265,16 +268,43 @@ namespace osu.Game.Screens.Results
                                 }
                             }
                         },
-                        CreateContent().With(d =>
+                        new Container
                         {
-                            d.Anchor = Anchor.TopCentre;
-                            d.Origin = Anchor.TopCentre;
-                        })
+                            Anchor = Anchor.TopCentre,
+                            Origin = Anchor.TopCentre,
+                            AutoSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                content = CreateContent().With(d =>
+                                {
+                                    d.Anchor = Anchor.TopCentre;
+                                    d.Origin = Anchor.TopCentre;
+                                    d.Alpha = 0;
+                                    d.AlwaysPresent = true;
+                                }),
+                                blurredContent = new BufferedContainer
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    AutoSizeAxes = Axes.Both,
+                                    BypassAutoSizeAxes = Axes.Both,
+                                    Blending = BlendingParameters.Additive,
+                                    BlurSigma = new Vector2(2),
+                                    Scale = new Vector2(1.1f),
+                                    Alpha = 0,
+                                    Child = CreateContent()
+                                }
+                            }
+                        }
                     }
                 };
             }
 
-            public abstract void Appear();
+            public void Appear()
+            {
+                content.FadeIn();
+                blurredContent.FadeIn().Then().FadeOut(400, Easing.OutQuint);
+            }
 
             protected abstract Drawable CreateContent();
         }
@@ -291,16 +321,10 @@ namespace osu.Game.Screens.Results
                 this.text = text;
             }
 
-            public override void Appear()
-            {
-                textDrawable.FadeIn();
-            }
-
             protected override Drawable CreateContent() => textDrawable = new OsuSpriteText
             {
                 Font = OsuFont.Torus.With(size: 20),
                 Text = text,
-                Alpha = 0
             };
         }
 
@@ -318,17 +342,11 @@ namespace osu.Game.Screens.Results
                 this.isPerfect = isPerfect;
             }
 
-            public override void Appear()
-            {
-                flow.FadeIn();
-            }
-
             protected override Drawable CreateContent() => flow = new FillFlowContainer
             {
                 AutoSizeAxes = Axes.Both,
                 Direction = FillDirection.Horizontal,
                 Spacing = new Vector2(10, 0),
-                Alpha = 0,
                 Children = new Drawable[]
                 {
                     new OsuSpriteText
