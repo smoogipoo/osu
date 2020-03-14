@@ -218,7 +218,7 @@ namespace osu.Game.Screens.Results
                     using (BeginDelayedSequence(delay, true))
                         stat.Appear();
 
-                    delay += 100;
+                    delay += 200;
                 }
             }
         }
