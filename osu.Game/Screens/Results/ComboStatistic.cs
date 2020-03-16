@@ -33,7 +33,7 @@ namespace osu.Game.Screens.Results
             if (isPerfect)
             {
                 using (BeginDelayedSequence(AccuracyCircle.ACCURACY_TRANSFORM_DURATION / 2, true))
-                    perfectText.FadeIn(200, Easing.InQuint);
+                    perfectText.FadeIn(50);
             }
         }
 
