@@ -19,6 +19,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -46,14 +47,14 @@ namespace osu.Game.Screens.Results
         {
             var topStatistics = new List<StatisticDisplay>
             {
-                new TextStatistic("accuracy", score.DisplayAccuracy),
+                new AccuracyStatistic(score.Accuracy),
                 new ComboStatistic(score.MaxCombo, true),
-                new TextStatistic("pp", score.PP?.ToString() ?? "0"),
+                new CounterStatistic("pp", (int)(score.PP ?? 0)),
             };
 
             var bottomStatistics = new List<StatisticDisplay>();
             foreach (var stat in score.SortedStatistics)
-                bottomStatistics.Add(new TextStatistic(stat.Key.GetDescription(), stat.Value.ToString()));
+                bottomStatistics.Add(new CounterStatistic(stat.Key.GetDescription(), stat.Value));
 
             statisticDisplays.AddRange(topStatistics);
             statisticDisplays.AddRange(bottomStatistics);
@@ -206,21 +207,18 @@ namespace osu.Game.Screens.Results
                 {
                     scoreCounter.FadeIn();
                     scoreCounter.Current.Value = score.TotalScore;
+
+                    double delay = 0;
+
+                    foreach (var stat in statisticDisplays)
+                    {
+                        using (BeginDelayedSequence(delay, true))
+                            stat.Appear();
+
+                        delay += 200;
+                    }
                 }
             });
-
-            using (BeginDelayedSequence(AccuracyCircle.ACCURACY_TRANSFORM_DELAY + AccuracyCircle.ACCURACY_TRANSFORM_DURATION, true))
-            {
-                double delay = 0;
-
-                foreach (var stat in statisticDisplays)
-                {
-                    using (BeginDelayedSequence(delay, true))
-                        stat.Appear();
-
-                    delay += 200;
-                }
-            }
         }
 
         private abstract class StatisticDisplay : CompositeDrawable
@@ -228,7 +226,6 @@ namespace osu.Game.Screens.Results
             private readonly string header;
 
             private Drawable content;
-            private Drawable blurredContent;
 
             protected StatisticDisplay(string header)
             {
@@ -282,92 +279,144 @@ namespace osu.Game.Screens.Results
                                     d.Alpha = 0;
                                     d.AlwaysPresent = true;
                                 }),
-                                blurredContent = new BufferedContainer
-                                {
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    AutoSizeAxes = Axes.Both,
-                                    BypassAutoSizeAxes = Axes.Both,
-                                    Blending = BlendingParameters.Additive,
-                                    BlurSigma = new Vector2(2),
-                                    Scale = new Vector2(1.1f),
-                                    Alpha = 0,
-                                    Child = CreateContent()
-                                }
                             }
                         }
                     }
                 };
             }
 
-            public void Appear()
-            {
-                content.FadeIn();
-                blurredContent.FadeIn().Then().FadeOut(400, Easing.OutQuint);
-            }
+            public virtual void Appear() => content.FadeIn(100);
 
             protected abstract Drawable CreateContent();
         }
 
-        private class TextStatistic : StatisticDisplay
+        private class AccuracyStatistic : StatisticDisplay
         {
-            private readonly string text;
+            private readonly double accuracy;
 
-            private Drawable textDrawable;
+            private RollingCounter<double> counter;
 
-            public TextStatistic(string header, string text)
-                : base(header)
+            public AccuracyStatistic(double accuracy)
+                : base("accuracy")
             {
-                this.text = text;
+                this.accuracy = accuracy;
             }
 
-            protected override Drawable CreateContent() => textDrawable = new OsuSpriteText
+            public override void Appear()
             {
-                Font = OsuFont.Torus.With(size: 20),
-                Text = text,
-            };
+                base.Appear();
+                counter.Current.Value = accuracy;
+            }
+
+            protected override Drawable CreateContent() => counter = new Counter();
+
+            private class Counter : RollingCounter<double>
+            {
+                protected override double RollingDuration => 3000;
+
+                protected override Easing RollingEasing => Easing.OutPow10;
+
+                public Counter()
+                {
+                    DisplayedCountSpriteText.Font = OsuFont.Torus.With(size: 20);
+                }
+
+                protected override string FormatCount(double count) => count.FormatAccuracy();
+
+                public override void Increment(double amount)
+                    => Current.Value += amount;
+            }
         }
 
-        private class ComboStatistic : StatisticDisplay
+        private class CounterStatistic : StatisticDisplay
+        {
+            private readonly int count;
+
+            private RollingCounter<int> counter;
+
+            public CounterStatistic(string header, int count)
+                : base(header)
+            {
+                this.count = count;
+            }
+
+            public override void Appear()
+            {
+                base.Appear();
+                counter.Current.Value = count;
+            }
+
+            protected override Drawable CreateContent() => counter = new Counter();
+
+            private class Counter : RollingCounter<int>
+            {
+                protected override double RollingDuration => 3000;
+
+                protected override Easing RollingEasing => Easing.OutPow10;
+
+                public Counter()
+                {
+                    DisplayedCountSpriteText.Font = OsuFont.Torus.With(size: 20);
+                }
+
+                public override void Increment(int amount)
+                    => Current.Value += amount;
+            }
+        }
+
+        private class ComboStatistic : CounterStatistic
         {
             private readonly int combo;
             private readonly bool isPerfect;
 
             private Drawable flow;
+            private Drawable perfectText;
 
             public ComboStatistic(int combo, bool isPerfect)
-                : base("combo")
+                : base("combo", combo)
             {
                 this.combo = combo;
                 this.isPerfect = isPerfect;
             }
 
-            protected override Drawable CreateContent() => flow = new FillFlowContainer
+            public override void Appear()
             {
-                AutoSizeAxes = Axes.Both,
-                Direction = FillDirection.Horizontal,
-                Spacing = new Vector2(10, 0),
-                Children = new Drawable[]
+                base.Appear();
+
+                if (isPerfect)
                 {
-                    new OsuSpriteText
-                    {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        Text = $"{combo}x",
-                        Font = OsuFont.Torus.With(size: 20),
-                    },
-                    new OsuSpriteText
-                    {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        Text = "PERFECT",
-                        Font = OsuFont.Torus.With(size: 11, weight: FontWeight.SemiBold),
-                        Colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#66FFCC"), Color4Extensions.FromHex("#FF9AD7")),
-                        Alpha = isPerfect ? 1 : 0,
-                        UseFullGlyphHeight = false,
-                    }
+                    using (BeginDelayedSequence(AccuracyCircle.ACCURACY_TRANSFORM_DURATION / 2, true))
+                        perfectText.FadeIn(200, Easing.InQuint);
                 }
-            };
+            }
+
+            protected override Drawable CreateContent()
+            {
+                return flow = new FillFlowContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Horizontal,
+                    Spacing = new Vector2(10, 0),
+                    Children = new[]
+                    {
+                        base.CreateContent().With(d =>
+                        {
+                            Anchor = Anchor.CentreLeft;
+                            Origin = Anchor.CentreLeft;
+                        }),
+                        perfectText = new OsuSpriteText
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Text = "PERFECT",
+                            Font = OsuFont.Torus.With(size: 11, weight: FontWeight.SemiBold),
+                            Colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#66FFCC"), Color4Extensions.FromHex("#FF9AD7")),
+                            Alpha = 0,
+                            UseFullGlyphHeight = false,
+                        }
+                    }
+                };
+            }
         }
 
         private class StarRatingDisplay : CompositeDrawable
