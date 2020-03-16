@@ -25,7 +25,13 @@ namespace osu.Game.Tests.Visual.Results
             typeof(ExpandedPanelMiddleContent),
             typeof(ExpandedPanelTopContent),
             typeof(AccuracyCircle),
-            typeof(AccuracyCircleBadge)
+            typeof(AccuracyCircleBadge),
+            typeof(AccuracyStatistic),
+            typeof(ComboStatistic),
+            typeof(CounterStatistic),
+            typeof(StarRatingDisplay),
+            typeof(StatisticDisplay),
+            typeof(TotalScoreCounter)
         };
 
         private ScorePanel panel;

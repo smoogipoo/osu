@@ -24,7 +24,13 @@ namespace osu.Game.Tests.Visual.Results
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(ExpandedPanelMiddleContent),
-            typeof(AccuracyCircle)
+            typeof(AccuracyCircle),
+            typeof(AccuracyStatistic),
+            typeof(ComboStatistic),
+            typeof(CounterStatistic),
+            typeof(StarRatingDisplay),
+            typeof(StatisticDisplay),
+            typeof(TotalScoreCounter)
         };
 
         public TestSceneExpandedPanelMiddleContent()
