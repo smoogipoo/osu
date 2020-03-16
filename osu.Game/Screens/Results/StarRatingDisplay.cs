@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Globalization;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -27,6 +28,11 @@ namespace osu.Game.Screens.Results
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
+            var starRatingParts = beatmap.StarDifficulty.ToString("0.00", CultureInfo.InvariantCulture).Split('.');
+            string wholePart = starRatingParts[0];
+            string fractionPart = starRatingParts[1];
+            string separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+
             InternalChildren = new Drawable[]
             {
                 new CircularContainer
@@ -67,14 +73,14 @@ namespace osu.Game.Screens.Results
                             TextAnchor = Anchor.BottomLeft,
                         }.With(t =>
                         {
-                            t.AddText($"{beatmap.StarDifficulty:0}", s =>
+                            t.AddText($"{wholePart}", s =>
                             {
                                 s.Colour = Color4.Black;
                                 s.Font = s.Font.With(size: 14);
                                 s.UseFullGlyphHeight = false;
                             });
 
-                            t.AddText($"{beatmap.StarDifficulty:.00}", s =>
+                            t.AddText($"{separator}{fractionPart}", s =>
                             {
                                 s.Colour = Color4.Black;
                                 s.Font = s.Font.With(size: 7);
