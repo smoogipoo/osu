@@ -31,7 +31,8 @@ namespace osu.Game.Tests.Visual.Results
             typeof(CounterStatistic),
             typeof(StarRatingDisplay),
             typeof(StatisticDisplay),
-            typeof(TotalScoreCounter)
+            typeof(TotalScoreCounter),
+            typeof(AccuracyCircleText)
         };
 
         private ScorePanel panel;

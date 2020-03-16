@@ -40,7 +40,7 @@ namespace osu.Game.Screens.Results
                     Origin = Anchor.Centre,
                     Spacing = new Vector2(-15, 0),
                     Text = DrawableRank.GetRankName(rank),
-                    Font = OsuFont.Numeric.With(size: 96),
+                    Font = OsuFont.Numeric.With(size: 76),
                     UseFullGlyphHeight = false
                 },
                 flash = new BufferedContainer
@@ -61,7 +61,7 @@ namespace osu.Game.Screens.Results
                             Origin = Anchor.Centre,
                             Spacing = new Vector2(-15, 0),
                             Text = DrawableRank.GetRankName(rank),
-                            Font = OsuFont.Numeric.With(size: 96),
+                            Font = OsuFont.Numeric.With(size: 76),
                             UseFullGlyphHeight = false,
                             Shadow = false
                         },
