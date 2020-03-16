@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osu.Game.Screens.Ranking;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -21,6 +20,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osu.Game.Input.Bindings;
+using osu.Game.Screens.Ranking;
 
 namespace osu.Game.Screens.Play
 {
