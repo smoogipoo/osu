@@ -4,6 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
+using osuTK;
 
 namespace osu.Game.Screens.Results
 {
@@ -35,7 +36,8 @@ namespace osu.Game.Screens.Results
 
             public Counter()
             {
-                DisplayedCountSpriteText.Font = OsuFont.Torus.With(size: 20);
+                DisplayedCountSpriteText.Font = OsuFont.Torus.With(size: 20, fixedWidth: true);
+                DisplayedCountSpriteText.Spacing = new Vector2(-2, 0);
             }
 
             public override void Increment(int amount)
