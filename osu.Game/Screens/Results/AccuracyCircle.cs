@@ -18,7 +18,7 @@ namespace osu.Game.Screens.Results
     {
         public const double ACCURACY_TRANSFORM_DELAY = 450;
         public const double ACCURACY_TRANSFORM_DURATION = 3000;
-        public const float RANK_CIRCLE_RADIUS = 0.04f;
+        public const float RANK_CIRCLE_RADIUS = 0.06f;
         private const float accuracy_circle_radius = 0.2f;
 
         private readonly ScoreInfo score;

@@ -2,11 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Graphics.UserInterface;
+using osu.Game.Graphics;
 using osuTK;
 
 namespace osu.Game.Screens.Results
@@ -67,6 +69,7 @@ namespace osu.Game.Screens.Results
                             RelativeSizeAxes = Axes.Both,
                             BorderThickness = 2,
                             Masking = true,
+                            BorderColour = OsuColour.Gray(0.5f).Opacity(0.75f),
                             Blending = new BlendingParameters
                             {
                                 AlphaEquation = BlendingEquation.ReverseSubtract,
@@ -90,6 +93,7 @@ namespace osu.Game.Screens.Results
                         {
                             RelativeSizeAxes = Axes.Both,
                             BorderThickness = 2,
+                            BorderColour = OsuColour.Gray(0.5f).Opacity(0.75f),
                             Masking = true,
                             Blending = new BlendingParameters
                             {
