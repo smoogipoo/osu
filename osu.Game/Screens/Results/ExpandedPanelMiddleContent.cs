@@ -38,7 +38,7 @@ namespace osu.Game.Screens.Results
             RelativeSizeAxes = Axes.Both;
             Masking = true;
 
-            Padding = new MarginPadding { Horizontal = 40 };
+            Padding = new MarginPadding { Vertical = 10, Horizontal = 40 };
         }
 
         [BackgroundDependencyLoader]
@@ -86,15 +86,15 @@ namespace osu.Game.Screens.Results
                                 Anchor = Anchor.TopCentre,
                                 Origin = Anchor.TopCentre,
                                 Text = new LocalisedString((score.Beatmap.Metadata.Artist, score.Beatmap.Metadata.ArtistUnicode)),
-                                Font = OsuFont.Torus.With(size: 16, weight: FontWeight.SemiBold)
+                                Font = OsuFont.Torus.With(size: 14, weight: FontWeight.SemiBold)
                             },
                             new Container
                             {
                                 Anchor = Anchor.TopCentre,
                                 Origin = Anchor.TopCentre,
-                                Margin = new MarginPadding { Top = 30 },
+                                Margin = new MarginPadding { Top = 40 },
                                 RelativeSizeAxes = Axes.X,
-                                Height = 340,
+                                Height = 230,
                                 Child = new AccuracyCircle(score)
                                 {
                                     Anchor = Anchor.Centre,
@@ -105,7 +105,7 @@ namespace osu.Game.Screens.Results
                             },
                             scoreCounter = new TotalScoreCounter
                             {
-                                Margin = new MarginPadding { Vertical = 10 },
+                                Margin = new MarginPadding { Top = 0, Bottom = 5 },
                                 Current = { Value = 0 },
                                 Alpha = 0,
                                 AlwaysPresent = true
@@ -148,14 +148,14 @@ namespace osu.Game.Screens.Results
                                         Text = score.Beatmap.Version,
                                         Font = OsuFont.Torus.With(size: 16, weight: FontWeight.SemiBold),
                                     },
-                                    new OsuTextFlowContainer(s => s.Font = OsuFont.Torus)
+                                    new OsuTextFlowContainer(s => s.Font = OsuFont.Torus.With(size: 12))
                                     {
                                         AutoSizeAxes = Axes.Both,
                                         Direction = FillDirection.Horizontal,
                                     }.With(t =>
                                     {
-                                        t.AddText("mapped by ", s => s.Font = s.Font.With(size: 14));
-                                        t.AddText(score.UserString, s => s.Font = s.Font.With(size: 14, weight: FontWeight.SemiBold));
+                                        t.AddText("mapped by ");
+                                        t.AddText(score.UserString, s => s.Font = s.Font.With(weight: FontWeight.SemiBold));
                                     })
                                 }
                             },
@@ -401,7 +401,7 @@ namespace osu.Game.Screens.Results
                     new FillFlowContainer
                     {
                         AutoSizeAxes = Axes.Both,
-                        Padding = new MarginPadding { Horizontal = 10, Vertical = 5 },
+                        Padding = new MarginPadding { Horizontal = 8, Vertical = 4 },
                         Direction = FillDirection.Horizontal,
                         Spacing = new Vector2(2, 0),
                         Children = new Drawable[]
@@ -457,7 +457,7 @@ namespace osu.Game.Screens.Results
                 DisplayedCountSpriteText.Anchor = Anchor.TopCentre;
                 DisplayedCountSpriteText.Origin = Anchor.TopCentre;
 
-                DisplayedCountSpriteText.Font = OsuFont.Torus.With(size: 76, weight: FontWeight.Light, fixedWidth: true);
+                DisplayedCountSpriteText.Font = OsuFont.Torus.With(size: 60, weight: FontWeight.Light, fixedWidth: true);
                 DisplayedCountSpriteText.Spacing = new Vector2(-5, 0);
             }
 

@@ -45,7 +45,7 @@ namespace osu.Game.Tests.Visual.Results
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(320)
+                Size = new Vector2(230)
             });
         }
     }

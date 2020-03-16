@@ -19,10 +19,10 @@ namespace osu.Game.Screens.Results
     {
         private const float contracted_width = 160;
         private const float contracted_height = 320;
-        private const float expanded_width = 460;
+        private const float expanded_width = 360;
         private const float expanded_height = 560;
 
-        private const float expanded_top_layer_height = 70;
+        private const float expanded_top_layer_height = 53;
         private const float contracted_top_layer_height = 40;
 
         private const double appear_delay = 300;

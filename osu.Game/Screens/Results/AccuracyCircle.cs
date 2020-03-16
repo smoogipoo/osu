@@ -140,7 +140,7 @@ namespace osu.Game.Screens.Results
                 {
                     Name = "Rank badges",
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding(-20),
+                    Padding = new MarginPadding { Vertical = -15, Horizontal = -20 },
                     Children = new[]
                     {
                         new AccuracyCircleBadge(0.99f, ScoreRank.X),

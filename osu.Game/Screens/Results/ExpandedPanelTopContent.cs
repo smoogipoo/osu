@@ -38,7 +38,7 @@ namespace osu.Game.Screens.Results
                     {
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
-                        Size = new Vector2(95),
+                        Size = new Vector2(80),
                         CornerRadius = 20,
                         CornerExponent = 2.5f,
                         Masking = true,

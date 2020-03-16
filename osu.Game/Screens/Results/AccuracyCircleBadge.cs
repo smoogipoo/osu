@@ -37,7 +37,7 @@ namespace osu.Game.Screens.Results
             InternalChild = rankContainer = new Container
             {
                 Origin = Anchor.Centre,
-                Size = new Vector2(32, 16),
+                Size = new Vector2(28, 14),
                 Children = new[]
                 {
                     new DrawableRank(rank),
