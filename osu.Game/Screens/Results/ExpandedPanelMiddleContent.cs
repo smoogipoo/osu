@@ -461,6 +461,8 @@ namespace osu.Game.Screens.Results
                 DisplayedCountSpriteText.Spacing = new Vector2(-5, 0);
             }
 
+            protected override string FormatCount(long count) => count.ToString("N0");
+
             public override void Increment(long amount)
                 => Current.Value += amount;
         }
