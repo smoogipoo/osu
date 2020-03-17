@@ -60,7 +60,7 @@ namespace osu.Game.Screens.Results
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
                         AutoSizeAxes = Axes.Both,
-                        Children = new Drawable[]
+                        Children = new[]
                         {
                             content = CreateContent().With(d =>
                             {

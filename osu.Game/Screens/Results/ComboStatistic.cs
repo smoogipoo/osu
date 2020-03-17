@@ -13,16 +13,13 @@ namespace osu.Game.Screens.Results
 {
     public class ComboStatistic : CounterStatistic
     {
-        private readonly int combo;
         private readonly bool isPerfect;
 
-        private Drawable flow;
         private Drawable perfectText;
 
         public ComboStatistic(int combo, bool isPerfect)
             : base("combo", combo)
         {
-            this.combo = combo;
             this.isPerfect = isPerfect;
         }
 
@@ -39,7 +36,7 @@ namespace osu.Game.Screens.Results
 
         protected override Drawable CreateContent()
         {
-            return flow = new FillFlowContainer
+            return new FillFlowContainer
             {
                 AutoSizeAxes = Axes.Both,
                 Direction = FillDirection.Horizontal,
