@@ -32,7 +32,7 @@ namespace osu.Game.Screens.Results
             RelativeSizeAxes = Axes.Both;
             Masking = true;
 
-            Padding = new MarginPadding { Vertical = 10, Horizontal = 40 };
+            Padding = new MarginPadding { Vertical = 10, Horizontal = 10 };
         }
 
         [BackgroundDependencyLoader]
