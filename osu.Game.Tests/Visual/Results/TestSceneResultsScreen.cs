@@ -29,7 +29,7 @@ namespace osu.Game.Tests.Visual.Results
                 Beatmap = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo,
                 Mods = new Mod[] { new OsuModHardRock(), new OsuModDoubleTime() },
                 TotalScore = 2845370,
-                Accuracy = 1,
+                Accuracy = 0.95,
                 MaxCombo = 999,
                 Rank = ScoreRank.S,
                 Date = DateTimeOffset.Now,

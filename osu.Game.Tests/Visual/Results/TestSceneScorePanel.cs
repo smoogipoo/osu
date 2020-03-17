@@ -105,6 +105,16 @@ namespace osu.Game.Tests.Visual.Results
             addPanelStep(score);
         }
 
+        [Test]
+        public void TestAllHitResults()
+        {
+            var score = createScore();
+            score.Statistics[HitResult.Perfect] = 350;
+            score.Statistics[HitResult.Ok] = 200;
+
+            addPanelStep(score);
+        }
+
         private void addPanelStep(ScoreInfo score) => AddStep("add panel", () =>
         {
             Child = new ScorePanel(score)
