@@ -21,13 +21,18 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
+using osu.Game.Scoring;
 using osu.Game.Screens;
 using osu.Game.Screens.Backgrounds;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.PlayerSettings;
+using osu.Game.Screens.Results;
 using osu.Game.Screens.Select;
+using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Resources;
+using osu.Game.Users;
 using osuTK;
 using osuTK.Graphics;
 
@@ -200,21 +205,24 @@ namespace osu.Game.Tests.Visual.Background
             AddAssert("Screen is dimmed and blur applied", () => songSelect.IsBackgroundDimmed() && songSelect.IsUserBlurApplied());
         }
 
-        // /// <summary>
-        // /// Check if the visual settings container removes user dim when suspending <see cref="Player"/> for <see cref="SoloResults"/>
-        // /// </summary>
-        // [Test]
-        // public void TransitionTest()
-        // {
-        //     performFullSetup();
-        //     FadeAccessibleResults results = null;
-        //     AddStep("Transition to Results", () => player.Push(results =
-        //         new FadeAccessibleResults(new ScoreInfo { User = new User { Username = "osu!" } })));
-        //     AddUntilStep("Wait for results is current", () => results.IsCurrentScreen());
-        //     waitForDim();
-        //     AddAssert("Screen is undimmed, original background retained", () =>
-        //         songSelect.IsBackgroundUndimmed() && songSelect.IsBackgroundCurrent() && results.IsBlurCorrect());
-        // }
+        /// <summary>
+        /// Check if the visual settings container removes user dim when suspending <see cref="Player"/> for <see cref="ResultsScreen"/>
+        /// </summary>
+        [Test]
+        public void TransitionTest()
+        {
+            performFullSetup();
+            FadeAccessibleResults results = null;
+            AddStep("Transition to Results", () => player.Push(results = new FadeAccessibleResults(new ScoreInfo
+            {
+                User = new User { Username = "osu!" },
+                Beatmap = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo
+            })));
+            AddUntilStep("Wait for results is current", () => results.IsCurrentScreen());
+            waitForDim();
+            AddAssert("Screen is undimmed, original background retained", () =>
+                songSelect.IsBackgroundUndimmed() && songSelect.IsBackgroundCurrent() && results.IsBlurCorrect());
+        }
 
         /// <summary>
         /// Check if background gets undimmed and unblurred when leaving <see cref="Player"/>  for <see cref="PlaySongSelect"/>
@@ -333,17 +341,17 @@ namespace osu.Game.Tests.Visual.Background
             public bool IsBackgroundCurrent() => ((FadeAccessibleBackground)Background).IsCurrentScreen();
         }
 
-        // private class FadeAccessibleResults : SoloResults
-        // {
-        //     public FadeAccessibleResults(ScoreInfo score)
-        //         : base(score)
-        //     {
-        //     }
-        //
-        //     protected override BackgroundScreen CreateBackground() => new FadeAccessibleBackground(Beatmap.Value);
-        //
-        //     public bool IsBlurCorrect() => ((FadeAccessibleBackground)Background).CurrentBlur == new Vector2(BACKGROUND_BLUR);
-        // }
+        private class FadeAccessibleResults : ResultsScreen
+        {
+            public FadeAccessibleResults(ScoreInfo score)
+                : base(score)
+            {
+            }
+
+            protected override BackgroundScreen CreateBackground() => new FadeAccessibleBackground(Beatmap.Value);
+
+            public bool IsBlurCorrect() => ((FadeAccessibleBackground)Background).CurrentBlur == new Vector2(BACKGROUND_BLUR);
+        }
 
         private class LoadBlockingTestPlayer : TestPlayer
         {

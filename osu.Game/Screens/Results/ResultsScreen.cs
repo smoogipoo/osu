@@ -17,7 +17,12 @@ namespace osu.Game.Screens.Results
 {
     public class ResultsScreen : OsuScreen
     {
+        protected const float BACKGROUND_BLUR = 20;
+
         public override bool DisallowExternalBeatmapRulesetChanges => true;
+
+        // Temporary for now to stop dual transitions. Should respect the current toolbar mode, but there's no way to do so currently.
+        public override bool HideOverlaysOnEnter => true;
 
         protected override BackgroundScreen CreateBackground() => new BackgroundScreenBeatmap(Beatmap.Value);
 
@@ -76,6 +81,8 @@ namespace osu.Game.Screens.Results
         public override void OnEntering(IScreen last)
         {
             base.OnEntering(last);
+
+            ((BackgroundScreenBeatmap)Background).BlurAmount.Value = BACKGROUND_BLUR;
 
             Background.FadeTo(0.5f, 250);
             bottomPanel.FadeTo(1, 250);
