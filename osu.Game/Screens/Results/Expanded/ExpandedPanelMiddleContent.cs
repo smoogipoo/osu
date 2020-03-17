@@ -14,9 +14,11 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Screens.Results.Expanded.Accuracy;
+using osu.Game.Screens.Results.Expanded.Statistics;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded
 {
     public class ExpandedPanelMiddleContent : CompositeDrawable
     {

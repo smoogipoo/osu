@@ -8,13 +8,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded.Accuracy
 {
-    public class AccuracyCircleNotch : CompositeDrawable
+    public class RankNotch : CompositeDrawable
     {
         private readonly float position;
 
-        public AccuracyCircleNotch(float position)
+        public RankNotch(float position)
         {
             this.position = position;
 

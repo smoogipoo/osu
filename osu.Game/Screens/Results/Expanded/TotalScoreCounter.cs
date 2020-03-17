@@ -4,9 +4,10 @@
 using osu.Framework.Graphics;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Screens.Results.Expanded.Accuracy;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded
 {
     public class TotalScoreCounter : RollingCounter<long>
     {

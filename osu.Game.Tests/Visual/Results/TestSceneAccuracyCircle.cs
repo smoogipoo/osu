@@ -14,7 +14,7 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
-using osu.Game.Screens.Results;
+using osu.Game.Screens.Results.Expanded.Accuracy;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Users;
 using osuTK;
@@ -26,9 +26,9 @@ namespace osu.Game.Tests.Visual.Results
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(AccuracyCircle),
-            typeof(AccuracyCircleBadge),
-            typeof(AccuracyCircleNotch),
-            typeof(AccuracyCircleText),
+            typeof(RankBadge),
+            typeof(RankNotch),
+            typeof(RankText),
             typeof(SmoothCircularProgress)
         };
 

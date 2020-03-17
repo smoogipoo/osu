@@ -11,7 +11,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded.Accuracy
 {
     public class SmoothCircularProgress : CompositeDrawable
     {

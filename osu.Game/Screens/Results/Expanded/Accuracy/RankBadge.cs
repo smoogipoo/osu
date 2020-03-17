@@ -12,9 +12,9 @@ using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded.Accuracy
 {
-    public class AccuracyCircleBadge : CompositeDrawable
+    public class RankBadge : CompositeDrawable
     {
         public readonly float Value;
         private readonly ScoreRank rank;
@@ -22,7 +22,7 @@ namespace osu.Game.Screens.Results
         private Drawable rankContainer;
         private Drawable overlay;
 
-        public AccuracyCircleBadge(float value, ScoreRank rank)
+        public RankBadge(float value, ScoreRank rank)
         {
             Value = value;
             this.rank = rank;

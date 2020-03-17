@@ -11,6 +11,9 @@ using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Results;
+using osu.Game.Screens.Results.Expanded;
+using osu.Game.Screens.Results.Expanded.Accuracy;
+using osu.Game.Screens.Results.Expanded.Statistics;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Users;
 
@@ -25,14 +28,14 @@ namespace osu.Game.Tests.Visual.Results
             typeof(ExpandedPanelMiddleContent),
             typeof(ExpandedPanelTopContent),
             typeof(AccuracyCircle),
-            typeof(AccuracyCircleBadge),
+            typeof(RankBadge),
             typeof(AccuracyStatistic),
             typeof(ComboStatistic),
             typeof(CounterStatistic),
             typeof(StarRatingDisplay),
             typeof(StatisticDisplay),
             typeof(TotalScoreCounter),
-            typeof(AccuracyCircleText)
+            typeof(RankText)
         };
 
         [Test]

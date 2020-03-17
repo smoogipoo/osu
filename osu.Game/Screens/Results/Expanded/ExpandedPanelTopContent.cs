@@ -10,7 +10,7 @@ using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded
 {
     public class ExpandedPanelTopContent : CompositeDrawable
     {

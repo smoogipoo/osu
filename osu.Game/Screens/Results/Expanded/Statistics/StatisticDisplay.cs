@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded.Statistics
 {
     public abstract class StatisticDisplay : CompositeDrawable
     {

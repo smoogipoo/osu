@@ -10,15 +10,15 @@ using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded.Accuracy
 {
-    public class AccuracyCircleText : CompositeDrawable
+    public class RankText : CompositeDrawable
     {
         private readonly ScoreRank rank;
 
         private Drawable flash;
 
-        public AccuracyCircleText(ScoreRank rank)
+        public RankText(ScoreRank rank)
         {
             this.rank = rank;
 

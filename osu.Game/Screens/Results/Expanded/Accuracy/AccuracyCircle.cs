@@ -12,7 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Scoring;
 using osuTK;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded.Accuracy
 {
     public class AccuracyCircle : CompositeDrawable
     {
@@ -70,8 +70,8 @@ namespace osu.Game.Screens.Results
 
         private SmoothCircularProgress accuracyCircle;
         private SmoothCircularProgress innerMask;
-        private Container<AccuracyCircleBadge> badges;
-        private AccuracyCircleText rankText;
+        private Container<RankBadge> badges;
+        private RankText rankText;
 
         public AccuracyCircle(ScoreInfo score)
         {
@@ -155,12 +155,12 @@ namespace osu.Game.Screens.Results
                             InnerRadius = RANK_CIRCLE_RADIUS,
                             Current = { Value = 0.7f }
                         },
-                        new AccuracyCircleNotch(0),
-                        new AccuracyCircleNotch((float)(1 - virtual_ss_percentage)),
-                        new AccuracyCircleNotch(0.95f),
-                        new AccuracyCircleNotch(0.9f),
-                        new AccuracyCircleNotch(0.8f),
-                        new AccuracyCircleNotch(0.7f),
+                        new RankNotch(0),
+                        new RankNotch((float)(1 - virtual_ss_percentage)),
+                        new RankNotch(0.95f),
+                        new RankNotch(0.9f),
+                        new RankNotch(0.8f),
+                        new RankNotch(0.7f),
                         new BufferedContainer
                         {
                             Name = "Graded circle mask",
@@ -181,21 +181,21 @@ namespace osu.Game.Screens.Results
                         }
                     }
                 },
-                badges = new Container<AccuracyCircleBadge>
+                badges = new Container<RankBadge>
                 {
                     Name = "Rank badges",
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Vertical = -15, Horizontal = -20 },
                     Children = new[]
                     {
-                        new AccuracyCircleBadge(1f, ScoreRank.X),
-                        new AccuracyCircleBadge(0.95f, ScoreRank.S),
-                        new AccuracyCircleBadge(0.9f, ScoreRank.A),
-                        new AccuracyCircleBadge(0.8f, ScoreRank.B),
-                        new AccuracyCircleBadge(0.7f, ScoreRank.C),
+                        new RankBadge(1f, ScoreRank.X),
+                        new RankBadge(0.95f, ScoreRank.S),
+                        new RankBadge(0.9f, ScoreRank.A),
+                        new RankBadge(0.8f, ScoreRank.B),
+                        new RankBadge(0.7f, ScoreRank.C),
                     }
                 },
-                rankText = new AccuracyCircleText(score.Rank)
+                rankText = new RankText(score.Rank)
             };
         }
 

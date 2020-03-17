@@ -13,7 +13,7 @@ using osu.Game.Graphics.Containers;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Game.Screens.Results
+namespace osu.Game.Screens.Results.Expanded
 {
     public class StarRatingDisplay : CompositeDrawable
     {

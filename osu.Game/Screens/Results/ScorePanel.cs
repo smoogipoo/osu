@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Scoring;
+using osu.Game.Screens.Results.Expanded;
 using osuTK;
 using osuTK.Graphics;
 
