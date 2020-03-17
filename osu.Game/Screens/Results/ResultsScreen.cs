@@ -2,10 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Scoring;
 using osu.Game.Screens.Backgrounds;
+using osu.Game.Screens.Ranking.Pages;
+using osuTK;
 
 namespace osu.Game.Screens.Results
 {
@@ -17,6 +23,8 @@ namespace osu.Game.Screens.Results
 
         private readonly ScoreInfo score;
 
+        private Drawable bottomPanel;
+
         public ResultsScreen(ScoreInfo score)
         {
             this.score = score;
@@ -25,11 +33,43 @@ namespace osu.Game.Screens.Results
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = new ScorePanel(score)
+            InternalChildren = new Drawable[]
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                State = PanelState.Expanded
+                new ScorePanel(score)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    State = PanelState.Expanded
+                },
+                bottomPanel = new Container
+                {
+                    Anchor = Anchor.BottomLeft,
+                    Origin = Anchor.BottomLeft,
+                    RelativeSizeAxes = Axes.X,
+                    Height = TwoLayerButton.SIZE_EXTENDED.Y,
+                    Alpha = 0,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4Extensions.FromHex("#333")
+                        },
+                        new FillFlowContainer
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
+                            Spacing = new Vector2(5),
+                            Direction = FillDirection.Horizontal,
+                            Children = new Drawable[]
+                            {
+                                new ReplayDownloadButton(score),
+                                new RetryButton()
+                            }
+                        }
+                    }
+                }
             };
         }
 
@@ -38,6 +78,7 @@ namespace osu.Game.Screens.Results
             base.OnEntering(last);
 
             Background.FadeTo(0.5f, 250);
+            bottomPanel.FadeTo(1, 250);
         }
 
         public override bool OnExiting(IScreen next)
