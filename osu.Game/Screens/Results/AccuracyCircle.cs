@@ -21,6 +21,11 @@ namespace osu.Game.Screens.Results
         public const float RANK_CIRCLE_RADIUS = 0.06f;
         private const float accuracy_circle_radius = 0.2f;
 
+        /// <summary>
+        /// SS is displayed as a 1% region, otherwise it would be invisible.
+        /// </summary>
+        private const double virtual_ss_percentage = 0.01;
+
         private readonly ScoreInfo score;
 
         private SmoothCircularProgress accuracyCircle;
@@ -80,7 +85,7 @@ namespace osu.Game.Screens.Results
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4Extensions.FromHex("#0096A2"),
                             InnerRadius = RANK_CIRCLE_RADIUS,
-                            Current = { Value = 0.99f }
+                            Current = { Value = 1 - virtual_ss_percentage }
                         },
                         new SmoothCircularProgress
                         {
@@ -111,7 +116,7 @@ namespace osu.Game.Screens.Results
                             Current = { Value = 0.7f }
                         },
                         new AccuracyCircleNotch(0),
-                        new AccuracyCircleNotch(0.99f),
+                        new AccuracyCircleNotch((float)(1 - virtual_ss_percentage)),
                         new AccuracyCircleNotch(0.95f),
                         new AccuracyCircleNotch(0.9f),
                         new AccuracyCircleNotch(0.8f),
@@ -143,7 +148,7 @@ namespace osu.Game.Screens.Results
                     Padding = new MarginPadding { Vertical = -15, Horizontal = -20 },
                     Children = new[]
                     {
-                        new AccuracyCircleBadge(0.99f, ScoreRank.X),
+                        new AccuracyCircleBadge(1f, ScoreRank.X),
                         new AccuracyCircleBadge(0.95f, ScoreRank.S),
                         new AccuracyCircleBadge(0.9f, ScoreRank.A),
                         new AccuracyCircleBadge(0.8f, ScoreRank.B),
@@ -165,14 +170,16 @@ namespace osu.Game.Screens.Results
 
             using (BeginDelayedSequence(ACCURACY_TRANSFORM_DELAY, true))
             {
-                accuracyCircle.FillTo(score.Accuracy, ACCURACY_TRANSFORM_DURATION, Easing.OutPow10);
+                double targetAccuracy = score.Rank == ScoreRank.X || score.Rank == ScoreRank.XH ? 1 : Math.Min(1 - virtual_ss_percentage, score.Accuracy);
+
+                accuracyCircle.FillTo(targetAccuracy, ACCURACY_TRANSFORM_DURATION, Easing.OutPow10);
 
                 foreach (var badge in badges)
                 {
                     if (badge.Value > score.Accuracy)
                         continue;
 
-                    using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / score.Accuracy) * ACCURACY_TRANSFORM_DURATION, true))
+                    using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / targetAccuracy) * ACCURACY_TRANSFORM_DURATION, true))
                         badge.Appear();
                 }
 

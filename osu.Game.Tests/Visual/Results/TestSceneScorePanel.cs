@@ -35,33 +35,79 @@ namespace osu.Game.Tests.Visual.Results
             typeof(AccuracyCircleText)
         };
 
-        private ScorePanel panel;
-
-        [SetUp]
-        public void Setup() => Schedule(() =>
+        [Test]
+        public void TestDRank()
         {
-            Child = panel = new ScorePanel(new ScoreInfo
-            {
-                User = new User
-                {
-                    Id = 2,
-                    Username = "peppy",
-                },
-                Beatmap = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo,
-                Mods = new Mod[] { new OsuModHardRock(), new OsuModDoubleTime() },
-                TotalScore = 2845370,
-                Accuracy = 1,
-                MaxCombo = 999,
-                Rank = ScoreRank.S,
-                Date = DateTimeOffset.Now,
-                Statistics =
-                {
-                    { HitResult.Miss, 1 },
-                    { HitResult.Meh, 50 },
-                    { HitResult.Good, 100 },
-                    { HitResult.Great, 300 },
-                }
-            })
+            var score = createScore();
+            score.Accuracy = 0.5;
+            score.Rank = ScoreRank.D;
+
+            addPanelStep(score);
+        }
+
+        [Test]
+        public void TestCRank()
+        {
+            var score = createScore();
+            score.Accuracy = 0.75;
+            score.Rank = ScoreRank.C;
+
+            addPanelStep(score);
+        }
+
+        [Test]
+        public void TestBRank()
+        {
+            var score = createScore();
+            score.Accuracy = 0.85;
+            score.Rank = ScoreRank.B;
+
+            addPanelStep(score);
+        }
+
+        [Test]
+        public void TestARank()
+        {
+            var score = createScore();
+            score.Accuracy = 0.925;
+            score.Rank = ScoreRank.A;
+
+            addPanelStep(score);
+        }
+
+        [Test]
+        public void TestSRank()
+        {
+            var score = createScore();
+            score.Accuracy = 0.975;
+            score.Rank = ScoreRank.S;
+
+            addPanelStep(score);
+        }
+
+        [Test]
+        public void TestAlmostSSRank()
+        {
+            var score = createScore();
+            score.Accuracy = 0.9999;
+            score.Rank = ScoreRank.S;
+
+            addPanelStep(score);
+        }
+
+        [Test]
+        public void TestSSRank()
+        {
+            var score = createScore();
+            score.Accuracy = 1;
+            score.Rank = ScoreRank.X;
+
+            addPanelStep(score);
+        }
+
+        private void addPanelStep(ScoreInfo score) => AddStep("add panel", () =>
+        {
+            Child = new ScorePanel(score)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -69,16 +115,27 @@ namespace osu.Game.Tests.Visual.Results
             };
         });
 
-        [Test]
-        public void TestExpanded()
+        private ScoreInfo createScore() => new ScoreInfo
         {
-            AddStep("set expanded state", () => panel.State = PanelState.Expanded);
-        }
-
-        [Test]
-        public void TestContracted()
-        {
-            AddStep("set expanded state", () => panel.State = PanelState.Contracted);
-        }
+            User = new User
+            {
+                Id = 2,
+                Username = "peppy",
+            },
+            Beatmap = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo,
+            Mods = new Mod[] { new OsuModHardRock(), new OsuModDoubleTime() },
+            TotalScore = 2845370,
+            Accuracy = 0.95,
+            MaxCombo = 999,
+            Rank = ScoreRank.S,
+            Date = DateTimeOffset.Now,
+            Statistics =
+            {
+                { HitResult.Miss, 1 },
+                { HitResult.Meh, 50 },
+                { HitResult.Good, 100 },
+                { HitResult.Great, 300 },
+            }
+        };
     }
 }
