@@ -17,15 +17,55 @@ namespace osu.Game.Screens.Results
 {
     public class ScorePanel : CompositeDrawable, IStateful<PanelState>
     {
+        /// <summary>
+        /// Width of the panel when contracted.
+        /// </summary>
         private const float contracted_width = 160;
+
+        /// <summary>
+        /// Height of the panel when contracted.
+        /// </summary>
         private const float contracted_height = 320;
+
+        /// <summary>
+        /// Width of the panel when expanded.
+        /// </summary>
         private const float expanded_width = 360;
+
+        /// <summary>
+        /// Height of the panel when expanded.
+        /// </summary>
         private const float expanded_height = 560;
 
+        /// <summary>
+        /// Height of the top layer when the panel is expanded.
+        /// </summary>
         private const float expanded_top_layer_height = 53;
+
+        /// <summary>
+        /// Height of the top layer when the panel is contracted.
+        /// </summary>
         private const float contracted_top_layer_height = 40;
 
-        private const double appear_delay = 300;
+        /// <summary>
+        /// Duration for the panel to resize into its expanded/contracted size.
+        /// </summary>
+        private const double resize_duration = 200;
+
+        /// <summary>
+        /// Delay after <see cref="resize_duration"/> before the top layer is expanded.
+        /// </summary>
+        private const double top_layer_expand_delay = 100;
+
+        /// <summary>
+        /// Duration for the top layer expansion.
+        /// </summary>
+        private const double top_layer_expand_duration = 200;
+
+        /// <summary>
+        /// Duration for the panel contents to fade in.
+        /// </summary>
+        private const double content_fade_duration = 50;
 
         private static readonly ColourInfo expanded_top_layer_colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#444"), Color4Extensions.FromHex("#333"));
         private static readonly ColourInfo expanded_middle_layer_colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#555"), Color4Extensions.FromHex("#333"));
@@ -36,12 +76,15 @@ namespace osu.Game.Screens.Results
 
         private readonly ScoreInfo score;
 
-        private Container topLayer;
-        private Container middleLayer;
+        private Container topLayerContainer;
         private Drawable topLayerBackground;
+        private Container topLayerContentContainer;
+        private Drawable topLayerContent;
+
+        private Container middleLayerContainer;
         private Drawable middleLayerBackground;
-        private Container topLayerContent;
-        private Container middleLayerContent;
+        private Container middleLayerContentContainer;
+        private Drawable middleLayerContent;
 
         public ScorePanel(ScoreInfo score)
         {
@@ -53,7 +96,7 @@ namespace osu.Game.Screens.Results
         {
             InternalChildren = new Drawable[]
             {
-                topLayer = new Container
+                topLayerContainer = new Container
                 {
                     Name = "Top layer",
                     RelativeSizeAxes = Axes.X,
@@ -68,10 +111,10 @@ namespace osu.Game.Screens.Results
                             Masking = true,
                             Child = topLayerBackground = new Box { RelativeSizeAxes = Axes.Both }
                         },
-                        topLayerContent = new Container { RelativeSizeAxes = Axes.Both }
+                        topLayerContentContainer = new Container { RelativeSizeAxes = Axes.Both }
                     }
                 },
-                middleLayer = new Container
+                middleLayerContainer = new Container
                 {
                     Name = "Middle layer",
                     RelativeSizeAxes = Axes.Both,
@@ -85,7 +128,7 @@ namespace osu.Game.Screens.Results
                             Masking = true,
                             Child = middleLayerBackground = new Box { RelativeSizeAxes = Axes.Both }
                         },
-                        middleLayerContent = new Container { RelativeSizeAxes = Axes.Both }
+                        middleLayerContentContainer = new Container { RelativeSizeAxes = Axes.Both }
                     }
                 }
             };
@@ -130,52 +173,50 @@ namespace osu.Game.Screens.Results
 
         private void updateState()
         {
-            topLayer.MoveToY(0, 200, Easing.OutQuint);
-            middleLayer.MoveToY(0, 200, Easing.OutQuint);
+            topLayerContainer.MoveToY(0, resize_duration, Easing.OutQuint);
+            middleLayerContainer.MoveToY(0, resize_duration, Easing.OutQuint);
 
-            foreach (var c in topLayerContent)
-                c.FadeOut(50).Expire();
-            foreach (var c in middleLayerContent)
-                c.FadeOut(50).Expire();
+            topLayerContent?.FadeOut(content_fade_duration).Expire();
+            middleLayerContent?.FadeOut(content_fade_duration).Expire();
 
             switch (state)
             {
                 case PanelState.Expanded:
-                    this.ResizeTo(new Vector2(expanded_width, expanded_height), 200, Easing.OutQuint);
+                    this.ResizeTo(new Vector2(expanded_width, expanded_height), resize_duration, Easing.OutQuint);
 
-                    topLayerBackground.FadeColour(expanded_top_layer_colour, 200, Easing.OutQuint);
-                    middleLayerBackground.FadeColour(expanded_middle_layer_colour, 200, Easing.OutQuint);
+                    topLayerBackground.FadeColour(expanded_top_layer_colour, resize_duration, Easing.OutQuint);
+                    middleLayerBackground.FadeColour(expanded_middle_layer_colour, resize_duration, Easing.OutQuint);
 
-                    topLayerContent.Add(new ExpandedPanelTopContent(score.User));
-                    middleLayerContent.Add(new ExpandedPanelMiddleContent(score));
-
-                    using (BeginDelayedSequence(appear_delay, true))
-                    {
-                        topLayer.MoveToY(-expanded_top_layer_height / 2, 200, Easing.OutQuint);
-                        middleLayer.MoveToY(expanded_top_layer_height / 2, 200, Easing.OutQuint);
-                    }
-
+                    topLayerContentContainer.Add(middleLayerContent = new ExpandedPanelTopContent(score.User).With(d => d.Alpha = 0));
+                    middleLayerContentContainer.Add(topLayerContent = new ExpandedPanelMiddleContent(score).With(d => d.Alpha = 0));
                     break;
 
                 case PanelState.Contracted:
-                    this.ResizeTo(new Vector2(contracted_width, contracted_height), 200, Easing.OutQuint);
+                    this.ResizeTo(new Vector2(contracted_width, contracted_height), resize_duration, Easing.OutQuint);
 
-                    topLayerBackground.FadeColour(contracted_top_layer_colour, 200, Easing.OutQuint);
-                    middleLayerBackground.FadeColour(contracted_middle_layer_colour, 200, Easing.OutQuint);
-
-                    using (BeginDelayedSequence(appear_delay, true))
-                    {
-                        topLayer.MoveToY(-contracted_top_layer_height / 2, 200, Easing.OutQuint);
-                        middleLayer.MoveToY(contracted_top_layer_height / 2, 200, Easing.OutQuint);
-                    }
-
+                    topLayerBackground.FadeColour(contracted_top_layer_colour, resize_duration, Easing.OutQuint);
+                    middleLayerBackground.FadeColour(contracted_middle_layer_colour, resize_duration, Easing.OutQuint);
                     break;
             }
 
-            foreach (var c in topLayerContent)
-                c.FadeOut().Delay(appear_delay).FadeIn(50);
-            foreach (var c in middleLayerContent)
-                c.FadeOut().Delay(appear_delay).FadeIn(50);
+            using (BeginDelayedSequence(resize_duration + top_layer_expand_delay, true))
+            {
+                switch (state)
+                {
+                    case PanelState.Expanded:
+                        topLayerContainer.MoveToY(-expanded_top_layer_height / 2, top_layer_expand_duration, Easing.OutQuint);
+                        middleLayerContainer.MoveToY(expanded_top_layer_height / 2, top_layer_expand_duration, Easing.OutQuint);
+                        break;
+
+                    case PanelState.Contracted:
+                        topLayerContainer.MoveToY(-contracted_top_layer_height / 2, top_layer_expand_duration, Easing.OutQuint);
+                        middleLayerContainer.MoveToY(contracted_top_layer_height / 2, top_layer_expand_duration, Easing.OutQuint);
+                        break;
+                }
+
+                topLayerContent?.FadeIn(content_fade_duration);
+                middleLayerContent?.FadeIn(content_fade_duration);
+            }
         }
     }
 }

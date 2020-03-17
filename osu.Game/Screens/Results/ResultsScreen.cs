@@ -33,7 +33,7 @@ namespace osu.Game.Screens.Results
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChildren = new Drawable[]
+            InternalChildren = new[]
             {
                 new ScorePanel(score)
                 {

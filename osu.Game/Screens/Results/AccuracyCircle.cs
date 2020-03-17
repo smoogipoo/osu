@@ -16,15 +16,55 @@ namespace osu.Game.Screens.Results
 {
     public class AccuracyCircle : CompositeDrawable
     {
+        /// <summary>
+        /// Duration for the transforms causing this component to appear.
+        /// </summary>
+        public const double APPEAR_DURATION = 200;
+
+        /// <summary>
+        /// Delay before the accuracy circle starts filling.
+        /// </summary>
         public const double ACCURACY_TRANSFORM_DELAY = 450;
+
+        /// <summary>
+        /// Duration for the accuracy circle fill.
+        /// </summary>
         public const double ACCURACY_TRANSFORM_DURATION = 3000;
+
+        /// <summary>
+        /// Delay after <see cref="ACCURACY_TRANSFORM_DURATION"/> for the rank text (A/B/C/D/S/SS) to appear.
+        /// </summary>
+        public const double TEXT_APPEAR_DELAY = ACCURACY_TRANSFORM_DURATION / 2;
+
+        /// <summary>
+        /// Delay before the rank circles start filling.
+        /// </summary>
+        public const double RANK_CIRCLE_TRANSFORM_DELAY = 150;
+
+        /// <summary>
+        /// Duration for the rank circle fills.
+        /// </summary>
+        public const double RANK_CIRCLE_TRANSFORM_DURATION = 800;
+
+        /// <summary>
+        /// Relative width of the rank circles.
+        /// </summary>
         public const float RANK_CIRCLE_RADIUS = 0.06f;
+
+        /// <summary>
+        /// Relative width of the circle showing the accuracy.
+        /// </summary>
         private const float accuracy_circle_radius = 0.2f;
 
         /// <summary>
         /// SS is displayed as a 1% region, otherwise it would be invisible.
         /// </summary>
         private const double virtual_ss_percentage = 0.01;
+
+        /// <summary>
+        /// The easing for the circle filling transforms.
+        /// </summary>
+        public static readonly Easing ACCURACY_TRANSFORM_EASING = Easing.OutPow10;
 
         private readonly ScoreInfo score;
 
@@ -163,27 +203,27 @@ namespace osu.Game.Screens.Results
         {
             base.LoadComplete();
 
-            this.ScaleTo(0).Then().ScaleTo(1, 200, Easing.OutQuint);
+            this.ScaleTo(0).Then().ScaleTo(1, APPEAR_DURATION, Easing.OutQuint);
 
-            using (BeginDelayedSequence(150, true))
-                innerMask.FillTo(1f, 800, Easing.OutPow10);
+            using (BeginDelayedSequence(RANK_CIRCLE_TRANSFORM_DELAY, true))
+                innerMask.FillTo(1f, RANK_CIRCLE_TRANSFORM_DURATION, ACCURACY_TRANSFORM_EASING);
 
             using (BeginDelayedSequence(ACCURACY_TRANSFORM_DELAY, true))
             {
                 double targetAccuracy = score.Rank == ScoreRank.X || score.Rank == ScoreRank.XH ? 1 : Math.Min(1 - virtual_ss_percentage, score.Accuracy);
 
-                accuracyCircle.FillTo(targetAccuracy, ACCURACY_TRANSFORM_DURATION, Easing.OutPow10);
+                accuracyCircle.FillTo(targetAccuracy, ACCURACY_TRANSFORM_DURATION, ACCURACY_TRANSFORM_EASING);
 
                 foreach (var badge in badges)
                 {
                     if (badge.Value > score.Accuracy)
                         continue;
 
-                    using (BeginDelayedSequence(inverseEasing(Easing.OutPow10, badge.Value / targetAccuracy) * ACCURACY_TRANSFORM_DURATION, true))
+                    using (BeginDelayedSequence(inverseEasing(ACCURACY_TRANSFORM_EASING, badge.Value / targetAccuracy) * ACCURACY_TRANSFORM_DURATION, true))
                         badge.Appear();
                 }
 
-                using (BeginDelayedSequence(ACCURACY_TRANSFORM_DURATION / 2, true))
+                using (BeginDelayedSequence(TEXT_APPEAR_DELAY, true))
                     rankText.Appear();
             }
         }

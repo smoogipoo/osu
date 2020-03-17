@@ -31,9 +31,9 @@ namespace osu.Game.Screens.Results
 
         private class Counter : RollingCounter<double>
         {
-            protected override double RollingDuration => 3000;
+            protected override double RollingDuration => AccuracyCircle.ACCURACY_TRANSFORM_DURATION;
 
-            protected override Easing RollingEasing => Easing.OutPow10;
+            protected override Easing RollingEasing => AccuracyCircle.ACCURACY_TRANSFORM_EASING;
 
             public Counter()
             {
