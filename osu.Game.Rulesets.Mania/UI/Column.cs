@@ -35,7 +35,6 @@ namespace osu.Game.Rulesets.Mania.UI
         public readonly Bindable<ManiaAction> Action = new Bindable<ManiaAction>();
 
         private readonly ColumnKeyArea keyArea;
-        private readonly ColumnHitObjectArea hitObjectArea;
 
         internal readonly Container TopLevelContainer;
         private readonly Container explosionContainer;
@@ -64,7 +63,7 @@ namespace osu.Game.Rulesets.Mania.UI
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        hitObjectArea = new ColumnHitObjectArea(HitObjectContainer)
+                        new ColumnHitObjectArea(HitObjectContainer)
                         {
                             RelativeSizeAxes = Axes.Both,
                         },
@@ -135,7 +134,6 @@ namespace osu.Game.Rulesets.Mania.UI
                 accentColour = value;
 
                 keyArea.AccentColour = value;
-                hitObjectArea.AccentColour = value;
             }
         }
 
