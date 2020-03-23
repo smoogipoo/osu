@@ -34,8 +34,6 @@ namespace osu.Game.Rulesets.Mania.UI
 
         public readonly Bindable<ManiaAction> Action = new Bindable<ManiaAction>();
 
-        private readonly ColumnKeyArea keyArea;
-
         internal readonly Container TopLevelContainer;
         private readonly Container explosionContainer;
 
@@ -74,10 +72,9 @@ namespace osu.Game.Rulesets.Mania.UI
                         }
                     }
                 },
-                keyArea = new ColumnKeyArea
+                new ColumnKeyArea
                 {
-                    RelativeSizeAxes = Axes.X,
-                    Height = ManiaStage.HIT_TARGET_POSITION,
+                    RelativeSizeAxes = Axes.Both
                 },
                 background,
                 TopLevelContainer = new Container { RelativeSizeAxes = Axes.Both }
@@ -98,8 +95,6 @@ namespace osu.Game.Rulesets.Mania.UI
                     Top = dir.NewValue == ScrollingDirection.Up ? NotePiece.NOTE_HEIGHT / 2 : 0,
                     Bottom = dir.NewValue == ScrollingDirection.Down ? NotePiece.NOTE_HEIGHT / 2 : 0
                 };
-
-                keyArea.Anchor = keyArea.Origin = dir.NewValue == ScrollingDirection.Up ? Anchor.TopLeft : Anchor.BottomLeft;
             }, true);
         }
 
@@ -121,21 +116,7 @@ namespace osu.Game.Rulesets.Mania.UI
             }
         }
 
-        private Color4 accentColour;
-
-        public Color4 AccentColour
-        {
-            get => accentColour;
-            set
-            {
-                if (accentColour == value)
-                    return;
-
-                accentColour = value;
-
-                keyArea.AccentColour = value;
-            }
-        }
+        public Color4 AccentColour { get; set; }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
