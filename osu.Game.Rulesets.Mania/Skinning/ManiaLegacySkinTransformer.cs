@@ -15,7 +15,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
     {
         private readonly ISkin source;
 
-        public ManiaLegacySkinTransformer(ISkin source)
+        public ManiaLegacySkinTransformer(ISkinSource source)
         {
             this.source = source;
         }
@@ -26,6 +26,15 @@ namespace osu.Game.Rulesets.Mania.Skinning
             {
                 case GameplaySkinComponent<HitResult> resultComponent:
                     return getResult(resultComponent);
+
+                case ManiaColumnSkinComponent maniaComponent:
+                    switch (maniaComponent.Component)
+                    {
+                        case ManiaSkinComponents.KeyArea:
+                            return new LegacyKeyArea(maniaComponent.ColumnIndex);
+                    }
+
+                    break;
             }
 
             return null;
@@ -61,7 +70,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
         public SampleChannel GetSample(ISampleInfo sample) => source.GetSample(sample);
 
-        public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) =>
-            source.GetConfig<TLookup, TValue>(lookup);
+        public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup)
+            => source.GetConfig<TLookup, TValue>(lookup);
     }
 }
