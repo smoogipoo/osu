@@ -17,10 +17,13 @@ namespace osu.Game.Rulesets.Mania.UI.Components
 
         private Drawable keyArea;
 
+        [Resolved]
+        private Column column { get; set; }
+
         [BackgroundDependencyLoader]
         private void load(IScrollingInfo scrollingInfo)
         {
-            InternalChild = keyArea = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.KeyArea), _ => new DefaultKeyArea())
+            InternalChild = keyArea = new SkinnableDrawable(new ManiaColumnSkinComponent(ManiaSkinComponents.KeyArea, column.Index), _ => new DefaultKeyArea())
             {
                 RelativeSizeAxes = Axes.X,
                 Height = ManiaStage.HIT_TARGET_POSITION,
