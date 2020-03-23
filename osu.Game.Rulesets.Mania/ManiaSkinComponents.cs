@@ -5,5 +5,6 @@ namespace osu.Game.Rulesets.Mania
 {
     public enum ManiaSkinComponents
     {
+        ColumnBackground
     }
 }
