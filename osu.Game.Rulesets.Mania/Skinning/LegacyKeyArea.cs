@@ -16,7 +16,6 @@ namespace osu.Game.Rulesets.Mania.Skinning
     public class LegacyKeyArea : CompositeDrawable, IKeyBindingHandler<ManiaAction>
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
-        private readonly int columnIndex;
 
         private Sprite upSprite;
         private Sprite downSprite;
@@ -24,22 +23,20 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [Resolved]
         private Column column { get; set; }
 
-        public LegacyKeyArea(int columnIndex)
+        public LegacyKeyArea()
         {
-            this.columnIndex = columnIndex;
-
             RelativeSizeAxes = Axes.Both;
         }
 
         [BackgroundDependencyLoader]
         private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
-            int fallbackColumn = columnIndex % 2 + 1;
+            int fallbackColumn = column.Index % 2 + 1;
 
-            string upImage = skin.GetConfig<LegacyColumnSkinConfiguration, string>(new LegacyColumnSkinConfiguration(columnIndex, LegacyColumnSkinConfigurations.KeyImage))?.Value
+            string upImage = skin.GetConfig<LegacyColumnSkinConfiguration, string>(new LegacyColumnSkinConfiguration(column.Index, LegacyColumnSkinConfigurations.KeyImage))?.Value
                              ?? $"mania-key{fallbackColumn}";
 
-            string downImage = skin.GetConfig<LegacyColumnSkinConfiguration, string>(new LegacyColumnSkinConfiguration(columnIndex, LegacyColumnSkinConfigurations.KeyImage))?.Value
+            string downImage = skin.GetConfig<LegacyColumnSkinConfiguration, string>(new LegacyColumnSkinConfiguration(column.Index, LegacyColumnSkinConfigurations.KeyImage))?.Value
                                ?? $"mania-key{fallbackColumn}D";
 
             InternalChildren = new Drawable[]
