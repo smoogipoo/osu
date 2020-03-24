@@ -25,6 +25,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [Resolved]
         private Column column { get; set; }
 
+        [Resolved(CanBeNull = true)]
+        private ManiaStage stage { get; set; }
+
         public LegacyColumnBackground()
         {
             RelativeSizeAxes = Axes.Both;
@@ -35,12 +38,33 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             string lightImage = skin.GetConfig<LegacyColumnSkinConfiguration, string>(new LegacyColumnSkinConfiguration(0, LegacyColumnSkinConfigurations.LightImage))?.Value ?? "mania-stage-light";
 
+            float leftLineWidth = skin.GetConfig<LegacyColumnSkinConfiguration, float>(new LegacyColumnSkinConfiguration(column.Index, LegacyColumnSkinConfigurations.LeftLineWidth))?.Value ?? 1;
+            float rightLineWidth = skin.GetConfig<LegacyColumnSkinConfiguration, float>(new LegacyColumnSkinConfiguration(column.Index, LegacyColumnSkinConfigurations.RightLineWidth))?.Value ?? 1;
+
+            bool hasLeftLine = leftLineWidth > 0;
+            bool hasRightLine = rightLineWidth > 0 && skin.GetConfig<LegacySkinConfiguration.LegacySetting, decimal>(LegacySkinConfiguration.LegacySetting.Version)?.Value >= 2.4m
+                                || stage == null || column.Index == stage.Columns.Count - 1;
+
             InternalChildren = new Drawable[]
             {
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black
+                },
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Y,
+                    Width = leftLineWidth,
+                    Alpha = hasLeftLine ? 1 : 0
+                },
+                new Box
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    RelativeSizeAxes = Axes.Y,
+                    Width = rightLineWidth,
+                    Alpha = hasRightLine ? 1 : 0
                 },
                 light = new Sprite
                 {

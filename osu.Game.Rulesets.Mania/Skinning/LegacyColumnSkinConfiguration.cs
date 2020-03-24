@@ -19,6 +19,8 @@ namespace osu.Game.Rulesets.Mania.Skinning
     {
         KeyImage,
         KeyImageDown,
-        LightImage
+        LightImage,
+        LeftLineWidth,
+        RightLineWidth
     }
 }
