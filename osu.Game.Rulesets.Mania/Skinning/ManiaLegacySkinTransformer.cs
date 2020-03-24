@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Audio.Sample;
@@ -15,9 +16,19 @@ namespace osu.Game.Rulesets.Mania.Skinning
     {
         private readonly ISkin source;
 
+        private Lazy<bool> isLegacySkin;
+
         public ManiaLegacySkinTransformer(ISkinSource source)
         {
             this.source = source;
+
+            source.SourceChanged += sourceChanged;
+            sourceChanged();
+        }
+
+        private void sourceChanged()
+        {
+            isLegacySkin = new Lazy<bool>(() => source.GetConfig<LegacySkinConfiguration.LegacySetting, decimal>(LegacySkinConfiguration.LegacySetting.Version) != null);
         }
 
         public Drawable GetDrawableComponent(ISkinComponent component)
@@ -28,6 +39,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     return getResult(resultComponent);
 
                 case ManiaColumnSkinComponent maniaComponent:
+                    if (!isLegacySkin.Value)
+                        return null;
+
                     switch (maniaComponent.Component)
                     {
                         case ManiaSkinComponents.KeyArea:
