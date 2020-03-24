@@ -8,11 +8,11 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Mania.Skinning;
 using osu.Game.Rulesets.Mania.UI.Components;
-using osu.Game.Tests.Visual;
+using osuTK;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
-    public class TestSceneKeyArea : SkinnableTestScene
+    public class TestSceneKeyArea : ManiaSkinnableTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -26,7 +26,10 @@ namespace osu.Game.Rulesets.Mania.Tests
         {
             SetContents(() => new FillFlowContainer
             {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.8f),
                 Direction = FillDirection.Horizontal,
                 Children = new Drawable[]
                 {

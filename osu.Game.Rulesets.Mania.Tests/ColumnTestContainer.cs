@@ -5,8 +5,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Mania.UI;
-using osu.Game.Rulesets.UI.Scrolling;
-using osu.Game.Tests.Visual;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
@@ -23,13 +21,9 @@ namespace osu.Game.Rulesets.Mania.Tests
         {
             this.column = new Column(column) { Action = { Value = action } };
 
-            InternalChild = new ScrollingTestContainer(ScrollingDirection.Down)
+            InternalChild = content = new ManiaInputManager(new ManiaRuleset().RulesetInfo, 4)
             {
-                RelativeSizeAxes = Axes.Both,
-                Child = content = new ManiaInputManager(new ManiaRuleset().RulesetInfo, 4)
-                {
-                    RelativeSizeAxes = Axes.Both
-                }
+                RelativeSizeAxes = Axes.Both
             };
         }
     }
