@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
     /// </summary>
     public class DrawableNote : DrawableManiaHitObject<Note>, IKeyBindingHandler<ManiaAction>
     {
-        private readonly NotePiece headPiece;
+        private readonly DefaultNotePiece headPiece;
 
         public DrawableNote(Note hitObject)
             : base(hitObject)
@@ -24,7 +24,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            AddInternal(headPiece = new NotePiece());
+            AddInternal(headPiece = new DefaultNotePiece());
         }
 
         protected override void OnDirectionChanged(ValueChangedEvent<ScrollingDirection> e)

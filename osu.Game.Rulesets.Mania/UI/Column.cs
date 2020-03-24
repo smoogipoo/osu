@@ -92,8 +92,8 @@ namespace osu.Game.Rulesets.Mania.UI
 
                 explosionContainer.Padding = new MarginPadding
                 {
-                    Top = dir.NewValue == ScrollingDirection.Up ? NotePiece.NOTE_HEIGHT / 2 : 0,
-                    Bottom = dir.NewValue == ScrollingDirection.Down ? NotePiece.NOTE_HEIGHT / 2 : 0
+                    Top = dir.NewValue == ScrollingDirection.Up ? DefaultNotePiece.NOTE_HEIGHT / 2 : 0,
+                    Bottom = dir.NewValue == ScrollingDirection.Down ? DefaultNotePiece.NOTE_HEIGHT / 2 : 0
                 };
             }, true);
         }

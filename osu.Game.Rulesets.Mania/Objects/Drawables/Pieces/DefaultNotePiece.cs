@@ -17,7 +17,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
     /// <summary>
     /// Represents the static hit markers of notes.
     /// </summary>
-    internal class NotePiece : CompositeDrawable
+    internal class DefaultNotePiece : CompositeDrawable
     {
         public const float NOTE_HEIGHT = 12;
 
@@ -26,7 +26,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
 
         private readonly Box colouredBox;
 
-        public NotePiece()
+        public DefaultNotePiece()
         {
             RelativeSizeAxes = Axes.X;
             Height = NOTE_HEIGHT;
