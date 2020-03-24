@@ -31,7 +31,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [BackgroundDependencyLoader]
         private void load(ISkinSource skin)
         {
-            int fallbackColumn = (columnIndex + 1) % 2;
+            int fallbackColumn = columnIndex % 2 + 1;
 
             string upImage = skin.GetConfig<LegacyColumnSkinConfiguration, string>(new LegacyColumnSkinConfiguration(columnIndex, LegacyColumnSkinConfigurations.KeyImage))?.Value
                              ?? $"mania-key{fallbackColumn}";
@@ -55,7 +55,8 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     Origin = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Both,
                     FillMode = FillMode.Fit,
-                    Texture = skin.GetTexture(downImage)
+                    Texture = skin.GetTexture(downImage),
+                    Alpha = 0
                 }
             };
         }
