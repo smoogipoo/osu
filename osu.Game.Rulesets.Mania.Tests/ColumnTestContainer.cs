@@ -5,6 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Mania.UI;
+using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
@@ -19,7 +20,11 @@ namespace osu.Game.Rulesets.Mania.Tests
 
         public ColumnTestContainer(int column, ManiaAction action)
         {
-            this.column = new Column(column) { Action = { Value = action } };
+            this.column = new Column(column)
+            {
+                Action = { Value = action },
+                AccentColour = Color4.Orange
+            };
 
             InternalChild = content = new ManiaInputManager(new ManiaRuleset().RulesetInfo, 4)
             {
