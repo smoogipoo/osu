@@ -12,7 +12,7 @@ using osu.Game.Tests.Visual;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
-    public class TestSceneManiaKeyArea : SkinnableTestScene
+    public class TestSceneKeyArea : SkinnableTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
