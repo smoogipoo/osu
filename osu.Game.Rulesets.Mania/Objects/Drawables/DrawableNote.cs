@@ -3,9 +3,7 @@
 
 using System.Diagnostics;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Effects;
 using osu.Framework.Input.Bindings;
 using osu.Game.Rulesets.Mania.Objects.Drawables.Pieces;
 using osu.Game.Rulesets.Scoring;
@@ -26,22 +24,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            CornerRadius = 5;
-            Masking = true;
-
             AddInternal(headPiece = new NotePiece());
-
-            AccentColour.BindValueChanged(colour =>
-            {
-                headPiece.AccentColour = colour.NewValue;
-
-                EdgeEffect = new EdgeEffectParameters
-                {
-                    Type = EdgeEffectType.Glow,
-                    Colour = colour.NewValue.Lighten(1f).Opacity(0.2f),
-                    Radius = 10,
-                };
-            }, true);
         }
 
         protected override void OnDirectionChanged(ValueChangedEvent<ScrollingDirection> e)
