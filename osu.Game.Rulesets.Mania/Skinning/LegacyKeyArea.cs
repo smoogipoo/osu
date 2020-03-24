@@ -2,17 +2,20 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
 using osu.Game.Rulesets.Mania.UI;
+using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.Mania.Skinning
 {
     public class LegacyKeyArea : CompositeDrawable, IKeyBindingHandler<ManiaAction>
     {
+        private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
         private readonly int columnIndex;
 
         private Sprite upSprite;
@@ -29,7 +32,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
         }
 
         [BackgroundDependencyLoader]
-        private void load(ISkinSource skin)
+        private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
             int fallbackColumn = columnIndex % 2 + 1;
 
@@ -44,7 +47,6 @@ namespace osu.Game.Rulesets.Mania.Skinning
                 upSprite = new Sprite
                 {
                     Anchor = Anchor.TopCentre,
-                    Origin = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Both,
                     FillMode = FillMode.Fit,
                     Texture = skin.GetTexture(upImage)
@@ -52,13 +54,29 @@ namespace osu.Game.Rulesets.Mania.Skinning
                 downSprite = new Sprite
                 {
                     Anchor = Anchor.TopCentre,
-                    Origin = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Both,
                     FillMode = FillMode.Fit,
                     Texture = skin.GetTexture(downImage),
                     Alpha = 0
                 }
             };
+
+            direction.BindTo(scrollingInfo.Direction);
+            direction.BindValueChanged(onDirectionChanged, true);
+        }
+
+        private void onDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
+        {
+            if (direction.NewValue == ScrollingDirection.Up)
+            {
+                upSprite.Origin = downSprite.Origin = Anchor.BottomCentre;
+                upSprite.Rotation = downSprite.Rotation = 180;
+            }
+            else
+            {
+                upSprite.Origin = downSprite.Origin = Anchor.TopCentre;
+                upSprite.Rotation = downSprite.Rotation = 0;
+            }
         }
 
         public bool OnPressed(ManiaAction action)
