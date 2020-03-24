@@ -49,6 +49,18 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     }
 
                     break;
+
+                case ManiaSkinComponent maniaComponent:
+                    if (!isLegacySkin.Value)
+                        return null;
+
+                    switch (maniaComponent.Component)
+                    {
+                        case ManiaSkinComponents.HitTarget:
+                            return new LegacyHitTarget();
+                    }
+
+                    break;
             }
 
             return null;
