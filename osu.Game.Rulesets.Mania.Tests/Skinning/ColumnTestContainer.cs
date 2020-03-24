@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Mania.UI;
 using osuTK.Graphics;
 
-namespace osu.Game.Rulesets.Mania.Tests
+namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {
     public class ColumnTestContainer : Container
     {

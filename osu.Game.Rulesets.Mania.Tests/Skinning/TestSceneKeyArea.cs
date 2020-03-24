@@ -10,7 +10,7 @@ using osu.Game.Rulesets.Mania.Skinning;
 using osu.Game.Rulesets.Mania.UI.Components;
 using osuTK;
 
-namespace osu.Game.Rulesets.Mania.Tests
+namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {
     public class TestSceneKeyArea : ManiaSkinnableTestScene
     {

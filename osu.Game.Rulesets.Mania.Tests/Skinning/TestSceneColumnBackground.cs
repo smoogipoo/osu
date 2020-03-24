@@ -8,7 +8,7 @@ using osu.Game.Rulesets.Mania.Skinning;
 using osu.Game.Skinning;
 using osuTK;
 
-namespace osu.Game.Rulesets.Mania.Tests
+namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {
     public class TestSceneColumnBackground : ManiaSkinnableTestScene
     {

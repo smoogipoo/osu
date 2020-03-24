@@ -13,7 +13,7 @@ using osu.Game.Rulesets.UI.Scrolling.Algorithms;
 using osu.Game.Tests.Visual;
 using osuTK.Graphics;
 
-namespace osu.Game.Rulesets.Mania.Tests
+namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {
     public abstract class ManiaSkinnableTestScene : SkinnableTestScene
     {
