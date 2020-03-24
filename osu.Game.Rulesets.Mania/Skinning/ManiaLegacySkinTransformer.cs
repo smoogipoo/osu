@@ -49,6 +49,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
                         case ManiaColumnSkinComponents.Background:
                             return new LegacyColumnBackground();
+
+                        case ManiaColumnSkinComponents.Note:
+                            return new LegacyNotePiece();
                     }
 
                     break;

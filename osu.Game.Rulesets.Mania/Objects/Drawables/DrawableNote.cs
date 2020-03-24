@@ -8,6 +8,7 @@ using osu.Framework.Input.Bindings;
 using osu.Game.Rulesets.Mania.Objects.Drawables.Pieces;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI.Scrolling;
+using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.Mania.Objects.Drawables
 {
@@ -16,7 +17,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
     /// </summary>
     public class DrawableNote : DrawableManiaHitObject<Note>, IKeyBindingHandler<ManiaAction>
     {
-        private readonly DefaultNotePiece headPiece;
+        private readonly Drawable headPiece;
 
         public DrawableNote(Note hitObject)
             : base(hitObject)
@@ -24,7 +25,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            AddInternal(headPiece = new DefaultNotePiece());
+            AddInternal(headPiece = new SkinnableDrawable(new ManiaColumnSkinComponent(ManiaColumnSkinComponents.Note, 0), _ => new DefaultNotePiece()));
         }
 
         protected override void OnDirectionChanged(ValueChangedEvent<ScrollingDirection> e)

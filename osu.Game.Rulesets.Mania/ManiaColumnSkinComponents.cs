@@ -7,6 +7,7 @@ namespace osu.Game.Rulesets.Mania
     {
         Background,
         Light,
-        KeyArea
+        KeyArea,
+        Note
     }
 }

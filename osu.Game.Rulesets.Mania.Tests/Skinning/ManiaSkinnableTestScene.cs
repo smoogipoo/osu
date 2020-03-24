@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -49,8 +48,8 @@ namespace osu.Game.Rulesets.Mania.Tests.Skinning
             public readonly Bindable<ScrollingDirection> Direction = new Bindable<ScrollingDirection>();
 
             IBindable<ScrollingDirection> IScrollingInfo.Direction => Direction;
-            IBindable<double> IScrollingInfo.TimeRange => throw new NotImplementedException();
-            IScrollAlgorithm IScrollingInfo.Algorithm => throw new NotImplementedException();
+            IBindable<double> IScrollingInfo.TimeRange { get; } = new Bindable<double>(1000);
+            IScrollAlgorithm IScrollingInfo.Algorithm { get; } = new ConstantScrollAlgorithm();
         }
     }
 }
