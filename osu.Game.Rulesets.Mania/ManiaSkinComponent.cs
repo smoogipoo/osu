@@ -5,9 +5,9 @@ using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.Mania
 {
-    public class ManiaSkinComponent : GameplaySkinComponent<ManiaSkinComponents>
+    public abstract class ManiaSkinComponent<T> : GameplaySkinComponent<T>
     {
-        public ManiaSkinComponent(ManiaSkinComponents component)
+        protected ManiaSkinComponent(T component)
             : base(component)
         {
         }

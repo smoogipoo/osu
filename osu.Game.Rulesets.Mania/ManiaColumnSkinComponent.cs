@@ -3,11 +3,11 @@
 
 namespace osu.Game.Rulesets.Mania
 {
-    public class ManiaColumnSkinComponent : ManiaSkinComponent
+    public class ManiaColumnSkinComponent : ManiaSkinComponent<ManiaColumnSkinComponents>
     {
         public readonly int ColumnIndex;
 
-        public ManiaColumnSkinComponent(ManiaSkinComponents component, int columnIndex)
+        public ManiaColumnSkinComponent(ManiaColumnSkinComponents component, int columnIndex)
             : base(component)
         {
             ColumnIndex = columnIndex;

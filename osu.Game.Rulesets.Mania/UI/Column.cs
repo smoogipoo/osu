@@ -44,7 +44,7 @@ namespace osu.Game.Rulesets.Mania.UI
             RelativeSizeAxes = Axes.Y;
             Width = COLUMN_WIDTH;
 
-            Drawable background = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.ColumnBackground), _ => new DefaultColumnBackground())
+            Drawable background = new SkinnableDrawable(new ManiaColumnSkinComponent(ManiaColumnSkinComponents.Background, Index), _ => new DefaultColumnBackground())
             {
                 RelativeSizeAxes = Axes.Both
             };

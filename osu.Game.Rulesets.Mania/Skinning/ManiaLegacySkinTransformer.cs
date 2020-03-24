@@ -44,19 +44,19 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
                     switch (maniaComponent.Component)
                     {
-                        case ManiaSkinComponents.KeyArea:
+                        case ManiaColumnSkinComponents.KeyArea:
                             return new LegacyKeyArea(maniaComponent.ColumnIndex);
                     }
 
                     break;
 
-                case ManiaSkinComponent maniaComponent:
+                case ManiaStageSkinComponent stageComponent:
                     if (!isLegacySkin.Value)
                         return null;
 
-                    switch (maniaComponent.Component)
+                    switch (stageComponent.Component)
                     {
-                        case ManiaSkinComponents.HitTarget:
+                        case ManiaStageSkinComponents.HitTarget:
                             return new LegacyHitTarget();
                     }
 

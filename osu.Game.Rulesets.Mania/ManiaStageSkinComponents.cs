@@ -3,10 +3,8 @@
 
 namespace osu.Game.Rulesets.Mania
 {
-    public enum ManiaSkinComponents
+    public enum ManiaStageSkinComponents
     {
-        ColumnBackground,
         HitTarget,
-        KeyArea
     }
 }
