@@ -1,22 +1,23 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-namespace osu.Game.Rulesets.Mania
+namespace osu.Game.Skinning
 {
-    public class ManiaSkinConfiguration
+    public class LegacyManiaSkinConfigurationLookup
     {
-        public readonly ManiaSkinConfigurations Lookup;
-        public readonly int? Column;
+        public readonly LegacyManiaSkinConfigurationLookups Lookup;
+        public readonly int? TargetColumn;
 
-        public ManiaSkinConfiguration(ManiaSkinConfigurations lookup, int? column = null)
+        public LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups lookup, int? targetColumn = null)
         {
             Lookup = lookup;
-            Column = column;
+            TargetColumn = targetColumn;
         }
     }
 
-    public enum ManiaSkinConfigurations
+    public enum LegacyManiaSkinConfigurationLookups
     {
+        ColumnWidth,
         KeyImage,
         KeyImageDown,
         LightImage,

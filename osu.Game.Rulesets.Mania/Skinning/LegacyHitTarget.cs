@@ -26,7 +26,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [BackgroundDependencyLoader]
         private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
-            string targetImage = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(ManiaSkinConfigurations.HitTargetImage))?.Value
+            string targetImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.HitTargetImage))?.Value
                                  ?? "mania-stage-hint";
 
             InternalChild = sprite = new Sprite

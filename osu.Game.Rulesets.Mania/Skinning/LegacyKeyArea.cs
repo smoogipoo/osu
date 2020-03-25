@@ -34,10 +34,10 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             int fallbackColumn = column.Index % 2 + 1;
 
-            string upImage = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(ManiaSkinConfigurations.KeyImage, column.Index))?.Value
+            string upImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.KeyImage, column.Index))?.Value
                              ?? $"mania-key{fallbackColumn}";
 
-            string downImage = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(ManiaSkinConfigurations.KeyImageDown, column.Index))?.Value
+            string downImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.KeyImageDown, column.Index))?.Value
                                ?? $"mania-key{fallbackColumn}D";
 
             InternalChildren = new Drawable[]
