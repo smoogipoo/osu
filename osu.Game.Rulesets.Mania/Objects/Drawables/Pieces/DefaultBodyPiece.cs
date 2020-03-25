@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osuTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -9,25 +11,37 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
-using osu.Game.Graphics;
+using osu.Game.Rulesets.Objects.Drawables;
 
 namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
 {
     /// <summary>
     /// Represents length-wise portion of a hold note.
     /// </summary>
-    public class BodyPiece : Container, IHasAccentColour
+    public class DefaultBodyPiece : Container
     {
-        private readonly Container subtractionLayer;
+        private readonly LayoutValue subtractionCache = new LayoutValue(Invalidation.DrawSize);
 
-        protected readonly Drawable Background;
-        protected readonly BufferedContainer Foreground;
-        private readonly BufferedContainer subtractionContainer;
+        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<bool> isHitting = new Bindable<bool>();
 
-        public BodyPiece()
+        protected Drawable Background { get; private set; }
+        protected BufferedContainer Foreground { get; private set; }
+
+        private BufferedContainer subtractionContainer;
+        private Container subtractionLayer;
+
+        public DefaultBodyPiece()
         {
+            RelativeSizeAxes = Axes.Both;
             Blending = BlendingParameters.Additive;
 
+            AddLayout(subtractionCache);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(DrawableHitObject drawableObject)
+        {
             Children = new[]
             {
                 Background = new Box { RelativeSizeAxes = Axes.Both },
@@ -66,43 +80,34 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
                 }
             };
 
-            AddLayout(subtractionCache);
+            var holdNote = (DrawableHoldNote)drawableObject;
+
+            accentColour.BindTo(drawableObject.AccentColour);
+            accentColour.BindValueChanged(onAccentChanged, true);
+
+            isHitting.BindTo(holdNote.IsHitting);
+            isHitting.BindValueChanged(_ => onAccentChanged(new ValueChangedEvent<Color4>(accentColour.Value, accentColour.Value)), true);
         }
 
-        protected override void LoadComplete()
+        private void onAccentChanged(ValueChangedEvent<Color4> accent)
         {
-            base.LoadComplete();
+            Foreground.Colour = accent.NewValue.Opacity(0.5f);
+            Background.Colour = accent.NewValue.Opacity(0.7f);
 
-            updateAccentColour();
-        }
+            const float animation_length = 50;
 
-        private Color4 accentColour;
+            Foreground.ClearTransforms(false, nameof(Foreground.Colour));
 
-        public Color4 AccentColour
-        {
-            get => accentColour;
-            set
+            if (isHitting.Value)
             {
-                if (accentColour == value)
-                    return;
-
-                accentColour = value;
-
-                updateAccentColour();
+                // wait for the next sync point
+                double synchronisedOffset = animation_length * 2 - Time.Current % (animation_length * 2);
+                using (Foreground.BeginDelayedSequence(synchronisedOffset))
+                    Foreground.FadeColour(accent.NewValue.Lighten(0.2f), animation_length).Then().FadeColour(Foreground.Colour, animation_length).Loop();
             }
-        }
 
-        public bool Hitting
-        {
-            get => hitting;
-            set
-            {
-                hitting = value;
-                updateAccentColour();
-            }
+            subtractionCache.Invalidate();
         }
-
-        private readonly LayoutValue subtractionCache = new LayoutValue(Invalidation.DrawSize);
 
         protected override void Update()
         {
@@ -124,31 +129,6 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables.Pieces
 
                 subtractionCache.Validate();
             }
-        }
-
-        private bool hitting;
-
-        private void updateAccentColour()
-        {
-            if (!IsLoaded)
-                return;
-
-            Foreground.Colour = AccentColour.Opacity(0.5f);
-            Background.Colour = AccentColour.Opacity(0.7f);
-
-            const float animation_length = 50;
-
-            Foreground.ClearTransforms(false, nameof(Foreground.Colour));
-
-            if (hitting)
-            {
-                // wait for the next sync point
-                double synchronisedOffset = animation_length * 2 - Time.Current % (animation_length * 2);
-                using (Foreground.BeginDelayedSequence(synchronisedOffset))
-                    Foreground.FadeColour(AccentColour.Lighten(0.2f), animation_length).Then().FadeColour(Foreground.Colour, animation_length).Loop();
-            }
-
-            subtractionCache.Invalidate();
         }
     }
 }

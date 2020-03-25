@@ -52,6 +52,15 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
                         case ManiaColumnSkinComponents.Note:
                             return new LegacyNotePiece();
+
+                        case ManiaColumnSkinComponents.HeadNote:
+                            return new LegacyNotePiece();
+
+                        case ManiaColumnSkinComponents.TailNote:
+                            return new LegacyNotePiece();
+
+                        case ManiaColumnSkinComponents.Body:
+                            return new LegacyBodyPiece();
                     }
 
                     break;

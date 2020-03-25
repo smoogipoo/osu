@@ -10,7 +10,6 @@ using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.Mania.Objects.Drawables.Pieces;
 using osu.Game.Rulesets.UI.Scrolling;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Edit.Blueprints
 {
@@ -42,9 +41,9 @@ namespace osu.Game.Rulesets.Mania.Edit.Blueprints
             {
                 new HoldNoteNoteSelectionBlueprint(DrawableObject, HoldNotePosition.Start),
                 new HoldNoteNoteSelectionBlueprint(DrawableObject, HoldNotePosition.End),
-                new BodyPiece
+                new DefaultBodyPiece
                 {
-                    AccentColour = Color4.Transparent,
+                    // AccentColour = Color4.Transparent,
                     BorderColour = colours.Yellow
                 },
             };

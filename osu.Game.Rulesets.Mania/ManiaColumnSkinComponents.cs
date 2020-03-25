@@ -10,6 +10,7 @@ namespace osu.Game.Rulesets.Mania
         KeyArea,
         HeadNote,
         TailNote,
-        Note
+        Note,
+        Body
     }
 }

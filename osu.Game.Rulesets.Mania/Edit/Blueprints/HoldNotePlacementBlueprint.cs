@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Mania.Edit.Blueprints
 {
     public class HoldNotePlacementBlueprint : ManiaPlacementBlueprint<HoldNote>
     {
-        private readonly EditBodyPiece bodyPiece;
+        private readonly EditBodyPiece legacyBodyPiece;
         private readonly EditNotePiece headPiece;
         private readonly EditNotePiece tailPiece;
 
@@ -22,7 +22,7 @@ namespace osu.Game.Rulesets.Mania.Edit.Blueprints
 
             InternalChildren = new Drawable[]
             {
-                bodyPiece = new EditBodyPiece { Origin = Anchor.TopCentre },
+                legacyBodyPiece = new EditBodyPiece { Origin = Anchor.TopCentre },
                 headPiece = new EditNotePiece { Origin = Anchor.Centre },
                 tailPiece = new EditNotePiece { Origin = Anchor.Centre }
             };
@@ -41,9 +41,9 @@ namespace osu.Game.Rulesets.Mania.Edit.Blueprints
             var topPosition = new Vector2(headPiece.DrawPosition.X, Math.Min(headPiece.DrawPosition.Y, tailPiece.DrawPosition.Y));
             var bottomPosition = new Vector2(headPiece.DrawPosition.X, Math.Max(headPiece.DrawPosition.Y, tailPiece.DrawPosition.Y));
 
-            bodyPiece.Position = topPosition;
-            bodyPiece.Width = headPiece.Width;
-            bodyPiece.Height = (bottomPosition - topPosition).Y;
+            legacyBodyPiece.Position = topPosition;
+            legacyBodyPiece.Width = headPiece.Width;
+            legacyBodyPiece.Height = (bottomPosition - topPosition).Y;
         }
 
         private double originalStartTime;
