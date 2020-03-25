@@ -40,16 +40,16 @@ namespace osu.Game.Rulesets.Mania.Skinning
             switch (drawableObject)
             {
                 case DrawableHoldNoteTail _:
-                    noteTexture = loadTexture(skin, ManiaColumnSkinComponents.TailNote)
-                                  ?? loadTexture(skin, ManiaColumnSkinComponents.HeadNote);
+                    noteTexture = loadTexture(skin, ManiaSkinConfigurations.HoldNoteTailImage)
+                                  ?? loadTexture(skin, ManiaSkinConfigurations.HoldNoteHeadImage);
                     break;
 
                 case DrawableHoldNoteHead _:
-                    noteTexture = loadTexture(skin, ManiaColumnSkinComponents.HeadNote);
+                    noteTexture = loadTexture(skin, ManiaSkinConfigurations.HoldNoteHeadImage);
                     break;
 
                 default:
-                    noteTexture = loadTexture(skin, ManiaColumnSkinComponents.Note);
+                    noteTexture = loadTexture(skin, ManiaSkinConfigurations.NoteImage);
                     break;
             }
 
@@ -79,23 +79,23 @@ namespace osu.Game.Rulesets.Mania.Skinning
             }
         }
 
-        private Texture loadTexture(ISkinSource skin, ManiaColumnSkinComponents component)
+        private Texture loadTexture(ISkinSource skin, ManiaSkinConfigurations configuration)
         {
             int fallbackColumn = column.Index % 2 + 1;
             string suffix = string.Empty;
 
-            switch (component)
+            switch (configuration)
             {
-                case ManiaColumnSkinComponents.HeadNote:
+                case ManiaSkinConfigurations.HoldNoteHeadImage:
                     suffix = "H";
                     break;
 
-                case ManiaColumnSkinComponents.TailNote:
+                case ManiaSkinConfigurations.HoldNoteTailImage:
                     suffix = "T";
                     break;
             }
 
-            string noteImage = skin.GetConfig<ManiaColumnSkinComponent, string>(new ManiaColumnSkinComponent(component, column.Index))?.Value
+            string noteImage = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(column.Index, configuration))?.Value
                                ?? $"mania-note{fallbackColumn}{suffix}";
 
             return skin.GetTexture(noteImage);

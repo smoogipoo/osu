@@ -38,40 +38,25 @@ namespace osu.Game.Rulesets.Mania.Skinning
                 case GameplaySkinComponent<HitResult> resultComponent:
                     return getResult(resultComponent);
 
-                case ManiaColumnSkinComponent maniaComponent:
+                case ManiaSkinComponent maniaComponent:
                     if (!isLegacySkin.Value)
                         return null;
 
                     switch (maniaComponent.Component)
                     {
-                        case ManiaColumnSkinComponents.KeyArea:
+                        case ManiaSkinComponents.KeyArea:
                             return new LegacyKeyArea();
 
-                        case ManiaColumnSkinComponents.Background:
+                        case ManiaSkinComponents.ColumnBackground:
                             return new LegacyColumnBackground();
 
-                        case ManiaColumnSkinComponents.Note:
+                        case ManiaSkinComponents.Note:
                             return new LegacyNotePiece();
 
-                        case ManiaColumnSkinComponents.HeadNote:
-                            return new LegacyNotePiece();
-
-                        case ManiaColumnSkinComponents.TailNote:
-                            return new LegacyNotePiece();
-
-                        case ManiaColumnSkinComponents.Body:
+                        case ManiaSkinComponents.HoldNoteBody:
                             return new LegacyBodyPiece();
-                    }
 
-                    break;
-
-                case ManiaStageSkinComponent stageComponent:
-                    if (!isLegacySkin.Value)
-                        return null;
-
-                    switch (stageComponent.Component)
-                    {
-                        case ManiaStageSkinComponents.HitTarget:
+                        case ManiaSkinComponents.HitTarget:
                             return new LegacyHitTarget();
                     }
 

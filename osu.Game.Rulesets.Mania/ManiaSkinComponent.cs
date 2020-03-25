@@ -5,9 +5,9 @@ using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.Mania
 {
-    public abstract class ManiaSkinComponent<T> : GameplaySkinComponent<T>
+    public class ManiaSkinComponent : GameplaySkinComponent<ManiaSkinComponents>
     {
-        protected ManiaSkinComponent(T component)
+        public ManiaSkinComponent(ManiaSkinComponents component)
             : base(component)
         {
         }
@@ -15,5 +15,14 @@ namespace osu.Game.Rulesets.Mania
         protected override string RulesetPrefix => ManiaRuleset.SHORT_NAME;
 
         protected override string ComponentName => Component.ToString().ToLower();
+    }
+
+    public enum ManiaSkinComponents
+    {
+        HitTarget,
+        ColumnBackground,
+        KeyArea,
+        Note,
+        HoldNoteBody
     }
 }

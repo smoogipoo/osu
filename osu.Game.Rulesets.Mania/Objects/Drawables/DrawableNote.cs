@@ -25,7 +25,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            AddInternal(headPiece = new SkinnableDrawable(new ManiaColumnSkinComponent(ManiaColumnSkinComponents.Note, 0), _ => new DefaultNotePiece())
+            AddInternal(headPiece = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.Note), _ => new DefaultNotePiece())
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y

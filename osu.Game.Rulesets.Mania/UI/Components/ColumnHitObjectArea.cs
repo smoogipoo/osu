@@ -22,7 +22,7 @@ namespace osu.Game.Rulesets.Mania.UI.Components
         {
             InternalChildren = new[]
             {
-                hitTarget = new SkinnableDrawable(new ManiaStageSkinComponent(ManiaStageSkinComponents.HitTarget), _ => new DefaultHitTarget())
+                hitTarget = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.HitTarget), _ => new DefaultHitTarget())
                 {
                     RelativeSizeAxes = Axes.Both
                 },
