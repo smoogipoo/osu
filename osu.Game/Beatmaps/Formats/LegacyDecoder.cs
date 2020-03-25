@@ -41,6 +41,7 @@ namespace osu.Game.Beatmaps.Formats
                         section = Section.None;
                     }
 
+                    BeginNewSection(section);
                     continue;
                 }
 
@@ -56,6 +57,10 @@ namespace osu.Game.Beatmaps.Formats
         }
 
         protected virtual bool ShouldSkipLine(string line) => string.IsNullOrWhiteSpace(line) || line.AsSpan().TrimStart().StartsWith("//".AsSpan(), StringComparison.Ordinal);
+
+        protected virtual void BeginNewSection(Section section)
+        {
+        }
 
         protected virtual void ParseLine(T output, Section section, string line)
         {
@@ -139,7 +144,8 @@ namespace osu.Game.Beatmaps.Formats
             Colours,
             HitObjects,
             Variables,
-            Fonts
+            Fonts,
+            Mania
         }
 
         internal class LegacyDifficultyControlPoint : DifficultyControlPoint

@@ -32,6 +32,8 @@ namespace osu.Game.Skinning
             set => base.Configuration = value;
         }
 
+        private readonly Dictionary<int, LegacyManiaSkinConfiguration> maniaConfigurations = new Dictionary<int, LegacyManiaSkinConfiguration>();
+
         public LegacySkin(SkinInfo skin, IResourceStore<byte[]> storage, AudioManager audioManager)
             : this(skin, new LegacySkinResourceStore<SkinFileInfo>(skin, storage), audioManager, "skin.ini")
         {
@@ -46,6 +48,13 @@ namespace osu.Game.Skinning
             {
                 using (LineBufferedReader reader = new LineBufferedReader(stream))
                     Configuration = new LegacySkinDecoder().Decode(reader);
+
+                using (LineBufferedReader reader = new LineBufferedReader(storage.GetStream(filename)))
+                {
+                    var maniaList = new LegacyManiaSkinDecoder().Decode(reader);
+                    foreach (var config in maniaList)
+                        maniaConfigurations[config.Keys] = config;
+                }
             }
             else
                 Configuration = new LegacySkinConfiguration { LegacyVersion = LegacySkinConfiguration.LATEST_VERSION };
