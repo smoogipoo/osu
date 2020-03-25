@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
+using osuTK;
 
 namespace osu.Game.Rulesets.Mania.Skinning
 {
@@ -44,12 +45,12 @@ namespace osu.Game.Rulesets.Mania.Skinning
             if (direction.NewValue == ScrollingDirection.Up)
             {
                 sprite.Anchor = Anchor.TopCentre;
-                sprite.Rotation = 180;
+                sprite.Scale = new Vector2(1, -1);
             }
             else
             {
                 sprite.Anchor = Anchor.BottomCentre;
-                sprite.Rotation = 0;
+                sprite.Scale = Vector2.One;
             }
         }
     }

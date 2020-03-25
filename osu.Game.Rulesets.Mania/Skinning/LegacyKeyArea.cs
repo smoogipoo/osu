@@ -10,6 +10,7 @@ using osu.Framework.Input.Bindings;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
+using osuTK;
 
 namespace osu.Game.Rulesets.Mania.Skinning
 {
@@ -67,12 +68,12 @@ namespace osu.Game.Rulesets.Mania.Skinning
             if (direction.NewValue == ScrollingDirection.Up)
             {
                 upSprite.Origin = downSprite.Origin = Anchor.BottomCentre;
-                upSprite.Rotation = downSprite.Rotation = 180;
+                upSprite.Scale = downSprite.Scale = new Vector2(1, -1);
             }
             else
             {
                 upSprite.Origin = downSprite.Origin = Anchor.TopCentre;
-                upSprite.Rotation = downSprite.Rotation = 0;
+                upSprite.Scale = downSprite.Scale = Vector2.One;
             }
         }
 

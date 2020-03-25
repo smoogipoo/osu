@@ -20,6 +20,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
 
+        private Container lightContainer;
         private Sprite light;
 
         [Resolved]
@@ -66,13 +67,19 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     Width = rightLineWidth,
                     Alpha = hasRightLine ? 1 : 0
                 },
-                light = new Sprite
+                lightContainer = new Container
                 {
                     Origin = Anchor.BottomCentre,
-                    Texture = skin.GetTexture(lightImage),
-                    RelativeSizeAxes = Axes.X,
-                    Width = 1,
-                    Alpha = 0
+                    RelativeSizeAxes = Axes.Both,
+                    Child = light = new Sprite
+                    {
+                        Anchor = Anchor.BottomCentre,
+                        Origin = Anchor.BottomCentre,
+                        Texture = skin.GetTexture(lightImage),
+                        RelativeSizeAxes = Axes.X,
+                        Width = 1,
+                        Alpha = 0
+                    }
                 }
             };
 
@@ -84,13 +91,13 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             if (direction.NewValue == ScrollingDirection.Up)
             {
-                light.Anchor = Anchor.TopCentre;
-                light.Rotation = 180;
+                lightContainer.Anchor = Anchor.TopCentre;
+                lightContainer.Scale = new Vector2(1, -1);
             }
             else
             {
-                light.Anchor = Anchor.BottomCentre;
-                light.Rotation = 0;
+                lightContainer.Anchor = Anchor.BottomCentre;
+                lightContainer.Scale = Vector2.One;
             }
         }
 
