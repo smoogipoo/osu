@@ -4,9 +4,11 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
+using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.Mania.UI;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
 using osuTK;
@@ -16,8 +18,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
     public class LegacyBodyPiece : CompositeDrawable
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
+        private readonly IBindable<bool> isHitting = new Bindable<bool>();
 
-        private Sprite sprite;
+        private Drawable sprite;
 
         [Resolved]
         private Column column { get; set; }
@@ -28,27 +31,51 @@ namespace osu.Game.Rulesets.Mania.Skinning
         }
 
         [BackgroundDependencyLoader]
-        private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
+        private void load(ISkinSource skin, IScrollingInfo scrollingInfo, DrawableHitObject drawableObject)
         {
             int fallbackIndex = column.Index % 2 + 1;
 
-            string imageName = skin.GetConfig<ManiaColumnSkinComponent, string>(new ManiaColumnSkinComponent(ManiaColumnSkinComponents.Body, column.Index))?.Value ?? $"mania-note{fallbackIndex}L-0";
+            string imageName = skin.GetConfig<ManiaColumnSkinComponent, string>(new ManiaColumnSkinComponent(ManiaColumnSkinComponents.Body, column.Index))?.Value ?? $"mania-note{fallbackIndex}L";
 
-            InternalChild = sprite = new Sprite
+            sprite = skin.GetAnimation(imageName, true, true).With(d =>
             {
-                Anchor = Anchor.TopCentre,
-                RelativeSizeAxes = Axes.Both,
-                FillMode = FillMode.Stretch,
-                // Todo: WrapMode,
-                Texture = skin.GetTexture(imageName)
-            };
+                if (d == null)
+                    return;
+
+                if (d is TextureAnimation animation)
+                    animation.IsPlaying = false;
+
+                d.Anchor = Anchor.TopCentre;
+                d.RelativeSizeAxes = Axes.Both;
+                d.Size = Vector2.One;
+                d.FillMode = FillMode.Stretch;
+                // Todo: Wrap
+            });
+
+            if (sprite != null)
+                InternalChild = sprite;
 
             direction.BindTo(scrollingInfo.Direction);
             direction.BindValueChanged(onDirectionChanged, true);
+
+            var holdNote = (DrawableHoldNote)drawableObject;
+            isHitting.BindTo(holdNote.IsHitting);
+            isHitting.BindValueChanged(onIsHittingChanged, true);
+        }
+
+        private void onIsHittingChanged(ValueChangedEvent<bool> isHitting)
+        {
+            if (!(sprite is TextureAnimation animation))
+                return;
+
+            animation.IsPlaying = isHitting.NewValue;
         }
 
         private void onDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
         {
+            if (sprite == null)
+                return;
+
             if (direction.NewValue == ScrollingDirection.Up)
             {
                 sprite.Origin = Anchor.BottomCentre;
