@@ -5,13 +5,13 @@ namespace osu.Game.Rulesets.Mania
 {
     public class ManiaSkinConfiguration
     {
-        public readonly int Column;
         public readonly ManiaSkinConfigurations Lookup;
+        public readonly int? Column;
 
-        public ManiaSkinConfiguration(int column, ManiaSkinConfigurations lookup)
+        public ManiaSkinConfiguration(ManiaSkinConfigurations lookup, int? column = null)
         {
-            Column = column;
             Lookup = lookup;
+            Column = column;
         }
     }
 

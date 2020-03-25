@@ -95,7 +95,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     break;
             }
 
-            string noteImage = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(column.Index, configuration))?.Value
+            string noteImage = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(configuration, column.Index))?.Value
                                ?? $"mania-note{fallbackColumn}{suffix}";
 
             return skin.GetTexture(noteImage);

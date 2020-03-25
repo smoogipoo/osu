@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             int fallbackIndex = column.Index % 2 + 1;
 
-            string imageName = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(column.Index, ManiaSkinConfigurations.HoldNoteBodyImage))?.Value
+            string imageName = skin.GetConfig<ManiaSkinConfiguration, string>(new ManiaSkinConfiguration(ManiaSkinConfigurations.HoldNoteBodyImage, column.Index))?.Value
                                ?? $"mania-note{fallbackIndex}L";
 
             sprite = skin.GetAnimation(imageName, true, true).With(d =>
