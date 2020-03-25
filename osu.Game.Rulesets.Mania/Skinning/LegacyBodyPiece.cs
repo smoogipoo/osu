@@ -22,6 +22,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
         private Drawable sprite;
 
+        [Resolved(CanBeNull = true)]
+        private ManiaStage stage { get; set; }
+
         [Resolved]
         private Column column { get; set; }
 
@@ -36,7 +39,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
             int fallbackIndex = column.Index % 2 + 1;
 
             string imageName = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(
-                                   new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.HoldNoteBodyImage, column.Index))?.Value
+                                   new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.HoldNoteBodyImage, column.Index))?.Value
                                ?? $"mania-note{fallbackIndex}L";
 
             sprite = skin.GetAnimation(imageName, true, true).With(d =>

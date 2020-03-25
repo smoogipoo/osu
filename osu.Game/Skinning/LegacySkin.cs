@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -113,6 +114,19 @@ namespace osu.Game.Skinning
 
                 case SkinCustomColourLookup customColour:
                     return SkinUtils.As<TValue>(getCustomColour(customColour.Lookup.ToString()));
+
+                case LegacyManiaSkinConfigurationLookup legacy:
+                    if (!maniaConfigurations.TryGetValue(legacy.Keys, out var existing))
+                        maniaConfigurations[legacy.Keys] = existing = new LegacyManiaSkinConfiguration(legacy.Keys);
+
+                    switch (legacy.Lookup)
+                    {
+                        case LegacyManiaSkinConfigurationLookups.ColumnWidth:
+                            Debug.Assert(legacy.TargetColumn != null);
+                            return SkinUtils.As<TValue>(new Bindable<float>(existing.ColumnWidth[legacy.TargetColumn.Value]));
+                    }
+
+                    break;
 
                 default:
                     // handles lookups like GlobalSkinConfiguration

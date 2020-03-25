@@ -32,14 +32,17 @@ namespace osu.Game.Rulesets.Mania.UI
         /// </summary>
         public readonly int Index;
 
+        private readonly ManiaStage stage;
+
         public readonly Bindable<ManiaAction> Action = new Bindable<ManiaAction>();
 
         internal readonly Container TopLevelContainer;
         private readonly Container explosionContainer;
 
-        public Column(int index)
+        public Column(int index, ManiaStage stage = null)
         {
             Index = index;
+            this.stage = stage;
 
             RelativeSizeAxes = Axes.Y;
             Width = COLUMN_WIDTH;
@@ -96,6 +99,15 @@ namespace osu.Game.Rulesets.Mania.UI
                     Bottom = dir.NewValue == ScrollingDirection.Down ? DefaultNotePiece.NOTE_HEIGHT / 2 : 0
                 };
             }, true);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(ISkinSource skin)
+        {
+            // Todo: Not like this
+            Width = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(
+                        new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.ColumnWidth, Index))?.Value
+                    ?? (isSpecial ? special_column_width : COLUMN_WIDTH);
         }
 
         public override Axes RelativeSizeAxes => Axes.Y;

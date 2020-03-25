@@ -21,6 +21,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
         private Sprite upSprite;
         private Sprite downSprite;
 
+        [Resolved(CanBeNull = true)]
+        private ManiaStage stage { get; set; }
+
         [Resolved]
         private Column column { get; set; }
 
@@ -34,10 +37,12 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             int fallbackColumn = column.Index % 2 + 1;
 
-            string upImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.KeyImage, column.Index))?.Value
+            string upImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(
+                                 new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.KeyImage, column.Index))?.Value
                              ?? $"mania-key{fallbackColumn}";
 
-            string downImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.KeyImageDown, column.Index))?.Value
+            string downImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(
+                                   new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.KeyImageDown, column.Index))?.Value
                                ?? $"mania-key{fallbackColumn}D";
 
             InternalChildren = new Drawable[]

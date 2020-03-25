@@ -6,6 +6,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
 using osuTK;
@@ -15,6 +16,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
     public class LegacyHitTarget : CompositeDrawable
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
+
+        [Resolved(CanBeNull = true)]
+        private ManiaStage stage { get; set; }
 
         private Sprite sprite;
 
@@ -26,7 +30,8 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [BackgroundDependencyLoader]
         private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
-            string targetImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.HitTargetImage))?.Value
+            string targetImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(
+                                     new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.HitTargetImage))?.Value
                                  ?? "mania-stage-hint";
 
             InternalChild = sprite = new Sprite

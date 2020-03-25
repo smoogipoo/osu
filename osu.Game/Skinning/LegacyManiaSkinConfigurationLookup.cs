@@ -5,11 +5,13 @@ namespace osu.Game.Skinning
 {
     public class LegacyManiaSkinConfigurationLookup
     {
+        public readonly int Keys;
         public readonly LegacyManiaSkinConfigurationLookups Lookup;
         public readonly int? TargetColumn;
 
-        public LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups lookup, int? targetColumn = null)
+        public LegacyManiaSkinConfigurationLookup(int keys, LegacyManiaSkinConfigurationLookups lookup, int? targetColumn = null)
         {
+            Keys = keys;
             Lookup = lookup;
             TargetColumn = targetColumn;
         }

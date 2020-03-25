@@ -37,10 +37,16 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [BackgroundDependencyLoader]
         private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
-            string lightImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.LightImage, 0))?.Value ?? "mania-stage-light";
+            string lightImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(
+                                    new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.LightImage, 0))?.Value
+                                ?? "mania-stage-light";
 
-            float leftLineWidth = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.LeftLineWidth, column.Index))?.Value ?? 1;
-            float rightLineWidth = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(new LegacyManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.RightLineWidth, column.Index))?.Value ?? 1;
+            float leftLineWidth = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(
+                                          new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.LeftLineWidth, column.Index))
+                                      ?.Value ?? 1;
+            float rightLineWidth = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(
+                                           new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.RightLineWidth, column.Index))
+                                       ?.Value ?? 1;
 
             bool hasLeftLine = leftLineWidth > 0;
             bool hasRightLine = rightLineWidth > 0 && skin.GetConfig<LegacySkinConfiguration.LegacySetting, decimal>(LegacySkinConfiguration.LegacySetting.Version)?.Value >= 2.4m

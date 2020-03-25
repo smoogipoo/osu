@@ -23,6 +23,9 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
         private Sprite sprite;
 
+        [Resolved(CanBeNull = true)]
+        private ManiaStage stage { get; set; }
+
         [Resolved]
         private Column column { get; set; }
 
@@ -95,7 +98,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     break;
             }
 
-            string noteImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(configurationLookup, column.Index))?.Value
+            string noteImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, configurationLookup, column.Index))?.Value
                                ?? $"mania-note{fallbackColumn}{suffix}";
 
             return skin.GetTexture(noteImage);
