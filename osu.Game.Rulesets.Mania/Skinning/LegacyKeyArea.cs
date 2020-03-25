@@ -46,14 +46,14 @@ namespace osu.Game.Rulesets.Mania.Skinning
                 {
                     Anchor = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Both,
-                    FillMode = FillMode.Fit,
+                    FillMode = FillMode.Stretch,
                     Texture = skin.GetTexture(upImage)
                 },
                 downSprite = new Sprite
                 {
                     Anchor = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Both,
-                    FillMode = FillMode.Fit,
+                    FillMode = FillMode.Stretch,
                     Texture = skin.GetTexture(downImage),
                     Alpha = 0
                 }
