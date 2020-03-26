@@ -3,7 +3,7 @@
 
 using osu.Game.Skinning;
 
-namespace osu.Game.Rulesets.Mania
+namespace osu.Game.Rulesets.Mania.Skinning
 {
     public class ManiaSkinComponent : GameplaySkinComponent<ManiaSkinComponents>
     {
