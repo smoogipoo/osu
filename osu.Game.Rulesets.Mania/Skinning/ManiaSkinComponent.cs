@@ -23,6 +23,8 @@ namespace osu.Game.Rulesets.Mania.Skinning
         ColumnBackground,
         KeyArea,
         Note,
+        HoldNoteHead,
+        HoldNoteTail,
         HoldNoteBody
     }
 }

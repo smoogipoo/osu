@@ -18,6 +18,8 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
     /// </summary>
     public class DrawableNote : DrawableManiaHitObject<Note>, IKeyBindingHandler<ManiaAction>
     {
+        protected virtual ManiaSkinComponents Component => ManiaSkinComponents.Note;
+
         private readonly Drawable headPiece;
 
         public DrawableNote(Note hitObject)
@@ -26,7 +28,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            AddInternal(headPiece = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.Note), _ => new DefaultNotePiece())
+            AddInternal(headPiece = new SkinnableDrawable(new ManiaSkinComponent(Component), _ => new DefaultNotePiece())
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y

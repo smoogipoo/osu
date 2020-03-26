@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
+using osu.Game.Rulesets.Mania.Skinning;
 using osu.Game.Rulesets.Scoring;
 
 namespace osu.Game.Rulesets.Mania.Objects.Drawables
@@ -17,6 +18,8 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
         /// Todo: This shouldn't exist for non-LegacyBeatmapDecoder beatmaps
         /// </summary>
         private const double release_window_lenience = 1.5;
+
+        protected override ManiaSkinComponents Component => ManiaSkinComponents.HoldNoteTail;
 
         private readonly DrawableHoldNote holdNote;
 

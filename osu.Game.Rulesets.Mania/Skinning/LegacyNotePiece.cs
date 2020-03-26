@@ -7,9 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.Mania.UI;
-using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
 using osuTK;
@@ -21,13 +19,13 @@ namespace osu.Game.Rulesets.Mania.Skinning
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
 
-        private Sprite sprite;
-
         [Resolved(CanBeNull = true)]
-        private ManiaStage stage { get; set; }
+        protected ManiaStage Stage { get; private set; }
 
         [Resolved]
-        private Column column { get; set; }
+        protected Column Column { get; private set; }
+
+        private Sprite noteSprite;
 
         public LegacyNotePiece()
         {
@@ -36,58 +34,42 @@ namespace osu.Game.Rulesets.Mania.Skinning
         }
 
         [BackgroundDependencyLoader]
-        private void load(ISkinSource skin, IScrollingInfo scrollingInfo, DrawableHitObject drawableObject)
+        private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
-            Texture noteTexture;
-
-            switch (drawableObject)
-            {
-                case DrawableHoldNoteTail _:
-                    noteTexture = loadTexture(skin, LegacyManiaSkinConfigurationLookups.HoldNoteTailImage)
-                                  ?? loadTexture(skin, LegacyManiaSkinConfigurationLookups.HoldNoteHeadImage);
-                    break;
-
-                case DrawableHoldNoteHead _:
-                    noteTexture = loadTexture(skin, LegacyManiaSkinConfigurationLookups.HoldNoteHeadImage);
-                    break;
-
-                default:
-                    noteTexture = loadTexture(skin, LegacyManiaSkinConfigurationLookups.NoteImage);
-                    break;
-            }
-
-            InternalChild = sprite = new Sprite
+            InternalChild = noteSprite = new Sprite
             {
                 Anchor = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Stretch,
-                Texture = noteTexture
+                Texture = GetTexture(skin)
             };
 
             direction.BindTo(scrollingInfo.Direction);
-            direction.BindValueChanged(onDirectionChanged, true);
+            direction.BindValueChanged(OnDirectionChanged, true);
         }
 
-        private void onDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
+        protected virtual void OnDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
         {
             if (direction.NewValue == ScrollingDirection.Up)
             {
-                sprite.Origin = Anchor.BottomCentre;
-                sprite.Scale = new Vector2(1, -1);
+                noteSprite.Origin = Anchor.BottomCentre;
+                noteSprite.Scale = new Vector2(1, -1);
             }
             else
             {
-                sprite.Origin = Anchor.TopCentre;
-                sprite.Scale = Vector2.One;
+                noteSprite.Origin = Anchor.TopCentre;
+                noteSprite.Scale = Vector2.One;
             }
         }
 
-        private Texture loadTexture(ISkinSource skin, LegacyManiaSkinConfigurationLookups configurationLookup)
+        protected virtual Texture GetTexture(ISkinSource skin) => GetTextureFromLookup(skin, LegacyManiaSkinConfigurationLookups.NoteImage);
+
+        protected Texture GetTextureFromLookup(ISkin skin, LegacyManiaSkinConfigurationLookups lookup)
         {
-            int fallbackColumn = column.Index % 2 + 1;
+            int fallbackColumn = Column.Index % 2 + 1;
             string suffix = string.Empty;
 
-            switch (configurationLookup)
+            switch (lookup)
             {
                 case LegacyManiaSkinConfigurationLookups.HoldNoteHeadImage:
                     suffix = "H";
@@ -98,7 +80,8 @@ namespace osu.Game.Rulesets.Mania.Skinning
                     break;
             }
 
-            string noteImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, configurationLookup, column.Index))?.Value
+            string noteImage = skin.GetConfig<LegacyManiaSkinConfigurationLookup, string>(
+                                   new LegacyManiaSkinConfigurationLookup(Stage?.Columns.Count ?? 4, lookup, Column.Index))?.Value
                                ?? $"mania-note{fallbackColumn}{suffix}";
 
             return skin.GetTexture(noteImage);

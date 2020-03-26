@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Game.Rulesets.Mania.Skinning;
+
 namespace osu.Game.Rulesets.Mania.Objects.Drawables
 {
     /// <summary>
@@ -8,6 +10,8 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
     /// </summary>
     public class DrawableHoldNoteHead : DrawableNote
     {
+        protected override ManiaSkinComponents Component => ManiaSkinComponents.HoldNoteHead;
+
         public DrawableHoldNoteHead(DrawableHoldNote holdNote)
             : base(holdNote.HitObject.Head)
         {
