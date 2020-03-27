@@ -18,6 +18,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
 
+        private Container directionContainer;
         private Sprite upSprite;
         private Sprite downSprite;
 
@@ -45,22 +46,27 @@ namespace osu.Game.Rulesets.Mania.Skinning
                                    new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.KeyImageDown, column.Index))?.Value
                                ?? $"mania-key{fallbackColumn}D";
 
-            InternalChildren = new Drawable[]
+            InternalChild = directionContainer = new Container
             {
-                upSprite = new Sprite
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Children = new Drawable[]
                 {
-                    Anchor = Anchor.TopCentre,
-                    RelativeSizeAxes = Axes.Both,
-                    FillMode = FillMode.Stretch,
-                    Texture = skin.GetTexture(upImage)
-                },
-                downSprite = new Sprite
-                {
-                    Anchor = Anchor.TopCentre,
-                    RelativeSizeAxes = Axes.Both,
-                    FillMode = FillMode.Stretch,
-                    Texture = skin.GetTexture(downImage),
-                    Alpha = 0
+                    upSprite = new Sprite
+                    {
+                        Origin = Anchor.BottomCentre,
+                        Texture = skin.GetTexture(upImage),
+                        RelativeSizeAxes = Axes.X,
+                        Width = 1
+                    },
+                    downSprite = new Sprite
+                    {
+                        Origin = Anchor.BottomCentre,
+                        Texture = skin.GetTexture(downImage),
+                        RelativeSizeAxes = Axes.X,
+                        Width = 1,
+                        Alpha = 0
+                    }
                 }
             };
 
@@ -72,12 +78,14 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             if (direction.NewValue == ScrollingDirection.Up)
             {
-                upSprite.Origin = downSprite.Origin = Anchor.BottomCentre;
+                directionContainer.Anchor = directionContainer.Origin = Anchor.TopCentre;
+                upSprite.Anchor = downSprite.Anchor = Anchor.TopCentre;
                 upSprite.Scale = downSprite.Scale = new Vector2(1, -1);
             }
             else
             {
-                upSprite.Origin = downSprite.Origin = Anchor.TopCentre;
+                directionContainer.Anchor = directionContainer.Origin = Anchor.BottomCentre;
+                upSprite.Anchor = downSprite.Anchor = Anchor.BottomCentre;
                 upSprite.Scale = downSprite.Scale = Vector2.One;
             }
         }

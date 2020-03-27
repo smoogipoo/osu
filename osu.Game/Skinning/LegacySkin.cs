@@ -27,6 +27,8 @@ namespace osu.Game.Skinning
         [CanBeNull]
         protected IResourceStore<SampleChannel> Samples;
 
+        protected virtual bool AllowManiaSkin => true;
+
         public new LegacySkinConfiguration Configuration
         {
             get => base.Configuration as LegacySkinConfiguration;
@@ -116,6 +118,9 @@ namespace osu.Game.Skinning
                     return SkinUtils.As<TValue>(getCustomColour(customColour.Lookup.ToString()));
 
                 case LegacyManiaSkinConfigurationLookup legacy:
+                    if (!AllowManiaSkin)
+                        return null;
+
                     if (!maniaConfigurations.TryGetValue(legacy.Keys, out var existing))
                         maniaConfigurations[legacy.Keys] = existing = new LegacyManiaSkinConfiguration(legacy.Keys);
 
@@ -124,6 +129,9 @@ namespace osu.Game.Skinning
                         case LegacyManiaSkinConfigurationLookups.ColumnWidth:
                             Debug.Assert(legacy.TargetColumn != null);
                             return SkinUtils.As<TValue>(new Bindable<float>(existing.ColumnWidth[legacy.TargetColumn.Value]));
+
+                        case LegacyManiaSkinConfigurationLookups.HitPosition:
+                            return SkinUtils.As<TValue>(new Bindable<float>(existing.HitPosition));
                     }
 
                     break;

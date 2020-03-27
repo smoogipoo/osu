@@ -24,6 +24,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
 
+        private Container directionContainer;
         private Container keyIcon;
         private Drawable gradient;
 
@@ -38,31 +39,36 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [BackgroundDependencyLoader]
         private void load(IScrollingInfo scrollingInfo)
         {
-            InternalChildren = new[]
+            InternalChild = directionContainer = new Container
             {
-                gradient = new Box
+                RelativeSizeAxes = Axes.X,
+                Height = ManiaStage.HIT_TARGET_POSITION,
+                Children = new[]
                 {
-                    Name = "Key gradient",
-                    RelativeSizeAxes = Axes.Both,
-                    Alpha = 0.5f
-                },
-                keyIcon = new Container
-                {
-                    Name = "Key icon",
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(key_icon_size),
-                    Masking = true,
-                    CornerRadius = key_icon_corner_radius,
-                    BorderThickness = 2,
-                    BorderColour = Color4.White, // Not true
-                    Children = new[]
+                    gradient = new Box
                     {
-                        new Box
+                        Name = "Key gradient",
+                        RelativeSizeAxes = Axes.Both,
+                        Alpha = 0.5f
+                    },
+                    keyIcon = new Container
+                    {
+                        Name = "Key icon",
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(key_icon_size),
+                        Masking = true,
+                        CornerRadius = key_icon_corner_radius,
+                        BorderThickness = 2,
+                        BorderColour = Color4.White, // Not true
+                        Children = new[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Alpha = 0,
-                            AlwaysPresent = true
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Alpha = 0,
+                                AlwaysPresent = true
+                            }
                         }
                     }
                 }
@@ -81,9 +87,16 @@ namespace osu.Game.Rulesets.Mania.Skinning
 
         private void onDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
         {
-            gradient.Colour = direction.NewValue == ScrollingDirection.Up
-                ? ColourInfo.GradientVertical(Color4.Black, Color4.Black.Opacity(0))
-                : ColourInfo.GradientVertical(Color4.Black.Opacity(0), Color4.Black);
+            if (direction.NewValue == ScrollingDirection.Up)
+            {
+                directionContainer.Anchor = directionContainer.Origin = Anchor.TopLeft;
+                gradient.Colour = ColourInfo.GradientVertical(Color4.Black, Color4.Black.Opacity(0));
+            }
+            else
+            {
+                directionContainer.Anchor = directionContainer.Origin = Anchor.BottomLeft;
+                gradient.Colour = ColourInfo.GradientVertical(Color4.Black.Opacity(0), Color4.Black);
+            }
         }
 
         public bool OnPressed(ManiaAction action)

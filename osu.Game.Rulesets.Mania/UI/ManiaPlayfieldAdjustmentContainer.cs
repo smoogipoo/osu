@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Mania.UI
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
 
-            Size = new Vector2(1, 0.8f);
+            Scale = new Vector2(0.8f);
         }
     }
 }

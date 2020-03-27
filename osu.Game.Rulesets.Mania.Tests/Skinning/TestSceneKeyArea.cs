@@ -7,7 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Mania.Skinning;
-using osu.Game.Rulesets.Mania.UI.Components;
+using osu.Game.Skinning;
 using osuTK;
 
 namespace osu.Game.Rulesets.Mania.Tests.Skinning
@@ -16,7 +16,6 @@ namespace osu.Game.Rulesets.Mania.Tests.Skinning
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(ColumnKeyArea),
             typeof(DefaultKeyArea),
             typeof(LegacyKeyArea)
         };
@@ -37,13 +36,19 @@ namespace osu.Game.Rulesets.Mania.Tests.Skinning
                     {
                         RelativeSizeAxes = Axes.Both,
                         Width = 0.5f,
-                        Child = new ColumnKeyArea { RelativeSizeAxes = Axes.Both }
+                        Child = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.KeyArea), _ => new DefaultKeyArea())
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        },
                     },
                     new ColumnTestContainer(1, ManiaAction.Key2)
                     {
                         RelativeSizeAxes = Axes.Both,
                         Width = 0.5f,
-                        Child = new ColumnKeyArea { RelativeSizeAxes = Axes.Both }
+                        Child = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.KeyArea), _ => new DefaultKeyArea())
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        },
                     },
                 }
             });

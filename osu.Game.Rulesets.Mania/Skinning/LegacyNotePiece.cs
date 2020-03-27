@@ -25,40 +25,52 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [Resolved]
         protected Column Column { get; private set; }
 
+        private Container directionContainer;
         private Sprite noteSprite;
 
         public LegacyNotePiece()
         {
             RelativeSizeAxes = Axes.X;
-            Height = 20;
+            AutoSizeAxes = Axes.Y;
         }
 
         [BackgroundDependencyLoader]
         private void load(ISkinSource skin, IScrollingInfo scrollingInfo)
         {
-            InternalChild = noteSprite = new Sprite
+            InternalChild = directionContainer = new Container
             {
                 Anchor = Anchor.TopCentre,
-                RelativeSizeAxes = Axes.Both,
-                FillMode = FillMode.Stretch,
-                Texture = GetTexture(skin)
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Child = noteSprite = new Sprite { Texture = GetTexture(skin) }
             };
 
             direction.BindTo(scrollingInfo.Direction);
             direction.BindValueChanged(OnDirectionChanged, true);
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            if (noteSprite.Texture != null)
+            {
+                var scale = DrawWidth / noteSprite.Texture.DisplayWidth;
+                noteSprite.Scale = new Vector2(scale);
+            }
+        }
+
         protected virtual void OnDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
         {
             if (direction.NewValue == ScrollingDirection.Up)
             {
-                noteSprite.Origin = Anchor.BottomCentre;
-                noteSprite.Scale = new Vector2(1, -1);
+                directionContainer.Origin = Anchor.BottomCentre;
+                directionContainer.Scale = new Vector2(1, -1);
             }
             else
             {
-                noteSprite.Origin = Anchor.TopCentre;
-                noteSprite.Scale = Vector2.One;
+                directionContainer.Origin = Anchor.TopCentre;
+                directionContainer.Scale = Vector2.One;
             }
         }
 

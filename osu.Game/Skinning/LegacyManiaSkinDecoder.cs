@@ -77,9 +77,13 @@ namespace osu.Game.Skinning
                             if (i >= currentConfig.ColumnWidth.Length)
                                 break;
 
-                            currentConfig.ColumnWidth[i] = float.Parse(values[i], CultureInfo.InvariantCulture);
+                            currentConfig.ColumnWidth[i] = float.Parse(values[i], CultureInfo.InvariantCulture) * 1.6f;
                         }
 
+                        break;
+
+                    case "HitPosition":
+                        currentConfig.HitPosition = (480 - float.Parse(pair.Value, CultureInfo.InvariantCulture)) * 1.6f;
                         break;
                 }
             }

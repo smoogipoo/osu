@@ -27,7 +27,6 @@ namespace osu.Game.Rulesets.Mania.Tests
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(Column),
-            typeof(ColumnKeyArea),
             typeof(ColumnHitObjectArea)
         };
 

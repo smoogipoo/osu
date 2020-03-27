@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Mania.Skinning
         [Resolved(CanBeNull = true)]
         private ManiaStage stage { get; set; }
 
-        private Sprite sprite;
+        private Container directionContainer;
 
         public LegacyHitTarget()
         {
@@ -34,12 +34,18 @@ namespace osu.Game.Rulesets.Mania.Skinning
                                      new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.HitTargetImage))?.Value
                                  ?? "mania-stage-hint";
 
-            InternalChild = sprite = new Sprite
+            InternalChild = directionContainer = new Container
             {
-                Origin = Anchor.BottomCentre,
-                Texture = skin.GetTexture(targetImage),
+                Origin = Anchor.CentreLeft,
                 RelativeSizeAxes = Axes.X,
-                Width = 1
+                AutoSizeAxes = Axes.Y,
+                Child = new Sprite
+                {
+                    Texture = skin.GetTexture(targetImage),
+                    Scale = new Vector2(1, 0.9f * 1.6025f),
+                    RelativeSizeAxes = Axes.X,
+                    Width = 1
+                }
             };
 
             direction.BindTo(scrollingInfo.Direction);
@@ -50,13 +56,13 @@ namespace osu.Game.Rulesets.Mania.Skinning
         {
             if (direction.NewValue == ScrollingDirection.Up)
             {
-                sprite.Anchor = Anchor.TopCentre;
-                sprite.Scale = new Vector2(1, -1);
+                directionContainer.Anchor = Anchor.TopLeft;
+                directionContainer.Scale = new Vector2(1, -1);
             }
             else
             {
-                sprite.Anchor = Anchor.BottomCentre;
-                sprite.Scale = Vector2.One;
+                directionContainer.Anchor = Anchor.BottomLeft;
+                directionContainer.Scale = Vector2.One;
             }
         }
     }

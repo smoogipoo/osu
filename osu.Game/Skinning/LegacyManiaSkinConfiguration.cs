@@ -13,6 +13,8 @@ namespace osu.Game.Skinning
         public readonly float[] ColumnSpacing;
         public readonly float[] ColumnWidth;
 
+        public float HitPosition = 124.8f; // (480 - 402) * 1.6f
+
         public LegacyManiaSkinConfiguration(int keys)
         {
             Keys = keys;
@@ -22,7 +24,7 @@ namespace osu.Game.Skinning
             ColumnWidth = new float[keys];
 
             ColumnLineWidth.AsSpan().Fill(2);
-            ColumnWidth.AsSpan().Fill(30);
+            ColumnWidth.AsSpan().Fill(48);
         }
     }
 }

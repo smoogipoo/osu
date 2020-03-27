@@ -38,6 +38,7 @@ namespace osu.Game.Rulesets.Mania.UI
 
         internal readonly Container TopLevelContainer;
         private readonly Container explosionContainer;
+        private readonly Container hitTargetContainer;
 
         public Column(int index, ManiaStage stage = null)
         {
@@ -51,8 +52,6 @@ namespace osu.Game.Rulesets.Mania.UI
             {
                 RelativeSizeAxes = Axes.Both
             };
-
-            Container hitTargetContainer;
 
             InternalChildren = new[]
             {
@@ -75,7 +74,7 @@ namespace osu.Game.Rulesets.Mania.UI
                         }
                     }
                 },
-                new ColumnKeyArea
+                new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.KeyArea), _ => new DefaultKeyArea())
                 {
                     RelativeSizeAxes = Axes.Both
                 },
@@ -87,12 +86,6 @@ namespace osu.Game.Rulesets.Mania.UI
 
             Direction.BindValueChanged(dir =>
             {
-                hitTargetContainer.Padding = new MarginPadding
-                {
-                    Top = dir.NewValue == ScrollingDirection.Up ? ManiaStage.HIT_TARGET_POSITION : 0,
-                    Bottom = dir.NewValue == ScrollingDirection.Down ? ManiaStage.HIT_TARGET_POSITION : 0,
-                };
-
                 explosionContainer.Padding = new MarginPadding
                 {
                     Top = dir.NewValue == ScrollingDirection.Up ? DefaultNotePiece.NOTE_HEIGHT / 2 : 0,
@@ -108,6 +101,19 @@ namespace osu.Game.Rulesets.Mania.UI
             Width = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(
                         new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.ColumnWidth, Index))?.Value
                     ?? (isSpecial ? special_column_width : COLUMN_WIDTH);
+
+            float hitPosition = skin.GetConfig<LegacyManiaSkinConfigurationLookup, float>(
+                                    new LegacyManiaSkinConfigurationLookup(stage?.Columns.Count ?? 4, LegacyManiaSkinConfigurationLookups.HitPosition))?.Value
+                                ?? ManiaStage.HIT_TARGET_POSITION;
+
+            Direction.BindValueChanged(dir =>
+            {
+                hitTargetContainer.Padding = new MarginPadding
+                {
+                    Top = dir.NewValue == ScrollingDirection.Up ? hitPosition : 0,
+                    Bottom = dir.NewValue == ScrollingDirection.Down ? hitPosition : 0,
+                };
+            }, true);
         }
 
         public override Axes RelativeSizeAxes => Axes.Y;
