@@ -15,6 +15,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
+using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Compose;
 using osuTK;
 using osuTK.Input;
@@ -33,6 +34,9 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
 
         [Resolved(CanBeNull = true)]
         private IPlacementHandler placementHandler { get; set; }
+
+        [Resolved(CanBeNull = true)]
+        private IEditorStateHandler stateHandler { get; set; }
 
         [Resolved]
         private EditorBeatmap editorBeatmap { get; set; }
@@ -91,7 +95,16 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
 
         private int? placementControlPointIndex;
 
-        protected override bool OnDragStart(DragStartEvent e) => placementControlPointIndex != null;
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            if (placementControlPointIndex != null)
+            {
+                stateHandler?.BeginChange();
+                return true;
+            }
+
+            return false;
+        }
 
         protected override void OnDrag(DragEvent e)
         {
@@ -102,7 +115,11 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
 
         protected override void OnDragEnd(DragEndEvent e)
         {
-            placementControlPointIndex = null;
+            if (placementControlPointIndex != null)
+            {
+                placementControlPointIndex = null;
+                stateHandler?.EndChange();
+            }
         }
 
         private BindableList<PathControlPoint> controlPoints => HitObject.Path.ControlPoints;

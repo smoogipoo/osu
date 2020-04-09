@@ -258,7 +258,6 @@ namespace osu.Game.Rulesets.Edit
             if (commit)
             {
                 EditorBeatmap.Add(hitObject);
-                editor?.SaveState();
 
                 adjustableClock.Seek(hitObject.GetEndTime());
             }
@@ -266,11 +265,7 @@ namespace osu.Game.Rulesets.Edit
             showGridFor(Enumerable.Empty<HitObject>());
         }
 
-        public void Delete(HitObject hitObject)
-        {
-            EditorBeatmap.Remove(hitObject);
-            editor?.SaveState();
-        }
+        public void Delete(HitObject hitObject) => EditorBeatmap.Remove(hitObject);
 
         public override (Vector2 position, double time) GetSnappedPosition(Vector2 position, double time) => distanceSnapGrid?.GetSnappedPosition(position) ?? (position, time);
 
