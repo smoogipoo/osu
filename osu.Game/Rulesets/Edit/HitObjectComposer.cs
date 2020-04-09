@@ -29,13 +29,15 @@ using Key = osuTK.Input.Key;
 
 namespace osu.Game.Rulesets.Edit
 {
-    [Cached(Type = typeof(IPlacementHandler))]
     public abstract class HitObjectComposer<TObject> : HitObjectComposer, IPlacementHandler
         where TObject : HitObject
     {
         protected IRulesetConfigManager Config { get; private set; }
 
         protected readonly Ruleset Ruleset;
+
+        [Resolved(CanBeNull = true)]
+        private Editor editor { get; set; }
 
         [Resolved]
         protected IFrameBasedClock EditorClock { get; private set; }
@@ -264,6 +266,7 @@ namespace osu.Game.Rulesets.Edit
             if (commit)
             {
                 EditorBeatmap.Add(hitObject);
+                editor?.SaveState();
 
                 adjustableClock.Seek(hitObject.GetEndTime());
             }
@@ -271,7 +274,11 @@ namespace osu.Game.Rulesets.Edit
             showGridFor(Enumerable.Empty<HitObject>());
         }
 
-        public void Delete(HitObject hitObject) => EditorBeatmap.Remove(hitObject);
+        public void Delete(HitObject hitObject)
+        {
+            EditorBeatmap.Remove(hitObject);
+            editor?.SaveState();
+        }
 
         public override (Vector2 position, double time) GetSnappedPosition(Vector2 position, double time) => distanceSnapGrid?.GetSnappedPosition(position) ?? (position, time);
 

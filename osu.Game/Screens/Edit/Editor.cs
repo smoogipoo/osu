@@ -21,10 +21,13 @@ using osu.Game.Screens.Edit.Components.Menus;
 using osu.Game.Screens.Edit.Design;
 using osuTK.Input;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using osu.Framework;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
+using osu.Game.Beatmaps.Formats;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Input.Bindings;
 using osu.Game.Rulesets.Edit;
@@ -37,6 +40,7 @@ using osu.Game.Users;
 namespace osu.Game.Screens.Edit
 {
     [Cached(typeof(IBeatSnapProvider))]
+    [Cached]
     public class Editor : ScreenWithBeatmapBackground, IKeyBindingHandler<GlobalAction>, IBeatSnapProvider
     {
         public override float BackgroundParallaxAmount => 0.1f;
@@ -62,6 +66,7 @@ namespace osu.Game.Screens.Edit
 
         private IBeatmap playableBeatmap;
         private EditorBeatmap editorBeatmap;
+        private LegacyEditorBeatmapDiffer differ;
 
         private DependencyContainer dependencies;
 
@@ -100,8 +105,9 @@ namespace osu.Game.Screens.Edit
             }
 
             AddInternal(editorBeatmap = new EditorBeatmap(playableBeatmap));
-
             dependencies.CacheAs(editorBeatmap);
+
+            differ = new LegacyEditorBeatmapDiffer(editorBeatmap);
 
             EditorMenuBar menuBar;
 
@@ -147,6 +153,14 @@ namespace osu.Game.Screens.Edit
                                 new MenuItem("File")
                                 {
                                     Items = fileMenuItems
+                                },
+                                new MenuItem("Edit")
+                                {
+                                    Items = new[]
+                                    {
+                                        new EditorMenuItem("Undo", MenuItemType.Standard, undo),
+                                        new EditorMenuItem("Redo", MenuItemType.Standard, redo)
+                                    }
                                 }
                             }
                         }
@@ -206,12 +220,44 @@ namespace osu.Game.Screens.Edit
             menuBar.Mode.ValueChanged += onModeChanged;
 
             bottomBackground.Colour = colours.Gray2;
+
+            SaveState();
         }
 
         protected override void Update()
         {
             base.Update();
             clock.ProcessFrame();
+        }
+
+        private readonly List<Stream> savedStates = new List<Stream>();
+        private int currentState = -1;
+
+        public void SaveState()
+        {
+            var stream = new MemoryStream();
+
+            using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
+                new LegacyBeatmapEncoder(editorBeatmap).Encode(sw);
+
+            if (currentState < savedStates.Count - 1)
+                savedStates.RemoveRange(currentState + 1, savedStates.Count - currentState - 1);
+
+            savedStates.Add(stream);
+            currentState = savedStates.Count - 1;
+        }
+
+        public void RestoreState(int direction)
+        {
+            if (savedStates.Count == 0)
+                return;
+
+            int newState = Math.Clamp(currentState + direction, 0, savedStates.Count - 1);
+            if (currentState == newState)
+                return;
+
+            differ.Patch(savedStates[currentState], savedStates[newState]);
+            currentState = newState;
         }
 
         protected override bool OnKeyDown(KeyDownEvent e)
@@ -230,6 +276,19 @@ namespace osu.Game.Screens.Edit
                     if (e.ControlPressed)
                     {
                         saveBeatmap();
+                        return true;
+                    }
+
+                    break;
+
+                case Key.Z:
+                    if (e.SuperPressed)
+                    {
+                        if (e.ShiftPressed)
+                            redo();
+                        else
+                            undo();
+
                         return true;
                     }
 
@@ -359,6 +418,10 @@ namespace osu.Game.Screens.Edit
             saveBeatmap();
             beatmapManager.Export(Beatmap.Value.BeatmapSetInfo);
         }
+
+        private void undo() => RestoreState(-1);
+
+        private void redo() => RestoreState(1);
 
         public double SnapTime(double time, double? referenceTime) => editorBeatmap.SnapTime(time, referenceTime);
 

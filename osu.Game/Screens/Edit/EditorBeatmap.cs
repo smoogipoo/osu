@@ -116,6 +116,18 @@ namespace osu.Game.Screens.Edit
             HitObjectAdded?.Invoke(hitObject);
         }
 
+        public void AddRange(IEnumerable<HitObject> range)
+        {
+            foreach (var obj in range)
+                Add(obj);
+        }
+
+        /// <summary>
+        /// Removes a <see cref="HitObject"/> at a specified index.
+        /// </summary>
+        /// <param name="index">The index of the <see cref="HitObject"/> to remove.</param>
+        public void RemoveAt(int index) => Remove(HitObjects[index]);
+
         /// <summary>
         /// Removes a <see cref="HitObject"/> from this <see cref="EditorBeatmap"/>.
         /// </summary>

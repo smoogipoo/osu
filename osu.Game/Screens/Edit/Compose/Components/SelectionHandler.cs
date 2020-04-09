@@ -40,6 +40,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
         [Resolved(CanBeNull = true)]
         private EditorBeatmap editorBeatmap { get; set; }
 
+        [Resolved(CanBeNull = true)]
+        private Editor editor { get; set; }
+
         public SelectionHandler()
         {
             selectedBlueprints = new List<SelectionBlueprint>();
@@ -80,6 +83,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
             switch (action.ActionMethod)
             {
                 case PlatformActionMethod.Delete:
+                    if (editor == null)
+                        return false;
+
                     deleteSelected();
                     return true;
             }
@@ -153,7 +159,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
         private void deleteSelected()
         {
             foreach (var h in selectedBlueprints.ToList())
-                editorBeatmap.Remove(h.HitObject);
+                editorBeatmap?.Remove(h.HitObject);
+
+            editor?.SaveState();
         }
 
         #endregion
