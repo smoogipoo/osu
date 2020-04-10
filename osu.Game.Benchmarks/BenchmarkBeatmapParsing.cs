@@ -3,12 +3,11 @@
 
 using System.IO;
 using BenchmarkDotNet.Attributes;
-using osu.Framework.IO.Stores;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.IO;
 using osu.Game.IO.Archives;
-using osu.Game.Resources;
+using osu.Game.Tests.Resources;
 
 namespace osu.Game.Benchmarks
 {
@@ -18,8 +17,7 @@ namespace osu.Game.Benchmarks
 
         public override void SetUp()
         {
-            using (var resources = new DllResourceStore(OsuResources.ResourceAssembly))
-            using (var archive = resources.GetStream("Beatmaps/241526 Soleily - Renatus.osz"))
+            using (var archive = TestResources.OpenResource("Archives/241526 Soleily - Renatus.osz"))
             using (var reader = new ZipArchiveReader(archive))
                 reader.GetStream("Soleily - Renatus (Gamu) [Insane].osu").CopyTo(beatmapStream);
         }
