@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.Audio;
-using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps.Legacy;
@@ -39,15 +38,20 @@ namespace osu.Game.Rulesets.Objects.Legacy
         }
 
         [CanBeNull]
-        public override HitObject Parse(string text)
+        public override HitObject Parse(ReadOnlySpan<char> line)
         {
-            string[] split = text.Split(',');
+            LegacyLineTokenizer lineTokenizer = new LegacyLineTokenizer(line);
 
-            Vector2 pos = new Vector2((int)Parsing.ParseFloat(split[0], Parsing.MAX_COORDINATE_VALUE), (int)Parsing.ParseFloat(split[1], Parsing.MAX_COORDINATE_VALUE));
+            // [0], [1]
+            Vector2 pos = new Vector2(
+                (int)Parsing.ParseFloat(lineTokenizer.Read(), Parsing.MAX_COORDINATE_VALUE),
+                (int)Parsing.ParseFloat(lineTokenizer.Read(), Parsing.MAX_COORDINATE_VALUE));
 
-            double startTime = Parsing.ParseDouble(split[2]) + Offset;
+            // [2]
+            double startTime = Parsing.ParseDouble(lineTokenizer.Read()) + Offset;
 
-            LegacyHitObjectType type = (LegacyHitObjectType)Parsing.ParseInt(split[3]);
+            // [3]
+            LegacyHitObjectType type = (LegacyHitObjectType)Parsing.ParseInt(lineTokenizer.Read());
 
             int comboOffset = (int)(type & LegacyHitObjectType.ComboOffset) >> 4;
             type &= ~LegacyHitObjectType.ComboOffset;
@@ -55,7 +59,8 @@ namespace osu.Game.Rulesets.Objects.Legacy
             bool combo = type.HasFlag(LegacyHitObjectType.NewCombo);
             type &= ~LegacyHitObjectType.NewCombo;
 
-            var soundType = (LegacyHitSoundType)Parsing.ParseInt(split[4]);
+            // [4]
+            var soundType = (LegacyHitSoundType)Parsing.ParseInt(lineTokenizer.Read());
             var bankInfo = new SampleBankInfo();
 
             HitObject result = null;
@@ -64,47 +69,41 @@ namespace osu.Game.Rulesets.Objects.Legacy
             {
                 result = CreateHit(pos, combo, comboOffset);
 
-                if (split.Length > 5)
-                    readCustomSampleBanks(split[5], bankInfo);
+                // [5]
+                if (lineTokenizer.HasMore)
+                    readCustomSampleBanks(lineTokenizer.Read(), bankInfo);
             }
             else if (type.HasFlag(LegacyHitObjectType.Slider))
             {
+                var points = new List<Vector2> { Vector2.Zero };
+
                 PathType pathType = PathType.Catmull;
                 double? length = null;
 
-                string[] pointSplit = split[5].Split('|');
+                // [5]
+                LegacyLineTokenizer pointTokenizer = new LegacyLineTokenizer(lineTokenizer.Read(), '|');
 
-                int pointCount = 1;
-
-                foreach (var t in pointSplit)
+                while (pointTokenizer.HasMore)
                 {
-                    if (t.Length > 1)
-                        pointCount++;
-                }
+                    ReadOnlySpan<char> pt = pointTokenizer.Read();
 
-                var points = new Vector2[pointCount];
-
-                int pointIndex = 1;
-
-                foreach (string t in pointSplit)
-                {
-                    if (t.Length == 1)
+                    if (pt.Length == 1)
                     {
-                        switch (t)
+                        switch (pt[0])
                         {
-                            case @"C":
+                            case 'C':
                                 pathType = PathType.Catmull;
                                 break;
 
-                            case @"B":
+                            case 'B':
                                 pathType = PathType.Bezier;
                                 break;
 
-                            case @"L":
+                            case 'L':
                                 pathType = PathType.Linear;
                                 break;
 
-                            case @"P":
+                            case 'P':
                                 pathType = PathType.PerfectCurve;
                                 break;
                         }
@@ -112,11 +111,14 @@ namespace osu.Game.Rulesets.Objects.Legacy
                         continue;
                     }
 
-                    string[] temp = t.Split(':');
-                    points[pointIndex++] = new Vector2((int)Parsing.ParseDouble(temp[0], Parsing.MAX_COORDINATE_VALUE), (int)Parsing.ParseDouble(temp[1], Parsing.MAX_COORDINATE_VALUE)) - pos;
+                    LegacyLineTokenizer coordinateTokenizer = new LegacyLineTokenizer(pt, ':');
+                    points.Add(new Vector2(
+                        (int)Parsing.ParseDouble(coordinateTokenizer.Read(), Parsing.MAX_COORDINATE_VALUE),
+                        (int)Parsing.ParseDouble(coordinateTokenizer.Read(), Parsing.MAX_COORDINATE_VALUE)) - pos);
                 }
 
-                int repeatCount = Parsing.ParseInt(split[6]);
+                // [6]
+                int repeatCount = Parsing.ParseInt(lineTokenizer.Read());
 
                 if (repeatCount > 9000)
                     throw new FormatException(@"Repeat count is way too high");
@@ -124,38 +126,16 @@ namespace osu.Game.Rulesets.Objects.Legacy
                 // osu-stable treated the first span of the slider as a repeat, but no repeats are happening
                 repeatCount = Math.Max(0, repeatCount - 1);
 
-                if (split.Length > 7)
+                // [7]
+                if (lineTokenizer.HasMore)
                 {
-                    length = Math.Max(0, Parsing.ParseDouble(split[7], Parsing.MAX_COORDINATE_VALUE));
+                    length = Math.Max(0, Parsing.ParseDouble(lineTokenizer.Read(), Parsing.MAX_COORDINATE_VALUE));
                     if (length == 0)
                         length = null;
                 }
 
-                if (split.Length > 10)
-                    readCustomSampleBanks(split[10], bankInfo);
-
                 // One node for each repeat + the start and end nodes
                 int nodes = repeatCount + 2;
-
-                // Populate node sample bank infos with the default hit object sample bank
-                var nodeBankInfos = new List<SampleBankInfo>();
-                for (int i = 0; i < nodes; i++)
-                    nodeBankInfos.Add(bankInfo.Clone());
-
-                // Read any per-node sample banks
-                if (split.Length > 9 && split[9].Length > 0)
-                {
-                    string[] sets = split[9].Split('|');
-
-                    for (int i = 0; i < nodes; i++)
-                    {
-                        if (i >= sets.Length)
-                            break;
-
-                        SampleBankInfo info = nodeBankInfos[i];
-                        readCustomSampleBanks(sets[i], info);
-                    }
-                }
 
                 // Populate node sound types with the default hit object sound type
                 var nodeSoundTypes = new List<LegacyHitSoundType>();
@@ -163,19 +143,51 @@ namespace osu.Game.Rulesets.Objects.Legacy
                     nodeSoundTypes.Add(soundType);
 
                 // Read any per-node sound types
-                if (split.Length > 8 && split[8].Length > 0)
+                // [8]
+                if (lineTokenizer.HasMore)
                 {
-                    string[] adds = split[8].Split('|');
+                    LegacyLineTokenizer addsTokenizer = new LegacyLineTokenizer(lineTokenizer.Read(), '|');
 
-                    for (int i = 0; i < nodes; i++)
+                    if (addsTokenizer.HasMore)
                     {
-                        if (i >= adds.Length)
-                            break;
+                        for (int i = 0; i < nodes; i++)
+                        {
+                            if (!addsTokenizer.HasMore)
+                                break;
 
-                        int.TryParse(adds[i], out var sound);
-                        nodeSoundTypes[i] = (LegacyHitSoundType)sound;
+                            int.TryParse(addsTokenizer.Read(), out var sound);
+                            nodeSoundTypes[i] = (LegacyHitSoundType)sound;
+                        }
                     }
                 }
+
+                // Populate node sample bank infos with the default hit object sample bank
+                var nodeBankInfos = new List<SampleBankInfo>();
+                for (int i = 0; i < nodes; i++)
+                    nodeBankInfos.Add(bankInfo.Clone());
+
+                // Read any per-node sample banks
+                // [9]
+                if (lineTokenizer.HasMore)
+                {
+                    LegacyLineTokenizer setsTokenizer = new LegacyLineTokenizer(lineTokenizer.Read(), '|');
+
+                    if (setsTokenizer.HasMore)
+                    {
+                        for (int i = 0; i < nodes; i++)
+                        {
+                            if (!setsTokenizer.HasMore)
+                                break;
+
+                            SampleBankInfo info = nodeBankInfos[i];
+                            readCustomSampleBanks(setsTokenizer.Read(), info);
+                        }
+                    }
+                }
+
+                // [10]
+                if (lineTokenizer.HasMore)
+                    readCustomSampleBanks(lineTokenizer.Read(), bankInfo);
 
                 // Generate the final per-node samples
                 var nodeSamples = new List<IList<HitSampleInfo>>(nodes);
@@ -189,31 +201,38 @@ namespace osu.Game.Rulesets.Objects.Legacy
             }
             else if (type.HasFlag(LegacyHitObjectType.Spinner))
             {
-                double endTime = Math.Max(startTime, Parsing.ParseDouble(split[5]) + Offset);
+                // [5]
+                double endTime = Math.Max(startTime, Parsing.ParseDouble(lineTokenizer.Read()) + Offset);
 
                 result = CreateSpinner(new Vector2(512, 384) / 2, combo, comboOffset, endTime);
 
-                if (split.Length > 6)
-                    readCustomSampleBanks(split[6], bankInfo);
+                // [6]
+                if (lineTokenizer.HasMore)
+                    readCustomSampleBanks(lineTokenizer.Read(), bankInfo);
             }
             else if (type.HasFlag(LegacyHitObjectType.Hold))
             {
                 // Note: Hold is generated by BMS converts
 
-                double endTime = Math.Max(startTime, Parsing.ParseDouble(split[2]));
+                double endTime = startTime;
 
-                if (split.Length > 5 && !string.IsNullOrEmpty(split[5]))
+                // [5]
+                if (lineTokenizer.HasMore)
                 {
-                    string[] ss = split[5].Split(':');
-                    endTime = Math.Max(startTime, Parsing.ParseDouble(ss[0]));
-                    readCustomSampleBanks(string.Join(":", ss.Skip(1)), bankInfo);
+                    LegacyLineTokenizer holdTokenizer = new LegacyLineTokenizer(lineTokenizer.Read(), ':');
+
+                    if (holdTokenizer.HasMore)
+                    {
+                        endTime = Math.Max(startTime, Parsing.ParseDouble(holdTokenizer.Read()));
+                        readCustomSampleBanks(holdTokenizer.ReadToEnd(), bankInfo);
+                    }
                 }
 
                 result = CreateHold(pos, combo, comboOffset, endTime + Offset);
             }
 
             if (result == null)
-                throw new InvalidDataException($"Unknown hit object type: {split[3]}");
+                throw new InvalidDataException($"Unknown hit object type: {type}");
 
             result.StartTime = startTime;
 
@@ -225,15 +244,18 @@ namespace osu.Game.Rulesets.Objects.Legacy
             return result;
         }
 
-        private void readCustomSampleBanks(string str, SampleBankInfo bankInfo)
+        private void readCustomSampleBanks(ReadOnlySpan<char> line, SampleBankInfo bankInfo)
         {
-            if (string.IsNullOrEmpty(str))
+            LegacyLineTokenizer tokenizer = new LegacyLineTokenizer(line, ':');
+
+            if (!tokenizer.HasMore)
                 return;
 
-            string[] split = str.Split(':');
+            // [0]
+            var bank = (LegacySampleBank)Parsing.ParseInt(tokenizer.Read());
 
-            var bank = (LegacySampleBank)Parsing.ParseInt(split[0]);
-            var addbank = (LegacySampleBank)Parsing.ParseInt(split[1]);
+            // [1]
+            var addbank = (LegacySampleBank)Parsing.ParseInt(tokenizer.Read());
 
             string stringBank = bank.ToString().ToLowerInvariant();
             if (stringBank == @"none")
@@ -245,20 +267,23 @@ namespace osu.Game.Rulesets.Objects.Legacy
             bankInfo.Normal = stringBank;
             bankInfo.Add = string.IsNullOrEmpty(stringAddBank) ? stringBank : stringAddBank;
 
-            if (split.Length > 2)
-                bankInfo.CustomSampleBank = Parsing.ParseInt(split[2]);
+            // [2]
+            if (tokenizer.HasMore)
+                bankInfo.CustomSampleBank = Parsing.ParseInt(tokenizer.Read());
 
-            if (split.Length > 3)
-                bankInfo.Volume = Math.Max(0, Parsing.ParseInt(split[3]));
+            // [3]
+            if (tokenizer.HasMore)
+                bankInfo.Volume = Math.Max(0, Parsing.ParseInt(tokenizer.Read()));
 
-            bankInfo.Filename = split.Length > 4 ? split[4] : null;
+            // [4]
+            bankInfo.Filename = tokenizer.HasMore ? tokenizer.Read().ToString() : null;
         }
 
-        private PathControlPoint[] convertControlPoints(Vector2[] vertices, PathType type)
+        private PathControlPoint[] convertControlPoints(List<Vector2> vertices, PathType type)
         {
             if (type == PathType.PerfectCurve)
             {
-                if (vertices.Length != 3)
+                if (vertices.Count != 3)
                     type = PathType.Bezier;
                 else if (isLinear(vertices))
                 {
@@ -267,7 +292,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
                 }
             }
 
-            var points = new List<PathControlPoint>(vertices.Length)
+            var points = new List<PathControlPoint>(vertices.Count)
             {
                 new PathControlPoint
                 {
@@ -276,7 +301,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
                 }
             };
 
-            for (int i = 1; i < vertices.Length; i++)
+            for (int i = 1; i < vertices.Count; i++)
             {
                 if (vertices[i] == vertices[i - 1])
                 {
@@ -289,7 +314,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
             return points.ToArray();
 
-            static bool isLinear(Vector2[] p) => Precision.AlmostEquals(0, (p[1].Y - p[0].Y) * (p[2].X - p[0].X) - (p[1].X - p[0].X) * (p[2].Y - p[0].Y));
+            static bool isLinear(List<Vector2> p) => Precision.AlmostEquals(0, (p[1].Y - p[0].Y) * (p[2].X - p[0].X) - (p[1].X - p[0].X) * (p[2].Y - p[0].Y));
         }
 
         /// <summary>

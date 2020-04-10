@@ -68,16 +68,14 @@ namespace osu.Game.Beatmaps.Formats
 
         protected override void ParseLine(Beatmap beatmap, Section section, string line)
         {
-            var strippedLine = StripComments(line);
-
             switch (section)
             {
                 case Section.General:
-                    handleGeneral(strippedLine);
+                    handleGeneral(line);
                     return;
 
                 case Section.Editor:
-                    handleEditor(strippedLine);
+                    handleEditor(line);
                     return;
 
                 case Section.Metadata:
@@ -85,63 +83,63 @@ namespace osu.Game.Beatmaps.Formats
                     return;
 
                 case Section.Difficulty:
-                    handleDifficulty(strippedLine);
+                    handleDifficulty(line);
                     return;
 
                 case Section.Events:
-                    handleEvent(strippedLine);
+                    handleEvent(line);
                     return;
 
                 case Section.TimingPoints:
-                    handleTimingPoint(strippedLine);
+                    handleTimingPoint(line);
                     return;
 
                 case Section.HitObjects:
-                    handleHitObject(strippedLine);
+                    handleHitObject(line);
                     return;
             }
 
             base.ParseLine(beatmap, section, line);
         }
 
-        private void handleGeneral(string line)
+        private void handleGeneral(ReadOnlySpan<char> line)
         {
-            var pair = SplitKeyVal(line);
+            SplitKeyVal(line, out var key, out var value);
 
             var metadata = beatmap.BeatmapInfo.Metadata;
 
-            switch (pair.Key)
+            switch (key)
             {
                 case @"AudioFilename":
-                    metadata.AudioFile = pair.Value.ToStandardisedPath();
+                    metadata.AudioFile = value.ToString().ToStandardisedPath();
                     break;
 
                 case @"AudioLeadIn":
-                    beatmap.BeatmapInfo.AudioLeadIn = Parsing.ParseInt(pair.Value);
+                    beatmap.BeatmapInfo.AudioLeadIn = Parsing.ParseInt(value);
                     break;
 
                 case @"PreviewTime":
-                    metadata.PreviewTime = getOffsetTime(Parsing.ParseInt(pair.Value));
+                    metadata.PreviewTime = getOffsetTime(Parsing.ParseInt(value));
                     break;
 
                 case @"Countdown":
-                    beatmap.BeatmapInfo.Countdown = Parsing.ParseInt(pair.Value) == 1;
+                    beatmap.BeatmapInfo.Countdown = Parsing.ParseInt(value) == 1;
                     break;
 
                 case @"SampleSet":
-                    defaultSampleBank = (LegacySampleBank)Enum.Parse(typeof(LegacySampleBank), pair.Value);
+                    defaultSampleBank = (LegacySampleBank)Enum.Parse(typeof(LegacySampleBank), value.ToString());
                     break;
 
                 case @"SampleVolume":
-                    defaultSampleVolume = Parsing.ParseInt(pair.Value);
+                    defaultSampleVolume = Parsing.ParseInt(value);
                     break;
 
                 case @"StackLeniency":
-                    beatmap.BeatmapInfo.StackLeniency = Parsing.ParseFloat(pair.Value);
+                    beatmap.BeatmapInfo.StackLeniency = Parsing.ParseFloat(value);
                     break;
 
                 case @"Mode":
-                    beatmap.BeatmapInfo.RulesetID = Parsing.ParseInt(pair.Value);
+                    beatmap.BeatmapInfo.RulesetID = Parsing.ParseInt(value);
 
                     switch (beatmap.BeatmapInfo.RulesetID)
                     {
@@ -165,147 +163,150 @@ namespace osu.Game.Beatmaps.Formats
                     break;
 
                 case @"LetterboxInBreaks":
-                    beatmap.BeatmapInfo.LetterboxInBreaks = Parsing.ParseInt(pair.Value) == 1;
+                    beatmap.BeatmapInfo.LetterboxInBreaks = Parsing.ParseInt(value) == 1;
                     break;
 
                 case @"SpecialStyle":
-                    beatmap.BeatmapInfo.SpecialStyle = Parsing.ParseInt(pair.Value) == 1;
+                    beatmap.BeatmapInfo.SpecialStyle = Parsing.ParseInt(value) == 1;
                     break;
 
                 case @"WidescreenStoryboard":
-                    beatmap.BeatmapInfo.WidescreenStoryboard = Parsing.ParseInt(pair.Value) == 1;
+                    beatmap.BeatmapInfo.WidescreenStoryboard = Parsing.ParseInt(value) == 1;
                     break;
             }
         }
 
-        private void handleEditor(string line)
+        private void handleEditor(ReadOnlySpan<char> line)
         {
-            var pair = SplitKeyVal(line);
+            SplitKeyVal(line, out var key, out var value);
 
-            switch (pair.Key)
+            switch (key)
             {
                 case @"Bookmarks":
-                    beatmap.BeatmapInfo.StoredBookmarks = pair.Value;
+                    beatmap.BeatmapInfo.StoredBookmarks = value.ToString();
                     break;
 
                 case @"DistanceSpacing":
-                    beatmap.BeatmapInfo.DistanceSpacing = Math.Max(0, Parsing.ParseDouble(pair.Value));
+                    beatmap.BeatmapInfo.DistanceSpacing = Math.Max(0, Parsing.ParseDouble(value));
                     break;
 
                 case @"BeatDivisor":
-                    beatmap.BeatmapInfo.BeatDivisor = Parsing.ParseInt(pair.Value);
+                    beatmap.BeatmapInfo.BeatDivisor = Parsing.ParseInt(value);
                     break;
 
                 case @"GridSize":
-                    beatmap.BeatmapInfo.GridSize = Parsing.ParseInt(pair.Value);
+                    beatmap.BeatmapInfo.GridSize = Parsing.ParseInt(value);
                     break;
 
                 case @"TimelineZoom":
-                    beatmap.BeatmapInfo.TimelineZoom = Math.Max(0, Parsing.ParseDouble(pair.Value));
+                    beatmap.BeatmapInfo.TimelineZoom = Math.Max(0, Parsing.ParseDouble(value));
                     break;
             }
         }
 
-        private void handleMetadata(string line)
+        private void handleMetadata(ReadOnlySpan<char> line)
         {
-            var pair = SplitKeyVal(line);
+            SplitKeyVal(line, out var key, out var value);
 
             var metadata = beatmap.BeatmapInfo.Metadata;
 
-            switch (pair.Key)
+            switch (key)
             {
                 case @"Title":
-                    metadata.Title = pair.Value;
+                    metadata.Title = value.ToString();
                     break;
 
                 case @"TitleUnicode":
-                    metadata.TitleUnicode = pair.Value;
+                    metadata.TitleUnicode = value.ToString();
                     break;
 
                 case @"Artist":
-                    metadata.Artist = pair.Value;
+                    metadata.Artist = value.ToString();
                     break;
 
                 case @"ArtistUnicode":
-                    metadata.ArtistUnicode = pair.Value;
+                    metadata.ArtistUnicode = value.ToString();
                     break;
 
                 case @"Creator":
-                    metadata.AuthorString = pair.Value;
+                    metadata.AuthorString = value.ToString();
                     break;
 
                 case @"Version":
-                    beatmap.BeatmapInfo.Version = pair.Value;
+                    beatmap.BeatmapInfo.Version = value.ToString();
                     break;
 
                 case @"Source":
-                    metadata.Source = pair.Value;
+                    metadata.Source = value.ToString();
                     break;
 
                 case @"Tags":
-                    metadata.Tags = pair.Value;
+                    metadata.Tags = value.ToString();
                     break;
 
                 case @"BeatmapID":
-                    beatmap.BeatmapInfo.OnlineBeatmapID = Parsing.ParseInt(pair.Value);
+                    beatmap.BeatmapInfo.OnlineBeatmapID = Parsing.ParseInt(value);
                     break;
 
                 case @"BeatmapSetID":
-                    beatmap.BeatmapInfo.BeatmapSet = new BeatmapSetInfo { OnlineBeatmapSetID = Parsing.ParseInt(pair.Value) };
+                    beatmap.BeatmapInfo.BeatmapSet = new BeatmapSetInfo { OnlineBeatmapSetID = Parsing.ParseInt(value) };
                     break;
             }
         }
 
-        private void handleDifficulty(string line)
+        private void handleDifficulty(ReadOnlySpan<char> line)
         {
-            var pair = SplitKeyVal(line);
+            SplitKeyVal(line, out var key, out var value);
 
             var difficulty = beatmap.BeatmapInfo.BaseDifficulty;
 
-            switch (pair.Key)
+            switch (key)
             {
                 case @"HPDrainRate":
-                    difficulty.DrainRate = Parsing.ParseFloat(pair.Value);
+                    difficulty.DrainRate = Parsing.ParseFloat(value);
                     break;
 
                 case @"CircleSize":
-                    difficulty.CircleSize = Parsing.ParseFloat(pair.Value);
+                    difficulty.CircleSize = Parsing.ParseFloat(value);
                     break;
 
                 case @"OverallDifficulty":
-                    difficulty.OverallDifficulty = Parsing.ParseFloat(pair.Value);
+                    difficulty.OverallDifficulty = Parsing.ParseFloat(value);
                     break;
 
                 case @"ApproachRate":
-                    difficulty.ApproachRate = Parsing.ParseFloat(pair.Value);
+                    difficulty.ApproachRate = Parsing.ParseFloat(value);
                     break;
 
                 case @"SliderMultiplier":
-                    difficulty.SliderMultiplier = Parsing.ParseDouble(pair.Value);
+                    difficulty.SliderMultiplier = Parsing.ParseDouble(value);
                     break;
 
                 case @"SliderTickRate":
-                    difficulty.SliderTickRate = Parsing.ParseDouble(pair.Value);
+                    difficulty.SliderTickRate = Parsing.ParseDouble(value);
                     break;
             }
         }
 
-        private void handleEvent(string line)
+        private void handleEvent(ReadOnlySpan<char> line)
         {
-            string[] split = line.Split(',');
+            LegacyLineTokenizer tokenizer = new LegacyLineTokenizer(line);
 
-            if (!Enum.TryParse(split[0], out LegacyEventType type))
-                throw new InvalidDataException($@"Unknown event type: {split[0]}");
+            string strType = tokenizer.Read().ToString();
+
+            if (!Enum.TryParse(strType, out LegacyEventType type))
+                throw new InvalidDataException($@"Unknown event type: {strType}");
 
             switch (type)
             {
                 case LegacyEventType.Background:
-                    beatmap.BeatmapInfo.Metadata.BackgroundFile = CleanFilename(split[2]);
+                    tokenizer.Read(); // Ignore the element at index 1
+                    beatmap.BeatmapInfo.Metadata.BackgroundFile = CleanFilename(tokenizer.Read());
                     break;
 
                 case LegacyEventType.Break:
-                    double start = getOffsetTime(Parsing.ParseDouble(split[1]));
-                    double end = Math.Max(start, getOffsetTime(Parsing.ParseDouble(split[2])));
+                    double start = getOffsetTime(Parsing.ParseDouble(tokenizer.Read()));
+                    double end = Math.Max(start, getOffsetTime(Parsing.ParseDouble(tokenizer.Read())));
 
                     var breakEvent = new BreakPeriod(start, end);
 
@@ -317,40 +318,44 @@ namespace osu.Game.Beatmaps.Formats
             }
         }
 
-        private void handleTimingPoint(string line)
+        private void handleTimingPoint(ReadOnlySpan<char> line)
         {
-            string[] split = line.Split(',');
+            LegacyLineTokenizer tokenizer = new LegacyLineTokenizer(line);
 
-            double time = getOffsetTime(Parsing.ParseDouble(split[0].Trim()));
-            double beatLength = Parsing.ParseDouble(split[1].Trim());
+            double time = getOffsetTime(Parsing.ParseDouble(tokenizer.Read().Trim()));
+            double beatLength = Parsing.ParseDouble(tokenizer.Read().Trim());
             double speedMultiplier = beatLength < 0 ? 100.0 / -beatLength : 1;
 
             TimeSignatures timeSignature = TimeSignatures.SimpleQuadruple;
-            if (split.Length >= 3)
-                timeSignature = split[2][0] == '0' ? TimeSignatures.SimpleQuadruple : (TimeSignatures)Parsing.ParseInt(split[2]);
+
+            if (tokenizer.HasMore)
+            {
+                var span = tokenizer.Read();
+                timeSignature = span[0] == '0' ? TimeSignatures.SimpleQuadruple : (TimeSignatures)Parsing.ParseInt(span);
+            }
 
             LegacySampleBank sampleSet = defaultSampleBank;
-            if (split.Length >= 4)
-                sampleSet = (LegacySampleBank)Parsing.ParseInt(split[3]);
+            if (tokenizer.HasMore)
+                sampleSet = (LegacySampleBank)Parsing.ParseInt(tokenizer.Read());
 
             int customSampleBank = 0;
-            if (split.Length >= 5)
-                customSampleBank = Parsing.ParseInt(split[4]);
+            if (tokenizer.HasMore)
+                customSampleBank = Parsing.ParseInt(tokenizer.Read());
 
             int sampleVolume = defaultSampleVolume;
-            if (split.Length >= 6)
-                sampleVolume = Parsing.ParseInt(split[5]);
+            if (tokenizer.HasMore)
+                sampleVolume = Parsing.ParseInt(tokenizer.Read());
 
             bool timingChange = true;
-            if (split.Length >= 7)
-                timingChange = split[6][0] == '1';
+            if (tokenizer.HasMore)
+                timingChange = tokenizer.Read()[0] == '1';
 
             bool kiaiMode = false;
             bool omitFirstBarSignature = false;
 
-            if (split.Length >= 8)
+            if (tokenizer.HasMore)
             {
-                LegacyEffectFlags effectFlags = (LegacyEffectFlags)Parsing.ParseInt(split[7]);
+                LegacyEffectFlags effectFlags = (LegacyEffectFlags)Parsing.ParseInt(tokenizer.Read());
                 kiaiMode = effectFlags.HasFlag(LegacyEffectFlags.Kiai);
                 omitFirstBarSignature = effectFlags.HasFlag(LegacyEffectFlags.OmitFirstBarLine);
             }
@@ -422,7 +427,7 @@ namespace osu.Game.Beatmaps.Formats
             pendingControlPoints.Clear();
         }
 
-        private void handleHitObject(string line)
+        private void handleHitObject(ReadOnlySpan<char> line)
         {
             // If the ruleset wasn't specified, assume the osu!standard ruleset.
             if (parser == null)

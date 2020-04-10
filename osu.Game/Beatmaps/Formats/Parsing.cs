@@ -16,8 +16,11 @@ namespace osu.Game.Beatmaps.Formats
         public const double MAX_PARSE_VALUE = int.MaxValue;
 
         public static float ParseFloat(string input, float parseLimit = (float)MAX_PARSE_VALUE)
+            => ParseFloat(input.AsSpan(), parseLimit);
+
+        public static float ParseFloat(ReadOnlySpan<char> input, float parseLimit = (float)MAX_PARSE_VALUE)
         {
-            var output = float.Parse(input, CultureInfo.InvariantCulture);
+            var output = float.Parse(input, provider: CultureInfo.InvariantCulture);
 
             if (output < -parseLimit) throw new OverflowException("Value is too low");
             if (output > parseLimit) throw new OverflowException("Value is too high");
@@ -28,8 +31,11 @@ namespace osu.Game.Beatmaps.Formats
         }
 
         public static double ParseDouble(string input, double parseLimit = MAX_PARSE_VALUE)
+            => ParseDouble(input.AsSpan(), parseLimit);
+
+        public static double ParseDouble(ReadOnlySpan<char> input, double parseLimit = MAX_PARSE_VALUE)
         {
-            var output = double.Parse(input, CultureInfo.InvariantCulture);
+            var output = double.Parse(input, provider: CultureInfo.InvariantCulture);
 
             if (output < -parseLimit) throw new OverflowException("Value is too low");
             if (output > parseLimit) throw new OverflowException("Value is too high");
@@ -40,8 +46,11 @@ namespace osu.Game.Beatmaps.Formats
         }
 
         public static int ParseInt(string input, int parseLimit = (int)MAX_PARSE_VALUE)
+            => ParseInt(input.AsSpan(), parseLimit);
+
+        public static int ParseInt(ReadOnlySpan<char> input, int parseLimit = (int)MAX_PARSE_VALUE)
         {
-            var output = int.Parse(input, CultureInfo.InvariantCulture);
+            var output = int.Parse(input, provider: CultureInfo.InvariantCulture);
 
             if (output < -parseLimit) throw new OverflowException("Value is too low");
             if (output > parseLimit) throw new OverflowException("Value is too high");

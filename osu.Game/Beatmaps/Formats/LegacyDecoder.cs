@@ -134,7 +134,20 @@ namespace osu.Game.Beatmaps.Formats
             );
         }
 
+        protected void SplitKeyVal(in ReadOnlySpan<char> line, out string key, out ReadOnlySpan<char> value, char separator = ':')
+        {
+            LegacyLineTokenizer tokenizer = new LegacyLineTokenizer(line, separator);
+
+            ReadOnlySpan<char> first = tokenizer.Read();
+            ReadOnlySpan<char> second = tokenizer.ReadToEnd();
+
+            key = first.Trim().ToString();
+            value = second.Trim();
+        }
+
         protected string CleanFilename(string path) => path.Trim('"').ToStandardisedPath();
+
+        protected string CleanFilename(ReadOnlySpan<char> path) => path.Trim('"').ToString().ToStandardisedPath();
 
         protected enum Section
         {
