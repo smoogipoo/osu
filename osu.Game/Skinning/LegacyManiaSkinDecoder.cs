@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -28,19 +29,19 @@ namespace osu.Game.Skinning
             currentConfig = null;
         }
 
-        protected override void ParseLine(List<LegacyManiaSkinConfiguration> output, Section section, string line)
+        protected override void ParseLine(List<LegacyManiaSkinConfiguration> output, Section section, ReadOnlySpan<char> line)
         {
-            line = StripComments(line);
+            StripComments(ref line);
 
             switch (section)
             {
                 case Section.Mania:
-                    var pair = SplitKeyVal(line);
+                    SplitKeyVal(line, out var key, out var value);
 
-                    switch (pair.Key)
+                    switch (key)
                     {
                         case "Keys":
-                            currentConfig = new LegacyManiaSkinConfiguration(int.Parse(pair.Value, CultureInfo.InvariantCulture));
+                            currentConfig = new LegacyManiaSkinConfiguration(int.Parse(value, provider: CultureInfo.InvariantCulture));
 
                             // Silently ignore duplicate configurations.
                             if (output.All(c => c.Keys != currentConfig.Keys))
@@ -51,7 +52,7 @@ namespace osu.Game.Skinning
                             break;
 
                         default:
-                            pendingLines.Add(line);
+                            pendingLines.Add(line.ToString());
 
                             // Hold all lines until a "Keys" item is found.
                             if (currentConfig != null)

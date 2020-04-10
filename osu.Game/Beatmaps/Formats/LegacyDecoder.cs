@@ -30,12 +30,14 @@ namespace osu.Game.Beatmaps.Formats
 
             while ((line = stream.ReadLine()) != null)
             {
-                if (ShouldSkipLine(line))
+                ReadOnlySpan<char> lineSpan = line.AsSpan();
+
+                if (ShouldSkipLine(lineSpan))
                     continue;
 
-                if (line.StartsWith('[') && line.EndsWith(']'))
+                if (lineSpan[0] == '[' && lineSpan[^1] == ']')
                 {
-                    if (!Enum.TryParse(line[1..^1], out section))
+                    if (!Enum.TryParse(lineSpan[1..^1].ToString(), out section))
                     {
                         Logger.Log($"Unknown section \"{line}\" in \"{output}\"");
                         section = Section.None;
@@ -56,7 +58,7 @@ namespace osu.Game.Beatmaps.Formats
             }
         }
 
-        protected virtual bool ShouldSkipLine(string line) => string.IsNullOrWhiteSpace(line) || line.AsSpan().TrimStart().StartsWith("//".AsSpan(), StringComparison.Ordinal);
+        protected virtual bool ShouldSkipLine(ReadOnlySpan<char> line) => line.IsEmpty || line.IsWhiteSpace() || line.TrimStart().StartsWith("//", StringComparison.Ordinal);
 
         /// <summary>
         /// Invoked when a new <see cref="Section"/> has been entered.
@@ -66,9 +68,9 @@ namespace osu.Game.Beatmaps.Formats
         {
         }
 
-        protected virtual void ParseLine(T output, Section section, string line)
+        protected virtual void ParseLine(T output, Section section, ReadOnlySpan<char> line)
         {
-            line = StripComments(line);
+            StripComments(ref line);
 
             switch (section)
             {
@@ -78,31 +80,41 @@ namespace osu.Game.Beatmaps.Formats
             }
         }
 
-        protected string StripComments(string line)
+        protected void StripComments(ref ReadOnlySpan<char> line)
         {
-            var index = line.AsSpan().IndexOf("//".AsSpan());
+            var index = line.IndexOf("//");
             if (index > 0)
-                return line.Substring(0, index);
-
-            return line;
+                line = line.Slice(0, index);
         }
 
-        protected void HandleColours<TModel>(TModel output, string line)
+        protected void HandleColours<TModel>(TModel output, ReadOnlySpan<char> line)
         {
-            var pair = SplitKeyVal(line);
+            SplitKeyVal(line, out var key, out var value);
 
-            bool isCombo = pair.Key.StartsWith(@"Combo");
+            bool isCombo = key.StartsWith(@"Combo");
 
-            string[] split = pair.Value.Split(',');
+            int length = 1;
 
-            if (split.Length != 3 && split.Length != 4)
-                throw new InvalidOperationException($@"Color specified in incorrect format (should be R,G,B or R,G,B,A): {pair.Value}");
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (line[i] == ',')
+                    length++;
+            }
+
+            if (length != 3 && length != 4)
+                throw new InvalidOperationException($@"Color specified in incorrect format (should be R,G,B or R,G,B,A): {line.ToString()}");
+
+            LegacyLineTokenizer tokenizer = new LegacyLineTokenizer(value);
 
             Color4 colour;
 
             try
             {
-                colour = new Color4(byte.Parse(split[0]), byte.Parse(split[1]), byte.Parse(split[2]), split.Length == 4 ? byte.Parse(split[3]) : (byte)255);
+                colour = new Color4(
+                    byte.Parse(tokenizer.Read()),
+                    byte.Parse(tokenizer.Read()),
+                    byte.Parse(tokenizer.Read()),
+                    tokenizer.HasMore ? byte.Parse(tokenizer.Read()) : (byte)255);
             }
             catch
             {
@@ -119,7 +131,7 @@ namespace osu.Game.Beatmaps.Formats
             {
                 if (!(output is IHasCustomColours tHasCustomColours)) return;
 
-                tHasCustomColours.CustomColours[pair.Key] = colour;
+                tHasCustomColours.CustomColours[key] = colour;
             }
         }
 

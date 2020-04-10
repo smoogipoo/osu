@@ -42,18 +42,18 @@ namespace osu.Game.Beatmaps.Formats
             base.ParseStreamInto(stream, storyboard);
         }
 
-        protected override void ParseLine(Storyboard storyboard, Section section, string line)
+        protected override void ParseLine(Storyboard storyboard, Section section, ReadOnlySpan<char> line)
         {
-            line = StripComments(line);
+            StripComments(ref line);
 
             switch (section)
             {
                 case Section.Events:
-                    handleEvents(line);
+                    handleEvents(line.ToString());
                     return;
 
                 case Section.Variables:
-                    handleVariables(line);
+                    handleVariables(line.ToString());
                     return;
             }
 

@@ -64,9 +64,9 @@ namespace osu.Game.Beatmaps.Formats
                 hitObject.ApplyDefaults(this.beatmap.ControlPointInfo, this.beatmap.BeatmapInfo.BaseDifficulty);
         }
 
-        protected override bool ShouldSkipLine(string line) => base.ShouldSkipLine(line) || line.StartsWith(' ') || line.StartsWith('_');
+        protected override bool ShouldSkipLine(ReadOnlySpan<char> line) => base.ShouldSkipLine(line) || line[0] == ' ' || line[0] == '_';
 
-        protected override void ParseLine(Beatmap beatmap, Section section, string line)
+        protected override void ParseLine(Beatmap beatmap, Section section, ReadOnlySpan<char> line)
         {
             switch (section)
             {
