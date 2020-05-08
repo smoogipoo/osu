@@ -46,7 +46,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected IDistanceSnapProvider SnapProvider { get; private set; }
 
         [Resolved]
-        private EditorBeatmap beatmap { get; set; }
+        protected EditorBeatmap Beatmap { get; private set; }
 
         [Resolved]
         private BindableBeatDivisor beatDivisor { get; set; }
@@ -125,7 +125,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// <returns>The applicable colour.</returns>
         protected ColourInfo GetColourForIndexFromPlacement(int placementIndex)
         {
-            var timingPoint = beatmap.ControlPointInfo.TimingPointAt(StartTime);
+            var timingPoint = Beatmap.ControlPointInfo.TimingPointAt(StartTime);
             var beatLength = timingPoint.BeatLength / beatDivisor.Value;
             var beatIndex = (int)Math.Round((StartTime - timingPoint.Time) / beatLength);
 
