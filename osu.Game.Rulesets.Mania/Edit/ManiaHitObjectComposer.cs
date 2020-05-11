@@ -27,6 +27,12 @@ namespace osu.Game.Rulesets.Mania.Edit
         {
         }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            AddInternal(DistanceSnapGridContainer.CreateProxy());
+        }
+
         /// <summary>
         /// Retrieves the column that intersects a screen-space position.
         /// </summary>
@@ -79,10 +85,7 @@ namespace osu.Game.Rulesets.Mania.Edit
 
         protected override ComposeBlueprintContainer CreateBlueprintContainer() => new ManiaBlueprintContainer(drawableRuleset.Playfield.AllHitObjects);
 
-        protected override DistanceSnapGrid CreateDistanceSnapGrid(IEnumerable<HitObject> selectedHitObjects)
-        {
-            return base.CreateDistanceSnapGrid(selectedHitObjects);
-        }
+        protected override DistanceSnapGrid CreateDistanceSnapGrid(IEnumerable<HitObject> selectedHitObjects) => new ManiaDistanceSnapGrid();
 
         protected override IReadOnlyList<HitObjectCompositionTool> CompositionTools => new HitObjectCompositionTool[]
         {

@@ -51,8 +51,9 @@ namespace osu.Game.Rulesets.Edit
 
         protected ComposeBlueprintContainer BlueprintContainer { get; private set; }
 
+        protected Container DistanceSnapGridContainer { get; private set; }
+
         private DrawableEditRulesetWrapper<TObject> drawableRulesetWrapper;
-        private Container distanceSnapGridContainer;
         private DistanceSnapGrid distanceSnapGrid;
         private readonly List<Container> layerContainers = new List<Container>();
 
@@ -87,7 +88,7 @@ namespace osu.Game.Rulesets.Edit
 
             var layerBelowRuleset = drawableRulesetWrapper.CreatePlayfieldAdjustmentContainer().WithChildren(new Drawable[]
             {
-                distanceSnapGridContainer = new Container { RelativeSizeAxes = Axes.Both },
+                DistanceSnapGridContainer = new Container { RelativeSizeAxes = Axes.Both },
                 new EditorPlayfieldBorder { RelativeSizeAxes = Axes.Both }
             });
 
@@ -200,7 +201,7 @@ namespace osu.Game.Rulesets.Edit
                 showGridFor(hitObjects);
             }
             else
-                distanceSnapGridContainer.Hide();
+                DistanceSnapGridContainer.Hide();
         }
 
         private void setSelectTool() => toolboxCollection.Items.First().Select();
@@ -210,7 +211,7 @@ namespace osu.Game.Rulesets.Edit
             BlueprintContainer.CurrentTool = tool;
 
             if (tool is SelectTool)
-                distanceSnapGridContainer.Hide();
+                DistanceSnapGridContainer.Hide();
             else
             {
                 EditorBeatmap.SelectedHitObjects.Clear();
@@ -220,13 +221,13 @@ namespace osu.Game.Rulesets.Edit
 
         private void showGridFor(IEnumerable<HitObject> selectedHitObjects)
         {
-            distanceSnapGridContainer.Clear();
+            DistanceSnapGridContainer.Clear();
             distanceSnapGrid = CreateDistanceSnapGrid(selectedHitObjects);
 
             if (distanceSnapGrid != null)
             {
-                distanceSnapGridContainer.Child = distanceSnapGrid;
-                distanceSnapGridContainer.Show();
+                DistanceSnapGridContainer.Child = distanceSnapGrid;
+                DistanceSnapGridContainer.Show();
             }
 
             lastGridUpdateTime = EditorClock.CurrentTime;
