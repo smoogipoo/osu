@@ -62,7 +62,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             }
         }
 
-        public override (Vector2 position, double time) GetSnappedPosition(Vector2 position)
+        public override (Vector2 position, double time)? GetSnappedPosition(Vector2 position)
         {
             if (MaxIntervals == 0)
                 return (StartPosition, StartTime);

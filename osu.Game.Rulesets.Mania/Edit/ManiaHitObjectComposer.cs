@@ -7,6 +7,7 @@ using osu.Game.Rulesets.Edit.Tools;
 using osu.Game.Rulesets.Mania.Objects;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Timing;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
@@ -18,6 +19,7 @@ using osuTK;
 namespace osu.Game.Rulesets.Mania.Edit
 {
     [Cached(Type = typeof(IManiaHitObjectComposer))]
+    [Cached]
     public class ManiaHitObjectComposer : HitObjectComposer<ManiaHitObject>, IManiaHitObjectComposer
     {
         private DrawableManiaEditRuleset drawableRuleset;
@@ -32,6 +34,8 @@ namespace osu.Game.Rulesets.Mania.Edit
         {
             AddInternal(DistanceSnapGridContainer.CreateProxy());
         }
+
+        public IFrameBasedClock FrameStableClock => drawableRuleset.FrameStableClock;
 
         /// <summary>
         /// Retrieves the column that intersects a screen-space position.
@@ -53,8 +57,11 @@ namespace osu.Game.Rulesets.Mania.Edit
 
         public override (Vector2 position, double time) GetSnappedPosition(Vector2 position, double time)
         {
-            var hoc = Playfield.GetColumn(0).HitObjectContainer;
+            var gridSnappedPosition = distanceSnapGrid?.GetSnappedPosition(position);
+            if (gridSnappedPosition != null)
+                return gridSnappedPosition.Value;
 
+            var hoc = Playfield.GetColumn(0).HitObjectContainer;
             float targetPosition = hoc.ToLocalSpace(ToScreenSpace(position)).Y;
 
             if (drawableRuleset.ScrollingInfo.Direction.Value == ScrollingDirection.Down)
@@ -85,7 +92,20 @@ namespace osu.Game.Rulesets.Mania.Edit
 
         protected override ComposeBlueprintContainer CreateBlueprintContainer() => new ManiaBlueprintContainer(drawableRuleset.Playfield.AllHitObjects);
 
-        protected override DistanceSnapGrid CreateDistanceSnapGrid(IEnumerable<HitObject> selectedHitObjects) => new ManiaDistanceSnapGrid();
+        private DistanceSnapGrid distanceSnapGrid;
+
+        protected override void RemoveDistanceSnapGrid()
+        {
+            DistanceSnapGridContainer.Hide();
+        }
+
+        protected override DistanceSnapGrid CreateDistanceSnapGrid(IEnumerable<HitObject> selectedHitObjects)
+        {
+            if (distanceSnapGrid != null)
+                return null;
+
+            return distanceSnapGrid = new ManiaDistanceSnapGrid();
+        }
 
         protected override IReadOnlyList<HitObjectCompositionTool> CompositionTools => new HitObjectCompositionTool[]
         {

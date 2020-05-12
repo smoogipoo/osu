@@ -221,17 +221,25 @@ namespace osu.Game.Rulesets.Edit
 
         private void showGridFor(IEnumerable<HitObject> selectedHitObjects)
         {
-            DistanceSnapGridContainer.Clear();
+            RemoveDistanceSnapGrid();
             distanceSnapGrid = CreateDistanceSnapGrid(selectedHitObjects);
 
             if (distanceSnapGrid != null)
-            {
                 DistanceSnapGridContainer.Child = distanceSnapGrid;
-                DistanceSnapGridContainer.Show();
-            }
 
+            DistanceSnapGridContainer.Show();
             lastGridUpdateTime = EditorClock.CurrentTime;
         }
+
+        protected virtual void RemoveDistanceSnapGrid() => DistanceSnapGridContainer.Clear();
+
+        /// <summary>
+        /// Creates the <see cref="DistanceSnapGrid"/> applicable for a <see cref="HitObject"/> selection.
+        /// </summary>
+        /// <param name="selectedHitObjects">The <see cref="HitObject"/> selection.</param>
+        /// <returns>The <see cref="DistanceSnapGrid"/> for <paramref name="selectedHitObjects"/>. If empty, a grid is returned for the current point in time.</returns>
+        [CanBeNull]
+        protected virtual DistanceSnapGrid CreateDistanceSnapGrid([NotNull] IEnumerable<HitObject> selectedHitObjects) => null;
 
         public override IEnumerable<DrawableHitObject> HitObjects => drawableRulesetWrapper.Playfield.AllHitObjects;
         public override bool CursorInPlacementArea => drawableRulesetWrapper.Playfield.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
@@ -315,14 +323,6 @@ namespace osu.Game.Rulesets.Edit
         /// Whether the user's cursor is currently in an area of the <see cref="HitObjectComposer"/> that is valid for placement.
         /// </summary>
         public abstract bool CursorInPlacementArea { get; }
-
-        /// <summary>
-        /// Creates the <see cref="DistanceSnapGrid"/> applicable for a <see cref="HitObject"/> selection.
-        /// </summary>
-        /// <param name="selectedHitObjects">The <see cref="HitObject"/> selection.</param>
-        /// <returns>The <see cref="DistanceSnapGrid"/> for <paramref name="selectedHitObjects"/>. If empty, a grid is returned for the current point in time.</returns>
-        [CanBeNull]
-        protected virtual DistanceSnapGrid CreateDistanceSnapGrid([NotNull] IEnumerable<HitObject> selectedHitObjects) => null;
 
         public abstract (Vector2 position, double time) GetSnappedPosition(Vector2 position, double time);
 

@@ -49,7 +49,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected EditorBeatmap Beatmap { get; private set; }
 
         [Resolved]
-        private BindableBeatDivisor beatDivisor { get; set; }
+        protected BindableBeatDivisor BeatDivisor { get; private set; }
 
         private readonly LayoutValue gridCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
         private readonly double? endTime;
@@ -75,7 +75,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             base.LoadComplete();
 
-            beatDivisor.BindValueChanged(_ => updateSpacing(), true);
+            BeatDivisor.BindValueChanged(_ => updateSpacing(), true);
         }
 
         private void updateSpacing()
@@ -100,11 +100,13 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             if (!gridCache.IsValid)
             {
-                ClearInternal();
+                RemoveContent();
                 CreateContent();
                 gridCache.Validate();
             }
         }
+
+        protected virtual void RemoveContent() => ClearInternal();
 
         /// <summary>
         /// Creates the content which visualises the grid ticks.
@@ -116,7 +118,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// </summary>
         /// <param name="position">The original position in coordinate space local to this <see cref="DistanceSnapGrid"/>.</param>
         /// <returns>A tuple containing the snapped position in coordinate space local to this <see cref="DistanceSnapGrid"/> and the respective time value.</returns>
-        public abstract (Vector2 position, double time) GetSnappedPosition(Vector2 position);
+        public abstract (Vector2 position, double time)? GetSnappedPosition(Vector2 position);
 
         /// <summary>
         /// Retrieves the applicable colour for a beat index.
@@ -126,12 +128,12 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected ColourInfo GetColourForIndexFromPlacement(int placementIndex)
         {
             var timingPoint = Beatmap.ControlPointInfo.TimingPointAt(StartTime);
-            var beatLength = timingPoint.BeatLength / beatDivisor.Value;
+            var beatLength = timingPoint.BeatLength / BeatDivisor.Value;
             var beatIndex = (int)Math.Round((StartTime - timingPoint.Time) / beatLength);
 
-            var colour = BindableBeatDivisor.GetColourFor(BindableBeatDivisor.GetDivisorForBeatIndex(beatIndex + placementIndex + 1, beatDivisor.Value), Colours);
+            var colour = BindableBeatDivisor.GetColourFor(BindableBeatDivisor.GetDivisorForBeatIndex(beatIndex + placementIndex + 1, BeatDivisor.Value), Colours);
 
-            int repeatIndex = placementIndex / beatDivisor.Value;
+            int repeatIndex = placementIndex / BeatDivisor.Value;
             return colour.MultiplyAlpha(0.5f / (repeatIndex + 1));
         }
     }
