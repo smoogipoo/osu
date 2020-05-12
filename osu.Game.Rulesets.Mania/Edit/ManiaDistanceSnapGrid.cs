@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
+using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Mania.UI;
+using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
@@ -16,68 +18,19 @@ namespace osu.Game.Rulesets.Mania.Edit
     public class ManiaDistanceSnapGrid : DistanceSnapGrid
     {
         [Resolved]
-        private IScrollingInfo scrollingInfo { get; set; }
-
-        [Resolved]
-        private EditorClock editorClock { get; set; }
-
-        private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
-        private readonly IBindable<double> timeRange = new BindableDouble();
-
-        private Container gridContainer;
+        private ManiaHitObjectComposer maniaComposer { get; set; }
 
         public ManiaDistanceSnapGrid()
             : base(Vector2.Zero, 0)
         {
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            direction.BindTo(scrollingInfo.Direction);
-            timeRange.BindTo(scrollingInfo.TimeRange);
-
-            direction.BindValueChanged(onDirectionChanged, true);
-            timeRange.BindValueChanged(onTimeRangeChanged, true);
-        }
-
-        private void onDirectionChanged(ValueChangedEvent<ScrollingDirection> direction)
-        {
-            if (direction.NewValue == ScrollingDirection.Up)
-            {
-                gridContainer.Anchor = Anchor.TopLeft;
-                gridContainer.Origin = Anchor.TopLeft;
-
-                foreach (var line in gridContainer)
-                {
-                    line.Anchor = Anchor.TopLeft;
-                    line.Origin = Anchor.TopLeft;
-                }
-            }
-            else
-            {
-                gridContainer.Anchor = Anchor.BottomLeft;
-                gridContainer.Origin = Anchor.BottomLeft;
-
-                foreach (var line in gridContainer)
-                {
-                    line.Anchor = Anchor.BottomLeft;
-                    line.Origin = Anchor.BottomLeft;
-                }
-            }
-        }
-
-        private void onTimeRangeChanged(ValueChangedEvent<double> timeRange) => RelativeChildSize = new Vector2(1, (float)timeRange.NewValue);
-
         protected override void CreateContent()
         {
-        }
+            ClearInternal();
 
-        protected override void Update()
-        {
-            base.Update();
-
+            foreach (var stage in maniaComposer.Playfield.Stages)
+                AddInternal(new Grid(stage));
         }
 
         public override (Vector2 position, double time) GetSnappedPosition(Vector2 position)
@@ -85,13 +38,56 @@ namespace osu.Game.Rulesets.Mania.Edit
             return (position, 0);
         }
 
-        private class Grid : CompositeDrawable
+        private class Grid : ScrollingHitObjectContainer
         {
+            [Resolved]
+            private EditorBeatmap beatmap { get; set; }
+
             private readonly Stage stage;
 
             public Grid(Stage stage)
             {
                 this.stage = stage;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                for (int i = 0; i < beatmap.ControlPointInfo.TimingPoints.Count; i++)
+                {
+                    TimingControlPoint current = beatmap.ControlPointInfo.TimingPoints[i];
+                    TimingControlPoint next = i < beatmap.ControlPointInfo.TimingPoints.Count - 1 ? beatmap.ControlPointInfo.TimingPoints[i + 1] : null;
+
+                    if (next == null)
+                        break; // Todo:
+
+                    for (double x = current.Time; x < next.Time; x += current.BeatLength / beatmap.BeatDivisor)
+                        Add(new DrawableGridLine(x));
+                }
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                var parentQuad = Parent.ToLocalSpace(stage.ScreenSpaceDrawQuad);
+                Position = parentQuad.TopLeft;
+                Size = parentQuad.Size;
+            }
+        }
+
+        private class DrawableGridLine : DrawableHitObject
+        {
+            public DrawableGridLine(double startTime)
+                : base(new HitObject { StartTime = startTime })
+            {
+                RelativeSizeAxes = Axes.X;
+                Height = 2;
+
+                InternalChild = new Box
+                {
+                    RelativeSizeAxes = Axes.Both
+                };
             }
         }
     }
