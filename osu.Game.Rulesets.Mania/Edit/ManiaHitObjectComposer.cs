@@ -10,7 +10,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Timing;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.Mods;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit.Compose.Components;
@@ -91,21 +90,6 @@ namespace osu.Game.Rulesets.Mania.Edit
         }
 
         protected override ComposeBlueprintContainer CreateBlueprintContainer() => new ManiaBlueprintContainer(drawableRuleset.Playfield.AllHitObjects);
-
-        private DistanceSnapGrid distanceSnapGrid;
-
-        protected override void RemoveDistanceSnapGrid()
-        {
-            DistanceSnapGridContainer.Hide();
-        }
-
-        protected override DistanceSnapGrid CreateDistanceSnapGrid(IEnumerable<HitObject> selectedHitObjects)
-        {
-            if (distanceSnapGrid != null)
-                return null;
-
-            return distanceSnapGrid = new ManiaDistanceSnapGrid();
-        }
 
         protected override IReadOnlyList<HitObjectCompositionTool> CompositionTools => new HitObjectCompositionTool[]
         {

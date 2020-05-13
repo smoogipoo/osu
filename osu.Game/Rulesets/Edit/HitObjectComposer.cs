@@ -221,17 +221,17 @@ namespace osu.Game.Rulesets.Edit
 
         private void showGridFor(IEnumerable<HitObject> selectedHitObjects)
         {
-            RemoveDistanceSnapGrid();
+            DistanceSnapGridContainer.Clear();
             distanceSnapGrid = CreateDistanceSnapGrid(selectedHitObjects);
 
             if (distanceSnapGrid != null)
+            {
                 DistanceSnapGridContainer.Child = distanceSnapGrid;
+                DistanceSnapGridContainer.Show();
+            }
 
-            DistanceSnapGridContainer.Show();
             lastGridUpdateTime = EditorClock.CurrentTime;
         }
-
-        protected virtual void RemoveDistanceSnapGrid() => DistanceSnapGridContainer.Clear();
 
         /// <summary>
         /// Creates the <see cref="DistanceSnapGrid"/> applicable for a <see cref="HitObject"/> selection.
