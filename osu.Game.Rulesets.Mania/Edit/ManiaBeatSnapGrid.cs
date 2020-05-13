@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
@@ -15,16 +16,18 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit;
-using osu.Game.Screens.Edit.Compose.Components;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Edit
 {
-    public class ManiaDistanceSnapGrid : DistanceSnapGrid
+    public class ManiaBeatSnapGrid : CompositeDrawable
     {
         [Resolved]
         private ManiaHitObjectComposer maniaComposer { get; set; }
+
+        [Resolved]
+        private EditorBeatmap beatmap { get; set; }
 
         [Resolved]
         private IScrollingInfo scrollingInfo { get; set; }
@@ -35,12 +38,10 @@ namespace osu.Game.Rulesets.Mania.Edit
         [Resolved]
         private OsuColour colours { get; set; }
 
-        private readonly List<Grid> grids = new List<Grid>();
+        [Resolved]
+        private BindableBeatDivisor beatDivisor { get; set; }
 
-        public ManiaDistanceSnapGrid()
-            : base(Vector2.Zero, 0)
-        {
-        }
+        private readonly List<Grid> grids = new List<Grid>();
 
         [BackgroundDependencyLoader]
         private void load()
@@ -53,15 +54,7 @@ namespace osu.Game.Rulesets.Mania.Edit
                 AddInternal(grid);
             }
 
-            BeatDivisor.BindValueChanged(_ => createLines(), true);
-        }
-
-        protected override void RemoveContent()
-        {
-        }
-
-        protected override void CreateContent()
-        {
+            beatDivisor.BindValueChanged(_ => createLines(), true);
         }
 
         private void createLines()
@@ -69,23 +62,23 @@ namespace osu.Game.Rulesets.Mania.Edit
             foreach (var grid in grids)
                 grid.Clear();
 
-            for (int i = 0; i < Beatmap.ControlPointInfo.TimingPoints.Count; i++)
+            for (int i = 0; i < beatmap.ControlPointInfo.TimingPoints.Count; i++)
             {
-                var point = Beatmap.ControlPointInfo.TimingPoints[i];
-                var until = i + 1 < Beatmap.ControlPointInfo.TimingPoints.Count ? Beatmap.ControlPointInfo.TimingPoints[i + 1].Time : working.Value.Track.Length;
+                var point = beatmap.ControlPointInfo.TimingPoints[i];
+                var until = i + 1 < beatmap.ControlPointInfo.TimingPoints.Count ? beatmap.ControlPointInfo.TimingPoints[i + 1].Time : working.Value.Track.Length;
 
                 int beat = 0;
 
-                for (double t = point.Time; t < until; t += point.BeatLength / BeatDivisor.Value)
+                for (double t = point.Time; t < until; t += point.BeatLength / beatDivisor.Value)
                 {
-                    var indexInBeat = beat % BeatDivisor.Value;
+                    var indexInBeat = beat % beatDivisor.Value;
                     Color4 colour;
 
                     if (indexInBeat == 0)
                         colour = BindableBeatDivisor.GetColourFor(1, colours);
                     else
                     {
-                        var divisor = BindableBeatDivisor.GetDivisorForBeatIndex(beat, BeatDivisor.Value);
+                        var divisor = BindableBeatDivisor.GetDivisorForBeatIndex(beat, beatDivisor.Value);
                         colour = BindableBeatDivisor.GetColourFor(divisor, colours);
                     }
 
@@ -97,7 +90,7 @@ namespace osu.Game.Rulesets.Mania.Edit
             }
         }
 
-        public override (Vector2 position, double time)? GetSnappedPosition(Vector2 position)
+        public (Vector2 position, double time)? GetSnappedPosition(Vector2 position)
         {
             float minDist = float.PositiveInfinity;
             DrawableGridLine minDistLine = null;
@@ -124,6 +117,45 @@ namespace osu.Game.Rulesets.Mania.Edit
 
             float noteOffset = (scrollingInfo.Direction.Value == ScrollingDirection.Up ? 1 : -1) * DefaultNotePiece.NOTE_HEIGHT / 2;
             return (new Vector2(position.X, minDistLinePosition.Y + noteOffset), minDistLine.HitObject.StartTime);
+        }
+
+        public void SetRange(double minTime, double maxTime)
+        {
+            var linesBefore = new List<DrawableGridLine>();
+            var linesDuring = new List<DrawableGridLine>();
+            var linesAfter = new List<DrawableGridLine>();
+
+            foreach (var grid in grids)
+            {
+                linesBefore.Clear();
+                linesDuring.Clear();
+                linesAfter.Clear();
+
+                foreach (var line in grid.Objects.OfType<DrawableGridLine>())
+                {
+                    if (line.HitObject.StartTime < minTime)
+                        linesBefore.Add(line);
+                    else if (line.HitObject.StartTime <= maxTime)
+                        linesDuring.Add(line);
+                    else
+                        linesAfter.Add(line);
+                }
+
+                foreach (var l in linesDuring)
+                    l.Colour = OsuColour.Gray(0.5f);
+
+                for (int i = 0; i < linesBefore.Count; i++)
+                {
+                    int offset = (linesBefore.Count - i - 1) / beatDivisor.Value;
+                    linesBefore[i].Colour = OsuColour.Gray(0.5f / (offset + 1));
+                }
+
+                for (int i = 0; i < linesAfter.Count; i++)
+                {
+                    int offset = i / beatDivisor.Value;
+                    linesAfter[i].Colour = OsuColour.Gray(0.5f / (offset + 1));
+                }
+            }
         }
 
         private class Grid : ScrollingHitObjectContainer

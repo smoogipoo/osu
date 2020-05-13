@@ -51,9 +51,8 @@ namespace osu.Game.Rulesets.Edit
 
         protected ComposeBlueprintContainer BlueprintContainer { get; private set; }
 
-        protected Container DistanceSnapGridContainer { get; private set; }
-
         private DrawableEditRulesetWrapper<TObject> drawableRulesetWrapper;
+        private Container distanceSnapGridContainer;
         private DistanceSnapGrid distanceSnapGrid;
         private readonly List<Container> layerContainers = new List<Container>();
 
@@ -88,7 +87,7 @@ namespace osu.Game.Rulesets.Edit
 
             var layerBelowRuleset = drawableRulesetWrapper.CreatePlayfieldAdjustmentContainer().WithChildren(new Drawable[]
             {
-                DistanceSnapGridContainer = new Container { RelativeSizeAxes = Axes.Both },
+                distanceSnapGridContainer = new Container { RelativeSizeAxes = Axes.Both },
                 new EditorPlayfieldBorder { RelativeSizeAxes = Axes.Both }
             });
 
@@ -135,12 +134,12 @@ namespace osu.Game.Rulesets.Edit
 
             toolboxCollection.Items = CompositionTools
                                       .Prepend(new SelectTool())
-                                      .Select(t => new RadioButton(t.Name, () => toolSelected(t)))
+                                      .Select(t => new RadioButton(t.Name, () => OnToolChanged(t)))
                                       .ToList();
 
             setSelectTool();
 
-            BlueprintContainer.SelectionChanged += selectionChanged;
+            BlueprintContainer.SelectionChanged += OnSelectionChanged;
         }
 
         protected override bool OnKeyDown(KeyDownEvent e)
@@ -189,7 +188,7 @@ namespace osu.Game.Rulesets.Edit
             });
         }
 
-        private void selectionChanged(IEnumerable<HitObject> selectedHitObjects)
+        protected virtual void OnSelectionChanged(IEnumerable<HitObject> selectedHitObjects)
         {
             var hitObjects = selectedHitObjects.ToArray();
 
@@ -201,17 +200,17 @@ namespace osu.Game.Rulesets.Edit
                 showGridFor(hitObjects);
             }
             else
-                DistanceSnapGridContainer.Hide();
+                distanceSnapGridContainer.Hide();
         }
 
         private void setSelectTool() => toolboxCollection.Items.First().Select();
 
-        private void toolSelected(HitObjectCompositionTool tool)
+        protected virtual void OnToolChanged(HitObjectCompositionTool tool)
         {
             BlueprintContainer.CurrentTool = tool;
 
             if (tool is SelectTool)
-                DistanceSnapGridContainer.Hide();
+                distanceSnapGridContainer.Hide();
             else
             {
                 EditorBeatmap.SelectedHitObjects.Clear();
@@ -221,13 +220,13 @@ namespace osu.Game.Rulesets.Edit
 
         private void showGridFor(IEnumerable<HitObject> selectedHitObjects)
         {
-            DistanceSnapGridContainer.Clear();
+            distanceSnapGridContainer.Clear();
             distanceSnapGrid = CreateDistanceSnapGrid(selectedHitObjects);
 
             if (distanceSnapGrid != null)
             {
-                DistanceSnapGridContainer.Child = distanceSnapGrid;
-                DistanceSnapGridContainer.Show();
+                distanceSnapGridContainer.Child = distanceSnapGrid;
+                distanceSnapGridContainer.Show();
             }
 
             lastGridUpdateTime = EditorClock.CurrentTime;
