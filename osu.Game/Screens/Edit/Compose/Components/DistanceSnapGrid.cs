@@ -118,7 +118,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// </summary>
         /// <param name="position">The original position in coordinate space local to this <see cref="DistanceSnapGrid"/>.</param>
         /// <returns>A tuple containing the snapped position in coordinate space local to this <see cref="DistanceSnapGrid"/> and the respective time value.</returns>
-        public abstract (Vector2 position, double time)? GetSnappedPosition(Vector2 position);
+        public abstract (Vector2 position, double time) GetSnappedPosition(Vector2 position);
 
         /// <summary>
         /// Retrieves the applicable colour for a beat index.
