@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -13,7 +12,6 @@ using osu.Framework.Screens;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
-using osu.Game.Online.API.Requests;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.Backgrounds;
@@ -49,7 +47,7 @@ namespace osu.Game.Screens.Ranking
         private Drawable bottomPanel;
         private ScorePanelList panels;
 
-        public ResultsScreen(ScoreInfo score, bool allowRetry = true)
+        protected ResultsScreen(ScoreInfo score, bool allowRetry = true)
         {
             Score = score;
             this.allowRetry = allowRetry;
@@ -119,21 +117,21 @@ namespace osu.Game.Screens.Ranking
         {
             base.LoadComplete();
 
-            var req = new GetScoresRequest(Score.Beatmap, Score.Ruleset);
-
-            req.Success += r =>
-            {
-                foreach (var s in r.Scores.Select(s => s.CreateScoreInfo(rulesets)))
-                {
-                    if (s.OnlineScoreID == Score.OnlineScoreID)
-                        continue;
-
-                    panels.AddScore(s);
-                }
-            };
-
-            api.Queue(req);
+            var req = FetchScores(onScoresReceived);
+            if (req != null)
+                api.Queue(req);
         }
+
+        private void onScoresReceived(IEnumerable<ScoreInfo> scores) => Schedule(() =>
+        {
+            foreach (var s in scores)
+            {
+                if (s.OnlineScoreID == Score.OnlineScoreID)
+                    continue;
+
+                panels.AddScore(s);
+            }
+        });
 
         public override void OnEntering(IScreen last)
         {

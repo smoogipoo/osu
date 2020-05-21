@@ -3,13 +3,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using osu.Framework.Allocation;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
+using osu.Game.Rulesets;
 using osu.Game.Scoring;
 
 namespace osu.Game.Screens.Ranking
 {
     public class SoloResultsScreen : ResultsScreen
     {
+        [Resolved]
+        private RulesetStore rulesets { get; set; }
+
         public SoloResultsScreen(ScoreInfo score, bool allowRetry = true)
             : base(score, allowRetry)
         {
@@ -17,7 +24,9 @@ namespace osu.Game.Screens.Ranking
 
         protected override APIRequest FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
         {
-            return null;
+            var req = new GetScoresRequest(Score.Beatmap, Score.Ruleset);
+            req.Success += result => scoresCallback?.Invoke(result.Scores.Select(s => s.CreateScoreInfo(rulesets)));
+            return req;
         }
     }
 }
