@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
@@ -452,27 +453,64 @@ namespace osu.Game.Screens.Play
 
             if (!showResults) return;
 
+            var score = CreateScore();
+            var submitTask = SubmitScoreAsync(score);
+
             using (BeginDelayedSequence(RESULTS_DISPLAY_DELAY))
-                completionProgressDelegate = Schedule(GotoRanking);
+            {
+                completionProgressDelegate = Schedule(() =>
+                {
+                    submitTask.ContinueWith(t => Schedule(() => GotoRanking(score)));
+                });
+            }
         }
 
-        protected virtual ScoreInfo CreateScore()
+        protected virtual Score CreateScore()
         {
-            var score = new ScoreInfo
+            var score = new Score
             {
-                Beatmap = Beatmap.Value.BeatmapInfo,
-                Ruleset = rulesetInfo,
-                Mods = Mods.Value.ToArray(),
+                ScoreInfo = new ScoreInfo
+                {
+                    Beatmap = Beatmap.Value.BeatmapInfo,
+                    Ruleset = rulesetInfo,
+                    Mods = Mods.Value.ToArray(),
+                },
+                Replay = recordingReplay
             };
 
-            if (DrawableRuleset.ReplayScore != null)
-                score.User = DrawableRuleset.ReplayScore.ScoreInfo?.User ?? new GuestUser();
-            else
-                score.User = api.LocalUser.Value;
+            ScoreProcessor.PopulateScore(score.ScoreInfo);
 
-            ScoreProcessor.PopulateScore(score);
+            if (DrawableRuleset.ReplayScore != null)
+                score.ScoreInfo.User = DrawableRuleset.ReplayScore.ScoreInfo?.User ?? new GuestUser();
+            else
+                score.ScoreInfo.User = api.LocalUser.Value;
 
             return score;
+        }
+
+        protected virtual async Task SubmitScoreAsync(Score score)
+        {
+            if (DrawableRuleset.ReplayScore != null)
+            {
+                // if a replay is present, we likely don't want to import into the local database.
+                return;
+            }
+
+            // Import the score.
+            LegacyByteArrayReader replayReader = null;
+
+            if (score.Replay?.Frames.Count > 0)
+            {
+                score.Replay = recordingReplay;
+
+                using (var stream = new MemoryStream())
+                {
+                    new LegacyScoreEncoder(score, gameplayBeatmap.PlayableBeatmap).Encode(stream);
+                    replayReader = new LegacyByteArrayReader(stream.ToArray(), "replay.osr");
+                }
+            }
+
+            await scoreManager.Import(score.ScoreInfo, replayReader);
         }
 
         protected override bool OnScroll(ScrollEvent e) => mouseWheelDisabled.Value && !GameplayClockContainer.IsPaused.Value;
@@ -663,37 +701,11 @@ namespace osu.Game.Screens.Play
             return base.OnExiting(next);
         }
 
-        protected virtual void GotoRanking()
+        protected virtual void GotoRanking(Score score)
         {
-            if (DrawableRuleset.ReplayScore != null)
-            {
-                // if a replay is present, we likely don't want to import into the local database.
-                this.Push(CreateResults(CreateScore()));
-                return;
-            }
-
-            LegacyByteArrayReader replayReader = null;
-
-            var score = new Score { ScoreInfo = CreateScore() };
-
-            if (recordingReplay?.Frames.Count > 0)
-            {
-                score.Replay = recordingReplay;
-
-                using (var stream = new MemoryStream())
-                {
-                    new LegacyScoreEncoder(score, gameplayBeatmap.PlayableBeatmap).Encode(stream);
-                    replayReader = new LegacyByteArrayReader(stream.ToArray(), "replay.osr");
-                }
-            }
-
-            scoreManager.Import(score.ScoreInfo, replayReader)
-                        .ContinueWith(imported => Schedule(() =>
-                        {
-                            // screen may be in the exiting transition phase.
-                            if (this.IsCurrentScreen())
-                                this.Push(CreateResults(imported.Result));
-                        }));
+            // screen may be in the exiting transition phase.
+            if (this.IsCurrentScreen())
+                this.Push(CreateResults(score.ScoreInfo));
         }
 
         private void fadeOut(bool instant = false)

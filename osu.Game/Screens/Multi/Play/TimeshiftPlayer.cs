@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Logging;
@@ -88,23 +89,30 @@ namespace osu.Game.Screens.Multi.Play
             return false;
         }
 
-        protected override ScoreInfo CreateScore()
-        {
-            submitScore();
-            return base.CreateScore();
-        }
-
-        private void submitScore()
+        protected override Score CreateScore()
         {
             var score = base.CreateScore();
+            score.ScoreInfo.TotalScore = (int)Math.Round(ScoreProcessor.GetStandardisedScore());
+            return score;
+        }
 
-            score.TotalScore = (int)Math.Round(ScoreProcessor.GetStandardisedScore());
+        protected override Task SubmitScoreAsync(Score score)
+        {
+            TaskCompletionSource<bool> submissionTask = new TaskCompletionSource<bool>();
 
             Debug.Assert(token != null);
+            var request = new SubmitRoomScoreRequest(token.Value, roomId.Value ?? 0, playlistItem.ID, score.ScoreInfo);
 
-            var request = new SubmitRoomScoreRequest(token.Value, roomId.Value ?? 0, playlistItem.ID, score);
-            request.Failure += e => Logger.Error(e, "Failed to submit score");
+            request.Success += () => submissionTask.SetResult(true);
+            request.Failure += e =>
+            {
+                Logger.Error(e, "Failed to submit score");
+                submissionTask.SetResult(false);
+            };
+
             api.Queue(request);
+
+            return Task.WhenAll(base.SubmitScoreAsync(score), submissionTask.Task);
         }
 
         protected override void Dispose(bool isDisposing)
