@@ -111,7 +111,7 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
                     // osu-stable always uses the speed-adjusted beatlength to determine the velocities, but
                     // only uses it for tick rate if beatmap version < 8
                     if (beatmap.BeatmapInfo.BeatmapVersion >= 8)
-                        speedAdjustedBeatLength *= speedAdjustment;
+                        speedAdjustedBeatLength = timingPoint.BeatLength;
 
                     // If the drum roll is to be split into hit circles, assume the ticks are 1/8 spaced within the duration of one beat
                     double tickSpacing = Math.Min(speedAdjustedBeatLength / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate, taikoDuration / spans);
