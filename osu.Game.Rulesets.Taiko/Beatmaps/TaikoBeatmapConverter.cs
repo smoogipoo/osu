@@ -94,15 +94,19 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
                     // The true distance, accounting for any repeats. This ends up being the drum roll distance later
                     double distance = distanceData.Distance * spans * LEGACY_VELOCITY_MULTIPLIER;
 
+                    // NOTE: The following calculations are initially performed in SECONDS and then converted to MILLISECONDS for the duration.
+                    // This is required to match osu!stable's behaviour - different FP roundings in these parts can result in sliders being incorrectly converted to hits and vice versa.
+                    // The parentheses during calculation are essential to ensure calculations are correct.
+
                     // The velocity of the taiko hit object - calculated as the velocity of a drum roll
-                    double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier / speedAdjustedBeatLength;
+                    double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * (1000 / speedAdjustedBeatLength);
                     // The duration of the taiko hit object
-                    double taikoDuration = distance / taikoVelocity;
+                    double taikoDuration = distance / taikoVelocity * 1000;
 
                     // The velocity of the osu! hit object - calculated as the velocity of a slider
-                    double osuVelocity = osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier / speedAdjustedBeatLength;
+                    double osuVelocity = osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * (1000 / speedAdjustedBeatLength);
                     // The duration of the osu! hit object
-                    double osuDuration = distance / osuVelocity;
+                    double osuDuration = distance / osuVelocity * 1000;
 
                     // osu-stable always uses the speed-adjusted beatlength to determine the velocities, but
                     // only uses it for tick rate if beatmap version < 8
