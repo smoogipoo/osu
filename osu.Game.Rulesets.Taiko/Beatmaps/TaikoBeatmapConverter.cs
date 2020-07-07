@@ -82,18 +82,7 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
             {
                 case IHasDistance distanceData:
                 {
-                    TimingControlPoint timingPoint = beatmap.ControlPointInfo.TimingPointAt(obj.StartTime);
-                    DifficultyControlPoint difficultyPoint = beatmap.ControlPointInfo.DifficultyPointAt(obj.StartTime);
-
-                    // The true distance, accounting for any repeats. This ends up being the drum roll distance later
-                    int spans = (obj as IHasRepeats)?.SpanCount() ?? 1;
-                    double distance = distanceData.Distance * spans * LEGACY_VELOCITY_MULTIPLIER;
-
-                    // The velocity and duration of the taiko hit object - calculated as the velocity of a drum roll.
-                    double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * difficultyPoint.SpeedMultiplier / timingPoint.BeatLength;
-                    double taikoDuration = distance / taikoVelocity;
-
-                    if (shouldConvertSliderToHits(obj, beatmap, distanceData, taikoDuration, out double tickSpacing))
+                    if (shouldConvertSliderToHits(obj, beatmap, distanceData, out double taikoDuration, out double tickSpacing))
                     {
                         List<IList<HitSampleInfo>> allSamples = obj is IHasPathWithRepeats curveData ? curveData.NodeSamples : new List<IList<HitSampleInfo>>(new[] { samples });
 
@@ -165,17 +154,11 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
             }
         }
 
-        private bool shouldConvertSliderToHits(HitObject obj, IBeatmap beatmap, IHasDistance distanceData, double taikoDuration, out double tickSpacing)
+        private bool shouldConvertSliderToHits(HitObject obj, IBeatmap beatmap, IHasDistance distanceData, out double taikoDuration, out double tickSpacing)
         {
             // DO NOT CHANGE OR REFACTOR ANYTHING IN HERE UNLESS TESTING AGAINST _ALL_ BEATMAPS.
             // Some of these calculations look redundant, even parentheses. They are not. They introduce floating point errors to maintain 1:1 compatibility with stable.
             // Rounding cannot be used as an alternative since the error deltas can be as small as 1e-3 and 1e-6.
-
-            if (isForCurrentRuleset)
-            {
-                tickSpacing = 0;
-                return false;
-            }
 
             // The true distance, accounting for any repeats. This ends up being the drum roll distance later
             int spans = (obj as IHasRepeats)?.SpanCount() ?? 1;
@@ -186,7 +169,18 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
 
             double beatLength = timingPoint.BeatLength * difficultyPoint.BpmMultiplier;
             double sliderScoringPointDistance = osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate;
-            double sliderVelocity = sliderScoringPointDistance * beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate * (1000f / beatLength);
+
+            // The velocity and duration of the taiko hit object - calculated as the velocity of a drum roll.
+            double taikoVelocity = sliderScoringPointDistance * beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate;
+            taikoDuration = distance / taikoVelocity * beatLength;
+
+            if (isForCurrentRuleset)
+            {
+                tickSpacing = 0;
+                return false;
+            }
+
+            double osuVelocity = taikoVelocity * (1000f / beatLength);
 
             // osu-stable always uses the speed-adjusted beatlength to determine the osu! velocity, but only uses it for conversion if beatmap version < 8
             if (beatmap.BeatmapInfo.BeatmapVersion >= 8)
@@ -196,7 +190,7 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
             tickSpacing = Math.Min(beatLength / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate, taikoDuration / spans);
 
             return tickSpacing > 0
-                   && distance / sliderVelocity * 1000 < 2 * beatLength;
+                   && distance / osuVelocity * 1000 < 2 * beatLength;
         }
 
         protected override Beatmap<TaikoHitObject> CreateBeatmap() => new TaikoBeatmap();
