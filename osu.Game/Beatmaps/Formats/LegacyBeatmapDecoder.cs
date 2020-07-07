@@ -372,7 +372,7 @@ namespace osu.Game.Beatmaps.Formats
             addControlPoint(time, new LegacyDifficultyControlPoint
             {
                 SpeedMultiplier = speedMultiplier,
-                BpmMultiplier = Math.Clamp((float)-beatLength, 10, 10000) / 100f
+                BpmMultiplier = beatLength < 0 ? Math.Clamp((float)-beatLength, 10, 10000) / 100f : 1,
             }, timingChange);
 
             addControlPoint(time, new EffectControlPoint
