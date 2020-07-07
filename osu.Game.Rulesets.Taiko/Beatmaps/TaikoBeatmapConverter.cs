@@ -185,8 +185,8 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
             DifficultyControlPoint difficultyPoint = beatmap.ControlPointInfo.DifficultyPointAt(obj.StartTime);
 
             double beatLength = timingPoint.BeatLength * difficultyPoint.BpmMultiplier;
-            double sliderScoringPointDistance = (osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier) / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate;
-            double sliderVelocity = (sliderScoringPointDistance * beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate * (1000f / beatLength));
+            double sliderScoringPointDistance = osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate;
+            double sliderVelocity = sliderScoringPointDistance * beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate * (1000f / beatLength);
 
             // osu-stable always uses the speed-adjusted beatlength to determine the osu! velocity, but only uses it for conversion if beatmap version < 8
             if (beatmap.BeatmapInfo.BeatmapVersion >= 8)
