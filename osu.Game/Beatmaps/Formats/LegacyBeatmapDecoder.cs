@@ -373,7 +373,7 @@ namespace osu.Game.Beatmaps.Formats
             {
                 SpeedMultiplier = speedMultiplier,
                 BpmMultiplier = beatLength < 0 ? Math.Clamp((float)-beatLength, 10, 10000) / 100f : 1,
-            }, timingChange);
+            }, false);
 
             addControlPoint(time, new EffectControlPoint
             {
