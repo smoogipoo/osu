@@ -18,6 +18,8 @@ namespace osu.Game.Beatmaps.ControlPoints
             MaxValue = 10
         };
 
+        public float BpmMultiplier = 1;
+
         /// <summary>
         /// The speed multiplier at this control point.
         /// </summary>

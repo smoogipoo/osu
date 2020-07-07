@@ -82,41 +82,18 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
             {
                 case IHasDistance distanceData:
                 {
-                    // Number of spans of the object - one for the initial length and for each repeat
-                    int spans = (obj as IHasRepeats)?.SpanCount() ?? 1;
-
                     TimingControlPoint timingPoint = beatmap.ControlPointInfo.TimingPointAt(obj.StartTime);
                     DifficultyControlPoint difficultyPoint = beatmap.ControlPointInfo.DifficultyPointAt(obj.StartTime);
 
-                    double speedAdjustment = difficultyPoint.SpeedMultiplier;
-                    double speedAdjustedBeatLength = timingPoint.BeatLength / speedAdjustment;
-
                     // The true distance, accounting for any repeats. This ends up being the drum roll distance later
+                    int spans = (obj as IHasRepeats)?.SpanCount() ?? 1;
                     double distance = distanceData.Distance * spans * LEGACY_VELOCITY_MULTIPLIER;
 
-                    // NOTE: The following calculations are initially performed in SECONDS and then converted to MILLISECONDS for the duration.
-                    // This is required to match osu!stable's behaviour - different FP roundings in these parts can result in sliders being incorrectly converted to hits and vice versa.
-                    // The parentheses during calculation are essential to ensure calculations are correct.
+                    // The velocity and duration of the taiko hit object - calculated as the velocity of a drum roll.
+                    double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * difficultyPoint.SpeedMultiplier / timingPoint.BeatLength;
+                    double taikoDuration = distance / taikoVelocity;
 
-                    // The velocity of the taiko hit object - calculated as the velocity of a drum roll
-                    double taikoVelocity = taiko_base_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * (1000 / speedAdjustedBeatLength);
-                    // The duration of the taiko hit object
-                    double taikoDuration = distance / taikoVelocity * 1000;
-
-                    // The velocity of the osu! hit object - calculated as the velocity of a slider
-                    double osuVelocity = osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier * (1000 / speedAdjustedBeatLength);
-                    // The duration of the osu! hit object
-                    double osuDuration = distance / osuVelocity * 1000;
-
-                    // osu-stable always uses the speed-adjusted beatlength to determine the velocities, but
-                    // only uses it for tick rate if beatmap version < 8
-                    if (beatmap.BeatmapInfo.BeatmapVersion >= 8)
-                        speedAdjustedBeatLength = timingPoint.BeatLength;
-
-                    // If the drum roll is to be split into hit circles, assume the ticks are 1/8 spaced within the duration of one beat
-                    double tickSpacing = Math.Min(speedAdjustedBeatLength / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate, taikoDuration / spans);
-
-                    if (!isForCurrentRuleset && tickSpacing > 0 && osuDuration < 2 * speedAdjustedBeatLength)
+                    if (shouldConvertSliderToHits(obj, beatmap, distanceData, taikoDuration, out double tickSpacing))
                     {
                         List<IList<HitSampleInfo>> allSamples = obj is IHasPathWithRepeats curveData ? curveData.NodeSamples : new List<IList<HitSampleInfo>>(new[] { samples });
 
@@ -186,6 +163,40 @@ namespace osu.Game.Rulesets.Taiko.Beatmaps
                     break;
                 }
             }
+        }
+
+        private bool shouldConvertSliderToHits(HitObject obj, IBeatmap beatmap, IHasDistance distanceData, double taikoDuration, out double tickSpacing)
+        {
+            // DO NOT CHANGE OR REFACTOR ANYTHING IN HERE UNLESS TESTING AGAINST _ALL_ BEATMAPS.
+            // Some of these calculations look redundant, even parentheses. They are not. They introduce floating point errors to maintain 1:1 compatibility with stable.
+            // Rounding cannot be used as an alternative since the error deltas can be as small as 1e-3 and 1e-6.
+
+            if (isForCurrentRuleset)
+            {
+                tickSpacing = 0;
+                return false;
+            }
+
+            // The true distance, accounting for any repeats. This ends up being the drum roll distance later
+            int spans = (obj as IHasRepeats)?.SpanCount() ?? 1;
+            double distance = distanceData.Distance * spans * LEGACY_VELOCITY_MULTIPLIER;
+
+            TimingControlPoint timingPoint = beatmap.ControlPointInfo.TimingPointAt(obj.StartTime);
+            DifficultyControlPoint difficultyPoint = beatmap.ControlPointInfo.DifficultyPointAt(obj.StartTime);
+
+            double beatLength = timingPoint.BeatLength * difficultyPoint.BpmMultiplier;
+            double sliderScoringPointDistance = (osu_base_scoring_distance * beatmap.BeatmapInfo.BaseDifficulty.SliderMultiplier) / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate;
+            double sliderVelocity = (sliderScoringPointDistance * beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate * (1000f / beatLength));
+
+            // osu-stable always uses the speed-adjusted beatlength to determine the osu! velocity, but only uses it for conversion if beatmap version < 8
+            if (beatmap.BeatmapInfo.BeatmapVersion >= 8)
+                beatLength = timingPoint.BeatLength;
+
+            // If the drum roll is to be split into hit circles, assume the ticks are 1/8 spaced within the duration of one beat
+            tickSpacing = Math.Min(beatLength / beatmap.BeatmapInfo.BaseDifficulty.SliderTickRate, taikoDuration / spans);
+
+            return tickSpacing > 0
+                   && distance / sliderVelocity * 1000 < 2 * beatLength;
         }
 
         protected override Beatmap<TaikoHitObject> CreateBeatmap() => new TaikoBeatmap();
