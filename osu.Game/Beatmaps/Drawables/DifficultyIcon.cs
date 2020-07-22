@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -38,10 +40,10 @@ namespace osu.Game.Beatmaps.Drawables
         public DifficultyIcon(BeatmapInfo beatmap, RulesetInfo ruleset = null, bool shouldShowTooltip = true)
         {
             this.beatmap = beatmap ?? throw new ArgumentNullException(nameof(beatmap));
-
             this.ruleset = ruleset ?? beatmap.Ruleset;
+
             if (shouldShowTooltip)
-                TooltipContent = beatmap;
+                TooltipContent = new TooltipData(beatmap, ruleset);
 
             AutoSizeAxes = Axes.Both;
 
@@ -93,6 +95,12 @@ namespace osu.Game.Beatmaps.Drawables
             private readonly Box background;
 
             private readonly FillFlowContainer difficultyFlow;
+
+            [Resolved]
+            private BeatmapDifficultyManager difficultyManager { get; set; }
+
+            [Resolved]
+            private OsuColour colours { get; set; }
 
             public DifficultyIconTooltip()
             {
@@ -150,8 +158,9 @@ namespace osu.Game.Beatmaps.Drawables
                 };
             }
 
-            [Resolved]
-            private OsuColour colours { get; set; }
+            private IBindable<StarDifficulty> starDifficultyBindable;
+            private CancellationTokenSource starDifficultyCancellation;
+            private TooltipData lastData;
 
             [BackgroundDependencyLoader]
             private void load()
@@ -161,13 +170,20 @@ namespace osu.Game.Beatmaps.Drawables
 
             public bool SetContent(object content)
             {
-                if (!(content is BeatmapInfo beatmap))
+                if (!(content is TooltipData data))
                     return false;
 
-                difficultyName.Text = beatmap.Version;
-                starRating.Text = $"{beatmap.StarDifficulty:0.##}";
-                difficultyFlow.Colour = colours.ForDifficultyRating(beatmap.DifficultyRating, true);
+                if (data == lastData)
+                    return true;
 
+                starDifficultyCancellation?.Cancel();
+                starDifficultyBindable = difficultyManager.GetUntrackedBindable(data.Beatmap, data.Ruleset, cancellationToken: (starDifficultyCancellation = new CancellationTokenSource()).Token);
+                starDifficultyBindable.BindValueChanged(s => starRating.Text = $"{s.NewValue.Stars:0.##}", true);
+
+                difficultyName.Text = data.Beatmap.Version;
+                difficultyFlow.Colour = colours.ForDifficultyRating(data.Beatmap.DifficultyRating, true);
+
+                lastData = data;
                 return true;
             }
 
@@ -176,6 +192,18 @@ namespace osu.Game.Beatmaps.Drawables
             protected override void PopIn() => this.FadeIn(200, Easing.OutQuint);
 
             protected override void PopOut() => this.FadeOut(200, Easing.OutQuint);
+        }
+
+        private class TooltipData
+        {
+            public readonly BeatmapInfo Beatmap;
+            public readonly RulesetInfo Ruleset;
+
+            public TooltipData(BeatmapInfo beatmap, RulesetInfo ruleset)
+            {
+                Beatmap = beatmap;
+                Ruleset = ruleset;
+            }
         }
     }
 }
