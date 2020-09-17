@@ -11,14 +11,6 @@ namespace osu.Game.Rulesets.Judgements
     /// </summary>
     public class Judgement
     {
-        public const double SMALL_TICK_RESULT = 10;
-
-        public const double LARGE_TICK_RESULT = 30;
-
-        public const double SMALL_BONUS_RESULT = 10;
-
-        public const double LARGE_BONUS_RESULT = 50;
-
         /// <summary>
         /// The default health increase for a maximum judgement, as a proportion of total health.
         /// By default, each maximum judgement restores 5% of total health.
@@ -58,16 +50,16 @@ namespace osu.Game.Rulesets.Judgements
                     return 0;
 
                 case HitResult.SmallTickHit:
-                    return SMALL_TICK_RESULT;
+                    return 1 / 30d;
 
                 case HitResult.LargeTickHit:
-                    return LARGE_TICK_RESULT;
+                    return 1 / 10d;
 
                 case HitResult.SmallBonus:
-                    return SMALL_BONUS_RESULT;
+                    return 1 / 30d;
 
                 case HitResult.LargeBonus:
-                    return LARGE_BONUS_RESULT;
+                    return 1 / 6d;
 
                 case HitResult.Meh:
                     return 1 / 6d;

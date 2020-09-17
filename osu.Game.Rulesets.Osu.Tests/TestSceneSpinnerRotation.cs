@@ -14,7 +14,6 @@ using osu.Framework.Timing;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Replays;
-using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -147,7 +146,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 // multipled by 2 to nullify the score multiplier. (autoplay mod selected)
                 var totalScore = ((ScoreExposedPlayer)Player).ScoreProcessor.TotalScore.Value * 2;
-                return totalScore == (int)(drawableSpinner.RotationTracker.RateAdjustedRotation / 360) * Judgement.SMALL_TICK_RESULT;
+                return totalScore == (int)(drawableSpinner.RotationTracker.RateAdjustedRotation / 360) * (new SpinnerTick().CreateJudgement()).MaxNumericResult;
             });
 
             addSeekStep(0);
