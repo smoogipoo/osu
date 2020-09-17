@@ -123,8 +123,8 @@ namespace osu.Game.Rulesets.Scoring
             switch (result)
             {
                 case HitResult.None:
-                case HitResult.Miss:
                 case HitResult.Ignore:
+                case HitResult.Miss:
                 case HitResult.SmallTickMiss:
                 case HitResult.LargeTickMiss:
                     return false;
