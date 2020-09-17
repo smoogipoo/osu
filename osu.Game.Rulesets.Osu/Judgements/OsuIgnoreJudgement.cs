@@ -7,9 +7,9 @@ namespace osu.Game.Rulesets.Osu.Judgements
 {
     public class OsuIgnoreJudgement : OsuJudgement
     {
-        public override bool AffectsCombo => false;
+        public override HitResult MaxResult => HitResult.Ignore;
 
-        public override bool IncreaseScore => false;
+        public override HitResult MinResult => HitResult.Ignore;
 
         protected override double HealthIncreaseFor(HitResult result) => 0;
     }

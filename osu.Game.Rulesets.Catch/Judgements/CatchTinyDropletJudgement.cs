@@ -7,8 +7,6 @@ namespace osu.Game.Rulesets.Catch.Judgements
 {
     public class CatchTinyDropletJudgement : CatchJudgement
     {
-        public override bool AffectsCombo => false;
-
         public override HitResult MaxResult => HitResult.SmallTickHit;
 
         public override HitResult MinResult => HitResult.SmallTickMiss;

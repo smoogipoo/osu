@@ -227,11 +227,8 @@ namespace osu.Game.Tests.Gameplay
 
             private class TestJudgement : Judgement
             {
-                public override bool AffectsCombo { get; }
-
                 public TestJudgement(bool affectsCombo)
                 {
-                    AffectsCombo = affectsCombo;
                 }
             }
         }

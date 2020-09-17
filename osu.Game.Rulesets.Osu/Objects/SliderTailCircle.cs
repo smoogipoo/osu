@@ -29,9 +29,9 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public class SliderTailJudgement : OsuJudgement
         {
-            public override bool IncreaseScore => false;
+            public override HitResult MaxResult => HitResult.Ignore;
 
-            public override bool AffectsCombo => false;
+            public override HitResult MinResult => HitResult.Ignore;
         }
     }
 }

@@ -15,11 +15,9 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public class OsuSpinnerTickJudgement : OsuJudgement
         {
-            public override bool AffectsCombo => false;
-
             public override HitResult MaxResult => HitResult.SmallBonus;
 
-            public override HitResult MinResult => HitResult.Miss;
+            public override HitResult MinResult => HitResult.Ignore;
 
             protected override double HealthIncreaseFor(HitResult result) => result == MaxResult ? 0.6 * base.HealthIncreaseFor(result) : 0;
         }

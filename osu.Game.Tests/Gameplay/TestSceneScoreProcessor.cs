@@ -58,7 +58,6 @@ namespace osu.Game.Tests.Gameplay
 
         private class TestBonusJudgement : Judgement
         {
-            public override bool AffectsCombo => false;
         }
     }
 }

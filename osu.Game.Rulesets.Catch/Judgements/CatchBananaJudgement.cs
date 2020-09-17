@@ -8,9 +8,9 @@ namespace osu.Game.Rulesets.Catch.Judgements
 {
     public class CatchBananaJudgement : CatchJudgement
     {
-        public override bool AffectsCombo => false;
-
         public override HitResult MaxResult => HitResult.LargeBonus;
+
+        public override HitResult MinResult => HitResult.Ignore;
 
         protected override double HealthIncreaseFor(HitResult result)
         {

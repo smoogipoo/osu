@@ -116,14 +116,15 @@ namespace osu.Game.Rulesets.Scoring
             if (result.FailedAtJudgement)
                 return;
 
-            if (result.Judgement.AffectsCombo)
+            if (!result.Type.IsScorable())
+                return;
+
+            if (result.Type.AffectsCombo())
             {
                 switch (result.Type)
                 {
-                    case HitResult.None:
-                        break;
-
                     case HitResult.Miss:
+                    case HitResult.LargeTickMiss:
                         Combo.Value = 0;
                         break;
 
@@ -133,21 +134,17 @@ namespace osu.Game.Rulesets.Scoring
                 }
             }
 
-            double scoreIncrease = result.Type == HitResult.Miss ? 0 : result.Judgement.NumericResultFor(result);
+            double scoreIncrease = result.Type.IsHit() ? result.Judgement.NumericResultFor(result) : 0;
 
-            if (result.Judgement.IsBonus)
-            {
-                if (result.IsHit)
-                    bonusScore += scoreIncrease;
-            }
+            if (result.Type.IsBonus())
+                bonusScore += scoreIncrease;
             else
             {
-                if (result.HasResult)
-                    scoreResultCounts[result.Type] = scoreResultCounts.GetOrDefault(result.Type) + 1;
-
                 baseScore += scoreIncrease;
                 rollingMaxBaseScore += result.Judgement.MaxNumericResult;
             }
+
+            scoreResultCounts[result.Type] = scoreResultCounts.GetOrDefault(result.Type) + 1;
 
             hitEvents.Add(CreateHitEvent(result));
             lastHitObject = result.HitObject;
@@ -171,21 +168,20 @@ namespace osu.Game.Rulesets.Scoring
             if (result.FailedAtJudgement)
                 return;
 
-            double scoreIncrease = result.Type == HitResult.Miss ? 0 : result.Judgement.NumericResultFor(result);
+            if (!result.Type.IsScorable())
+                return;
 
-            if (result.Judgement.IsBonus)
-            {
-                if (result.IsHit)
-                    bonusScore -= scoreIncrease;
-            }
+            double scoreIncrease = result.Type.IsHit() ? result.Judgement.NumericResultFor(result) : 0;
+
+            if (result.Type.IsBonus())
+                bonusScore -= scoreIncrease;
             else
             {
-                if (result.HasResult)
-                    scoreResultCounts[result.Type] = scoreResultCounts.GetOrDefault(result.Type) - 1;
-
                 baseScore -= scoreIncrease;
                 rollingMaxBaseScore -= result.Judgement.MaxNumericResult;
             }
+
+            scoreResultCounts[result.Type] = scoreResultCounts.GetOrDefault(result.Type) - 1;
 
             Debug.Assert(hitEvents.Count > 0);
             lastHitObject = hitEvents[^1].LastHitObject;

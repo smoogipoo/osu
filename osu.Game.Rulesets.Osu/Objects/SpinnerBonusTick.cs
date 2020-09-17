@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Osu.Objects
         {
             public override HitResult MaxResult => HitResult.LargeBonus;
 
-            public override HitResult MinResult => HitResult.Miss;
+            public override HitResult MinResult => HitResult.Ignore;
 
             protected override double HealthIncreaseFor(HitResult result) => base.HealthIncreaseFor(result) * 2;
         }

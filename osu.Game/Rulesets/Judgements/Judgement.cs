@@ -36,18 +36,6 @@ namespace osu.Game.Rulesets.Judgements
         public virtual HitResult MinResult => HitResult.Miss;
 
         /// <summary>
-        /// Whether this <see cref="Judgement"/> should affect the current combo.
-        /// </summary>
-        public virtual bool AffectsCombo => true;
-
-        /// <summary>
-        /// Whether this <see cref="Judgement"/> should be counted as base (combo) or bonus score.
-        /// </summary>
-        public virtual bool IsBonus => !AffectsCombo;
-
-        public virtual bool IncreaseScore => true;
-
-        /// <summary>
         /// The numeric score representation for the maximum achievable result.
         /// </summary>
         public double MaxNumericResult => NumericResultFor(MaxResult);
@@ -144,6 +132,6 @@ namespace osu.Game.Rulesets.Judgements
         /// <returns>The numeric health increase of <paramref name="result"/>.</returns>
         public double HealthIncreaseFor(JudgementResult result) => HealthIncreaseFor(result.Type);
 
-        public override string ToString() => $"AffectsCombo:{AffectsCombo} MaxResult:{MaxResult} MaxScore:{MaxNumericResult}";
+        public override string ToString() => $"MaxResult:{MaxResult} MaxScore:{MaxNumericResult}";
     }
 }

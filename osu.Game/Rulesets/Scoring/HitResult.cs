@@ -13,6 +13,8 @@ namespace osu.Game.Rulesets.Scoring
         [Description(@"")]
         None,
 
+        Ignore,
+
         /// <summary>
         /// Indicates that the object has been judged as a miss.
         /// </summary>
@@ -67,5 +69,74 @@ namespace osu.Game.Rulesets.Scoring
         SmallBonus,
 
         LargeBonus,
+    }
+
+    public static class HitResultExtensions
+    {
+        /// <summary>
+        /// Whether a <see cref="HitResult"/> affects the combo.
+        /// </summary>
+        public static bool AffectsCombo(this HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.Miss:
+                case HitResult.Meh:
+                case HitResult.Ok:
+                case HitResult.Good:
+                case HitResult.Great:
+                case HitResult.Perfect:
+                case HitResult.LargeTickHit:
+                case HitResult.LargeTickMiss:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether a <see cref="HitResult"/> should be counted as combo score.
+        /// </summary>
+        /// <remarks>
+        /// This is not the reciprocal of <see cref="AffectsCombo"/>, as <see cref="HitResult.SmallTickHit"/> and <see cref="HitResult.SmallTickMiss"/> do not affect combo
+        /// but are still considered as part of the accuracy (not bonus) portion of the score.
+        /// </remarks>
+        public static bool IsBonus(this HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.SmallBonus:
+                case HitResult.LargeBonus:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether a <see cref="HitResult"/> represents a successful hit.
+        /// </summary>
+        public static bool IsHit(this HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.None:
+                case HitResult.Miss:
+                case HitResult.Ignore:
+                case HitResult.SmallTickMiss:
+                case HitResult.LargeTickMiss:
+                    return false;
+
+                default:
+                    return true;
+            }
+        }
+
+        /// <summary>
+        /// Whether a <see cref="HitResult"/> is scorable.
+        /// </summary>
+        public static bool IsScorable(this HitResult result) => result > HitResult.Ignore;
     }
 }
