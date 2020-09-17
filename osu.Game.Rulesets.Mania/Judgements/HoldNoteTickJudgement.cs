@@ -7,7 +7,9 @@ namespace osu.Game.Rulesets.Mania.Judgements
 {
     public class HoldNoteTickJudgement : ManiaJudgement
     {
-        public override HitResult MaxResult => HitResult.SmallTickHit;
+        public override HitResult MaxResult => HitResult.LargeTickHit;
+
+        public override HitResult MinResult => HitResult.LargeTickMiss;
 
         protected override double HealthIncreaseFor(HitResult result)
         {

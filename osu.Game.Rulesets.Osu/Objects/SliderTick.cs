@@ -36,9 +36,9 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public class SliderTickJudgement : OsuJudgement
         {
-            public override HitResult MaxResult => HitResult.SmallTickHit;
+            public override HitResult MaxResult => HitResult.LargeTickHit;
 
-            public override HitResult MinResult => HitResult.SmallTickMiss;
+            public override HitResult MinResult => HitResult.LargeTickMiss;
         }
     }
 }
