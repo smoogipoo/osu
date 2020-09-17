@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.Judgements
         /// <summary>
         /// The numeric score representation for the maximum achievable result.
         /// </summary>
-        public int MaxNumericResult => NumericResultFor(MaxResult);
+        public double MaxNumericResult => NumericResultFor(MaxResult);
 
         /// <summary>
         /// The health increase for the maximum achievable result.
@@ -47,7 +47,29 @@ namespace osu.Game.Rulesets.Judgements
         /// </summary>
         /// <param name="result">The <see cref="HitResult"/> to find the numeric score representation for.</param>
         /// <returns>The numeric score representation of <paramref name="result"/>.</returns>
-        protected virtual int NumericResultFor(HitResult result) => result > HitResult.Miss ? 1 : 0;
+        protected double NumericResultFor(HitResult result)
+        {
+            switch (result)
+            {
+                default:
+                    return 0;
+
+                case HitResult.Meh:
+                    return 1 / 6d;
+
+                case HitResult.Ok:
+                    return 1 / 3d;
+
+                case HitResult.Good:
+                    return 2 / 3d;
+
+                case HitResult.Great:
+                    return 1d;
+
+                case HitResult.Perfect:
+                    return 7 / 6d;
+            }
+        }
 
         /// <summary>
         /// Retrieves the numeric score representation of a <see cref="JudgementResult"/>.
