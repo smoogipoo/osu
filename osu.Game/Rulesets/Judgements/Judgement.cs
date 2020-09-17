@@ -11,6 +11,14 @@ namespace osu.Game.Rulesets.Judgements
     /// </summary>
     public class Judgement
     {
+        public const double SMALL_TICK_RESULT = 10;
+
+        public const double LARGE_TICK_RESULT = 30;
+
+        public const double SMALL_BONUS_RESULT = 10;
+
+        public const double LARGE_BONUS_RESULT = 50;
+
         /// <summary>
         /// The default health increase for a maximum judgement, as a proportion of total health.
         /// By default, each maximum judgement restores 5% of total health.
@@ -23,6 +31,11 @@ namespace osu.Game.Rulesets.Judgements
         public virtual HitResult MaxResult => HitResult.Perfect;
 
         /// <summary>
+        /// The minimum <see cref="HitResult"/> that can be achieved.
+        /// </summary>
+        public virtual HitResult MinResult => HitResult.Miss;
+
+        /// <summary>
         /// Whether this <see cref="Judgement"/> should affect the current combo.
         /// </summary>
         public virtual bool AffectsCombo => true;
@@ -31,6 +44,8 @@ namespace osu.Game.Rulesets.Judgements
         /// Whether this <see cref="Judgement"/> should be counted as base (combo) or bonus score.
         /// </summary>
         public virtual bool IsBonus => !AffectsCombo;
+
+        public virtual bool IncreaseScore => true;
 
         /// <summary>
         /// The numeric score representation for the maximum achievable result.
@@ -54,6 +69,18 @@ namespace osu.Game.Rulesets.Judgements
                 default:
                     return 0;
 
+                case HitResult.SmallTickHit:
+                    return SMALL_TICK_RESULT;
+
+                case HitResult.LargeTickHit:
+                    return LARGE_TICK_RESULT;
+
+                case HitResult.SmallBonus:
+                    return SMALL_BONUS_RESULT;
+
+                case HitResult.LargeBonus:
+                    return LARGE_BONUS_RESULT;
+
                 case HitResult.Meh:
                     return 1 / 6d;
 
@@ -76,7 +103,7 @@ namespace osu.Game.Rulesets.Judgements
         /// </summary>
         /// <param name="result">The <see cref="JudgementResult"/> to find the numeric score representation for.</param>
         /// <returns>The numeric score representation of <paramref name="result"/>.</returns>
-        public int NumericResultFor(JudgementResult result) => NumericResultFor(result.Type);
+        public double NumericResultFor(JudgementResult result) => NumericResultFor(result.Type);
 
         /// <summary>
         /// Retrieves the numeric health increase of a <see cref="HitResult"/>.

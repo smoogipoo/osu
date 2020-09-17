@@ -9,17 +9,9 @@ namespace osu.Game.Rulesets.Catch.Judgements
     {
         public override bool AffectsCombo => false;
 
-        protected override int NumericResultFor(HitResult result)
-        {
-            switch (result)
-            {
-                default:
-                    return 0;
+        public override HitResult MaxResult => HitResult.SmallTickHit;
 
-                case HitResult.Perfect:
-                    return 10;
-            }
-        }
+        public override HitResult MinResult => HitResult.SmallTickMiss;
 
         protected override double HealthIncreaseFor(HitResult result)
         {

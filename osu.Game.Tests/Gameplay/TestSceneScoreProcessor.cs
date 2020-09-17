@@ -49,7 +49,6 @@ namespace osu.Game.Tests.Gameplay
 
         private class TestJudgement : Judgement
         {
-            protected override int NumericResultFor(HitResult result) => 100;
         }
 
         private class TestBonusHitObject : HitObject
@@ -60,8 +59,6 @@ namespace osu.Game.Tests.Gameplay
         private class TestBonusJudgement : Judgement
         {
             public override bool AffectsCombo => false;
-
-            protected override int NumericResultFor(HitResult result) => 100;
         }
     }
 }

@@ -10,17 +10,7 @@ namespace osu.Game.Rulesets.Catch.Judgements
     {
         public override bool AffectsCombo => false;
 
-        protected override int NumericResultFor(HitResult result)
-        {
-            switch (result)
-            {
-                default:
-                    return 0;
-
-                case HitResult.Perfect:
-                    return 1100;
-            }
-        }
+        public override HitResult MaxResult => HitResult.LargeBonus;
 
         protected override double HealthIncreaseFor(HitResult result)
         {

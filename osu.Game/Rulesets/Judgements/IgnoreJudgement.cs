@@ -9,7 +9,7 @@ namespace osu.Game.Rulesets.Judgements
     {
         public override bool AffectsCombo => false;
 
-        protected override int NumericResultFor(HitResult result) => 0;
+        public override bool IncreaseScore => false;
 
         protected override double HealthIncreaseFor(HitResult result) => 0;
     }

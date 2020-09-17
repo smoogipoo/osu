@@ -29,7 +29,7 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public class SliderTailJudgement : OsuJudgement
         {
-            protected override int NumericResultFor(HitResult result) => 0;
+            public override bool IncreaseScore => false;
 
             public override bool AffectsCombo => false;
         }

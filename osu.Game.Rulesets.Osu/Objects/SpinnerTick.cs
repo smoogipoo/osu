@@ -9,8 +9,6 @@ namespace osu.Game.Rulesets.Osu.Objects
 {
     public class SpinnerTick : OsuHitObject
     {
-        public const int SCORE_PER_TICK = 10;
-
         public override Judgement CreateJudgement() => new OsuSpinnerTickJudgement();
 
         protected override HitWindows CreateHitWindows() => HitWindows.Empty;
@@ -19,7 +17,9 @@ namespace osu.Game.Rulesets.Osu.Objects
         {
             public override bool AffectsCombo => false;
 
-            protected override int NumericResultFor(HitResult result) => result == MaxResult ? SCORE_PER_TICK : 0;
+            public override HitResult MaxResult => HitResult.SmallBonus;
+
+            public override HitResult MinResult => HitResult.Miss;
 
             protected override double HealthIncreaseFor(HitResult result) => result == MaxResult ? 0.6 * base.HealthIncreaseFor(result) : 0;
         }
