@@ -55,12 +55,6 @@ namespace osu.Game.Rulesets.Judgements
                 case HitResult.LargeTickHit:
                     return 1 / 10d;
 
-                case HitResult.SmallBonus:
-                    return 1 / 30d;
-
-                case HitResult.LargeBonus:
-                    return 1 / 6d;
-
                 case HitResult.Meh:
                     return 1 / 6d;
 
@@ -75,6 +69,12 @@ namespace osu.Game.Rulesets.Judgements
 
                 case HitResult.Perfect:
                     return 7 / 6d;
+
+                case HitResult.SmallBonus:
+                    return 10;
+
+                case HitResult.LargeBonus:
+                    return 50;
             }
         }
 
