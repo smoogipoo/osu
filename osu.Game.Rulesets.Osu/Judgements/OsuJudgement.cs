@@ -9,5 +9,17 @@ namespace osu.Game.Rulesets.Osu.Judgements
     public class OsuJudgement : Judgement
     {
         public override HitResult MaxResult => HitResult.Great;
+
+        protected override double HealthIncreaseFor(HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.Ok:
+                    return DEFAULT_MAX_HEALTH_INCREASE * 0.5;
+
+                default:
+                    return base.HealthIncreaseFor(result);
+            }
+        }
     }
 }
