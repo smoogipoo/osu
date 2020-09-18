@@ -303,18 +303,11 @@ namespace osu.Game.Rulesets.Scoring
             score.Rank = Rank.Value;
             score.Date = DateTimeOffset.Now;
 
-            var hitWindows = CreateHitWindows();
-
             foreach (var result in Enum.GetValues(typeof(HitResult)).OfType<HitResult>().Where(r => r.IsScorable()))
                 score.Statistics[result] = GetStatistic(result);
 
             score.HitEvents = hitEvents;
         }
-
-        /// <summary>
-        /// Create a <see cref="HitWindows"/> for this processor.
-        /// </summary>
-        public virtual HitWindows CreateHitWindows() => new HitWindows();
     }
 
     public enum ScoringMode
