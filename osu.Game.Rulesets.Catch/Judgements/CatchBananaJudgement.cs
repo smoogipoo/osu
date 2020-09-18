@@ -12,18 +12,6 @@ namespace osu.Game.Rulesets.Catch.Judgements
 
         public override HitResult MinResult => HitResult.Ignore;
 
-        protected override double HealthIncreaseFor(HitResult result)
-        {
-            switch (result)
-            {
-                default:
-                    return 0;
-
-                case HitResult.Perfect:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.75;
-            }
-        }
-
         public override bool ShouldExplodeFor(JudgementResult result) => true;
     }
 }

@@ -10,17 +10,5 @@ namespace osu.Game.Rulesets.Catch.Judgements
         public override HitResult MaxResult => HitResult.SmallTickHit;
 
         public override HitResult MinResult => HitResult.SmallTickMiss;
-
-        protected override double HealthIncreaseFor(HitResult result)
-        {
-            switch (result)
-            {
-                default:
-                    return 0;
-
-                case HitResult.Perfect:
-                    return 0.02;
-            }
-        }
     }
 }

@@ -10,7 +10,5 @@ namespace osu.Game.Rulesets.Osu.Judgements
         public override HitResult MaxResult => HitResult.Ignore;
 
         public override HitResult MinResult => HitResult.Ignore;
-
-        protected override double HealthIncreaseFor(HitResult result) => 0;
     }
 }

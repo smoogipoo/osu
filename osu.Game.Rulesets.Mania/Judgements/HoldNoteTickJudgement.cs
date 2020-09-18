@@ -10,17 +10,5 @@ namespace osu.Game.Rulesets.Mania.Judgements
         public override HitResult MaxResult => HitResult.LargeTickHit;
 
         public override HitResult MinResult => HitResult.LargeTickMiss;
-
-        protected override double HealthIncreaseFor(HitResult result)
-        {
-            switch (result)
-            {
-                default:
-                    return 0;
-
-                case HitResult.Perfect:
-                    return 0.01;
-            }
-        }
     }
 }
