@@ -15,7 +15,7 @@ namespace osu.Game.Rulesets.Osu.Judgements
             switch (result)
             {
                 case HitResult.Ok:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.5;
+                    return DEFAULT_MAX_HEALTH_INCREASE * 0.3;
 
                 default:
                     return base.HealthIncreaseFor(result);
