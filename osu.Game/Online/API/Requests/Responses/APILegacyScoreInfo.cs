@@ -38,6 +38,7 @@ namespace osu.Game.Online.API.Requests.Responses
                 Rank = Rank,
                 Ruleset = ruleset,
                 Mods = mods,
+                LegacyScoring = true
             };
 
             if (Statistics != null)

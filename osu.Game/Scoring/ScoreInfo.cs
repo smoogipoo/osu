@@ -186,6 +186,26 @@ namespace osu.Game.Scoring
         [JsonProperty("position")]
         public int? Position { get; set; }
 
+        [JsonIgnore]
+        [NotMapped]
+        public bool LegacyScoring { get; set; }
+
+        /// <summary>
+        /// Whether this <see cref="ScoreInfo"/> represents a legacy (osu!stable) score.
+        /// </summary>
+        public bool IsLegacyScore
+        {
+            get
+            {
+                if (LegacyScoring)
+                    return true;
+
+                // osu!stable scores have no knowledge of the User ID, so they're always stored to the database as { UserString: <username>, UserId: 1 }.
+                // osu!lazer scores have an appropriate User ID unless the user is logged out, in which case { UserString: Guest, UserId: 1 } is stored to the database.
+                return UserID == 1 && UserString != "Guest";
+            }
+        }
+
         [Serializable]
         protected class DeserializedMod : IMod
         {
