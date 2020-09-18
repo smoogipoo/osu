@@ -12,6 +12,16 @@ namespace osu.Game.Rulesets.Judgements
     public class Judgement
     {
         /// <summary>
+        /// The score awarded for a small bonus.
+        /// </summary>
+        public const double SMALL_BONUS_SCORE = 10;
+
+        /// <summary>
+        /// The score awarded for a large bonus.
+        /// </summary>
+        public const double LARGE_BONUS_SCORE = 50;
+
+        /// <summary>
         /// The default health increase for a maximum judgement, as a proportion of total health.
         /// By default, each maximum judgement restores 5% of total health.
         /// </summary>
@@ -71,10 +81,10 @@ namespace osu.Game.Rulesets.Judgements
                     return 7 / 6d;
 
                 case HitResult.SmallBonus:
-                    return 10;
+                    return SMALL_BONUS_SCORE;
 
                 case HitResult.LargeBonus:
-                    return 50;
+                    return LARGE_BONUS_SCORE;
             }
         }
 
