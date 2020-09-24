@@ -75,19 +75,28 @@ namespace osu.Game.Screens.Ranking.Expanded
                 switch (key)
                 {
                     case HitResult.SmallTickHit:
-                        bottomStatistics.Add(new HitResultStatistic(key, value, value + score.Statistics.GetOrDefault(HitResult.SmallTickMiss)));
+                    {
+                        int total = value + score.Statistics.GetOrDefault(HitResult.SmallTickMiss);
+                        if (total > 0)
+                            bottomStatistics.Add(new HitResultStatistic(key, value, total));
                         break;
+                    }
 
                     case HitResult.LargeTickHit:
-                        bottomStatistics.Add(new HitResultStatistic(key, value, value + score.Statistics.GetOrDefault(HitResult.LargeTickMiss)));
+                    {
+                        int total = value + score.Statistics.GetOrDefault(HitResult.LargeTickMiss);
+                        if (total > 0)
+                            bottomStatistics.Add(new HitResultStatistic(key, value, total));
                         break;
+                    }
 
                     case HitResult.SmallTickMiss:
                     case HitResult.LargeTickMiss:
                         break;
 
                     default:
-                        bottomStatistics.Add(new HitResultStatistic(key, value));
+                        if (value > 0)
+                            bottomStatistics.Add(new HitResultStatistic(key, value));
                         break;
                 }
             }
