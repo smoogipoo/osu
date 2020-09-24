@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Localisation;
@@ -67,39 +66,8 @@ namespace osu.Game.Screens.Ranking.Expanded
 
             var bottomStatistics = new List<StatisticDisplay>();
 
-            foreach (var (key, value) in score.SortedStatistics)
-            {
-                if (key.IsBonus())
-                    continue;
-
-                switch (key)
-                {
-                    case HitResult.SmallTickHit:
-                    {
-                        int total = value + score.Statistics.GetOrDefault(HitResult.SmallTickMiss);
-                        if (total > 0)
-                            bottomStatistics.Add(new HitResultStatistic(key, value, total));
-                        break;
-                    }
-
-                    case HitResult.LargeTickHit:
-                    {
-                        int total = value + score.Statistics.GetOrDefault(HitResult.LargeTickMiss);
-                        if (total > 0)
-                            bottomStatistics.Add(new HitResultStatistic(key, value, total));
-                        break;
-                    }
-
-                    case HitResult.SmallTickMiss:
-                    case HitResult.LargeTickMiss:
-                        break;
-
-                    default:
-                        if (value > 0)
-                            bottomStatistics.Add(new HitResultStatistic(key, value));
-                        break;
-                }
-            }
+            foreach (var (key, value, maxCount) in ScorePanel.GetDisplayableStatistics(score.Statistics))
+                bottomStatistics.Add(new HitResultStatistic(key, value, maxCount));
 
             statisticDisplays.AddRange(topStatistics);
             statisticDisplays.AddRange(bottomStatistics);

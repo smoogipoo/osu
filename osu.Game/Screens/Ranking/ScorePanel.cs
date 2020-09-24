@@ -2,18 +2,22 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking.Contracted;
 using osu.Game.Screens.Ranking.Expanded;
 using osu.Game.Users;
+using osu.Game.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -293,6 +297,48 @@ namespace osu.Game.Screens.Ranking
                 throw new InvalidOperationException("A score panel container has already been created.");
 
             return trackingContainer = new ScorePanelTrackingContainer(this);
+        }
+
+        public static IEnumerable<(HitResult result, int count, int? maxCount)> GetDisplayableStatistics(Dictionary<HitResult, int> statistics)
+        {
+            foreach (var key in OrderAttributeUtils.GetValuesInOrder<HitResult>())
+            {
+                if (key.IsBonus())
+                    continue;
+
+                int value = statistics.GetOrDefault(key);
+
+                switch (key)
+                {
+                    case HitResult.SmallTickHit:
+                    {
+                        int total = value + statistics.GetOrDefault(HitResult.SmallTickMiss);
+                        if (total > 0)
+                            yield return (key, value, total);
+
+                        break;
+                    }
+
+                    case HitResult.LargeTickHit:
+                    {
+                        int total = value + statistics.GetOrDefault(HitResult.LargeTickMiss);
+                        if (total > 0)
+                            yield return (key, value, total);
+
+                        break;
+                    }
+
+                    case HitResult.SmallTickMiss:
+                    case HitResult.LargeTickMiss:
+                        break;
+
+                    default:
+                        if (value > 0 || key == HitResult.Miss)
+                            yield return (key, value, null);
+
+                        break;
+                }
+            }
         }
     }
 }

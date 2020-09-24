@@ -2,17 +2,21 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.ComponentModel;
+using osu.Game.Utils;
 
 namespace osu.Game.Rulesets.Scoring
 {
+    [HasOrderedElements]
     public enum HitResult
     {
         /// <summary>
         /// Indicates that the object has not been judged yet.
         /// </summary>
         [Description(@"")]
+        [Order(13)]
         None,
 
+        [Order(12)]
         Ignore,
 
         /// <summary>
@@ -23,61 +27,73 @@ namespace osu.Game.Rulesets.Scoring
         /// "too far in the future). It should also define when a forced miss should be triggered (as a result of no user input in time).
         /// </remarks>
         [Description(@"Miss")]
+        [Order(5)]
         Miss,
 
         [Description(@"Meh")]
+        [Order(4)]
         Meh,
 
         /// <summary>
         /// Optional judgement.
         /// </summary>
         [Description(@"OK")]
+        [Order(3)]
         Ok,
 
         [Description(@"Good")]
+        [Order(2)]
         Good,
 
         [Description(@"Great")]
+        [Order(1)]
         Great,
 
         /// <summary>
         /// Optional judgement.
         /// </summary>
         [Description(@"Perfect")]
+        [Order(0)]
         Perfect,
 
         /// <summary>
         /// Indicates small tick miss.
         /// </summary>
+        [Order(11)]
         SmallTickMiss,
 
         /// <summary>
         /// Indicates a small tick hit.
         /// </summary>
         [Description(@"S Tick")]
+        [Order(7)]
         SmallTickHit,
 
         /// <summary>
         /// Indicates a large tick miss.
         /// </summary>
+        [Order(10)]
         LargeTickMiss,
 
         /// <summary>
         /// Indicates a large tick hit.
         /// </summary>
         [Description(@"L Tick")]
+        [Order(6)]
         LargeTickHit,
 
         /// <summary>
         /// Indicates a small bonus.
         /// </summary>
         [Description("S Bonus")]
+        [Order(9)]
         SmallBonus,
 
         /// <summary>
         /// Indicate a large bonus.
         /// </summary>
         [Description("L Bonus")]
+        [Order(8)]
         LargeBonus,
     }
 
