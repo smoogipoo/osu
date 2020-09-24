@@ -54,6 +54,7 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// Indicates a small tick hit.
         /// </summary>
+        [Description(@"S Tick")]
         SmallTickHit,
 
         /// <summary>
@@ -64,10 +65,19 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// Indicates a large tick hit.
         /// </summary>
+        [Description(@"L Tick")]
         LargeTickHit,
 
+        /// <summary>
+        /// Indicates a small bonus.
+        /// </summary>
+        [Description("S Bonus")]
         SmallBonus,
 
+        /// <summary>
+        /// Indicate a large bonus.
+        /// </summary>
+        [Description("L Bonus")]
         LargeBonus,
     }
 
