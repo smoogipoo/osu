@@ -117,7 +117,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                             AutoSizeAxes = Axes.Y,
                                             Direction = FillDirection.Vertical,
                                             Spacing = new Vector2(0, 5),
-                                            ChildrenEnumerable = ScorePanel.GetDisplayableStatistics(score.Statistics).Select(s => createStatistic(s.result, s.count, s.maxCount))
+                                            ChildrenEnumerable = score.GetStatisticsForDisplay().Select(s => createStatistic(s.result, s.count, s.maxCount))
                                         },
                                         new FillFlowContainer
                                         {

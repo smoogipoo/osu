@@ -66,7 +66,7 @@ namespace osu.Game.Screens.Ranking.Expanded
 
             var bottomStatistics = new List<StatisticDisplay>();
 
-            foreach (var (key, value, maxCount) in ScorePanel.GetDisplayableStatistics(score.Statistics))
+            foreach (var (key, value, maxCount) in score.GetStatisticsForDisplay())
                 bottomStatistics.Add(new HitResultStatistic(key, value, maxCount));
 
             statisticDisplays.AddRange(topStatistics);
