@@ -7,6 +7,6 @@ namespace osu.Game.Rulesets.Osu.Judgements
 {
     public class OsuIgnoreJudgement : OsuJudgement
     {
-        public override HitResult MaxResult => HitResult.Ignore;
+        public override HitResult MaxResult => HitResult.IgnoreHit;
     }
 }

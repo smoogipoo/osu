@@ -56,8 +56,8 @@ namespace osu.Game.Rulesets.Judgements
                 {
                     case HitResult.SmallBonus:
                     case HitResult.LargeBonus:
-                    case HitResult.Ignore:
-                        return HitResult.Ignore;
+                    case HitResult.IgnoreHit:
+                        return HitResult.IgnoreMiss;
 
                     case HitResult.SmallTickHit:
                         return HitResult.SmallTickMiss;
