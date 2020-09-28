@@ -8,7 +8,5 @@ namespace osu.Game.Rulesets.Catch.Judgements
     public class CatchDropletJudgement : CatchJudgement
     {
         public override HitResult MaxResult => HitResult.LargeTickHit;
-
-        public override HitResult MinResult => HitResult.LargeTickMiss;
     }
 }

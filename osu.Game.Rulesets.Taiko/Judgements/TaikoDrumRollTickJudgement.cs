@@ -9,8 +9,6 @@ namespace osu.Game.Rulesets.Taiko.Judgements
     {
         public override HitResult MaxResult => HitResult.SmallTickHit;
 
-        public override HitResult MinResult => HitResult.SmallTickMiss;
-
         protected override double HealthIncreaseFor(HitResult result)
         {
             switch (result)

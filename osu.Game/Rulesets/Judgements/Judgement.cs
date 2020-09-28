@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Reflection;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 
@@ -33,9 +34,30 @@ namespace osu.Game.Rulesets.Judgements
         public virtual HitResult MaxResult => HitResult.Perfect;
 
         /// <summary>
-        /// The minimum <see cref="HitResult"/> that can be achieved.
+        /// The minimum <see cref="HitResult"/> that can be achieved. This is the inverse of <see cref="MaxResult"/> by default.
         /// </summary>
-        public virtual HitResult MinResult => HitResult.Miss;
+        public virtual HitResult MinResult
+        {
+            get
+            {
+                switch (MaxResult)
+                {
+                    case HitResult.SmallBonus:
+                    case HitResult.LargeBonus:
+                    case HitResult.Ignore:
+                        return HitResult.Ignore;
+
+                    case HitResult.SmallTickHit:
+                        return HitResult.SmallTickMiss;
+
+                    case HitResult.LargeTickHit:
+                        return HitResult.LargeTickMiss;
+
+                    default:
+                        return HitResult.Miss;
+                }
+            }
+        }
 
         /// <summary>
         /// The numeric score representation for the maximum achievable result.

@@ -16,8 +16,6 @@ namespace osu.Game.Rulesets.Osu.Objects
         public class OsuSpinnerTickJudgement : OsuJudgement
         {
             public override HitResult MaxResult => HitResult.SmallBonus;
-
-            public override HitResult MinResult => HitResult.Ignore;
         }
     }
 }

@@ -10,8 +10,6 @@ namespace osu.Game.Rulesets.Catch.Judgements
     {
         public override HitResult MaxResult => HitResult.LargeBonus;
 
-        public override HitResult MinResult => HitResult.Ignore;
-
         public override bool ShouldExplodeFor(JudgementResult result) => true;
     }
 }

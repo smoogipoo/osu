@@ -35,8 +35,6 @@ namespace osu.Game.Rulesets.Osu.Objects
         public class SliderRepeatJudgement : OsuJudgement
         {
             public override HitResult MaxResult => HitResult.LargeTickHit;
-
-            public override HitResult MinResult => HitResult.LargeTickMiss;
         }
     }
 }
