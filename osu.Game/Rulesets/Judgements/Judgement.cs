@@ -46,9 +46,9 @@ namespace osu.Game.Rulesets.Judgements
         public virtual HitResult MaxResult => HitResult.Perfect;
 
         /// <summary>
-        /// The minimum <see cref="HitResult"/> that can be achieved. This is the inverse of <see cref="MaxResult"/> by default.
+        /// The minimum <see cref="HitResult"/> that can be achieved - the inverse of <see cref="MaxResult"/>.
         /// </summary>
-        public virtual HitResult MinResult
+        public HitResult MinResult
         {
             get
             {
