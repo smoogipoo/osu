@@ -17,12 +17,6 @@ namespace osu.Game.Rulesets.Scoring
         [Order(14)]
         None,
 
-        [Order(13)]
-        IgnoreMiss,
-
-        [Order(12)]
-        IgnoreHit,
-
         /// <summary>
         /// Indicates that the object has been judged as a miss.
         /// </summary>
@@ -99,6 +93,12 @@ namespace osu.Game.Rulesets.Scoring
         [Description("L Bonus")]
         [Order(8)]
         LargeBonus,
+
+        [Order(13)]
+        IgnoreMiss,
+
+        [Order(12)]
+        IgnoreHit,
     }
 
     public static class HitResultExtensions
@@ -167,7 +167,7 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// Whether a <see cref="HitResult"/> is scorable.
         /// </summary>
-        public static bool IsScorable(this HitResult result) => result >= HitResult.Miss;
+        public static bool IsScorable(this HitResult result) => result >= HitResult.Miss && result < HitResult.IgnoreMiss;
 
         /// <summary>
         /// Whether a <see cref="HitResult"/> is valid within a given <see cref="HitResult"/> range.
@@ -181,9 +181,11 @@ namespace osu.Game.Rulesets.Scoring
             if (result == HitResult.None)
                 return false;
 
-            Debug.Assert(minResult <= maxResult);
+            if (result == minResult || result == maxResult)
+                return true;
 
-            return result >= minResult && result <= maxResult;
+            Debug.Assert(minResult <= maxResult);
+            return result > minResult && result < maxResult;
         }
     }
 }
