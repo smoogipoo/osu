@@ -24,7 +24,7 @@ namespace osu.Game.Rulesets.Mania.MathUtils
                 return;
 
             comparer ??= Comparer<T>.Default;
-            depthLimitedQuickSort(keys, 0, keys.Length, comparer, quick_sort_depth_threshold);
+            depthLimitedQuickSort(keys, 0, keys.Length - 1, comparer, quick_sort_depth_threshold);
         }
 
         private static void depthLimitedQuickSort(T[] keys, int left, int right, IComparer<T> comparer, int depthLimit)
