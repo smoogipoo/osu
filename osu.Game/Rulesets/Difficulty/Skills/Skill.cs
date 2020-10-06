@@ -41,7 +41,11 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// </summary>
         protected readonly LimitedCapacityStack<DifficultyHitObject> Previous = new LimitedCapacityStack<DifficultyHitObject>(2); // Contained objects not used yet
 
-        private double currentStrain = 1; // We keep track of the strain level at all times throughout the beatmap.
+        /// <summary>
+        /// The current strain level.
+        /// </summary>
+        protected double CurrentStrain { get; private set; } = 1;
+
         private double currentSectionPeak = 1; // We also keep track of the peak strain level in the current section.
 
         private readonly List<double> strainPeaks = new List<double>();
@@ -51,10 +55,10 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// </summary>
         public void Process(DifficultyHitObject current)
         {
-            currentStrain *= strainDecay(current.DeltaTime);
-            currentStrain += StrainValueOf(current) * SkillMultiplier;
+            CurrentStrain *= strainDecay(current.DeltaTime);
+            CurrentStrain += StrainValueOf(current) * SkillMultiplier;
 
-            currentSectionPeak = Math.Max(currentStrain, currentSectionPeak);
+            currentSectionPeak = Math.Max(CurrentStrain, currentSectionPeak);
 
             Previous.Push(current);
         }
@@ -80,7 +84,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
                 currentSectionPeak = GetPeakStrain(offset);
         }
 
-        protected virtual double GetPeakStrain(double offset) => currentStrain * strainDecay(offset - Previous[0].BaseObject.StartTime);
+        protected virtual double GetPeakStrain(double offset) => CurrentStrain * strainDecay(offset - Previous[0].BaseObject.StartTime);
 
         /// <summary>
         /// Returns the calculated difficulty value representing all processed <see cref="DifficultyHitObject"/>s.

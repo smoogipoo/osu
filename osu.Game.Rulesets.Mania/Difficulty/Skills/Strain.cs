@@ -66,7 +66,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty.Skills
 
             overallStrain = applyDecay(overallStrain, current.DeltaTime, overall_decay_base) + (1 + holdAddition) * holdFactor;
 
-            return 0;
+            return individualStrain + overallStrain - CurrentStrain;
         }
 
         protected override double GetPeakStrain(double offset)
