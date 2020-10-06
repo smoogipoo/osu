@@ -69,7 +69,7 @@ namespace osu.Game.Rulesets.Difficulty
             if (!beatmap.HitObjects.Any())
                 return CreateDifficultyAttributes(beatmap, mods, skills, clockRate);
 
-            var difficultyHitObjects = CreateDifficultyHitObjects(beatmap, clockRate).OrderBy(h => h.BaseObject.StartTime).ToList();
+            var difficultyHitObjects = SortObjects(CreateDifficultyHitObjects(beatmap, clockRate)).ToList();
 
             double sectionLength = SectionLength * clockRate;
 
@@ -99,6 +99,9 @@ namespace osu.Game.Rulesets.Difficulty
 
             return CreateDifficultyAttributes(beatmap, mods, skills, clockRate);
         }
+
+        protected virtual IEnumerable<DifficultyHitObject> SortObjects(IEnumerable<DifficultyHitObject> input)
+            => input.OrderBy(h => h.BaseObject.StartTime);
 
         /// <summary>
         /// Creates all <see cref="Mod"/> combinations which adjust the <see cref="Beatmap"/> difficulty.
