@@ -156,6 +156,9 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
         /// <returns>The hit objects generated.</returns>
         private IEnumerable<ManiaHitObject> generateConverted(HitObject original, IBeatmap originalBeatmap)
         {
+            if (original.StartTime == 52990)
+            {
+            }
             Patterns.PatternGenerator conversion = null;
 
             switch (original)
@@ -180,7 +183,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
 
                 case IHasDuration endTimeData:
                 {
-                    conversion = new EndTimeObjectPatternGenerator(Random, original, beatmap, originalBeatmap);
+                    conversion = new EndTimeObjectPatternGenerator(Random, original, beatmap, lastPattern, originalBeatmap);
 
                     recordNote(endTimeData.EndTime, new Vector2(256, 192));
                     computeDensity(endTimeData.EndTime);
