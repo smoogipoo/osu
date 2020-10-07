@@ -25,8 +25,8 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
         /// </summary>
         private const float osu_base_scoring_distance = 100;
 
-        public readonly double EndTime;
-        public readonly double SegmentDuration;
+        public readonly int EndTime;
+        public readonly int SegmentDuration;
         public readonly int SpanCount;
 
         private PatternType convertType;
@@ -53,8 +53,8 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
             // The duration of the osu! hit object
             double osuDuration = distance / osuVelocity;
 
-            EndTime = hitObject.StartTime + osuDuration;
-            SegmentDuration = (EndTime - HitObject.StartTime) / SpanCount;
+            EndTime = (int)hitObject.StartTime + (int)osuDuration;
+            SegmentDuration = (EndTime - (int)HitObject.StartTime) / SpanCount;
         }
 
         public override IEnumerable<Pattern> Generate()
