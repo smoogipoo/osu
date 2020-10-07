@@ -34,6 +34,12 @@ namespace osu.Game.Tests.Beatmaps
             var ourResult = convert(name, mods.Select(m => (Mod)Activator.CreateInstance(m)).ToArray());
             var expectedResult = read(name);
 
+            foreach (var m in ourResult.Mappings)
+                m.PostProcess();
+
+            foreach (var m in expectedResult.Mappings)
+                m.PostProcess();
+
             Assert.Multiple(() =>
             {
                 int mappingCounter = 0;
@@ -237,6 +243,10 @@ namespace osu.Game.Tests.Beatmaps
         private List<TConvertValue> setObjects
         {
             set => Objects = value;
+        }
+
+        public virtual void PostProcess()
+        {
         }
 
         public virtual bool Equals(ConvertMapping<TConvertValue> other) => StartTime == other?.StartTime;
