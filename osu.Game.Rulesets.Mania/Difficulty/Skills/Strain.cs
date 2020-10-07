@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Utils;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mania.Difficulty.Preprocessing;
@@ -43,15 +44,15 @@ namespace osu.Game.Rulesets.Mania.Difficulty.Skills
             for (int i = 0; i < holdEndTimes.Length; ++i)
             {
                 // If there is at least one other overlapping end or note, then we get an addition, buuuuuut...
-                if (maniaCurrent.BaseObject.StartTime < holdEndTimes[i] && endTime > holdEndTimes[i])
+                if (Precision.DefinitelyBigger(holdEndTimes[i], maniaCurrent.BaseObject.StartTime, 1) && Precision.DefinitelyBigger(endTime, holdEndTimes[i], 1))
                     holdAddition = 1.0;
 
                 // ... this addition only is valid if there is _no_ other note with the same ending. Releasing multiple notes at the same time is just as easy as releasing 1
-                if (Math.Abs(endTime - holdEndTimes[i]) < 1)
+                if (Precision.AlmostEquals(endTime, holdEndTimes[i], 1))
                     holdAddition = 0;
 
                 // We give a slight bonus to everything if something is held meanwhile
-                if (holdEndTimes[i] > endTime)
+                if (Precision.DefinitelyBigger(holdEndTimes[i], endTime, 1))
                     holdFactor = 1.25;
 
                 // Decay individual strains
