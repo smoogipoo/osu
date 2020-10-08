@@ -400,6 +400,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
             var pattern = new Pattern();
 
             int columnRepeat = Math.Min(SpanCount, TotalColumns);
+            int endTime = startTime + SegmentDuration * SpanCount;
 
             int nextColumn = GetColumn((HitObject as IHasXPosition)?.X ?? 0, true);
             if (convertType.HasFlag(PatternType.ForceNotStack) && PreviousPattern.ColumnWithObjects < TotalColumns)
@@ -408,7 +409,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
             for (int i = 0; i < columnRepeat; i++)
             {
                 nextColumn = FindAvailableColumn(nextColumn, pattern);
-                addToPattern(pattern, nextColumn, startTime, EndTime);
+                addToPattern(pattern, nextColumn, startTime, endTime);
                 startTime += SegmentDuration;
             }
 
