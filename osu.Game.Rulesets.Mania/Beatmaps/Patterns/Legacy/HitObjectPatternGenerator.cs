@@ -397,7 +397,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
 
                 case 4:
                     centreProbability = 0;
-                    p2 = Math.Min(p2 * 2, 0.2);
+                    p2 = 1 - Math.Max((1 - p2) * 2, 0.8);
                     p3 = 0;
                     break;
 
@@ -408,10 +408,13 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
 
                 case 6:
                     centreProbability = 0;
-                    p2 = Math.Min(p2 * 2, 0.5);
-                    p3 = Math.Min(p3 * 2, 0.15);
+                    p2 = 1 - Math.Max((1 - p2) * 2, 0.5);
+                    p3 = 1 - Math.Max((1 - p3) * 2, 0.85);
                     break;
             }
+
+            p2 = Math.Clamp(p2, 0, 1);
+            p3 = Math.Clamp(p3, 0, 1);
 
             double centreVal = Random.NextDouble();
             int noteCount = GetRandomNoteCount(p2, p3);
