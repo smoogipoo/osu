@@ -18,6 +18,7 @@ using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Skinning;
 using osu.Game.Configuration;
+using osu.Game.Rulesets.UI;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Drawables
@@ -247,24 +248,21 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (State.Value == newState && !force)
                 return;
 
+            LifetimeStart = Math.Max(LifetimeStart, HitObject.StartTime - InitialLifetimeOffset);
             LifetimeEnd = double.MaxValue;
 
-            double transformTime = HitObject.StartTime - InitialLifetimeOffset;
+            double transformTime = LifetimeStart;
 
             base.ApplyTransformsAt(double.MinValue, true);
             base.ClearTransformsAfter(double.MinValue, true);
 
             using (BeginAbsoluteSequence(transformTime, true))
-            {
                 UpdateInitialTransforms();
 
-                var judgementOffset = Result?.TimeOffset ?? 0;
-
-                using (BeginDelayedSequence(InitialLifetimeOffset + judgementOffset, true))
-                {
-                    UpdateStateTransforms(newState);
-                    state.Value = newState;
-                }
+            using (BeginAbsoluteSequence(HitObject.StartTime + (Result?.TimeOffset ?? 0), true))
+            {
+                UpdateStateTransforms(newState);
+                state.Value = newState;
             }
 
             if (LifetimeEnd == double.MaxValue && (state.Value != ArmedState.Idle || HitObject.HitWindows == null))
@@ -431,29 +429,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </remarks>
         protected internal new ScheduledDelegate Schedule(Action action) => base.Schedule(action);
 
-        private double? lifetimeStart;
-
-        public override double LifetimeStart
-        {
-            get => lifetimeStart ?? (HitObject.StartTime - InitialLifetimeOffset);
-            set
-            {
-                lifetimeStart = value;
-                base.LifetimeStart = value;
-            }
-        }
-
-        /// <summary>
-        /// A safe offset prior to the start time of <see cref="HitObject"/> at which this <see cref="DrawableHitObject"/> may begin displaying contents.
-        /// By default, <see cref="DrawableHitObject"/>s are assumed to display their contents within 10 seconds prior to the start time of <see cref="HitObject"/>.
-        /// </summary>
-        /// <remarks>
-        /// This is only used as an optimisation to delay the initial update of this <see cref="DrawableHitObject"/> and may be tuned more aggressively if required.
-        /// It is indirectly used to decide the automatic transform offset provided to <see cref="UpdateInitialTransforms"/>.
-        /// A more accurate <see cref="LifetimeStart"/> should be set for further optimisation (in <see cref="LoadComplete"/>, for example).
-        /// </remarks>
-        protected virtual double InitialLifetimeOffset => 10000;
-
         /// <summary>
         /// Will be called at least once after this <see cref="DrawableHitObject"/> has become not alive.
         /// </summary>
@@ -557,6 +532,67 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         /// <param name="judgement">The <see cref="Judgement"/> that provides the scoring information.</param>
         protected virtual JudgementResult CreateResult(Judgement judgement) => new JudgementResult(HitObject, judgement);
+
+        /// <summary>
+        /// A safe offset prior to the start time of <see cref="HitObject"/> at which this <see cref="DrawableHitObject"/> may begin displaying contents.
+        /// By default, <see cref="DrawableHitObject"/>s are assumed to display their contents within 10 seconds prior to the start time of <see cref="HitObject"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is only used as an optimisation to delay the initial update of this <see cref="DrawableHitObject"/> and may be tuned more aggressively if required.
+        /// It is indirectly used to decide the automatic transform offset provided to <see cref="UpdateInitialTransforms"/>.
+        /// A more accurate <see cref="LifetimeStart"/> should be set for further optimisation (in <see cref="LoadComplete"/>, for example).
+        /// </remarks>
+        protected virtual double InitialLifetimeOffset => 10000;
+
+        public override double LifetimeStart
+        {
+            get => base.LifetimeStart;
+            set
+            {
+                if (base.LifetimeStart == value)
+                    return;
+
+                base.LifetimeStart = value;
+
+                // Transfer to the lifetime entry.
+                if (LifetimeEntry != null)
+                    LifetimeEntry.LifetimeStart = value;
+            }
+        }
+
+        public override double LifetimeEnd
+        {
+            get => base.LifetimeEnd;
+            set
+            {
+                if (base.LifetimeEnd == value)
+                    return;
+
+                base.LifetimeEnd = value;
+
+                // Transfer to the lifetime entry.
+                if (LifetimeEntry != null)
+                    LifetimeEntry.LifetimeEnd = value;
+            }
+        }
+
+        private HitObjectLifetimeEntry lifetimeEntry;
+
+        protected internal HitObjectLifetimeEntry LifetimeEntry
+        {
+            get => lifetimeEntry;
+            set
+            {
+                lifetimeEntry = value;
+
+                // Transfer lifetime from the entry.
+                if (value != null)
+                {
+                    LifetimeStart = value.LifetimeStart;
+                    LifetimeEnd = value.LifetimeEnd;
+                }
+            }
+        }
 
         protected override void Dispose(bool isDisposing)
         {
