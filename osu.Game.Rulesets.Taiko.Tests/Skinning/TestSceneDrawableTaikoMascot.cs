@@ -214,7 +214,7 @@ namespace osu.Game.Rulesets.Taiko.Tests.Skinning
                 var hit = new DrawableTestHit(new Hit(), judgementResult.Type);
                 playfield.Add(hit);
 
-                playfield.OnNewResult(hit, judgementResult);
+                playfield.AddJudgement(hit, judgementResult);
             }
 
             foreach (var mascot in mascots)

@@ -10,6 +10,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Mods;
 using osuTK;
 
@@ -17,6 +18,9 @@ namespace osu.Game.Rulesets.UI
 {
     public abstract class Playfield : CompositeDrawable
     {
+        public event Action<DrawableHitObject, JudgementResult> OnNewResult;
+        public event Action<DrawableHitObject, JudgementResult> OnRevertResult;
+
         /// <summary>
         /// The <see cref="DrawableHitObject"/> contained in this Playfield.
         /// </summary>
@@ -72,7 +76,11 @@ namespace osu.Game.Rulesets.UI
         {
             RelativeSizeAxes = Axes.Both;
 
-            hitObjectContainerLazy = new Lazy<HitObjectContainer>(CreateHitObjectContainer);
+            hitObjectContainerLazy = new Lazy<HitObjectContainer>(() => CreateHitObjectContainer().With(h =>
+            {
+                h.OnNewResult += (d, r) => OnNewResult?.Invoke(d, r);
+                h.OnRevertResult += (d, r) => OnRevertResult?.Invoke(d, r);
+            }));
         }
 
         [Resolved(CanBeNull = true)]

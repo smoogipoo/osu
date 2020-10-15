@@ -1,17 +1,23 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 
 namespace osu.Game.Rulesets.UI
 {
+    // Todo: Temporary, should be merged into HOC.
     public class HitObjectLifetimeManagementContainer : LifetimeManagementContainer
     {
+        public event Action<DrawableHitObject, JudgementResult> OnNewResult;
+        public event Action<DrawableHitObject, JudgementResult> OnRevertResult;
+
         private readonly Dictionary<HitObjectLifetimeEntry, DrawableHitObject> drawableMap = new Dictionary<HitObjectLifetimeEntry, DrawableHitObject>();
 
         public void Add(HitObjectLifetimeEntry entry)
@@ -72,6 +78,8 @@ namespace osu.Game.Rulesets.UI
             Debug.Assert(drawable.LifetimeEntry == null);
 
             drawable.LifetimeEntry = entry;
+            drawable.OnNewResult += onNewResult;
+            drawable.OnRevertResult += onRevertResult;
 
             AddInternalAlwaysAlive(drawableMap[entry] = drawable);
         }
@@ -84,10 +92,16 @@ namespace osu.Game.Rulesets.UI
             Debug.Assert(drawable.LifetimeEntry != null);
 
             drawable.LifetimeEntry = null;
+            drawable.OnNewResult -= onNewResult;
+            drawable.OnRevertResult -= onRevertResult;
+
             drawableMap.Remove(entry);
 
             RemoveInternal(drawable);
         }
+
+        private void onRevertResult(DrawableHitObject d, JudgementResult r) => OnRevertResult?.Invoke(d, r);
+        private void onNewResult(DrawableHitObject d, JudgementResult r) => OnNewResult?.Invoke(d, r);
     }
 
     public class HitObjectLifetimeEntry : LifetimeEntry

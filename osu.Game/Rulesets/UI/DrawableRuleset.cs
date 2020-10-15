@@ -125,7 +125,11 @@ namespace osu.Game.Rulesets.UI
             RelativeSizeAxes = Axes.Both;
 
             KeyBindingInputManager = CreateInputManager();
-            playfield = new Lazy<Playfield>(CreatePlayfield);
+            playfield = new Lazy<Playfield>(() => CreatePlayfield().With(p =>
+            {
+                p.OnNewResult += (_, r) => OnNewResult?.Invoke(r);
+                p.OnRevertResult += (_, r) => OnNewResult?.Invoke(r);
+            }));
 
             IsPaused.ValueChanged += paused =>
             {

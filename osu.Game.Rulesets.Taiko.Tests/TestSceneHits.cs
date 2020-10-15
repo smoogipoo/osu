@@ -116,7 +116,7 @@ namespace osu.Game.Rulesets.Taiko.Tests
 
             DrawableRuleset.Playfield.Add(h);
 
-            ((TaikoPlayfield)DrawableRuleset.Playfield).OnNewResult(h, new JudgementResult(new HitObject(), new TaikoJudgement()) { Type = hitResult });
+            ((TaikoPlayfield)DrawableRuleset.Playfield).AddJudgement(h, new JudgementResult(new HitObject(), new TaikoJudgement()) { Type = hitResult });
         }
 
         private void addStrongHitJudgement(bool kiai)
@@ -133,15 +133,15 @@ namespace osu.Game.Rulesets.Taiko.Tests
 
             DrawableRuleset.Playfield.Add(h);
 
-            ((TaikoPlayfield)DrawableRuleset.Playfield).OnNewResult(h, new JudgementResult(new HitObject(), new TaikoJudgement()) { Type = hitResult });
-            ((TaikoPlayfield)DrawableRuleset.Playfield).OnNewResult(new TestStrongNestedHit(h), new JudgementResult(new HitObject(), new TaikoStrongJudgement()) { Type = HitResult.Great });
+            ((TaikoPlayfield)DrawableRuleset.Playfield).AddJudgement(h, new JudgementResult(new HitObject(), new TaikoJudgement()) { Type = hitResult });
+            ((TaikoPlayfield)DrawableRuleset.Playfield).AddJudgement(new TestStrongNestedHit(h), new JudgementResult(new HitObject(), new TaikoStrongJudgement()) { Type = HitResult.Great });
         }
 
         private void addMissJudgement()
         {
             DrawableTestHit h;
             DrawableRuleset.Playfield.Add(h = new DrawableTestHit(new Hit(), HitResult.Miss));
-            ((TaikoPlayfield)DrawableRuleset.Playfield).OnNewResult(h, new JudgementResult(new HitObject(), new TaikoJudgement()) { Type = HitResult.Miss });
+            ((TaikoPlayfield)DrawableRuleset.Playfield).AddJudgement(h, new JudgementResult(new HitObject(), new TaikoJudgement()) { Type = HitResult.Miss });
         }
 
         private void addBarLine(bool major, double delay = scroll_time)

@@ -159,7 +159,7 @@ namespace osu.Game.Rulesets.Taiko.UI
 
         public override void Add(DrawableHitObject h)
         {
-            h.OnNewResult += OnNewResult;
+            h.OnNewResult += AddJudgement;
             base.Add(h);
 
             switch (h)
@@ -174,7 +174,7 @@ namespace osu.Game.Rulesets.Taiko.UI
             }
         }
 
-        internal void OnNewResult(DrawableHitObject judgedObject, JudgementResult result)
+        internal void AddJudgement(DrawableHitObject judgedObject, JudgementResult result)
         {
             if (!DisplayJudgements.Value)
                 return;

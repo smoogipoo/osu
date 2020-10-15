@@ -92,7 +92,7 @@ namespace osu.Game.Rulesets.Mania.UI
         public override void Add(DrawableHitObject hitObject)
         {
             hitObject.AccentColour.Value = AccentColour;
-            hitObject.OnNewResult += OnNewResult;
+            hitObject.OnNewResult += onNewResult;
 
             DrawableManiaHitObject maniaObject = (DrawableManiaHitObject)hitObject;
             maniaObject.CheckHittable = hitPolicy.IsHittable;
@@ -105,11 +105,11 @@ namespace osu.Game.Rulesets.Mania.UI
             if (!base.Remove(h))
                 return false;
 
-            h.OnNewResult -= OnNewResult;
+            h.OnNewResult -= onNewResult;
             return true;
         }
 
-        internal void OnNewResult(DrawableHitObject judgedObject, JudgementResult result)
+        private void onNewResult(DrawableHitObject judgedObject, JudgementResult result)
         {
             if (result.IsHit)
                 hitPolicy.HandleHit(judgedObject);

@@ -147,7 +147,7 @@ namespace osu.Game.Rulesets.Mania.UI
                 Columns.ElementAt(columnIndex).Add(h);
             }, true);
 
-            h.OnNewResult += OnNewResult;
+            h.OnNewResult += onNewResult;
         }
 
         public override bool Remove(DrawableHitObject h)
@@ -156,13 +156,13 @@ namespace osu.Game.Rulesets.Mania.UI
             int columnIndex = maniaObject.Column - firstColumnIndex;
             Columns.ElementAt(columnIndex).Remove(h);
 
-            h.OnNewResult -= OnNewResult;
+            h.OnNewResult -= onNewResult;
             return true;
         }
 
         public void Add(BarLine barline) => base.Add(new DrawableBarLine(barline));
 
-        internal void OnNewResult(DrawableHitObject judgedObject, JudgementResult result)
+        private void onNewResult(DrawableHitObject judgedObject, JudgementResult result)
         {
             if (!judgedObject.DisplayResult || !DisplayJudgements.Value)
                 return;
