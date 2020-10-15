@@ -108,8 +108,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             base.Apply(hitObject);
 
-            Position = HitObject.StackedPosition;
-
             positionBindable.BindTo(HitObject.PositionBindable);
             stackHeightBindable.BindTo(HitObject.StackHeightBindable);
             scaleBindable.BindTo(HitObject.ScaleBindable);
