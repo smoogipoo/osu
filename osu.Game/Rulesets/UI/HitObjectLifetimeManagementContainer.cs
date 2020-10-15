@@ -111,6 +111,7 @@ namespace osu.Game.Rulesets.UI
         public HitObjectLifetimeEntry(HitObject hitObject)
         {
             HitObject = hitObject;
+            LifetimeStart = HitObject.StartTime;
         }
     }
 }
