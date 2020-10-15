@@ -26,8 +26,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
     [Cached(typeof(DrawableHitObject))]
     public class DrawableHitObject : SkinReloadableDrawable
     {
-        public event Action<DrawableHitObject, HitObject> HitObjectApplied;
-
         public HitObject HitObject { get; private set; }
 
         /// <summary>
@@ -185,8 +183,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (HitObject is IHasComboInformation combo1)
                 comboIndexBindable.BindTo(combo1.ComboIndexBindable);
             samplesBindable.BindTo(hitObject.SamplesBindable);
-
-            HitObjectApplied?.Invoke(this, HitObject);
         }
 
         /// <summary>
