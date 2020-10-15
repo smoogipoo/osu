@@ -11,7 +11,9 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
@@ -202,6 +204,22 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         private void loadObjects(CancellationToken? cancellationToken)
         {
+            var getMethod = GetType().GetMethod(nameof(CreateDrawableRepresentation), BindingFlags.Instance | BindingFlags.Public);
+            Debug.Assert(getMethod != null);
+
+            if (getMethod.DeclaringType == typeof(DrawableRuleset<TObject>))
+            {
+                foreach (var h in Beatmap.HitObjects)
+                {
+                    cancellationToken?.ThrowIfCancellationRequested();
+                    Playfield.Add(h);
+                }
+
+                return;
+            }
+
+            // Todo: Clean this up.
+
             foreach (TObject h in Beatmap.HitObjects)
             {
                 cancellationToken?.ThrowIfCancellationRequested();
@@ -293,7 +311,7 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         /// <param name="h">The HitObject to make drawable.</param>
         /// <returns>The DrawableHitObject.</returns>
-        public abstract DrawableHitObject<TObject> CreateDrawableRepresentation(TObject h);
+        public virtual DrawableHitObject<TObject> CreateDrawableRepresentation(TObject h) => null;
 
         public void Attach(KeyCounterDisplay keyCounter) =>
             (KeyBindingInputManager as ICanAttachKeyCounter)?.Attach(keyCounter);

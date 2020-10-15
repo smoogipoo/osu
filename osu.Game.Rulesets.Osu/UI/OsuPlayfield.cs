@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Pooling;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
+using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables.Connections;
 using osu.Game.Rulesets.Osu.Scoring;
@@ -106,6 +107,8 @@ namespace osu.Game.Rulesets.Osu.UI
             return result;
         }
 
+        public override void Add(HitObject h) => HitObjectContainer.Add(new OsuHitObjectLifetimeEntry(h));
+
         private void onNewResult(DrawableHitObject judgedObject, JudgementResult result)
         {
             // Hitobjects that block future hits should miss previous hitobjects if they're hit out-of-order.
@@ -144,6 +147,37 @@ namespace osu.Game.Rulesets.Osu.UI
                 judgement.Apply(new JudgementResult(new HitObject(), new Judgement()) { Type = result }, null);
 
                 return judgement;
+            }
+        }
+
+        protected override HitObjectContainer CreateHitObjectContainer() => new OsuHitObjectContainer();
+
+        private class OsuHitObjectLifetimeEntry : HitObjectLifetimeEntry
+        {
+            public OsuHitObjectLifetimeEntry(HitObject hitObject)
+                : base(hitObject)
+            {
+                LifetimeStart = hitObject.StartTime - ((OsuHitObject)hitObject).TimePreempt;
+            }
+        }
+
+        private class OsuHitObjectContainer : HitObjectContainer
+        {
+            protected override DrawableHitObject GetDrawableFor(HitObject hitObject)
+            {
+                switch (hitObject)
+                {
+                    case HitCircle circle:
+                        return new DrawableHitCircle(circle);
+
+                    case Slider slider:
+                        return new DrawableSlider(slider);
+
+                    case Spinner spinner:
+                        return new DrawableSpinner(spinner);
+                }
+
+                return null;
             }
         }
     }

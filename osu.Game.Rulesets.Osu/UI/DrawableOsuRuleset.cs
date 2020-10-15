@@ -9,10 +9,8 @@ using osu.Game.Beatmaps;
 using osu.Game.Input.Handlers;
 using osu.Game.Replays;
 using osu.Game.Rulesets.Mods;
-using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Objects;
-using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Replays;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
@@ -39,22 +37,22 @@ namespace osu.Game.Rulesets.Osu.UI
 
         protected override ResumeOverlay CreateResumeOverlay() => new OsuResumeOverlay();
 
-        public override DrawableHitObject<OsuHitObject> CreateDrawableRepresentation(OsuHitObject h)
-        {
-            switch (h)
-            {
-                case HitCircle circle:
-                    return new DrawableHitCircle(circle);
-
-                case Slider slider:
-                    return new DrawableSlider(slider);
-
-                case Spinner spinner:
-                    return new DrawableSpinner(spinner);
-            }
-
-            return null;
-        }
+        // public override DrawableHitObject<OsuHitObject> CreateDrawableRepresentation(OsuHitObject h)
+        // {
+        //     switch (h)
+        //     {
+        //         case HitCircle circle:
+        //             return new DrawableHitCircle(circle);
+        //
+        //         case Slider slider:
+        //             return new DrawableSlider(slider);
+        //
+        //         case Spinner spinner:
+        //             return new DrawableSpinner(spinner);
+        //     }
+        //
+        //     return null;
+        // }
 
         protected override ReplayInputHandler CreateReplayInputHandler(Replay replay) => new OsuFramedReplayInputHandler(replay);
 

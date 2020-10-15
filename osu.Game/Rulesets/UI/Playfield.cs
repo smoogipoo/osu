@@ -12,6 +12,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Objects;
 using osuTK;
 
 namespace osu.Game.Rulesets.UI
@@ -116,6 +117,8 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         /// <param name="h">The DrawableHitObject to remove.</param>
         public virtual bool Remove(DrawableHitObject h) => HitObjectContainer.Remove(h);
+
+        public virtual void Add(HitObject h) => HitObjectContainer.Add(new HitObjectLifetimeEntry(h));
 
         /// <summary>
         /// The cursor currently being used by this <see cref="Playfield"/>. May be null if no cursor is provided.
