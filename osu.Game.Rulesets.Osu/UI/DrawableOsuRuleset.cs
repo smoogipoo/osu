@@ -37,23 +37,6 @@ namespace osu.Game.Rulesets.Osu.UI
 
         protected override ResumeOverlay CreateResumeOverlay() => new OsuResumeOverlay();
 
-        // public override DrawableHitObject<OsuHitObject> CreateDrawableRepresentation(OsuHitObject h)
-        // {
-        //     switch (h)
-        //     {
-        //         case HitCircle circle:
-        //             return new DrawableHitCircle(circle);
-        //
-        //         case Slider slider:
-        //             return new DrawableSlider(slider);
-        //
-        //         case Spinner spinner:
-        //             return new DrawableSpinner(spinner);
-        //     }
-        //
-        //     return null;
-        // }
-
         protected override ReplayInputHandler CreateReplayInputHandler(Replay replay) => new OsuFramedReplayInputHandler(replay);
 
         protected override ReplayRecorder CreateReplayRecorder(Replay replay) => new OsuReplayRecorder(replay);

@@ -163,21 +163,36 @@ namespace osu.Game.Rulesets.Osu.UI
 
         private class OsuHitObjectContainer : HitObjectContainer
         {
+            private readonly DrawablePool<DrawableHitCircle> hitCirclePool = new DrawablePool<DrawableHitCircle>(10, 100);
+            private readonly DrawablePool<DrawableHitCircle> sliderPool = new DrawablePool<DrawableHitCircle>(10, 100);
+            private readonly DrawablePool<DrawableHitCircle> spinnerPool = new DrawablePool<DrawableHitCircle>(2, 20);
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                AddInternalAlwaysAlive(hitCirclePool);
+                AddInternalAlwaysAlive(sliderPool);
+                AddInternalAlwaysAlive(spinnerPool);
+            }
+
             protected override DrawableHitObject GetDrawableFor(HitObject hitObject)
             {
                 switch (hitObject)
                 {
-                    case HitCircle circle:
-                        return new DrawableHitCircle(circle);
+                    case HitCircle _:
+                        return hitCirclePool.Get(d => d.Apply(hitObject));
 
                     case Slider slider:
                         return new DrawableSlider(slider);
+                    // return sliderPool.Get(d => d.Apply(hitObject));
 
                     case Spinner spinner:
                         return new DrawableSpinner(spinner);
+                    // return spinnerPool.Get(d => d.Apply(hitObject));
                 }
 
-                return null;
+                throw new InvalidOperationException("Invalid hitobject type!");
             }
         }
     }

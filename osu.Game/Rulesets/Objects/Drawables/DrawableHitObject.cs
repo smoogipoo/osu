@@ -24,11 +24,11 @@ using osuTK.Graphics;
 namespace osu.Game.Rulesets.Objects.Drawables
 {
     [Cached(typeof(DrawableHitObject))]
-    public abstract class DrawableHitObject : SkinReloadableDrawable
+    public class DrawableHitObject : SkinReloadableDrawable
     {
-        public event Action<DrawableHitObject> DefaultsApplied;
+        public event Action<DrawableHitObject, HitObject> HitObjectApplied;
 
-        public readonly HitObject HitObject;
+        public HitObject HitObject { get; private set; }
 
         /// <summary>
         /// The colour used for various elements of this DrawableHitObject.
@@ -97,10 +97,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </remarks>
         protected virtual float SamplePlaybackPosition => 0.5f;
 
-        private BindableList<HitSampleInfo> samplesBindable;
-        private Bindable<double> startTimeBindable;
-        private Bindable<bool> userPositionalHitSounds;
-        private Bindable<int> comboIndexBindable;
+        private readonly BindableList<HitSampleInfo> samplesBindable = new BindableList<HitSampleInfo>();
+        public readonly Bindable<double> StartTimeBindable = new Bindable<double>();
+        private readonly Bindable<bool> userPositionalHitSounds = new Bindable<bool>();
+        private readonly Bindable<int> comboIndexBindable = new Bindable<int>();
 
         public override bool RemoveWhenNotAlive => false;
         public override bool RemoveCompletedTransforms => false;
@@ -112,6 +112,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         public IBindable<ArmedState> State => state;
 
+        public DrawableHitObject()
+        {
+        }
+
         protected DrawableHitObject([NotNull] HitObject hitObject)
         {
             HitObject = hitObject ?? throw new ArgumentNullException(nameof(hitObject));
@@ -120,43 +124,92 @@ namespace osu.Game.Rulesets.Objects.Drawables
         [BackgroundDependencyLoader]
         private void load(OsuConfigManager config)
         {
-            userPositionalHitSounds = config.GetBindable<bool>(OsuSetting.PositionalHitSounds);
-            var judgement = HitObject.CreateJudgement();
-
-            Result = CreateResult(judgement);
-            if (Result == null)
-                throw new InvalidOperationException($"{GetType().ReadableName()} must provide a {nameof(JudgementResult)} through {nameof(CreateResult)}.");
-
-            LoadSamples();
+            config.BindWith(OsuSetting.PositionalHitSounds, userPositionalHitSounds);
         }
 
         protected override void LoadAsyncComplete()
         {
             base.LoadAsyncComplete();
 
-            HitObject.DefaultsApplied += onDefaultsApplied;
-
-            startTimeBindable = HitObject.StartTimeBindable.GetBoundCopy();
-            startTimeBindable.BindValueChanged(_ => updateState(State.Value, true));
-
-            if (HitObject is IHasComboInformation combo)
-            {
-                comboIndexBindable = combo.ComboIndexBindable.GetBoundCopy();
-                comboIndexBindable.BindValueChanged(_ => updateComboColour(), true);
-            }
-
-            samplesBindable = HitObject.SamplesBindable.GetBoundCopy();
-            samplesBindable.CollectionChanged += (_, __) => LoadSamples();
-
-            apply(HitObject);
+            if (HitObject != null)
+                Apply(HitObject);
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
+            StartTimeBindable.BindValueChanged(_ => updateState(State.Value, true));
+            comboIndexBindable.BindValueChanged(_ => updateComboColour(), true);
+            samplesBindable.BindCollectionChanged((_, __) => LoadSamples(), true);
+
             updateState(ArmedState.Idle, true);
         }
+
+        public virtual void Apply(HitObject hitObject)
+        {
+            if (HitObject != null)
+            {
+                StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
+                if (HitObject is IHasComboInformation combo)
+                    comboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
+                samplesBindable.UnbindFrom(hitObject.SamplesBindable);
+            }
+
+            HitObject = hitObject;
+
+            Result = CreateResult(hitObject.CreateJudgement())
+                     ?? throw new InvalidOperationException($"{GetType().ReadableName()} must provide a {nameof(JudgementResult)} through {nameof(CreateResult)}.");
+
+            if (nestedHitObjects.IsValueCreated)
+            {
+                nestedHitObjects.Value.Clear();
+                ClearNestedHitObjects();
+            }
+
+            foreach (var h in hitObject.NestedHitObjects)
+            {
+                var drawableNested = CreateNestedHitObject(h) ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
+
+                drawableNested.OnNewResult += (d, r) => OnNewResult?.Invoke(d, r);
+                drawableNested.OnRevertResult += (d, r) => OnRevertResult?.Invoke(d, r);
+                drawableNested.ApplyCustomUpdateState += (d, j) => ApplyCustomUpdateState?.Invoke(d, j);
+
+                nestedHitObjects.Value.Add(drawableNested);
+                AddNestedHitObject(drawableNested);
+            }
+
+            updateState(ArmedState.Idle, true);
+
+            StartTimeBindable.BindTo(hitObject.StartTimeBindable);
+            if (HitObject is IHasComboInformation combo1)
+                comboIndexBindable.BindTo(combo1.ComboIndexBindable);
+            samplesBindable.BindTo(hitObject.SamplesBindable);
+
+            HitObjectApplied?.Invoke(this, HitObject);
+        }
+
+        /// <summary>
+        /// Invoked by the base <see cref="DrawableHitObject"/> to add nested <see cref="DrawableHitObject"/>s to the hierarchy.
+        /// </summary>
+        /// <param name="hitObject">The <see cref="DrawableHitObject"/> to be added.</param>
+        protected virtual void AddNestedHitObject(DrawableHitObject hitObject)
+        {
+        }
+
+        /// <summary>
+        /// Invoked by the base <see cref="DrawableHitObject"/> to remove all previously-added nested <see cref="DrawableHitObject"/>s.
+        /// </summary>
+        protected virtual void ClearNestedHitObjects()
+        {
+        }
+
+        /// <summary>
+        /// Creates the drawable representation for a nested <see cref="HitObject"/>.
+        /// </summary>
+        /// <param name="hitObject">The <see cref="HitObject"/>.</param>
+        /// <returns>The drawable representation for <paramref name="hitObject"/>.</returns>
+        protected virtual DrawableHitObject CreateNestedHitObject(HitObject hitObject) => null;
 
         /// <summary>
         /// Invoked by the base <see cref="DrawableHitObject"/> to populate samples, once on initial load and potentially again on any change to the samples collection.
@@ -183,56 +236,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
             Samples = new PausableSkinnableSound(samples.Select(s => HitObject.SampleControlPoint.ApplyTo(s)));
             AddInternal(Samples);
         }
-
-        private void onDefaultsApplied(HitObject hitObject)
-        {
-            apply(hitObject);
-            updateState(state.Value, true);
-            DefaultsApplied?.Invoke(this);
-        }
-
-        private void apply(HitObject hitObject)
-        {
-            if (nestedHitObjects.IsValueCreated)
-            {
-                nestedHitObjects.Value.Clear();
-                ClearNestedHitObjects();
-            }
-
-            foreach (var h in hitObject.NestedHitObjects)
-            {
-                var drawableNested = CreateNestedHitObject(h) ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
-
-                drawableNested.OnNewResult += (d, r) => OnNewResult?.Invoke(d, r);
-                drawableNested.OnRevertResult += (d, r) => OnRevertResult?.Invoke(d, r);
-                drawableNested.ApplyCustomUpdateState += (d, j) => ApplyCustomUpdateState?.Invoke(d, j);
-
-                nestedHitObjects.Value.Add(drawableNested);
-                AddNestedHitObject(drawableNested);
-            }
-        }
-
-        /// <summary>
-        /// Invoked by the base <see cref="DrawableHitObject"/> to add nested <see cref="DrawableHitObject"/>s to the hierarchy.
-        /// </summary>
-        /// <param name="hitObject">The <see cref="DrawableHitObject"/> to be added.</param>
-        protected virtual void AddNestedHitObject(DrawableHitObject hitObject)
-        {
-        }
-
-        /// <summary>
-        /// Invoked by the base <see cref="DrawableHitObject"/> to remove all previously-added nested <see cref="DrawableHitObject"/>s.
-        /// </summary>
-        protected virtual void ClearNestedHitObjects()
-        {
-        }
-
-        /// <summary>
-        /// Creates the drawable representation for a nested <see cref="HitObject"/>.
-        /// </summary>
-        /// <param name="hitObject">The <see cref="HitObject"/>.</param>
-        /// <returns>The drawable representation for <paramref name="hitObject"/>.</returns>
-        protected virtual DrawableHitObject CreateNestedHitObject(HitObject hitObject) => null;
 
         #region State / Transform Management
 
@@ -326,6 +329,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
         private void updateComboColour()
         {
             if (!(HitObject is IHasComboInformation)) return;
+
+            if (CurrentSkin == null)
+                return;
 
             var comboColours = CurrentSkin.GetConfig<GlobalSkinColours, IReadOnlyList<Color4>>(GlobalSkinColours.ComboColours)?.Value;
 
@@ -593,23 +599,20 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 }
             }
         }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            HitObject.DefaultsApplied -= onDefaultsApplied;
-        }
     }
 
     public abstract class DrawableHitObject<TObject> : DrawableHitObject
         where TObject : HitObject
     {
-        public new readonly TObject HitObject;
+        public new TObject HitObject => (TObject)base.HitObject;
+
+        protected DrawableHitObject()
+        {
+        }
 
         protected DrawableHitObject(TObject hitObject)
             : base(hitObject)
         {
-            HitObject = hitObject;
         }
     }
 }

@@ -25,9 +25,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         private readonly IBindable<float> scaleBindable = new BindableFloat();
 
-        private readonly SkinnableDrawable circlePiece;
+        private SkinnableDrawable circlePiece;
 
-        private readonly Container scaleContainer;
+        private Container scaleContainer;
 
         public DrawableSliderTail(Slider slider, SliderTailCircle tailCircle)
             : base(tailCircle)
@@ -36,7 +36,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             Origin = Anchor.Centre;
 
             Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChildren = new Drawable[]
             {
                 scaleContainer = new Container
@@ -51,11 +55,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     }
                 },
             };
-        }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             scaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
             scaleBindable.BindTo(HitObject.ScaleBindable);
         }

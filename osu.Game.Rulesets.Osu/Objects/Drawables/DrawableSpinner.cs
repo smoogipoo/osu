@@ -8,7 +8,6 @@ using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables.Pieces;
@@ -24,11 +23,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
     {
         protected readonly Spinner Spinner;
 
-        private readonly Container<DrawableSpinnerTick> ticks;
+        private Container<DrawableSpinnerTick> ticks;
 
-        public readonly SpinnerRotationTracker RotationTracker;
-        public readonly SpinnerSpmCounter SpmCounter;
-        private readonly SpinnerBonusDisplay bonusDisplay;
+        public SpinnerRotationTracker RotationTracker;
+        public SpinnerSpmCounter SpmCounter;
+        private SpinnerBonusDisplay bonusDisplay;
 
         private readonly IBindable<Vector2> positionBindable = new Bindable<Vector2>();
 
@@ -43,7 +42,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             RelativeSizeAxes = Axes.Both;
 
             Spinner = s;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChildren = new Drawable[]
             {
                 ticks = new Container<DrawableSpinnerTick>(),
@@ -72,6 +75,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     Y = -120,
                 }
             };
+
+            positionBindable.BindValueChanged(pos => Position = pos.NewValue);
+            positionBindable.BindTo(HitObject.PositionBindable);
         }
 
         private Bindable<bool> isSpinning;
@@ -171,13 +177,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             }
 
             return base.CreateNestedHitObject(hitObject);
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(OsuColour colours)
-        {
-            positionBindable.BindValueChanged(pos => Position = pos.NewValue);
-            positionBindable.BindTo(HitObject.PositionBindable);
         }
 
         protected override void ApplySkin(ISkinSource skin, bool allowFallback)

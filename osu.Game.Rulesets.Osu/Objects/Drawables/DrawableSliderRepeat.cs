@@ -22,9 +22,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         private double animDuration;
 
-        private readonly Drawable scaleContainer;
+        private Drawable scaleContainer;
 
-        public readonly Drawable CirclePiece;
+        public Drawable CirclePiece;
 
         public override bool DisplayResult => false;
 
@@ -37,7 +37,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
 
             Origin = Anchor.Centre;
+        }
 
+        private readonly IBindable<float> scaleBindable = new BindableFloat();
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChild = scaleContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -50,13 +56,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     arrow = new ReverseArrowPiece(),
                 }
             };
-        }
 
-        private readonly IBindable<float> scaleBindable = new BindableFloat();
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             scaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
             scaleBindable.BindTo(HitObject.ScaleBindable);
         }
@@ -100,7 +100,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         private bool hasRotation;
 
-        private readonly ReverseArrowPiece arrow;
+        private ReverseArrowPiece arrow;
 
         public void UpdateSnakingPosition(Vector2 start, Vector2 end)
         {

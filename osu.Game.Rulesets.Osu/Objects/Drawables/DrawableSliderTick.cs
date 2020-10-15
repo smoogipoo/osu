@@ -23,14 +23,20 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         public override bool DisplayResult => false;
 
-        private readonly SkinnableDrawable scaleContainer;
+        private SkinnableDrawable scaleContainer;
 
         public DrawableSliderTick(SliderTick sliderTick)
             : base(sliderTick)
         {
             Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
             Origin = Anchor.Centre;
+        }
 
+        private readonly IBindable<float> scaleBindable = new BindableFloat();
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChild = scaleContainer = new SkinnableDrawable(new OsuSkinComponent(OsuSkinComponents.SliderScorePoint), _ => new CircularContainer
             {
                 Masking = true,
@@ -49,13 +55,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
             };
-        }
 
-        private readonly IBindable<float> scaleBindable = new BindableFloat();
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             scaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
             scaleBindable.BindTo(HitObject.ScaleBindable);
         }

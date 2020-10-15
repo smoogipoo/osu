@@ -23,17 +23,17 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         public DrawableSliderHead HeadCircle => headContainer.Child;
         public DrawableSliderTail TailCircle => tailContainer.Child;
 
-        public readonly SliderBall Ball;
-        public readonly SkinnableDrawable Body;
+        public SliderBall Ball;
+        public SkinnableDrawable Body;
 
         public override bool DisplayResult => false;
 
         private PlaySliderBody sliderBody => Body.Drawable as PlaySliderBody;
 
-        private readonly Container<DrawableSliderHead> headContainer;
-        private readonly Container<DrawableSliderTail> tailContainer;
-        private readonly Container<DrawableSliderTick> tickContainer;
-        private readonly Container<DrawableSliderRepeat> repeatContainer;
+        private Container<DrawableSliderHead> headContainer;
+        private Container<DrawableSliderTail> tailContainer;
+        private Container<DrawableSliderTick> tickContainer;
+        private Container<DrawableSliderRepeat> repeatContainer;
 
         private readonly Slider slider;
 
@@ -47,28 +47,28 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             slider = s;
 
             Position = s.StackedPosition;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChildren = new Drawable[]
             {
                 Body = new SkinnableDrawable(new OsuSkinComponent(OsuSkinComponents.SliderBody), _ => new DefaultSliderBody(), confineMode: ConfineMode.NoScaling),
                 tailContainer = new Container<DrawableSliderTail> { RelativeSizeAxes = Axes.Both },
                 tickContainer = new Container<DrawableSliderTick> { RelativeSizeAxes = Axes.Both },
                 repeatContainer = new Container<DrawableSliderRepeat> { RelativeSizeAxes = Axes.Both },
-                Ball = new SliderBall(s, this)
+                Ball = new SliderBall(slider, this)
                 {
                     GetInitialHitAction = () => HeadCircle.HitAction,
                     BypassAutoSizeAxes = Axes.Both,
-                    Scale = new Vector2(s.Scale),
+                    Scale = new Vector2(slider.Scale),
                     AlwaysPresent = true,
                     Alpha = 0
                 },
                 headContainer = new Container<DrawableSliderHead> { RelativeSizeAxes = Axes.Both },
             };
-        }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             positionBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
             stackHeightBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
             scaleBindable.BindValueChanged(scale => Ball.Scale = new Vector2(scale.NewValue));

@@ -2,18 +2,21 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Graphics.Containers;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.UI;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
     public class DrawableOsuHitObject : DrawableHitObject<OsuHitObject>
     {
-        private readonly ShakeContainer shakeContainer;
+        private ShakeContainer shakeContainer;
 
         // Must be set to update IsHovered as it's used in relax mdo to detect osu hit objects.
         public override bool HandlePositionalInput => true;
@@ -26,16 +29,37 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         /// </summary>
         public Func<DrawableHitObject, double, bool> CheckHittable;
 
+        public readonly IBindable<int> IndexInCurrentComboBindable = new Bindable<int>();
+
         protected DrawableOsuHitObject(OsuHitObject hitObject)
             : base(hitObject)
         {
+        }
+
+        protected DrawableOsuHitObject()
+        {
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            Alpha = 0;
+
             base.AddInternal(shakeContainer = new ShakeContainer
             {
                 ShakeDuration = 30,
                 RelativeSizeAxes = Axes.Both
             });
+        }
 
-            Alpha = 0;
+        public override void Apply(HitObject hitObject)
+        {
+            if (HitObject != null)
+                IndexInCurrentComboBindable.UnbindFrom(HitObject.IndexInCurrentComboBindable);
+
+            base.Apply(hitObject);
+
+            IndexInCurrentComboBindable.BindTo(HitObject.IndexInCurrentComboBindable);
         }
 
         // Forward all internal management to shakeContainer.
