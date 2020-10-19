@@ -215,6 +215,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (Samples != null)
             {
                 RemoveInternal(Samples);
+                Samples.Dispose(); // Todo: Not like this.
                 Samples = null;
             }
 
