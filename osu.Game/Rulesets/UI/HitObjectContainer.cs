@@ -36,6 +36,16 @@ namespace osu.Game.Rulesets.UI
 
         public int IndexOf(DrawableHitObject hitObject) => IndexOfInternal(hitObject);
 
+        protected override int Compare(Drawable x, Drawable y)
+        {
+            if (!(x is DrawableHitObject xObj) || !(y is DrawableHitObject yObj))
+                return base.Compare(x, y);
+
+            // Put earlier hitobjects towards the end of the list, so they handle input first
+            int i = yObj.HitObject.StartTime.CompareTo(xObj.HitObject.StartTime);
+            return i == 0 ? CompareReverseChildID(x, y) : i;
+        }
+
         protected override void OnChildLifetimeBoundaryCrossed(LifetimeBoundaryCrossedEvent e)
         {
             if (!(e.Child is DrawableHitObject hitObject))
