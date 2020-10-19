@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -11,12 +13,12 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Objects.Drawables;
-using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Skinning;
 using osuTK.Graphics;
 using osu.Game.Skinning;
 using osuTK;
 using osu.Game.Graphics;
+using osu.Game.Rulesets.Objects.Types;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 {
@@ -30,14 +32,12 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             set => ball.Colour = value;
         }
 
-        private readonly Slider slider;
         private readonly Drawable followCircle;
-        private readonly DrawableSlider drawableSlider;
+        private readonly DrawableSlider slider;
         private readonly Drawable ball;
 
-        public SliderBall(Slider slider, DrawableSlider drawableSlider = null)
+        public SliderBall([NotNull] DrawableSlider slider)
         {
-            this.drawableSlider = drawableSlider;
             this.slider = slider;
 
             Origin = Anchor.Centre;
@@ -133,7 +133,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             if (headCircleHitAction == null)
                 timeToAcceptAnyKeyAfter = null;
 
-            var actions = drawableSlider?.OsuActionInputManager?.PressedActions;
+            var actions = slider.OsuActionInputManager?.PressedActions;
 
             // if the head circle was hit with a specific key, tracking should only occur while that key is pressed.
             if (headCircleHitAction != null && timeToAcceptAnyKeyAfter == null)
@@ -147,7 +147,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
             Tracking =
                 // in valid time range
-                Time.Current >= slider.StartTime && Time.Current < slider.EndTime &&
+                Time.Current >= slider.HitObject.StartTime && Time.Current < slider.HitObject.EndTime &&
                 // in valid position range
                 lastScreenSpaceMousePosition.HasValue && followCircle.ReceivePositionalInputAt(lastScreenSpaceMousePosition.Value) &&
                 // valid action
@@ -172,9 +172,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
         public void UpdateProgress(double completionProgress)
         {
-            var newPos = slider.CurvePositionAt(completionProgress);
+            Debug.Assert(slider.HitObject != null);
 
-            var diff = lastPosition.HasValue ? lastPosition.Value - newPos : newPos - slider.CurvePositionAt(completionProgress + 0.01f);
+            var newPos = slider.HitObject.CurvePositionAt(completionProgress);
+
+            var diff = lastPosition.HasValue ? lastPosition.Value - newPos : newPos - slider.HitObject.CurvePositionAt(completionProgress + 0.01f);
             if (diff == Vector2.Zero)
                 return;
 

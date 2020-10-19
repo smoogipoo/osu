@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -51,27 +52,28 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
         /// </summary>
         private Vector2 snakedPathOffset;
 
-        private Slider slider;
+        private DrawableSlider slider;
 
         [BackgroundDependencyLoader]
         private void load(DrawableHitObject drawableObject)
         {
-            slider = (Slider)drawableObject.HitObject;
-
+            slider = (DrawableSlider)drawableObject;
             Refresh();
         }
 
         public void UpdateProgress(double completionProgress)
         {
-            var span = slider.SpanAt(completionProgress);
-            var spanProgress = slider.ProgressAt(completionProgress);
+            Debug.Assert(slider.HitObject != null);
+
+            var span = slider.HitObject.SpanAt(completionProgress);
+            var spanProgress = slider.HitObject.ProgressAt(completionProgress);
 
             double start = 0;
-            double end = SnakingIn.Value ? Math.Clamp((Time.Current - (slider.StartTime - slider.TimePreempt)) / (slider.TimePreempt / 3), 0, 1) : 1;
+            double end = SnakingIn.Value ? Math.Clamp((Time.Current - (slider.HitObject.StartTime - slider.HitObject.TimePreempt)) / (slider.HitObject.TimePreempt / 3), 0, 1) : 1;
 
-            if (span >= slider.SpanCount() - 1)
+            if (span >= slider.HitObject.SpanCount() - 1)
             {
-                if (Math.Min(span, slider.SpanCount() - 1) % 2 == 1)
+                if (Math.Min(span, slider.HitObject.SpanCount() - 1) % 2 == 1)
                 {
                     start = 0;
                     end = SnakingOut.Value ? spanProgress : 1;
@@ -87,8 +89,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
         public void Refresh()
         {
+            if (slider?.HitObject == null)
+                return;
+
             // Generate the entire curve
-            slider.Path.GetPathToProgress(CurrentCurve, 0, 1);
+            slider.HitObject.Path.GetPathToProgress(CurrentCurve, 0, 1);
             SetVertices(CurrentCurve);
 
             // Force the body to be the final path size to avoid excessive autosize computations
@@ -124,6 +129,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
         private void setRange(double p0, double p1)
         {
+            Debug.Assert(slider.HitObject != null);
+
             if (p0 > p1)
                 (p0, p1) = (p1, p0);
 
@@ -132,7 +139,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
             SnakedStart = p0;
             SnakedEnd = p1;
 
-            slider.Path.GetPathToProgress(CurrentCurve, p0, p1);
+            slider.HitObject.Path.GetPathToProgress(CurrentCurve, p0, p1);
 
             SetVertices(CurrentCurve);
 

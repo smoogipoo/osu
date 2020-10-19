@@ -23,6 +23,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         public DrawableSliderHead HeadCircle => headContainer.Child;
         public DrawableSliderTail TailCircle => tailContainer.Child;
 
+        public new Slider HitObject => (Slider)base.HitObject;
+
+        public IBindable<int> PathVersion => pathVersion;
+        private readonly Bindable<int> pathVersion = new Bindable<int>();
+
         public SliderBall Ball;
         public SkinnableDrawable Body;
 
@@ -35,18 +40,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         private Container<DrawableSliderTick> tickContainer;
         private Container<DrawableSliderRepeat> repeatContainer;
 
-        private readonly Slider slider;
-
-        private readonly IBindable<Vector2> positionBindable = new Bindable<Vector2>();
-        private readonly IBindable<int> stackHeightBindable = new Bindable<int>();
-        private readonly IBindable<float> scaleBindable = new BindableFloat();
+        public DrawableSlider()
+        {
+        }
 
         public DrawableSlider(Slider s)
             : base(s)
         {
-            slider = s;
-
-            Position = s.StackedPosition;
         }
 
         [BackgroundDependencyLoader]
@@ -58,25 +58,19 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 tailContainer = new Container<DrawableSliderTail> { RelativeSizeAxes = Axes.Both },
                 tickContainer = new Container<DrawableSliderTick> { RelativeSizeAxes = Axes.Both },
                 repeatContainer = new Container<DrawableSliderRepeat> { RelativeSizeAxes = Axes.Both },
-                Ball = new SliderBall(slider, this)
+                Ball = new SliderBall(this)
                 {
                     GetInitialHitAction = () => HeadCircle.HitAction,
                     BypassAutoSizeAxes = Axes.Both,
-                    Scale = new Vector2(slider.Scale),
                     AlwaysPresent = true,
                     Alpha = 0
                 },
                 headContainer = new Container<DrawableSliderHead> { RelativeSizeAxes = Axes.Both },
             };
 
-            positionBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
-            stackHeightBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
-            scaleBindable.BindValueChanged(scale => Ball.Scale = new Vector2(scale.NewValue));
-
-            positionBindable.BindTo(HitObject.PositionBindable);
-            stackHeightBindable.BindTo(HitObject.StackHeightBindable);
-            scaleBindable.BindTo(HitObject.ScaleBindable);
-
+            PositionBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
+            StackHeightBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
+            ScaleBindable.BindValueChanged(scale => Ball.Scale = new Vector2(scale.NewValue));
             AccentColour.BindValueChanged(colour =>
             {
                 foreach (var drawableHitObject in NestedHitObjects)
@@ -84,6 +78,17 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             }, true);
 
             Tracking.BindValueChanged(updateSlidingSample);
+        }
+
+        public override void Apply(HitObject hitObject)
+        {
+            if (HitObject != null)
+                PathVersion.UnbindFrom(HitObject.Path.Version);
+
+            base.Apply(hitObject);
+
+            pathVersion.Value = int.MinValue;
+            PathVersion.BindTo(HitObject.Path.Version);
         }
 
         private PausableSkinnableSound slidingSample;
@@ -162,20 +167,20 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             switch (hitObject)
             {
                 case SliderTailCircle tail:
-                    return new DrawableSliderTail(slider, tail);
+                    return new DrawableSliderTail(HitObject, tail);
 
                 case SliderHeadCircle head:
-                    return new DrawableSliderHead(slider, head)
+                    return new DrawableSliderHead(HitObject, head)
                     {
                         OnShake = Shake,
                         CheckHittable = (d, t) => CheckHittable?.Invoke(d, t) ?? true
                     };
 
                 case SliderTick tick:
-                    return new DrawableSliderTick(tick) { Position = tick.Position - slider.Position };
+                    return new DrawableSliderTick(tick) { Position = tick.Position - HitObject.Position };
 
                 case SliderRepeat repeat:
-                    return new DrawableSliderRepeat(repeat, this) { Position = repeat.Position - slider.Position };
+                    return new DrawableSliderRepeat(repeat, this) { Position = repeat.Position - HitObject.Position };
             }
 
             return base.CreateNestedHitObject(hitObject);
@@ -200,14 +205,14 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 // keep the sliding sample playing at the current tracking position
                 slidingSample.Balance.Value = CalculateSamplePlaybackBalance(Ball.X / OsuPlayfield.BASE_SIZE.X);
 
-            double completionProgress = Math.Clamp((Time.Current - slider.StartTime) / slider.Duration, 0, 1);
+            double completionProgress = Math.Clamp((Time.Current - HitObject.StartTime) / HitObject.Duration, 0, 1);
 
             Ball.UpdateProgress(completionProgress);
             sliderBody?.UpdateProgress(completionProgress);
 
             foreach (DrawableHitObject hitObject in NestedHitObjects)
             {
-                if (hitObject is ITrackSnaking s) s.UpdateSnakingPosition(slider.Path.PositionAt(sliderBody?.SnakedStart ?? 0), slider.Path.PositionAt(sliderBody?.SnakedEnd ?? 0));
+                if (hitObject is ITrackSnaking s) s.UpdateSnakingPosition(HitObject.Path.PositionAt(sliderBody?.SnakedStart ?? 0), HitObject.Path.PositionAt(sliderBody?.SnakedEnd ?? 0));
                 if (hitObject is IRequireTracking t) t.Tracking = Ball.Tracking;
             }
 
@@ -239,7 +244,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         protected override void CheckForResult(bool userTriggered, double timeOffset)
         {
-            if (userTriggered || Time.Current < slider.EndTime)
+            if (userTriggered || Time.Current < HitObject.EndTime)
                 return;
 
             ApplyResult(r => r.Type = r.Judgement.MaxResult);
@@ -260,7 +265,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             Ball.FadeIn();
             Ball.ScaleTo(HitObject.Scale);
 
-            using (BeginDelayedSequence(slider.Duration, true))
+            using (BeginDelayedSequence(HitObject.Duration, true))
             {
                 const float fade_out_time = 450;
 
