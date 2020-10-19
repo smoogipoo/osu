@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -15,13 +16,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 {
     public class SpinnerRotationTracker : CircularContainer
     {
-        private readonly Spinner spinner;
-
         public override bool IsPresent => true; // handle input when hidden
 
-        public SpinnerRotationTracker(Spinner s)
+        private readonly DrawableSpinner drawableSpinner;
+
+        public SpinnerRotationTracker(DrawableSpinner drawableSpinner)
         {
-            spinner = s;
+            this.drawableSpinner = drawableSpinner;
 
             RelativeSizeAxes = Axes.Both;
         }
@@ -64,7 +65,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
         /// <summary>
         /// Whether currently in the correct time range to allow spinning.
         /// </summary>
-        private bool isSpinnableTime => spinner.StartTime <= Time.Current && spinner.EndTime > Time.Current;
+        private bool isSpinnableTime => drawableSpinner.HitObject.StartTime <= Time.Current && drawableSpinner.HitObject.EndTime > Time.Current;
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
@@ -94,6 +95,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
 
             lastAngle = thisAngle;
 
+            Debug.Assert(drawableSpinner.HitObject != null);
+
             IsSpinning.Value = isSpinnableTime && Math.Abs(currentRotation / 2 - Rotation) > 5f;
 
             Rotation = (float)Interpolation.Damp(Rotation, currentRotation / 2, 0.99, Math.Abs(Time.Elapsed));
@@ -108,6 +111,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Pieces
         /// <param name="angle">The delta angle.</param>
         public void AddRotation(float angle)
         {
+            Debug.Assert(drawableSpinner.HitObject != null);
+
             if (!isSpinnableTime)
                 return;
 

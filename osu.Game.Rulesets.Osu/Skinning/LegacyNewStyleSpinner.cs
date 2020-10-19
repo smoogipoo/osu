@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Drawables;
-using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
 using osuTK;
@@ -79,20 +79,20 @@ namespace osu.Game.Rulesets.Osu.Skinning
             if (!(drawableHitObject is DrawableSpinner))
                 return;
 
-            var spinner = (Spinner)drawableSpinner.HitObject;
+            Debug.Assert(drawableHitObject.HitObject != null);
 
-            using (BeginAbsoluteSequence(spinner.StartTime - spinner.TimePreempt, true))
+            using (BeginAbsoluteSequence(drawableSpinner.HitObject.StartTime - drawableSpinner.HitObject.TimePreempt, true))
                 this.FadeOut();
 
-            using (BeginAbsoluteSequence(spinner.StartTime - spinner.TimeFadeIn / 2, true))
-                this.FadeInFromZero(spinner.TimeFadeIn / 2);
+            using (BeginAbsoluteSequence(drawableSpinner.HitObject.StartTime - drawableSpinner.HitObject.TimeFadeIn / 2, true))
+                this.FadeInFromZero(drawableSpinner.HitObject.TimeFadeIn / 2);
 
-            using (BeginAbsoluteSequence(spinner.StartTime - spinner.TimePreempt, true))
+            using (BeginAbsoluteSequence(drawableSpinner.HitObject.StartTime - drawableSpinner.HitObject.TimePreempt, true))
             {
                 fixedMiddle.FadeColour(Color4.White);
 
-                using (BeginDelayedSequence(spinner.TimePreempt, true))
-                    fixedMiddle.FadeColour(Color4.Red, spinner.Duration);
+                using (BeginDelayedSequence(drawableSpinner.HitObject.TimePreempt, true))
+                    fixedMiddle.FadeColour(Color4.Red, drawableSpinner.HitObject.Duration);
             }
         }
 

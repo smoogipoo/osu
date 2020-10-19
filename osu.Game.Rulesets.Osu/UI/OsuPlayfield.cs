@@ -165,7 +165,7 @@ namespace osu.Game.Rulesets.Osu.UI
         {
             private readonly DrawablePool<DrawableHitCircle> hitCirclePool = new DrawablePool<DrawableHitCircle>(10, 100);
             private readonly DrawablePool<DrawableSlider> sliderPool = new DrawablePool<DrawableSlider>(10, 100);
-            private readonly DrawablePool<DrawableHitCircle> spinnerPool = new DrawablePool<DrawableHitCircle>(2, 20);
+            private readonly DrawablePool<DrawableSpinner> spinnerPool = new DrawablePool<DrawableSpinner>(2, 20);
 
             protected override void LoadComplete()
             {
@@ -186,9 +186,8 @@ namespace osu.Game.Rulesets.Osu.UI
                     case Slider _:
                         return sliderPool.Get(d => d.Apply(hitObject));
 
-                    case Spinner spinner:
-                        return new DrawableSpinner(spinner);
-                    // return spinnerPool.Get(d => d.Apply(hitObject));
+                    case Spinner _:
+                        return spinnerPool.Get(d => d.Apply(hitObject));
                 }
 
                 throw new InvalidOperationException("Invalid hitobject type!");

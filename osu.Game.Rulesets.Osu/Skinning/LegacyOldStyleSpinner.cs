@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -97,13 +98,13 @@ namespace osu.Game.Rulesets.Osu.Skinning
             if (!(drawableHitObject is DrawableSpinner))
                 return;
 
-            var spinner = drawableSpinner.HitObject;
+            Debug.Assert(drawableHitObject.HitObject != null);
 
-            using (BeginAbsoluteSequence(spinner.StartTime - spinner.TimePreempt, true))
+            using (BeginAbsoluteSequence(drawableSpinner.HitObject.StartTime - drawableSpinner.HitObject.TimePreempt, true))
                 this.FadeOut();
 
-            using (BeginAbsoluteSequence(spinner.StartTime - spinner.TimeFadeIn / 2, true))
-                this.FadeInFromZero(spinner.TimeFadeIn / 2);
+            using (BeginAbsoluteSequence(drawableSpinner.HitObject.StartTime - drawableSpinner.HitObject.TimeFadeIn / 2, true))
+                this.FadeInFromZero(drawableSpinner.HitObject.TimeFadeIn / 2);
         }
 
         protected override void Update()
