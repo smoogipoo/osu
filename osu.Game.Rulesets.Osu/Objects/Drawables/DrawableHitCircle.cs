@@ -4,13 +4,11 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Game.Rulesets.Judgements;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Osu.Objects.Drawables.Pieces;
@@ -23,10 +21,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
     public class DrawableHitCircle : DrawableOsuHitObject, IDrawableHitObjectWithProxiedApproach
     {
         public ApproachCircle ApproachCircle { get; private set; }
-
-        private readonly IBindable<Vector2> positionBindable = new Bindable<Vector2>();
-        private readonly IBindable<int> stackHeightBindable = new Bindable<int>();
-        private readonly IBindable<float> scaleBindable = new BindableFloat();
 
         public OsuAction? HitAction => HitArea.HitAction;
 
@@ -84,9 +78,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             Size = HitArea.DrawSize;
 
-            positionBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
-            stackHeightBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
-            scaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue));
+            PositionBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
+            StackHeightBindable.BindValueChanged(_ => Position = HitObject.StackedPosition);
+            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue));
             AccentColour.BindValueChanged(accent => ApproachCircle.Colour = accent.NewValue);
         }
 
@@ -95,22 +89,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.LoadComplete();
 
             inputManager = GetContainingInputManager();
-        }
-
-        public override void Apply(HitObject hitObject)
-        {
-            if (HitObject != null)
-            {
-                positionBindable.UnbindFrom(HitObject.PositionBindable);
-                stackHeightBindable.UnbindFrom(HitObject.StackHeightBindable);
-                scaleBindable.UnbindFrom(HitObject.ScaleBindable);
-            }
-
-            base.Apply(hitObject);
-
-            positionBindable.BindTo(HitObject.PositionBindable);
-            stackHeightBindable.BindTo(HitObject.StackHeightBindable);
-            scaleBindable.BindTo(HitObject.ScaleBindable);
         }
 
         public override double LifetimeStart

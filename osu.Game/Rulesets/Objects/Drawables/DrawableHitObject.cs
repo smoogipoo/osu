@@ -95,10 +95,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </remarks>
         protected virtual float SamplePlaybackPosition => 0.5f;
 
-        private readonly BindableList<HitSampleInfo> samplesBindable = new BindableList<HitSampleInfo>();
+        public readonly BindableList<HitSampleInfo> SamplesBindable = new BindableList<HitSampleInfo>();
         public readonly Bindable<double> StartTimeBindable = new Bindable<double>();
+        public readonly Bindable<int> ComboIndexBindable = new Bindable<int>();
         private readonly Bindable<bool> userPositionalHitSounds = new Bindable<bool>();
-        private readonly Bindable<int> comboIndexBindable = new Bindable<int>();
 
         public override bool RemoveWhenNotAlive => false;
         public override bool RemoveCompletedTransforms => false;
@@ -138,8 +138,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
             base.LoadComplete();
 
             StartTimeBindable.BindValueChanged(_ => updateState(State.Value, true));
-            comboIndexBindable.BindValueChanged(_ => updateComboColour(), true);
-            samplesBindable.BindCollectionChanged((_, __) => LoadSamples(), true);
+            ComboIndexBindable.BindValueChanged(_ => updateComboColour(), true);
+            SamplesBindable.BindCollectionChanged((_, __) => LoadSamples(), true);
 
             updateState(ArmedState.Idle, true);
         }
@@ -150,8 +150,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
             {
                 StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
                 if (HitObject is IHasComboInformation combo)
-                    comboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
-                samplesBindable.UnbindFrom(hitObject.SamplesBindable);
+                    ComboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
+                SamplesBindable.UnbindFrom(hitObject.SamplesBindable);
             }
 
             HitObject = hitObject;
@@ -181,8 +181,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             StartTimeBindable.BindTo(hitObject.StartTimeBindable);
             if (HitObject is IHasComboInformation combo1)
-                comboIndexBindable.BindTo(combo1.ComboIndexBindable);
-            samplesBindable.BindTo(hitObject.SamplesBindable);
+                ComboIndexBindable.BindTo(combo1.ComboIndexBindable);
+            SamplesBindable.BindTo(hitObject.SamplesBindable);
         }
 
         /// <summary>

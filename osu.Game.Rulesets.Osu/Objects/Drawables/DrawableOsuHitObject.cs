@@ -11,6 +11,7 @@ using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.UI;
+using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
@@ -29,6 +30,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         /// </summary>
         public Func<DrawableHitObject, double, bool> CheckHittable;
 
+        public readonly IBindable<Vector2> PositionBindable = new Bindable<Vector2>();
+        public readonly IBindable<int> StackHeightBindable = new Bindable<int>();
+        public readonly IBindable<float> ScaleBindable = new BindableFloat();
         public readonly IBindable<int> IndexInCurrentComboBindable = new Bindable<int>();
 
         protected DrawableOsuHitObject(OsuHitObject hitObject)
@@ -55,11 +59,19 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         public override void Apply(HitObject hitObject)
         {
             if (HitObject != null)
+            {
                 IndexInCurrentComboBindable.UnbindFrom(HitObject.IndexInCurrentComboBindable);
+                PositionBindable.UnbindFrom(HitObject.PositionBindable);
+                StackHeightBindable.UnbindFrom(HitObject.StackHeightBindable);
+                ScaleBindable.UnbindFrom(HitObject.ScaleBindable);
+            }
 
             base.Apply(hitObject);
 
             IndexInCurrentComboBindable.BindTo(HitObject.IndexInCurrentComboBindable);
+            PositionBindable.BindTo(HitObject.PositionBindable);
+            StackHeightBindable.BindTo(HitObject.StackHeightBindable);
+            ScaleBindable.BindTo(HitObject.ScaleBindable);
         }
 
         // Forward all internal management to shakeContainer.
