@@ -75,11 +75,12 @@ namespace osu.Game.Rulesets.Osu.UI
                 poolDictionary.Add(result, new DrawableJudgementPool(result));
 
             AddRangeInternal(poolDictionary.Values);
+
+            OnNewResult += onNewResult;
         }
 
         public override void Add(DrawableHitObject h)
         {
-            h.OnNewResult += onNewResult;
             h.OnLoadComplete += d =>
             {
                 if (d is DrawableSpinner)
