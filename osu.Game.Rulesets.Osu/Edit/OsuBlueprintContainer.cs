@@ -1,21 +1,21 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.Spinners;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
+using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Compose.Components;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
     public class OsuBlueprintContainer : ComposeBlueprintContainer
     {
-        public OsuBlueprintContainer(IEnumerable<DrawableHitObject> drawableHitObjects)
-            : base(drawableHitObjects)
+        public OsuBlueprintContainer(Playfield playfield)
+            : base(playfield)
         {
         }
 

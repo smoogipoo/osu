@@ -16,7 +16,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Edit.Tools;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
-using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
@@ -69,8 +68,8 @@ namespace osu.Game.Rulesets.Osu.Edit
             updateDistanceSnapGrid();
         }
 
-        protected override ComposeBlueprintContainer CreateBlueprintContainer(IEnumerable<DrawableHitObject> hitObjects)
-            => new OsuBlueprintContainer(hitObjects);
+        protected override ComposeBlueprintContainer CreateBlueprintContainer(Playfield playfield)
+            => new OsuBlueprintContainer(playfield);
 
         private DistanceSnapGrid distanceSnapGrid;
         private Container distanceSnapGridContainer;

@@ -17,6 +17,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
+using osu.Game.Rulesets.UI;
 using osuTK;
 using osuTK.Input;
 
@@ -44,12 +45,14 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected EditorBeatmap Beatmap { get; private set; }
 
         private readonly BindableList<HitObject> selectedHitObjects = new BindableList<HitObject>();
+        private readonly Playfield playfield;
 
         [Resolved(canBeNull: true)]
         private IPositionSnapProvider snapProvider { get; set; }
 
-        protected BlueprintContainer()
+        protected BlueprintContainer(Playfield playfield)
         {
+            this.playfield = playfield;
             RelativeSizeAxes = Axes.Both;
         }
 
@@ -68,8 +71,11 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 DragBox.CreateProxy().With(p => p.Depth = float.MinValue)
             });
 
-            foreach (var obj in Beatmap.HitObjects)
-                AddBlueprintFor(obj);
+            if (playfield != null)
+            {
+                foreach (var obj in playfield.CurrentObjects)
+                    AddBlueprintFor(obj.HitObject);
+            }
 
             selectedHitObjects.BindTo(Beatmap.SelectedHitObjects);
             selectedHitObjects.CollectionChanged += (selectedObjects, args) =>
@@ -96,6 +102,12 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             Beatmap.HitObjectAdded += AddBlueprintFor;
             Beatmap.HitObjectRemoved += removeBlueprintFor;
+
+            if (playfield != null)
+            {
+                playfield.HitObjectEnteredCurrent += d => AddBlueprintFor(d.HitObject);
+                playfield.HitObjectExitedCurrent += d => removeBlueprintFor(d.HitObject);
+            }
         }
 
         protected virtual Container<SelectionBlueprint> CreateSelectionBlueprintContainer() =>

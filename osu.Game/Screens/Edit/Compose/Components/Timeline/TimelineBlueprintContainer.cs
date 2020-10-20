@@ -32,6 +32,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         private SelectionBlueprint placementBlueprint;
 
         public TimelineBlueprintContainer()
+            : base(null)
         {
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;

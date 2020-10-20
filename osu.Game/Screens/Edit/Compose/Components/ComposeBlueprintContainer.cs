@@ -17,6 +17,7 @@ using osu.Game.Rulesets.Edit.Tools;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
+using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osuTK;
 
@@ -38,11 +39,12 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         private InputManager inputManager;
 
-        private readonly IEnumerable<DrawableHitObject> drawableHitObjects;
+        private readonly Playfield playfield;
 
-        public ComposeBlueprintContainer(IEnumerable<DrawableHitObject> drawableHitObjects)
+        public ComposeBlueprintContainer(Playfield playfield)
+            : base(playfield)
         {
-            this.drawableHitObjects = drawableHitObjects;
+            this.playfield = playfield;
 
             placementBlueprintContainer = new Container<PlacementBlueprint>
             {
@@ -186,7 +188,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         protected sealed override SelectionBlueprint CreateBlueprintFor(HitObject hitObject)
         {
-            var drawable = drawableHitObjects.FirstOrDefault(d => d.HitObject == hitObject);
+            var drawable = playfield.CurrentObjects.FirstOrDefault(d => d.HitObject == hitObject);
 
             if (drawable == null)
                 return null;

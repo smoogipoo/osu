@@ -59,6 +59,38 @@ namespace osu.Game.Rulesets.UI
         }
 
         /// <summary>
+        /// Invoked when a <see cref="DrawableHitObject"/> becomes "current".
+        /// </summary>
+        /// <remarks>
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become alive.
+        /// </remarks>
+        public event Action<DrawableHitObject> HitObjectEnteredCurrent;
+
+        /// <summary>
+        /// Invoked when a <see cref="DrawableHitObject"/> becomes "not current".
+        /// </summary>
+        /// <remarks>
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become dead.
+        /// </remarks>
+        public event Action<DrawableHitObject> HitObjectExitedCurrent;
+
+        public IEnumerable<DrawableHitObject> CurrentObjects
+        {
+            get
+            {
+                if (HitObjectContainer == null)
+                    return Enumerable.Empty<DrawableHitObject>();
+
+                var enumerable = HitObjectContainer.CurrentObjects;
+
+                if (nestedPlayfields.IsValueCreated)
+                    enumerable = enumerable.Concat(NestedPlayfields.SelectMany(p => p.CurrentObjects));
+
+                return enumerable;
+            }
+        }
+
+        /// <summary>
         /// All <see cref="Playfield"/>s nested inside this <see cref="Playfield"/>.
         /// </summary>
         public IEnumerable<Playfield> NestedPlayfields => nestedPlayfields.IsValueCreated ? nestedPlayfields.Value : Enumerable.Empty<Playfield>();
@@ -81,6 +113,8 @@ namespace osu.Game.Rulesets.UI
             {
                 h.OnNewResult += (d, r) => OnNewResult?.Invoke(d, r);
                 h.OnRevertResult += (d, r) => OnRevertResult?.Invoke(d, r);
+                h.HitObjectEnteredCurrent += d => HitObjectEnteredCurrent?.Invoke(d);
+                h.HitObjectExitedCurrent += d => HitObjectExitedCurrent?.Invoke(d);
             }));
         }
 
@@ -142,6 +176,9 @@ namespace osu.Game.Rulesets.UI
         protected void AddNested(Playfield otherPlayfield)
         {
             otherPlayfield.DisplayJudgements.BindTo(DisplayJudgements);
+            otherPlayfield.HitObjectEnteredCurrent += d => HitObjectEnteredCurrent?.Invoke(d);
+            otherPlayfield.HitObjectExitedCurrent += d => HitObjectExitedCurrent?.Invoke(d);
+
             nestedPlayfields.Value.Add(otherPlayfield);
         }
 

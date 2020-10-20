@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects.Drawables;
-using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.UI;
@@ -28,8 +27,8 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
         }
 
-        public override DrawableHitObject<OsuHitObject> CreateDrawableRepresentation(OsuHitObject h)
-            => base.CreateDrawableRepresentation(h)?.With(d => d.ApplyCustomUpdateState += updateState);
+        // public override DrawableHitObject<OsuHitObject> CreateDrawableRepresentation(OsuHitObject h)
+        //     => base.CreateDrawableRepresentation(h)?.With(d => d.ApplyCustomUpdateState += updateState);
 
         private void updateState(DrawableHitObject hitObject, ArmedState state)
         {

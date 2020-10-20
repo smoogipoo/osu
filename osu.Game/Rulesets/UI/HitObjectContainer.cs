@@ -22,6 +22,27 @@ namespace osu.Game.Rulesets.UI
         public event Action<DrawableHitObject, JudgementResult> OnNewResult;
         public event Action<DrawableHitObject, JudgementResult> OnRevertResult;
 
+        /// <summary>
+        /// Invoked when a <see cref="DrawableHitObject"/> becomes "current".
+        /// </summary>
+        /// <remarks>
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become alive.
+        /// </remarks>
+        public event Action<DrawableHitObject> HitObjectEnteredCurrent;
+
+        /// <summary>
+        /// Invoked when a <see cref="DrawableHitObject"/> becomes "not current".
+        /// </summary>
+        /// <remarks>
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become dead.
+        /// </remarks>
+        public event Action<DrawableHitObject> HitObjectExitedCurrent;
+
+        /// <summary>
+        /// The list of all "current" <see cref="DrawableHitObject"/>s. See <see cref="HitObjectEnteredCurrent"/> for more information.
+        /// </summary>
+        public IEnumerable<DrawableHitObject> CurrentObjects => InternalChildren.OfType<DrawableHitObject>().Reverse();
+
         private readonly Dictionary<DrawableHitObject, (IBindable<double> bindable, double timeAtAdd)> startTimeMap = new Dictionary<DrawableHitObject, (IBindable<double>, double)>();
         private readonly Dictionary<HitObjectLifetimeEntry, DrawableHitObject> drawableMap = new Dictionary<HitObjectLifetimeEntry, DrawableHitObject>();
         private readonly LifetimeManager lifetimeManager = new LifetimeManager();
@@ -86,6 +107,8 @@ namespace osu.Game.Rulesets.UI
             bindStartTime(drawable, true);
 
             AddInternalAlwaysAlive(drawableMap[entry] = drawable);
+
+            HitObjectEnteredCurrent?.Invoke(drawable);
         }
 
         private void removeDrawable(HitObjectLifetimeEntry entry)
@@ -106,6 +129,8 @@ namespace osu.Game.Rulesets.UI
 
             // Unbind start time last for the comparer to remain ordered during the removal.
             unbindStartTime(drawable);
+
+            HitObjectExitedCurrent?.Invoke(drawable);
         }
 
         private void onRevertResult(DrawableHitObject d, JudgementResult r) => OnRevertResult?.Invoke(d, r);
@@ -186,10 +211,18 @@ namespace osu.Game.Rulesets.UI
             if (!(e.Child is DrawableHitObject hitObject))
                 return;
 
-            if ((e.Kind == LifetimeBoundaryKind.End && e.Direction == LifetimeBoundaryCrossingDirection.Forward)
-                || (e.Kind == LifetimeBoundaryKind.Start && e.Direction == LifetimeBoundaryCrossingDirection.Backward))
+            switch (e.Kind)
             {
-                hitObject.OnKilled();
+                case LifetimeBoundaryKind.Start when e.Direction == LifetimeBoundaryCrossingDirection.Forward:
+                case LifetimeBoundaryKind.End when e.Direction == LifetimeBoundaryCrossingDirection.Backward:
+                    HitObjectEnteredCurrent?.Invoke(hitObject);
+                    break;
+
+                case LifetimeBoundaryKind.End when e.Direction == LifetimeBoundaryCrossingDirection.Forward:
+                case LifetimeBoundaryKind.Start when e.Direction == LifetimeBoundaryCrossingDirection.Backward:
+                    hitObject.OnKilled();
+                    HitObjectExitedCurrent?.Invoke(hitObject);
+                    break;
             }
         }
 
