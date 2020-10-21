@@ -151,7 +151,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
                 if (HitObject is IHasComboInformation combo)
                     ComboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
-                SamplesBindable.UnbindFrom(hitObject.SamplesBindable);
+                SamplesBindable.UnbindFrom(HitObject.SamplesBindable);
             }
 
             HitObject = hitObject;
