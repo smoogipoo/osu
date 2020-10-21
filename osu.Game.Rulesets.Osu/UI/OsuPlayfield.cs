@@ -79,23 +79,6 @@ namespace osu.Game.Rulesets.Osu.UI
             OnNewResult += onNewResult;
         }
 
-        public override void Add(DrawableHitObject h)
-        {
-            h.OnLoadComplete += d =>
-            {
-                if (d is DrawableSpinner)
-                    spinnerProxies.Add(d.CreateProxy());
-
-                if (d is IDrawableHitObjectWithProxiedApproach c)
-                    approachCircles.Add(c.ProxiedLayer.CreateProxy());
-            };
-
-            base.Add(h);
-
-            DrawableOsuHitObject osuHitObject = (DrawableOsuHitObject)h;
-            osuHitObject.CheckHittable = hitPolicy.IsHittable;
-        }
-
         public override void Add(HitObject h)
         {
             var osuObject = (OsuHitObject)h;
@@ -150,7 +133,7 @@ namespace osu.Game.Rulesets.Osu.UI
             }
         }
 
-        protected override HitObjectContainer CreateHitObjectContainer() => new OsuHitObjectContainer();
+        protected override HitObjectContainer CreateHitObjectContainer() => new OsuHitObjectContainer(this);
 
         private class OsuHitObjectLifetimeEntry : HitObjectLifetimeEntry
         {
@@ -163,9 +146,16 @@ namespace osu.Game.Rulesets.Osu.UI
 
         private class OsuHitObjectContainer : HitObjectContainer
         {
-            private readonly DrawablePool<DrawableHitCircle> hitCirclePool = new DrawablePool<DrawableHitCircle>(10, 100);
-            private readonly DrawablePool<DrawableSlider> sliderPool = new DrawablePool<DrawableSlider>(10, 100);
-            private readonly DrawablePool<DrawableSpinner> spinnerPool = new DrawablePool<DrawableSpinner>(2, 20);
+            private readonly DrawablePool<DrawableHitCircle> hitCirclePool;
+            private readonly DrawablePool<DrawableSlider> sliderPool;
+            private readonly DrawablePool<DrawableSpinner> spinnerPool;
+
+            public OsuHitObjectContainer(OsuPlayfield playfield)
+            {
+                hitCirclePool = new OsuDrawablePool<DrawableHitCircle>(playfield, 10, 100);
+                sliderPool = new OsuDrawablePool<DrawableSlider>(playfield, 10, 100);
+                spinnerPool = new OsuDrawablePool<DrawableSpinner>(playfield, 2, 20);
+            }
 
             protected override void LoadComplete()
             {
@@ -192,6 +182,38 @@ namespace osu.Game.Rulesets.Osu.UI
 
                 throw new InvalidOperationException("Invalid hitobject type!");
             }
+        }
+
+        private class OsuDrawablePool<T> : DrawablePool<T>
+            where T : PoolableDrawable, new()
+        {
+            private readonly OsuPlayfield playfield;
+
+            public OsuDrawablePool(OsuPlayfield playfield, int initialSize, int? maximumSize = null)
+                : base(initialSize, maximumSize)
+            {
+                this.playfield = playfield;
+            }
+
+            protected override T CreateNewDrawable() => base.CreateNewDrawable().With(o =>
+            {
+                var osuObject = (DrawableOsuHitObject)(object)o;
+
+                osuObject.CheckHittable = playfield.hitPolicy.IsHittable;
+                osuObject.OnLoadComplete += d =>
+                {
+                    switch (d)
+                    {
+                        case DrawableSpinner _:
+                            playfield.spinnerProxies.Add(d.CreateProxy());
+                            break;
+
+                        case IDrawableHitObjectWithProxiedApproach approach:
+                            playfield.approachCircles.Add(approach.ProxiedLayer.CreateProxy());
+                            break;
+                    }
+                };
+            });
         }
     }
 }
