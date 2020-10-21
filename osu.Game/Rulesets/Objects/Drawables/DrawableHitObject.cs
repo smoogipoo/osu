@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
@@ -139,7 +140,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             StartTimeBindable.BindValueChanged(_ => updateState(State.Value, true));
             ComboIndexBindable.BindValueChanged(_ => updateComboColour(), true);
-            SamplesBindable.BindCollectionChanged((_, __) => LoadSamples(), true);
 
             updateState(ArmedState.Idle, true);
         }
@@ -151,7 +151,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
                 if (HitObject is IHasComboInformation combo)
                     ComboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
+
                 SamplesBindable.UnbindFrom(HitObject.SamplesBindable);
+                SamplesBindable.CollectionChanged -= onSamplesChanged; // Stop needless sample updates until as late as possible
             }
 
             HitObject = hitObject;
@@ -182,7 +184,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
             StartTimeBindable.BindTo(hitObject.StartTimeBindable);
             if (HitObject is IHasComboInformation combo1)
                 ComboIndexBindable.BindTo(combo1.ComboIndexBindable);
+
             SamplesBindable.BindTo(hitObject.SamplesBindable);
+            SamplesBindable.BindCollectionChanged(onSamplesChanged, true);
         }
 
         /// <summary>
@@ -206,6 +210,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// <param name="hitObject">The <see cref="HitObject"/>.</param>
         /// <returns>The drawable representation for <paramref name="hitObject"/>.</returns>
         protected virtual DrawableHitObject CreateNestedHitObject(HitObject hitObject) => null;
+
+        private void onSamplesChanged(object sender, NotifyCollectionChangedEventArgs e) => LoadSamples();
 
         /// <summary>
         /// Invoked by the base <see cref="DrawableHitObject"/> to populate samples, once on initial load and potentially again on any change to the samples collection.
