@@ -94,21 +94,20 @@ namespace osu.Game.Rulesets.Osu.UI
 
             DrawableOsuHitObject osuHitObject = (DrawableOsuHitObject)h;
             osuHitObject.CheckHittable = hitPolicy.IsHittable;
-
-            followPoints.AddFollowPoints(osuHitObject);
         }
 
-        public override bool Remove(DrawableHitObject h)
+        public override void Add(HitObject h)
         {
-            bool result = base.Remove(h);
+            var osuObject = (OsuHitObject)h;
 
-            if (result)
-                followPoints.RemoveFollowPoints((DrawableOsuHitObject)h);
-
-            return result;
+            HitObjectContainer.Add(new OsuHitObjectLifetimeEntry(h));
+            followPoints.AddFollowPoints(osuObject);
         }
 
-        public override void Add(HitObject h) => HitObjectContainer.Add(new OsuHitObjectLifetimeEntry(h));
+        // Todo:
+        // public override void Remove(HitObject h)
+        // {
+        // }
 
         private void onNewResult(DrawableHitObject judgedObject, JudgementResult result)
         {

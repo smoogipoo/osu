@@ -31,19 +31,19 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
         /// The <see cref="DrawableOsuHitObject"/> which <see cref="FollowPoint"/>s will exit from.
         /// </summary>
         [NotNull]
-        public readonly DrawableOsuHitObject Start;
+        public readonly OsuHitObject Start;
 
         /// <summary>
         /// Creates a new <see cref="FollowPointConnection"/>.
         /// </summary>
         /// <param name="start">The <see cref="DrawableOsuHitObject"/> which <see cref="FollowPoint"/>s will exit from.</param>
-        public FollowPointConnection([NotNull] DrawableOsuHitObject start)
+        public FollowPointConnection([NotNull] OsuHitObject start)
         {
             Start = start;
 
             RelativeSizeAxes = Axes.Both;
 
-            StartTime.BindTo(Start.HitObject.StartTimeBindable);
+            StartTime.BindTo(start.StartTimeBindable);
         }
 
         protected override void LoadComplete()
@@ -52,13 +52,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
             bindEvents(Start);
         }
 
-        private DrawableOsuHitObject end;
+        private OsuHitObject end;
 
         /// <summary>
         /// The <see cref="DrawableOsuHitObject"/> which <see cref="FollowPoint"/>s will enter.
         /// </summary>
         [CanBeNull]
-        public DrawableOsuHitObject End
+        public OsuHitObject End
         {
             get => end;
             set
@@ -75,10 +75,10 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
             }
         }
 
-        private void bindEvents(DrawableOsuHitObject drawableObject)
+        private void bindEvents(OsuHitObject obj)
         {
-            drawableObject.HitObject.PositionBindable.BindValueChanged(_ => scheduleRefresh());
-            drawableObject.HitObject.DefaultsApplied += _ => scheduleRefresh();
+            obj.PositionBindable.BindValueChanged(_ => scheduleRefresh());
+            obj.DefaultsApplied += _ => scheduleRefresh();
         }
 
         private void scheduleRefresh()
@@ -88,12 +88,12 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
 
         private void refresh()
         {
-            OsuHitObject osuStart = Start.HitObject;
+            OsuHitObject osuStart = Start;
             double startTime = osuStart.GetEndTime();
 
             LifetimeStart = startTime;
 
-            OsuHitObject osuEnd = End?.HitObject;
+            OsuHitObject osuEnd = End;
 
             if (osuEnd == null || osuEnd.NewCombo || osuStart is Spinner || osuEnd is Spinner)
             {
