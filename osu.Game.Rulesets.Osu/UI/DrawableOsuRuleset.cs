@@ -42,6 +42,8 @@ namespace osu.Game.Rulesets.Osu.UI
 
         protected override ReplayRecorder CreateReplayRecorder(Replay replay) => new OsuReplayRecorder(replay);
 
+        protected override bool PoolHitObjects => true;
+
         protected override HitObjectLifetimeEntry CreateLifetimeEntry(OsuHitObject hitObject) => new OsuHitObjectLifetimeEntry(hitObject);
 
         public override double GameplayStartTime
