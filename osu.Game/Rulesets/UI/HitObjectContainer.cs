@@ -136,7 +136,7 @@ namespace osu.Game.Rulesets.UI
 
         private void bindStartTime(DrawableHitObject hitObject)
         {
-            var bindable = hitObject.HitObject.StartTimeBindable.GetBoundCopy();
+            var bindable = hitObject.StartTimeBindable.GetBoundCopy();
             bindable.BindValueChanged(_ => onStartTimeChanged(hitObject));
 
             startTimeMap[hitObject] = bindable;
