@@ -10,6 +10,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
@@ -111,6 +112,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         public IBindable<ArmedState> State => state;
 
+        private Container sampleContainer;
+
         public DrawableHitObject()
         {
         }
@@ -124,6 +127,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
         private void load(OsuConfigManager config)
         {
             config.BindWith(OsuSetting.PositionalHitSounds, userPositionalHitSounds);
+
+            base.AddInternal(sampleContainer = new Container { RelativeSizeAxes = Axes.Both });
         }
 
         protected override void LoadAsyncComplete()
@@ -218,12 +223,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         protected virtual void LoadSamples()
         {
-            if (Samples != null)
-            {
-                RemoveInternal(Samples);
-                Samples.Dispose(); // Todo: Not like this.
-                Samples = null;
-            }
+            sampleContainer.Clear();
+            Samples = null;
 
             var samples = GetSamples().ToArray();
 
@@ -236,8 +237,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                                                     + $" This is an indication that {nameof(HitObject.ApplyDefaults)} has not been invoked on {this}.");
             }
 
-            Samples = new PausableSkinnableSound(samples.Select(s => HitObject.SampleControlPoint.ApplyTo(s)));
-            AddInternal(Samples);
+            sampleContainer.Add(new PausableSkinnableSound(samples.Select(s => HitObject.SampleControlPoint.ApplyTo(s))));
         }
 
         #region State / Transform Management
