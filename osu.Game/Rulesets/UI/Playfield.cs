@@ -90,6 +90,36 @@ namespace osu.Game.Rulesets.UI
             }
         }
 
+        public double PastLifetimeExtension
+        {
+            get => HitObjectContainer.PastLifetimeExtension;
+            set
+            {
+                HitObjectContainer.PastLifetimeExtension = value;
+
+                if (nestedPlayfields.IsValueCreated)
+                {
+                    foreach (var p in nestedPlayfields.Value)
+                        p.PastLifetimeExtension = value;
+                }
+            }
+        }
+
+        public double FutureLifetimeExtension
+        {
+            get => HitObjectContainer.FutureLifetimeExtension;
+            set
+            {
+                HitObjectContainer.FutureLifetimeExtension = value;
+
+                if (nestedPlayfields.IsValueCreated)
+                {
+                    foreach (var p in nestedPlayfields.Value)
+                        p.FutureLifetimeExtension = value;
+                }
+            }
+        }
+
         /// <summary>
         /// All <see cref="Playfield"/>s nested inside this <see cref="Playfield"/>.
         /// </summary>

@@ -76,7 +76,7 @@ namespace osu.Game.Rulesets.UI
             unbindAllStartTimes();
         }
 
-        protected override bool CheckChildrenLife() => base.CheckChildrenLife() | lifetimeManager.Update(Time.Current);
+        protected override bool CheckChildrenLife() => base.CheckChildrenLife() | lifetimeManager.Update(Time.Current - PastLifetimeExtension, Time.Current + FutureLifetimeExtension);
 
         /// <summary>
         /// Retrieves the <see cref="DrawableHitObject"/> corresponding to a <see cref="HitObject"/>.

@@ -54,6 +54,8 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
         private Track track;
 
+        public double VisibleRange => track.Length / Zoom;
+
         public Timeline()
         {
             ZoomDuration = 200;

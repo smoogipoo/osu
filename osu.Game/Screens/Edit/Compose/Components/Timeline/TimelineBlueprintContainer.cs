@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Components.Timelines.Summary.Parts;
 using osuTK;
 using osuTK.Graphics;
@@ -25,15 +26,18 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         [Resolved]
         private EditorBeatmap beatmap { get; set; }
 
+        private readonly Playfield playfield;
+
         private DragEvent lastDragEvent;
 
         private Bindable<HitObject> placement;
 
         private SelectionBlueprint placementBlueprint;
 
-        public TimelineBlueprintContainer()
-            : base(null)
+        public TimelineBlueprintContainer(Playfield playfield)
+            : base(playfield)
         {
+            this.playfield = playfield;
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
@@ -97,6 +101,9 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             // trigger every frame so drags continue to update selection while playback is scrolling the timeline.
             if (lastDragEvent != null)
                 OnDrag(lastDragEvent);
+
+            playfield.PastLifetimeExtension = timeline.VisibleRange / 2;
+            playfield.FutureLifetimeExtension = timeline.VisibleRange / 2;
 
             base.Update();
         }
