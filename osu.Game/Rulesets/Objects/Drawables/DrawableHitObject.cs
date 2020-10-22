@@ -254,10 +254,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (State.Value == newState && !force)
                 return;
 
-            LifetimeStart = Math.Max(LifetimeStart, HitObject.StartTime - InitialLifetimeOffset);
+            LifetimeStart = Math.Max(realLifetimeStart, HitObject.StartTime - InitialLifetimeOffset);
             LifetimeEnd = double.MaxValue;
 
-            double transformTime = LifetimeStart;
+            double transformTime = realLifetimeStart;
 
             base.ApplyTransformsAt(double.MinValue, true);
             base.ClearTransformsAfter(double.MinValue, true);
@@ -271,7 +271,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 state.Value = newState;
             }
 
-            if (LifetimeEnd == double.MaxValue && (state.Value != ArmedState.Idle || HitObject.HitWindows == null))
+            if (realLifetimeEnd == double.MaxValue && (state.Value != ArmedState.Idle || HitObject.HitWindows == null))
                 Expire();
 
             // apply any custom state overrides
@@ -553,35 +553,49 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </remarks>
         protected virtual double InitialLifetimeOffset => 10000;
 
+        private bool keepAlive;
+
+        public bool KeepAlive
+        {
+            get => keepAlive;
+            set
+            {
+                keepAlive = value;
+                setLifetime(realLifetimeStart, realLifetimeEnd);
+            }
+        }
+
+        private double realLifetimeStart;
+
         public override double LifetimeStart
         {
             get => base.LifetimeStart;
-            set
-            {
-                if (base.LifetimeStart == value)
-                    return;
-
-                base.LifetimeStart = value;
-
-                // Transfer to the lifetime entry.
-                if (LifetimeEntry != null)
-                    LifetimeEntry.LifetimeStart = value;
-            }
+            set => setLifetime(realLifetimeStart = value, LifetimeEnd);
         }
+
+        private double realLifetimeEnd;
 
         public override double LifetimeEnd
         {
             get => base.LifetimeEnd;
-            set
+            set => setLifetime(LifetimeStart, realLifetimeEnd = value);
+        }
+
+        private void setLifetime(double start, double end)
+        {
+            if (keepAlive)
             {
-                if (base.LifetimeEnd == value)
-                    return;
+                start = double.MinValue;
+                end = double.MaxValue;
+            }
 
-                base.LifetimeEnd = value;
+            base.LifetimeStart = start;
+            base.LifetimeEnd = end;
 
-                // Transfer to the lifetime entry.
-                if (LifetimeEntry != null)
-                    LifetimeEntry.LifetimeEnd = value;
+            if (LifetimeEntry != null)
+            {
+                LifetimeEntry.LifetimeStart = start;
+                LifetimeEntry.LifetimeEnd = end;
             }
         }
 

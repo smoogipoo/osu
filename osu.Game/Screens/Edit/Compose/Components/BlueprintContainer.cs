@@ -386,12 +386,16 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             SelectionHandler.HandleSelected(blueprint);
             SelectionBlueprints.ChangeChildDepth(blueprint, 1);
+
+            playfield.AllHitObjects.Single(d => d.HitObject == blueprint.HitObject).KeepAlive = true;
         }
 
         private void onBlueprintDeselected(SelectionBlueprint blueprint)
         {
             SelectionHandler.HandleDeselected(blueprint);
             SelectionBlueprints.ChangeChildDepth(blueprint, 0);
+
+            playfield.AllHitObjects.Single(d => d.HitObject == blueprint.HitObject).KeepAlive = false;
         }
 
         #endregion
