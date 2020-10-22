@@ -254,23 +254,6 @@ namespace osu.Game.Rulesets.UI
             set => setLifetime(LifetimeStart, realLifetimeEnd = value);
         }
 
-        private bool keepAlive;
-
-        public bool KeepAlive
-        {
-            get => keepAlive;
-            set
-            {
-                if (keepAlive == value)
-                    return;
-
-                keepAlive = value;
-                setLifetime(realLifetimeStart, realLifetimeEnd);
-            }
-        }
-
-        protected virtual double InitialLifetimeOffset => 10000;
-
         private void setLifetime(double start, double end)
         {
             if (keepAlive)
@@ -282,6 +265,22 @@ namespace osu.Game.Rulesets.UI
             base.LifetimeStart = start;
             base.LifetimeEnd = end;
         }
+
+        private bool keepAlive;
+
+        internal bool KeepAlive
+        {
+            set
+            {
+                if (keepAlive == value)
+                    return;
+
+                keepAlive = value;
+                setLifetime(realLifetimeStart, realLifetimeEnd);
+            }
+        }
+
+        protected virtual double InitialLifetimeOffset => 10000;
 
         internal void UpdateLifetimeStart() => LifetimeStart = HitObject.StartTime - InitialLifetimeOffset;
     }
