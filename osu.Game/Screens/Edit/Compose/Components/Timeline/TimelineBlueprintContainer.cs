@@ -102,8 +102,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             if (lastDragEvent != null)
                 OnDrag(lastDragEvent);
 
-            playfield.PastLifetimeExtension = timeline.VisibleRange / 2;
-            playfield.FutureLifetimeExtension = timeline.VisibleRange / 2;
+            if (playfield != null)
+            {
+                playfield.PastLifetimeExtension = timeline.VisibleRange / 2;
+                playfield.FutureLifetimeExtension = timeline.VisibleRange / 2;
+            }
 
             base.Update();
         }
