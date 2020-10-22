@@ -210,7 +210,9 @@ namespace osu.Game.Rulesets.UI
                 AddHitObject(h);
             }
 
+#pragma warning disable 618
             Playfield.PostProcess();
+#pragma warning restore 618
 
             foreach (var mod in Mods.OfType<IApplicableToDrawableHitObjects>())
                 mod.ApplyToDrawableHitObjects(Playfield.AllHitObjects);

@@ -168,6 +168,7 @@ namespace osu.Game.Rulesets.UI
         /// <summary>
         /// Performs post-processing tasks (if any) after all DrawableHitObjects are loaded into this Playfield.
         /// </summary>
+        [Obsolete("Post-processing should be done on a per-case basis (e.g. via OnHitObjectAdded()) to account for pooling.")]
         public virtual void PostProcess() => NestedPlayfields.ForEach(p => p.PostProcess());
 
         /// <summary>

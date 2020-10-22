@@ -65,13 +65,19 @@ namespace osu.Game.Rulesets.Edit
         private void addHitObject(HitObject hitObject)
         {
             drawableRuleset.AddHitObject((TObject)hitObject);
+
+#pragma warning disable 618
             drawableRuleset.Playfield.PostProcess();
+#pragma warning restore 618
         }
 
         private void removeHitObject(HitObject hitObject)
         {
             drawableRuleset.RemoveHitObject((TObject)hitObject);
+
+#pragma warning disable 618
             drawableRuleset.Playfield.PostProcess();
+#pragma warning restore 618
         }
 
         public override bool PropagatePositionalInputSubTree => false;
