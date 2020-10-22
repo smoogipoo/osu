@@ -104,8 +104,8 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             if (playfield != null)
             {
-                playfield.PastLifetimeExtension = timeline.VisibleRange / 2;
-                playfield.FutureLifetimeExtension = timeline.VisibleRange / 2;
+                playfield.PastLifetimeExtension = timeline.VisibleRange;
+                playfield.FutureLifetimeExtension = timeline.VisibleRange;
             }
 
             base.Update();
