@@ -179,12 +179,18 @@ namespace osu.Game.Rulesets.UI
         {
             bindStartTime(hitObject);
             AddInternal(hitObject);
+
+            hitObject.OnNewResult += onNewResult;
+            hitObject.OnRevertResult += onRevertResult;
         }
 
         public virtual bool Remove(DrawableHitObject hitObject)
         {
             if (!RemoveInternal(hitObject))
                 return false;
+
+            hitObject.OnNewResult -= onNewResult;
+            hitObject.OnRevertResult -= onRevertResult;
 
             unbindStartTime(hitObject);
 

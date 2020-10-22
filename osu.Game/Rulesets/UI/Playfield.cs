@@ -201,10 +201,14 @@ namespace osu.Game.Rulesets.UI
             OnHitObjectAdded(entry.HitObject);
         }
 
-        public bool Remove(HitObjectLifetimeEntry entry)
+        public bool Remove(HitObject hitObject)
         {
-            HitObjectContainer.Remove(entry);
-            OnHitObjectRemoved(entry.HitObject);
+            if (lifetimeEntryMap.TryGetValue(hitObject, out var entry))
+                HitObjectContainer.Remove(entry);
+            else
+                Remove(AllHitObjects.SingleOrDefault(h => h.HitObject == hitObject));
+
+            OnHitObjectRemoved(hitObject);
             return true;
         }
 

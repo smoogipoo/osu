@@ -11,9 +11,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
@@ -189,7 +187,7 @@ namespace osu.Game.Rulesets.UI
 
             RegenerateAutoplay();
 
-            loadObjects(cancellationToken);
+            loadObjects(cancellationToken ?? CancellationToken.None);
         }
 
         public void RegenerateAutoplay()
@@ -199,34 +197,18 @@ namespace osu.Game.Rulesets.UI
             applyRulesetMods(Mods, config);
         }
 
+        protected virtual bool PoolHitObjects => false;
+
         /// <summary>
         /// Creates and adds drawable representations of hit objects to the play field.
         /// </summary>
-        private void loadObjects(CancellationToken? cancellationToken)
+        private void loadObjects(CancellationToken cancellationToken)
         {
-            var getMethod = GetType().GetMethod(nameof(CreateDrawableRepresentation), BindingFlags.Instance | BindingFlags.Public);
-            Debug.Assert(getMethod != null);
-
-            if (getMethod.DeclaringType == typeof(DrawableRuleset<TObject>))
+            foreach (var h in Beatmap.HitObjects)
             {
-                foreach (var h in Beatmap.HitObjects)
-                {
-                    cancellationToken?.ThrowIfCancellationRequested();
-                    Playfield.Add(CreateLifetimeEntry(h));
-                }
-
-                return;
+                cancellationToken.ThrowIfCancellationRequested();
+                AddHitObject(h);
             }
-
-            // Todo: Clean this up.
-
-            foreach (TObject h in Beatmap.HitObjects)
-            {
-                cancellationToken?.ThrowIfCancellationRequested();
-                addHitObject(h);
-            }
-
-            cancellationToken?.ThrowIfCancellationRequested();
 
             Playfield.PostProcess();
 
@@ -234,7 +216,17 @@ namespace osu.Game.Rulesets.UI
                 mod.ApplyToDrawableHitObjects(Playfield.AllHitObjects);
         }
 
-        protected virtual HitObjectLifetimeEntry CreateLifetimeEntry(HitObject hitObject) => new HitObjectLifetimeEntry(hitObject);
+        public void AddHitObject(TObject hitObject)
+        {
+            if (PoolHitObjects)
+                Playfield.Add(CreateLifetimeEntry(hitObject));
+            else
+                Playfield.Add(CreateDrawableRepresentation(hitObject));
+        }
+
+        public void RemoveHitObject(TObject hitObject) => Playfield.Remove(hitObject);
+
+        protected virtual HitObjectLifetimeEntry CreateLifetimeEntry(TObject hitObject) => new HitObjectLifetimeEntry(hitObject);
 
         public override void RequestResume(Action continueResume)
         {
@@ -252,23 +244,6 @@ namespace osu.Game.Rulesets.UI
         {
             // called if the user pauses while the resume overlay is open
             ResumeOverlay?.Hide();
-        }
-
-        /// <summary>
-        /// Creates and adds the visual representation of a <typeparamref name="TObject"/> to this <see cref="DrawableRuleset{TObject}"/>.
-        /// </summary>
-        /// <param name="hitObject">The <typeparamref name="TObject"/> to add the visual representation for.</param>
-        private void addHitObject(TObject hitObject)
-        {
-            var drawableObject = CreateDrawableRepresentation(hitObject);
-
-            if (drawableObject == null)
-                return;
-
-            drawableObject.OnNewResult += (_, r) => OnNewResult?.Invoke(r);
-            drawableObject.OnRevertResult += (_, r) => OnRevertResult?.Invoke(r);
-
-            Playfield.Add(drawableObject);
         }
 
         public override void SetRecordTarget(Replay recordingReplay)
