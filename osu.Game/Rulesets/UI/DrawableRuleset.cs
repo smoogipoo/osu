@@ -130,7 +130,7 @@ namespace osu.Game.Rulesets.UI
             playfield = new Lazy<Playfield>(() => CreatePlayfield().With(p =>
             {
                 p.OnNewResult += (_, r) => OnNewResult?.Invoke(r);
-                p.OnRevertResult += (_, r) => OnNewResult?.Invoke(r);
+                p.OnRevertResult += (_, r) => OnRevertResult?.Invoke(r);
             }));
 
             IsPaused.ValueChanged += paused =>
