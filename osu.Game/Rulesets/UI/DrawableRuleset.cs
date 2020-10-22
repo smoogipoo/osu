@@ -212,7 +212,7 @@ namespace osu.Game.Rulesets.UI
                 foreach (var h in Beatmap.HitObjects)
                 {
                     cancellationToken?.ThrowIfCancellationRequested();
-                    Playfield.Add(h);
+                    Playfield.Add(CreateLifetimeEntry(h));
                 }
 
                 return;
@@ -233,6 +233,8 @@ namespace osu.Game.Rulesets.UI
             foreach (var mod in Mods.OfType<IApplicableToDrawableHitObjects>())
                 mod.ApplyToDrawableHitObjects(Playfield.AllHitObjects);
         }
+
+        protected virtual HitObjectLifetimeEntry CreateLifetimeEntry(HitObject hitObject) => new HitObjectLifetimeEntry(hitObject);
 
         public override void RequestResume(Action continueResume)
         {

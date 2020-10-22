@@ -9,6 +9,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Input.Handlers;
 using osu.Game.Replays;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Replays;
@@ -41,6 +42,8 @@ namespace osu.Game.Rulesets.Osu.UI
 
         protected override ReplayRecorder CreateReplayRecorder(Replay replay) => new OsuReplayRecorder(replay);
 
+        protected override HitObjectLifetimeEntry CreateLifetimeEntry(HitObject hitObject) => new OsuHitObjectLifetimeEntry(hitObject);
+
         public override double GameplayStartTime
         {
             get
@@ -49,6 +52,15 @@ namespace osu.Game.Rulesets.Osu.UI
                     return first.StartTime - Math.Max(2000, first.TimePreempt);
 
                 return 0;
+            }
+        }
+
+        private class OsuHitObjectLifetimeEntry : HitObjectLifetimeEntry
+        {
+            public OsuHitObjectLifetimeEntry(HitObject hitObject)
+                : base(hitObject)
+            {
+                LifetimeStart = hitObject.StartTime - ((OsuHitObject)hitObject).TimePreempt;
             }
         }
     }

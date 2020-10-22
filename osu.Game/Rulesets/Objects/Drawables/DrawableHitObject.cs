@@ -254,10 +254,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (State.Value == newState && !force)
                 return;
 
-            LifetimeStart = Math.Max(realLifetimeStart, HitObject.StartTime - InitialLifetimeOffset);
+            LifetimeStart = Math.Max(LifetimeStart, HitObject.StartTime - InitialLifetimeOffset);
             LifetimeEnd = double.MaxValue;
 
-            double transformTime = realLifetimeStart;
+            double transformTime = LifetimeStart;
 
             base.ApplyTransformsAt(double.MinValue, true);
             base.ClearTransformsAfter(double.MinValue, true);
@@ -271,7 +271,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 state.Value = newState;
             }
 
-            if (realLifetimeEnd == double.MaxValue && (state.Value != ArmedState.Idle || HitObject.HitWindows == null))
+            if (LifetimeEnd == double.MaxValue && (state.Value != ArmedState.Idle || HitObject.HitWindows == null))
                 Expire();
 
             // apply any custom state overrides
@@ -553,42 +553,20 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </remarks>
         protected virtual double InitialLifetimeOffset => 10000;
 
-        private bool keepAlive;
-
-        public bool KeepAlive
-        {
-            get => keepAlive;
-            set
-            {
-                keepAlive = value;
-                setLifetime(realLifetimeStart, realLifetimeEnd);
-            }
-        }
-
-        private double realLifetimeStart;
-
         public override double LifetimeStart
         {
             get => base.LifetimeStart;
-            set => setLifetime(realLifetimeStart = value, LifetimeEnd);
+            set => setLifetime(value, LifetimeEnd);
         }
-
-        private double realLifetimeEnd;
 
         public override double LifetimeEnd
         {
             get => base.LifetimeEnd;
-            set => setLifetime(LifetimeStart, realLifetimeEnd = value);
+            set => setLifetime(LifetimeStart, value);
         }
 
         private void setLifetime(double start, double end)
         {
-            if (keepAlive)
-            {
-                start = double.MinValue;
-                end = double.MaxValue;
-            }
-
             base.LifetimeStart = start;
             base.LifetimeEnd = end;
 

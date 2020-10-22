@@ -244,5 +244,48 @@ namespace osu.Game.Rulesets.UI
             HitObject = hitObject;
             LifetimeStart = HitObject.StartTime;
         }
+
+        private double realLifetimeStart;
+
+        public new double LifetimeStart
+        {
+            get => realLifetimeStart;
+            set => UpdateLifetime(realLifetimeStart = value, LifetimeEnd);
+        }
+
+        private double realLifetimeEnd;
+
+        public new double LifetimeEnd
+        {
+            get => realLifetimeEnd;
+            set => UpdateLifetime(LifetimeStart, realLifetimeEnd = value);
+        }
+
+        private bool keepAlive;
+
+        public bool KeepAlive
+        {
+            get => keepAlive;
+            set
+            {
+                if (keepAlive == value)
+                    return;
+
+                keepAlive = value;
+                UpdateLifetime(realLifetimeStart, realLifetimeEnd);
+            }
+        }
+
+        public void UpdateLifetime(double start, double end)
+        {
+            if (keepAlive)
+            {
+                start = double.MinValue;
+                end = double.MaxValue;
+            }
+
+            base.LifetimeStart = start;
+            base.LifetimeEnd = end;
+        }
     }
 }

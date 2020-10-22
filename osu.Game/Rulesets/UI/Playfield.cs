@@ -174,15 +174,55 @@ namespace osu.Game.Rulesets.UI
         /// Adds a DrawableHitObject to this Playfield.
         /// </summary>
         /// <param name="h">The DrawableHitObject to add.</param>
-        public virtual void Add(DrawableHitObject h) => HitObjectContainer.Add(h);
+        public virtual void Add(DrawableHitObject h)
+        {
+            HitObjectContainer.Add(h);
+            OnHitObjectAdded(h.HitObject);
+        }
 
         /// <summary>
         /// Remove a DrawableHitObject from this Playfield.
         /// </summary>
         /// <param name="h">The DrawableHitObject to remove.</param>
-        public virtual bool Remove(DrawableHitObject h) => HitObjectContainer.Remove(h);
+        public virtual bool Remove(DrawableHitObject h)
+        {
+            if (!HitObjectContainer.Remove(h))
+                return false;
 
-        public virtual void Add(HitObject h) => HitObjectContainer.Add(new HitObjectLifetimeEntry(h));
+            OnHitObjectRemoved(h.HitObject);
+            return true;
+        }
+
+        private readonly Dictionary<HitObject, HitObjectLifetimeEntry> lifetimeEntryMap = new Dictionary<HitObject, HitObjectLifetimeEntry>();
+
+        public void Add(HitObjectLifetimeEntry entry)
+        {
+            HitObjectContainer.Add(lifetimeEntryMap[entry.HitObject] = entry);
+            OnHitObjectAdded(entry.HitObject);
+        }
+
+        public bool Remove(HitObjectLifetimeEntry entry)
+        {
+            HitObjectContainer.Remove(entry);
+            OnHitObjectRemoved(entry.HitObject);
+            return true;
+        }
+
+        public void SetKeepAlive(HitObject h, bool value)
+        {
+            if (!lifetimeEntryMap.TryGetValue(h, out var entry))
+                return;
+
+            entry.KeepAlive = value;
+        }
+
+        protected virtual void OnHitObjectAdded(HitObject hitObject)
+        {
+        }
+
+        protected virtual void OnHitObjectRemoved(HitObject hitObject)
+        {
+        }
 
         /// <summary>
         /// The cursor currently being used by this <see cref="Playfield"/>. May be null if no cursor is provided.

@@ -96,18 +96,9 @@ namespace osu.Game.Rulesets.Osu.UI
             config?.BindWith(OsuRulesetSetting.PlayfieldBorderStyle, playfieldBorder.PlayfieldBorderStyle);
         }
 
-        public override void Add(HitObject h)
-        {
-            var osuObject = (OsuHitObject)h;
+        protected override void OnHitObjectAdded(HitObject hitObject) => followPoints.AddFollowPoints((OsuHitObject)hitObject);
 
-            HitObjectContainer.Add(new OsuHitObjectLifetimeEntry(h));
-            followPoints.AddFollowPoints(osuObject);
-        }
-
-        // Todo:
-        // public override void Remove(HitObject h)
-        // {
-        // }
+        protected override void OnHitObjectRemoved(HitObject hitObject) => followPoints.RemoveFollowPoints((OsuHitObject)hitObject);
 
         private void onNewResult(DrawableHitObject judgedObject, JudgementResult result)
         {
@@ -151,15 +142,6 @@ namespace osu.Game.Rulesets.Osu.UI
         }
 
         protected override HitObjectContainer CreateHitObjectContainer() => new OsuHitObjectContainer(this);
-
-        private class OsuHitObjectLifetimeEntry : HitObjectLifetimeEntry
-        {
-            public OsuHitObjectLifetimeEntry(HitObject hitObject)
-                : base(hitObject)
-            {
-                LifetimeStart = hitObject.StartTime - ((OsuHitObject)hitObject).TimePreempt;
-            }
-        }
 
         private class OsuHitObjectContainer : HitObjectContainer
         {
