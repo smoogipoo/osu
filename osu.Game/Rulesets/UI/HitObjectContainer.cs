@@ -78,6 +78,8 @@ namespace osu.Game.Rulesets.UI
 
         protected override bool CheckChildrenLife() => base.CheckChildrenLife() | lifetimeManager.Update(Time.Current - PastLifetimeExtension, Time.Current + FutureLifetimeExtension);
 
+        #region Pooling support
+
         /// <summary>
         /// Retrieves the <see cref="DrawableHitObject"/> corresponding to a <see cref="HitObject"/>.
         /// </summary>
@@ -128,6 +130,8 @@ namespace osu.Game.Rulesets.UI
 
             HitObjectExitedCurrent?.Invoke(drawable);
         }
+
+        #endregion
 
         private void onRevertResult(DrawableHitObject d, JudgementResult r) => OnRevertResult?.Invoke(d, r);
         private void onNewResult(DrawableHitObject d, JudgementResult r) => OnNewResult?.Invoke(d, r);
