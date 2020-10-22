@@ -80,11 +80,15 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             Tracking.BindValueChanged(updateSlidingSample);
         }
 
+        protected override void FreeAfterUse()
+        {
+            PathVersion.UnbindFrom(HitObject.Path.Version);
+
+            base.FreeAfterUse();
+        }
+
         public override void Apply(HitObject hitObject)
         {
-            if (HitObject != null)
-                PathVersion.UnbindFrom(HitObject.Path.Version);
-
             base.Apply(hitObject);
 
             pathVersion.Value = int.MinValue;

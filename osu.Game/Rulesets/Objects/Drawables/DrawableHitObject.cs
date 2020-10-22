@@ -149,18 +149,22 @@ namespace osu.Game.Rulesets.Objects.Drawables
             updateState(ArmedState.Idle, true);
         }
 
+        protected override void FreeAfterUse()
+        {
+            StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
+            if (HitObject is IHasComboInformation combo)
+                ComboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
+
+            SamplesBindable.UnbindFrom(HitObject.SamplesBindable);
+            SamplesBindable.CollectionChanged -= onSamplesChanged; // Stop needless sample updates until as late as possible
+
+            HitObject = null;
+
+            base.FreeAfterUse();
+        }
+
         public virtual void Apply(HitObject hitObject)
         {
-            if (HitObject != null)
-            {
-                StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
-                if (HitObject is IHasComboInformation combo)
-                    ComboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
-
-                SamplesBindable.UnbindFrom(HitObject.SamplesBindable);
-                SamplesBindable.CollectionChanged -= onSamplesChanged; // Stop needless sample updates until as late as possible
-            }
-
             HitObject = hitObject;
 
             Result = CreateResult(hitObject.CreateJudgement())

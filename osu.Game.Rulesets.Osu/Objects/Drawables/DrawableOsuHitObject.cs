@@ -56,16 +56,18 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             });
         }
 
+        protected override void FreeAfterUse()
+        {
+            IndexInCurrentComboBindable.UnbindFrom(HitObject.IndexInCurrentComboBindable);
+            PositionBindable.UnbindFrom(HitObject.PositionBindable);
+            StackHeightBindable.UnbindFrom(HitObject.StackHeightBindable);
+            ScaleBindable.UnbindFrom(HitObject.ScaleBindable);
+
+            base.FreeAfterUse();
+        }
+
         public override void Apply(HitObject hitObject)
         {
-            if (HitObject != null)
-            {
-                IndexInCurrentComboBindable.UnbindFrom(HitObject.IndexInCurrentComboBindable);
-                PositionBindable.UnbindFrom(HitObject.PositionBindable);
-                StackHeightBindable.UnbindFrom(HitObject.StackHeightBindable);
-                ScaleBindable.UnbindFrom(HitObject.ScaleBindable);
-            }
-
             base.Apply(hitObject);
 
             IndexInCurrentComboBindable.BindTo(HitObject.IndexInCurrentComboBindable);
