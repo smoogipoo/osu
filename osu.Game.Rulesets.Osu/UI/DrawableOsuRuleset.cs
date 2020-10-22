@@ -60,8 +60,9 @@ namespace osu.Game.Rulesets.Osu.UI
             public OsuHitObjectLifetimeEntry(HitObject hitObject)
                 : base(hitObject)
             {
-                LifetimeStart = hitObject.StartTime - ((OsuHitObject)hitObject).TimePreempt;
             }
+
+            protected override double InitialLifetimeOffset => ((OsuHitObject)HitObject).TimePreempt;
         }
     }
 }

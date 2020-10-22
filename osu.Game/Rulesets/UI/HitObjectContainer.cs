@@ -43,7 +43,7 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         public IEnumerable<DrawableHitObject> CurrentObjects => InternalChildren.OfType<DrawableHitObject>().Reverse();
 
-        private readonly Dictionary<DrawableHitObject, (IBindable<double> bindable, double timeAtAdd)> startTimeMap = new Dictionary<DrawableHitObject, (IBindable<double>, double)>();
+        private readonly Dictionary<DrawableHitObject, IBindable> startTimeMap = new Dictionary<DrawableHitObject, IBindable>();
         private readonly Dictionary<HitObjectLifetimeEntry, DrawableHitObject> drawableMap = new Dictionary<HitObjectLifetimeEntry, DrawableHitObject>();
         private readonly LifetimeManager lifetimeManager = new LifetimeManager();
 
@@ -103,9 +103,7 @@ namespace osu.Game.Rulesets.UI
             drawable.OnNewResult += onNewResult;
             drawable.OnRevertResult += onRevertResult;
 
-            // Bind start time first for the comparer to remain ordered during the addition.
-            bindStartTime(drawable, true);
-
+            bindStartTime(drawable);
             AddInternalAlwaysAlive(drawableMap[entry] = drawable);
 
             HitObjectEnteredCurrent?.Invoke(drawable);
@@ -125,10 +123,8 @@ namespace osu.Game.Rulesets.UI
 
             drawableMap.Remove(entry);
 
-            RemoveInternal(drawable);
-
-            // Unbind start time last for the comparer to remain ordered during the removal.
             unbindStartTime(drawable);
+            RemoveInternal(drawable);
 
             HitObjectExitedCurrent?.Invoke(drawable);
         }
@@ -138,37 +134,31 @@ namespace osu.Game.Rulesets.UI
 
         #region Comparator + StartTime tracking
 
-        private void bindStartTime(DrawableHitObject hitObject, bool poolable)
+        private void bindStartTime(DrawableHitObject hitObject)
         {
-            startTimeMap[hitObject] = (hitObject.HitObject.StartTimeBindable.GetBoundCopy(), hitObject.HitObject.StartTime);
-            startTimeMap[hitObject].bindable.BindValueChanged(_ => onStartTimeChanged(hitObject, poolable));
+            var bindable = hitObject.HitObject.StartTimeBindable.GetBoundCopy();
+            bindable.BindValueChanged(_ => onStartTimeChanged(hitObject));
+
+            startTimeMap[hitObject] = bindable;
         }
 
         private void unbindStartTime(DrawableHitObject hitObject)
         {
-            startTimeMap[hitObject].bindable.UnbindAll();
+            startTimeMap[hitObject].UnbindAll();
             startTimeMap.Remove(hitObject);
         }
 
         private void unbindAllStartTimes()
         {
             foreach (var kvp in startTimeMap)
-                kvp.Value.bindable.UnbindAll();
+                kvp.Value.UnbindAll();
             startTimeMap.Clear();
         }
 
-        private void onStartTimeChanged(DrawableHitObject hitObject, bool pooled)
+        private void onStartTimeChanged(DrawableHitObject hitObject)
         {
-            if (!RemoveInternal(hitObject))
-                return;
-
-            // Update the stored time, preserving the existing bindable
-            startTimeMap[hitObject] = (startTimeMap[hitObject].bindable, hitObject.HitObject.StartTime);
-
-            if (pooled)
-                AddInternalAlwaysAlive(hitObject);
-            else
-                AddInternal(hitObject);
+            hitObject.LifetimeEntry?.UpdateLifetimeStart();
+            SortInternal();
         }
 
         protected override int Compare(Drawable x, Drawable y)
@@ -177,7 +167,7 @@ namespace osu.Game.Rulesets.UI
                 return base.Compare(x, y);
 
             // Put earlier hitobjects towards the end of the list, so they handle input first
-            int i = startTimeMap[yObj].timeAtAdd.CompareTo(startTimeMap[xObj].timeAtAdd);
+            int i = yObj.HitObject.StartTime.CompareTo(xObj.HitObject.StartTime);
             return i == 0 ? CompareReverseChildID(x, y) : i;
         }
 
@@ -187,9 +177,7 @@ namespace osu.Game.Rulesets.UI
 
         public virtual void Add(DrawableHitObject hitObject)
         {
-            // Bind start time first for the comparer to remain ordered during the addition.
-            bindStartTime(hitObject, false);
-
+            bindStartTime(hitObject);
             AddInternal(hitObject);
         }
 
@@ -198,7 +186,6 @@ namespace osu.Game.Rulesets.UI
             if (!RemoveInternal(hitObject))
                 return false;
 
-            // Unbind start time last for the comparer to remain ordered during the removal.
             unbindStartTime(hitObject);
 
             return true;
@@ -242,7 +229,7 @@ namespace osu.Game.Rulesets.UI
         public HitObjectLifetimeEntry(HitObject hitObject)
         {
             HitObject = hitObject;
-            LifetimeStart = HitObject.StartTime;
+            UpdateLifetimeStart();
         }
 
         private double realLifetimeStart;
@@ -250,7 +237,7 @@ namespace osu.Game.Rulesets.UI
         public new double LifetimeStart
         {
             get => realLifetimeStart;
-            set => UpdateLifetime(realLifetimeStart = value, LifetimeEnd);
+            set => setLifetime(realLifetimeStart = value, LifetimeEnd);
         }
 
         private double realLifetimeEnd;
@@ -258,7 +245,7 @@ namespace osu.Game.Rulesets.UI
         public new double LifetimeEnd
         {
             get => realLifetimeEnd;
-            set => UpdateLifetime(LifetimeStart, realLifetimeEnd = value);
+            set => setLifetime(LifetimeStart, realLifetimeEnd = value);
         }
 
         private bool keepAlive;
@@ -272,11 +259,13 @@ namespace osu.Game.Rulesets.UI
                     return;
 
                 keepAlive = value;
-                UpdateLifetime(realLifetimeStart, realLifetimeEnd);
+                setLifetime(realLifetimeStart, realLifetimeEnd);
             }
         }
 
-        public void UpdateLifetime(double start, double end)
+        protected virtual double InitialLifetimeOffset => 10000;
+
+        private void setLifetime(double start, double end)
         {
             if (keepAlive)
             {
@@ -287,5 +276,7 @@ namespace osu.Game.Rulesets.UI
             base.LifetimeStart = start;
             base.LifetimeEnd = end;
         }
+
+        internal void UpdateLifetimeStart() => LifetimeStart = HitObject.StartTime - InitialLifetimeOffset;
     }
 }
