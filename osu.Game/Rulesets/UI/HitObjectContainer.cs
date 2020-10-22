@@ -126,8 +126,8 @@ namespace osu.Game.Rulesets.UI
 
         #endregion
 
-        private void onRevertResult(DrawableHitObject d, JudgementResult r) => OnRevertResult?.Invoke(d, r);
         private void onNewResult(DrawableHitObject d, JudgementResult r) => OnNewResult?.Invoke(d, r);
+        private void onRevertResult(DrawableHitObject d, JudgementResult r) => OnRevertResult?.Invoke(d, r);
 
         #region Comparator + StartTime tracking
 

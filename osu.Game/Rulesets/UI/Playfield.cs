@@ -257,6 +257,9 @@ namespace osu.Game.Rulesets.UI
         protected void AddNested(Playfield otherPlayfield)
         {
             otherPlayfield.DisplayJudgements.BindTo(DisplayJudgements);
+
+            otherPlayfield.OnNewResult += (d, r) => OnNewResult?.Invoke(d, r);
+            otherPlayfield.OnRevertResult += (d, r) => OnRevertResult?.Invoke(d, r);
             otherPlayfield.HitObjectEnteredCurrent += d => HitObjectEnteredCurrent?.Invoke(d);
             otherPlayfield.HitObjectExitedCurrent += d => HitObjectExitedCurrent?.Invoke(d);
 
