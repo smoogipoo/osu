@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Judgements;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 
 namespace osu.Game.Rulesets.UI
@@ -47,6 +47,9 @@ namespace osu.Game.Rulesets.UI
         private readonly Dictionary<HitObjectLifetimeEntry, DrawableHitObject> drawableMap = new Dictionary<HitObjectLifetimeEntry, DrawableHitObject>();
         private readonly LifetimeManager lifetimeManager = new LifetimeManager();
 
+        [Resolved(CanBeNull = true)]
+        private DrawableRuleset drawableRuleset { get; set; }
+
         public HitObjectContainer()
         {
             RelativeSizeAxes = Axes.Both;
@@ -80,16 +83,6 @@ namespace osu.Game.Rulesets.UI
 
         #region Pooling support
 
-        /// <summary>
-        /// Retrieves the <see cref="DrawableHitObject"/> corresponding to a <see cref="HitObject"/>.
-        /// </summary>
-        /// <remarks>
-        /// Implementation of this is only required for hitobjects added through <see cref="Add(HitObjectLifetimeEntry)"/>.
-        /// </remarks>
-        /// <param name="hitObject">The <see cref="HitObject"/> to retrieve the drawable form of.</param>
-        /// <returns>The <see cref="DrawableHitObject"/>.</returns>
-        protected virtual DrawableHitObject GetDrawableFor(HitObject hitObject) => null;
-
         private void onBecomeAlive(LifetimeEntry entry) => addDrawable((HitObjectLifetimeEntry)entry);
 
         private void onBecomeDead(LifetimeEntry entry) => removeDrawable((HitObjectLifetimeEntry)entry);
@@ -98,7 +91,7 @@ namespace osu.Game.Rulesets.UI
         {
             Debug.Assert(!drawableMap.ContainsKey(entry));
 
-            var drawable = GetDrawableFor(entry.HitObject);
+            var drawable = drawableRuleset.CreateDrawableRepresentation(entry.HitObject);
             Debug.Assert(drawable.LifetimeEntry == null);
 
             drawable.LifetimeEntry = entry;

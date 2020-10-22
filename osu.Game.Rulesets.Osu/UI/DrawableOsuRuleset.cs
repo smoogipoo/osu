@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics.Pooling;
 using osu.Framework.Input;
 using osu.Game.Beatmaps;
 using osu.Game.Input.Handlers;
@@ -12,6 +14,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Objects;
+using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Replays;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
@@ -23,10 +26,27 @@ namespace osu.Game.Rulesets.Osu.UI
     {
         protected new OsuRulesetConfigManager Config => (OsuRulesetConfigManager)base.Config;
 
+        public new OsuPlayfield Playfield => (OsuPlayfield)base.Playfield;
+
         public DrawableOsuRuleset(Ruleset ruleset, IBeatmap beatmap, IReadOnlyList<Mod> mods = null)
             : base(ruleset, beatmap, mods)
         {
         }
+
+        protected override bool PoolHitObjects => true;
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            RegisterPool<HitCircle, DrawableHitCircle>(10, 100);
+            RegisterPool<Slider, DrawableSlider>(10, 100);
+            RegisterPool<Spinner, DrawableSpinner>(2, 20);
+        }
+
+        protected override DrawablePool<TDrawable> CreatePool<TDrawable>(int initialSize, int? maximumSize = null)
+            => new OsuDrawablePool<TDrawable>(Playfield.CheckHittable, Playfield.OnHitObjectLoaded, initialSize, maximumSize);
+
+        protected override HitObjectLifetimeEntry CreateLifetimeEntry(OsuHitObject hitObject) => new OsuHitObjectLifetimeEntry(hitObject);
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true; // always show the gameplay cursor
 
@@ -41,10 +61,6 @@ namespace osu.Game.Rulesets.Osu.UI
         protected override ReplayInputHandler CreateReplayInputHandler(Replay replay) => new OsuFramedReplayInputHandler(replay);
 
         protected override ReplayRecorder CreateReplayRecorder(Replay replay) => new OsuReplayRecorder(replay);
-
-        protected override bool PoolHitObjects => true;
-
-        protected override HitObjectLifetimeEntry CreateLifetimeEntry(OsuHitObject hitObject) => new OsuHitObjectLifetimeEntry(hitObject);
 
         public override double GameplayStartTime
         {

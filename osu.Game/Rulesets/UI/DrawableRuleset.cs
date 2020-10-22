@@ -16,6 +16,7 @@ using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Pooling;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Game.Configuration;
@@ -197,8 +198,6 @@ namespace osu.Game.Rulesets.UI
             applyRulesetMods(Mods, config);
         }
 
-        protected virtual bool PoolHitObjects => false;
-
         /// <summary>
         /// Creates and adds drawable representations of hit objects to the play field.
         /// </summary>
@@ -285,6 +284,9 @@ namespace osu.Game.Rulesets.UI
             }
         }
 
+        public sealed override DrawableHitObject CreateDrawableRepresentation(HitObject hitObject)
+            => base.CreateDrawableRepresentation(hitObject) ?? CreateDrawableRepresentation((TObject)hitObject);
+
         /// <summary>
         /// Creates a DrawableHitObject from a HitObject.
         /// </summary>
@@ -365,6 +367,7 @@ namespace osu.Game.Rulesets.UI
     /// Once IDrawable is a thing, this can also become an interface.
     /// </remarks>
     /// </summary>
+    [Cached(typeof(DrawableRuleset))]
     public abstract class DrawableRuleset : CompositeDrawable
     {
         /// <summary>
@@ -501,6 +504,31 @@ namespace osu.Game.Rulesets.UI
         /// Invoked when the user requests to pause while the resume overlay is active.
         /// </summary>
         public abstract void CancelResume();
+
+        protected virtual bool PoolHitObjects => false;
+
+        private readonly Dictionary<Type, IDrawablePool> pools = new Dictionary<Type, IDrawablePool>();
+
+        protected void RegisterPool<TObject, TDrawable>(int initialSize, int? maximumSize = null)
+            where TObject : HitObject
+            where TDrawable : DrawableHitObject, new()
+        {
+            var pool = CreatePool<TDrawable>(initialSize, maximumSize);
+            pools[typeof(TObject)] = pool;
+            AddInternal(pool);
+        }
+
+        protected virtual DrawablePool<TDrawable> CreatePool<TDrawable>(int initialSize, int? maximumSize = null)
+            where TDrawable : DrawableHitObject, new()
+            => new DrawablePool<TDrawable>(initialSize, maximumSize);
+
+        public virtual DrawableHitObject CreateDrawableRepresentation(HitObject hitObject)
+        {
+            if (pools.TryGetValue(hitObject.GetType(), out var pool))
+                return (DrawableHitObject)pool.Get(d => ((DrawableHitObject)d).Apply(hitObject));
+
+            return null;
+        }
     }
 
     public class BeatmapInvalidForRulesetException : ArgumentException
