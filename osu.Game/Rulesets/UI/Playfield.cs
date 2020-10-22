@@ -213,12 +213,18 @@ namespace osu.Game.Rulesets.UI
             return true;
         }
 
-        public void SetKeepAlive(HitObject h, bool value)
+        public void SetKeepAlive(HitObject hitObject, bool value)
         {
-            if (!lifetimeEntryMap.TryGetValue(h, out var entry))
+            if (!lifetimeEntryMap.TryGetValue(hitObject, out var entry))
                 return;
 
             entry.KeepAlive = value;
+        }
+
+        public void KeepAllAlive()
+        {
+            foreach (var (_, entry) in lifetimeEntryMap)
+                entry.KeepAlive = true;
         }
 
         protected virtual void OnHitObjectAdded(HitObject hitObject)

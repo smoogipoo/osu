@@ -373,8 +373,13 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// </summary>
         private void selectAll()
         {
-            SelectionBlueprints.ToList().ForEach(m => m.Select());
-            SelectionHandler.UpdateVisibility();
+            playfield.KeepAllAlive();
+
+            Schedule(() =>
+            {
+                SelectionBlueprints.ToList().ForEach(m => m.Select());
+                SelectionHandler.UpdateVisibility();
+            });
         }
 
         /// <summary>
