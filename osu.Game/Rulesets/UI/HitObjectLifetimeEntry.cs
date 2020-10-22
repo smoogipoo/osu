@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.UI
             UpdateLifetimeStart();
         }
 
-        private double realLifetimeStart;
+        private double realLifetimeStart = double.MinValue;
 
         public new double LifetimeStart
         {
@@ -24,7 +24,7 @@ namespace osu.Game.Rulesets.UI
             set => setLifetime(realLifetimeStart = value, LifetimeEnd);
         }
 
-        private double realLifetimeEnd;
+        private double realLifetimeEnd = double.MaxValue;
 
         public new double LifetimeEnd
         {
