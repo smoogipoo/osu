@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 
 namespace osu.Game.Rulesets.UI
@@ -9,6 +10,8 @@ namespace osu.Game.Rulesets.UI
     public class HitObjectLifetimeEntry : LifetimeEntry
     {
         public readonly HitObject HitObject;
+
+        internal JudgementResult Result;
 
         public HitObjectLifetimeEntry(HitObject hitObject)
         {

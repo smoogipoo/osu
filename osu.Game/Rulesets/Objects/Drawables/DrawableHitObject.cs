@@ -590,12 +590,19 @@ namespace osu.Game.Rulesets.Objects.Drawables
             {
                 lifetimeEntry = value;
 
+                if (value == null)
+                    return;
+
                 // Transfer lifetime from the entry.
-                if (value != null)
-                {
-                    LifetimeStart = value.LifetimeStart;
-                    LifetimeEnd = value.LifetimeEnd;
-                }
+                LifetimeStart = value.LifetimeStart;
+                LifetimeEnd = value.LifetimeEnd;
+
+                // If the entry has a result, use it (required for rewind / reverting results).
+                // Otherwise, store the local result to the entry for potential future retrieval.
+                if (value.Result != null)
+                    Result = value.Result;
+                else
+                    value.Result = Result;
             }
         }
     }
