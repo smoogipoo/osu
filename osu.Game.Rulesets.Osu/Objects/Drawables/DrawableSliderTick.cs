@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osuTK;
@@ -25,18 +24,21 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         private SkinnableDrawable scaleContainer;
 
+        public DrawableSliderTick()
+        {
+        }
+
         public DrawableSliderTick(SliderTick sliderTick)
             : base(sliderTick)
         {
-            Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
-            Origin = Anchor.Centre;
         }
-
-        private readonly IBindable<float> scaleBindable = new BindableFloat();
 
         [BackgroundDependencyLoader]
         private void load()
         {
+            Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
+            Origin = Anchor.Centre;
+
             InternalChild = scaleContainer = new SkinnableDrawable(new OsuSkinComponent(OsuSkinComponents.SliderScorePoint), _ => new CircularContainer
             {
                 Masking = true,
@@ -56,8 +58,14 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 Origin = Anchor.Centre,
             };
 
-            scaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
-            scaleBindable.BindTo(HitObject.ScaleBindable);
+            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
+        }
+
+        public override void ApplyParent(DrawableHitObject parent)
+        {
+            base.ApplyParent(parent);
+
+            Position = HitObject.Position - ((DrawableSlider)parent).HitObject.Position;
         }
 
         protected override void CheckForResult(bool userTriggered, double timeOffset)

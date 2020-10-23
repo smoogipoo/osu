@@ -107,6 +107,13 @@ namespace osu.Game.Rulesets.Osu.UI
         {
             switch (drawable)
             {
+                case DrawableSliderHead _:
+                case DrawableSliderTail _:
+                case DrawableSliderTick _:
+                case DrawableSliderRepeat _:
+                case DrawableSpinnerTick _:
+                    break;
+
                 case DrawableSpinner _:
                     spinnerProxies.Add(drawable.CreateProxy());
                     break;

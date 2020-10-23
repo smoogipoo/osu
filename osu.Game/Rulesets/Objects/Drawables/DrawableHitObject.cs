@@ -114,6 +114,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         private Container sampleContainer;
 
+        [Resolved(CanBeNull = true)]
+        private DrawableRuleset drawableRuleset { get; set; }
+
         public DrawableHitObject()
         {
         }
@@ -158,6 +161,19 @@ namespace osu.Game.Rulesets.Objects.Drawables
             SamplesBindable.UnbindFrom(HitObject.SamplesBindable);
             SamplesBindable.CollectionChanged -= onSamplesChanged; // Stop needless sample updates until as late as possible
 
+            if (nestedHitObjects.IsValueCreated)
+            {
+                foreach (var obj in nestedHitObjects.Value)
+                {
+                    obj.OnNewResult -= onNewResult;
+                    obj.OnRevertResult -= onRevertResult;
+                    obj.ApplyCustomUpdateState -= applyCustomUpdateState;
+                }
+
+                nestedHitObjects.Value.Clear();
+                ClearNestedHitObjects();
+            }
+
             HitObject = null;
 
             base.FreeAfterUse();
@@ -179,20 +195,30 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             if (nestedHitObjects.IsValueCreated)
             {
+                foreach (var obj in nestedHitObjects.Value)
+                {
+                    obj.OnNewResult -= onNewResult;
+                    obj.OnRevertResult -= onRevertResult;
+                    obj.ApplyCustomUpdateState -= applyCustomUpdateState;
+                }
+
                 nestedHitObjects.Value.Clear();
                 ClearNestedHitObjects();
             }
 
             foreach (var h in hitObject.NestedHitObjects)
             {
-                var drawableNested = CreateNestedHitObject(h) ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
+                var obj = drawableRuleset.CreateDrawableRepresentation(h)
+                          ?? CreateNestedHitObject(h)
+                          ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
 
-                drawableNested.OnNewResult += (d, r) => OnNewResult?.Invoke(d, r);
-                drawableNested.OnRevertResult += (d, r) => OnRevertResult?.Invoke(d, r);
-                drawableNested.ApplyCustomUpdateState += (d, j) => ApplyCustomUpdateState?.Invoke(d, j);
+                obj.OnNewResult += onNewResult;
+                obj.OnRevertResult += onRevertResult;
+                obj.ApplyCustomUpdateState += applyCustomUpdateState;
+                obj.ApplyParent(this);
 
-                nestedHitObjects.Value.Add(drawableNested);
-                AddNestedHitObject(drawableNested);
+                nestedHitObjects.Value.Add(obj);
+                AddNestedHitObject(obj);
             }
 
             updateState(ArmedState.Idle, true);
@@ -203,6 +229,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             SamplesBindable.BindTo(hitObject.SamplesBindable);
             SamplesBindable.BindCollectionChanged(onSamplesChanged, true);
+        }
+
+        public virtual void ApplyParent(DrawableHitObject parent)
+        {
         }
 
         /// <summary>
@@ -226,6 +256,12 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// <param name="hitObject">The <see cref="HitObject"/>.</param>
         /// <returns>The drawable representation for <paramref name="hitObject"/>.</returns>
         protected virtual DrawableHitObject CreateNestedHitObject(HitObject hitObject) => null;
+
+        private void onNewResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnNewResult?.Invoke(drawableHitObject, result);
+
+        private void onRevertResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnRevertResult?.Invoke(drawableHitObject, result);
+
+        private void applyCustomUpdateState(DrawableHitObject drawableHitObject, ArmedState armedState) => ApplyCustomUpdateState?.Invoke(drawableHitObject, armedState);
 
         private void onSamplesChanged(object sender, NotifyCollectionChangedEventArgs e) => LoadSamples();
 

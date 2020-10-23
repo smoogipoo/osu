@@ -160,34 +160,10 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             base.ClearNestedHitObjects();
 
-            headContainer.Clear();
-            tailContainer.Clear();
-            repeatContainer.Clear();
-            tickContainer.Clear();
-        }
-
-        protected override DrawableHitObject CreateNestedHitObject(HitObject hitObject)
-        {
-            switch (hitObject)
-            {
-                case SliderTailCircle tail:
-                    return new DrawableSliderTail(HitObject, tail);
-
-                case SliderHeadCircle head:
-                    return new DrawableSliderHead(HitObject, head)
-                    {
-                        OnShake = Shake,
-                        CheckHittable = (d, t) => CheckHittable?.Invoke(d, t) ?? true
-                    };
-
-                case SliderTick tick:
-                    return new DrawableSliderTick(tick) { Position = tick.Position - HitObject.Position };
-
-                case SliderRepeat repeat:
-                    return new DrawableSliderRepeat(repeat, this) { Position = repeat.Position - HitObject.Position };
-            }
-
-            return base.CreateNestedHitObject(hitObject);
+            headContainer.Clear(false);
+            tailContainer.Clear(false);
+            repeatContainer.Clear(false);
+            tickContainer.Clear(false);
         }
 
         protected override void UpdateInitialTransforms()
@@ -196,6 +172,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             Body.FadeInFromZero(HitObject.TimeFadeIn);
         }
+
+        public new void Shake(double maximumLength) => base.Shake(maximumLength);
 
         public readonly Bindable<bool> Tracking = new Bindable<bool>();
 

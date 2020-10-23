@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Objects.Drawables;
@@ -14,8 +13,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
     public class DrawableSliderTail : DrawableOsuHitObject, IRequireTracking, ITrackSnaking
     {
-        private readonly SliderTailCircle tailCircle;
-
         /// <summary>
         /// The judgement text is provided by the <see cref="DrawableSlider"/>.
         /// </summary>
@@ -23,24 +20,26 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         public bool Tracking { get; set; }
 
-        private readonly IBindable<float> scaleBindable = new BindableFloat();
+        public new SliderTailCircle HitObject => (SliderTailCircle)base.HitObject;
 
         private SkinnableDrawable circlePiece;
-
         private Container scaleContainer;
 
-        public DrawableSliderTail(Slider slider, SliderTailCircle tailCircle)
+        public DrawableSliderTail()
+        {
+        }
+
+        public DrawableSliderTail(SliderTailCircle tailCircle)
             : base(tailCircle)
         {
-            this.tailCircle = tailCircle;
-            Origin = Anchor.Centre;
-
-            Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
+            Origin = Anchor.Centre;
+            Size = new Vector2(OsuHitObject.OBJECT_RADIUS * 2);
+
             InternalChildren = new Drawable[]
             {
                 scaleContainer = new Container
@@ -56,8 +55,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 },
             };
 
-            scaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
-            scaleBindable.BindTo(HitObject.ScaleBindable);
+            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
         }
 
         protected override void UpdateInitialTransforms()
@@ -99,6 +97,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         }
 
         public void UpdateSnakingPosition(Vector2 start, Vector2 end) =>
-            Position = tailCircle.RepeatIndex % 2 == 0 ? end : start;
+            Position = HitObject.RepeatIndex % 2 == 0 ? end : start;
     }
 }

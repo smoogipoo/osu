@@ -39,8 +39,16 @@ namespace osu.Game.Rulesets.Osu.UI
         private void load()
         {
             RegisterPool<HitCircle, DrawableHitCircle>(10, 100);
+
             RegisterPool<Slider, DrawableSlider>(10, 100);
+            RegisterPool<SliderHeadCircle, DrawableSliderHead>(10, 100);
+            RegisterPool<SliderTailCircle, DrawableSliderTail>(10, 100);
+            RegisterPool<SliderTick, DrawableSliderTick>(10, 100);
+            RegisterPool<SliderRepeat, DrawableSliderRepeat>(5, 50);
+
             RegisterPool<Spinner, DrawableSpinner>(2, 20);
+            RegisterPool<SpinnerTick, DrawableSpinnerTick>(10, 100);
+            RegisterPool<SpinnerBonusTick, DrawableSpinnerBonusTick>(10, 100);
         }
 
         protected override DrawablePool<TDrawable> CreatePool<TDrawable>(int initialSize, int? maximumSize = null)
