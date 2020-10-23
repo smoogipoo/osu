@@ -284,7 +284,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                                                     + $" This is an indication that {nameof(HitObject.ApplyDefaults)} has not been invoked on {this}.");
             }
 
-            sampleContainer.Add(new PausableSkinnableSound(samples.Select(s => HitObject.SampleControlPoint.ApplyTo(s))));
+            sampleContainer.Add(Samples = new PausableSkinnableSound(samples.Select(s => HitObject.SampleControlPoint.ApplyTo(s))));
         }
 
         #region State / Transform Management
