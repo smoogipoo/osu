@@ -168,6 +168,11 @@ namespace osu.Game.Rulesets.Objects
         /// </summary>
         [NotNull]
         protected virtual HitWindows CreateHitWindows() => new HitWindows();
+
+        /// <summary>
+        /// The <see cref="JudgementResult"/> achieved for this <see cref="HitObject"/>.
+        /// </summary>
+        internal JudgementResult Result;
     }
 
     public static class HitObjectExtensions

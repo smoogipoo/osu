@@ -167,8 +167,15 @@ namespace osu.Game.Rulesets.Objects.Drawables
         {
             HitObject = hitObject;
 
-            Result = CreateResult(hitObject.CreateJudgement())
-                     ?? throw new InvalidOperationException($"{GetType().ReadableName()} must provide a {nameof(JudgementResult)} through {nameof(CreateResult)}.");
+            // Copy any existing result from the hitobject (required for rewind / judgement revert).
+            Result = HitObject.Result;
+
+            // Ensure this DHO has a result.
+            Result ??= CreateResult(hitObject.CreateJudgement())
+                       ?? throw new InvalidOperationException($"{GetType().ReadableName()} must provide a {nameof(JudgementResult)} through {nameof(CreateResult)}.");
+
+            // Copy back the result to the hitobject for potential future retrieval.
+            HitObject.Result = Result;
 
             if (nestedHitObjects.IsValueCreated)
             {
@@ -596,13 +603,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 // Transfer lifetime from the entry.
                 LifetimeStart = value.LifetimeStart;
                 LifetimeEnd = value.LifetimeEnd;
-
-                // If the entry has a result, use it (required for rewind / reverting results).
-                // Otherwise, store the local result to the entry for potential future retrieval.
-                if (value.Result != null)
-                    Result = value.Result;
-                else
-                    value.Result = Result;
             }
         }
     }
