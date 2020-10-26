@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Performance;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Drawables;
 
@@ -43,9 +44,13 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         public IEnumerable<DrawableHitObject> CurrentObjects => InternalChildren.OfType<DrawableHitObject>().Reverse();
 
+        public double PastLifetimeExtension { get; set; }
+
+        public double FutureLifetimeExtension { get; set; }
+
         private readonly Dictionary<DrawableHitObject, IBindable> startTimeMap = new Dictionary<DrawableHitObject, IBindable>();
         private readonly Dictionary<HitObjectLifetimeEntry, DrawableHitObject> drawableMap = new Dictionary<HitObjectLifetimeEntry, DrawableHitObject>();
-        private readonly LifetimeManager lifetimeManager = new LifetimeManager();
+        private readonly LifetimeEntryManager lifetimeManager = new LifetimeEntryManager();
 
         [Resolved(CanBeNull = true)]
         private DrawableRuleset drawableRuleset { get; set; }
@@ -54,8 +59,8 @@ namespace osu.Game.Rulesets.UI
         {
             RelativeSizeAxes = Axes.Both;
 
-            lifetimeManager.OnBecomeAlive += onBecomeAlive;
-            lifetimeManager.OnBecomeDead += onBecomeDead;
+            lifetimeManager.EntryBecameAlive += entryBecameAlive;
+            lifetimeManager.EntryBecameDead += entryBecameDead;
         }
 
         public void Add(HitObjectLifetimeEntry entry) => lifetimeManager.AddEntry(entry);
@@ -83,9 +88,9 @@ namespace osu.Game.Rulesets.UI
 
         #region Pooling support
 
-        private void onBecomeAlive(LifetimeEntry entry) => addDrawable((HitObjectLifetimeEntry)entry);
+        private void entryBecameAlive(LifetimeEntry entry) => addDrawable((HitObjectLifetimeEntry)entry);
 
-        private void onBecomeDead(LifetimeEntry entry) => removeDrawable((HitObjectLifetimeEntry)entry);
+        private void entryBecameDead(LifetimeEntry entry) => removeDrawable((HitObjectLifetimeEntry)entry);
 
         private void addDrawable(HitObjectLifetimeEntry entry)
         {
@@ -99,7 +104,7 @@ namespace osu.Game.Rulesets.UI
             drawable.OnRevertResult += onRevertResult;
 
             bindStartTime(drawable);
-            AddInternalAlwaysAlive(drawableMap[entry] = drawable);
+            AddInternal(drawableMap[entry] = drawable, false);
 
             HitObjectEnteredCurrent?.Invoke(drawable);
         }
