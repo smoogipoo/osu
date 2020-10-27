@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
-using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
+using osu.Game.Rulesets.Osu.Objects.Drawables;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -23,20 +22,22 @@ namespace osu.Game.Rulesets.Osu.Mods
         private const double fade_in_duration_multiplier = 0.4;
         private const double fade_out_duration_multiplier = 0.3;
 
-        protected override bool IsFirstHideableObject(DrawableHitObject hitObject) => !(hitObject is DrawableSpinner);
+        protected override bool IsFirstHideableObject(HitObject hitObject) => hitObject is SliderHeadCircle || hitObject is HitCircle;
 
         public override void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
         {
-            static void adjustFadeIn(OsuHitObject h) => h.TimeFadeIn = h.TimePreempt * fade_in_duration_multiplier;
-
-            foreach (var d in drawables.OfType<DrawableOsuHitObject>())
-            {
-                adjustFadeIn(d.HitObject);
-                foreach (var h in d.HitObject.NestedHitObjects.OfType<OsuHitObject>())
-                    adjustFadeIn(h);
-            }
+            foreach (var d in drawables)
+                d.ApplyCustomUpdateState += applyFadeInAdjustment;
 
             base.ApplyToDrawableHitObjects(drawables);
+        }
+
+        private void applyFadeInAdjustment(DrawableHitObject drawable, ArmedState state)
+        {
+            if (!(drawable is DrawableOsuHitObject d))
+                return;
+
+            d.HitObject.TimeFadeIn = d.HitObject.TimePreempt * fade_in_duration_multiplier;
         }
 
         private double lastSliderHeadFadeOutStartTime;

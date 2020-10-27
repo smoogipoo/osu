@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Input;
@@ -93,11 +94,8 @@ namespace osu.Game.Rulesets.UI
 
         protected IRulesetConfigManager Config { get; private set; }
 
-        /// <summary>
-        /// The mods which are to be applied.
-        /// </summary>
         [Cached(typeof(IReadOnlyList<Mod>))]
-        protected readonly IReadOnlyList<Mod> Mods;
+        protected override IReadOnlyList<Mod> Mods { get; }
 
         private FrameStabilityContainer frameStabilityContainer;
 
@@ -410,6 +408,11 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         public abstract GameplayClock FrameStableClock { get; }
 
+        /// <summary>
+        /// The mods which are to be applied.
+        /// </summary>
+        protected abstract IReadOnlyList<Mod> Mods { get; }
+
         /// <summary>~
         /// The associated ruleset.
         /// </summary>
@@ -525,7 +528,20 @@ namespace osu.Game.Rulesets.UI
         public virtual DrawableHitObject CreateDrawableRepresentation(HitObject hitObject)
         {
             if (pools.TryGetValue(hitObject.GetType(), out var pool))
-                return (DrawableHitObject)pool.Get(d => ((DrawableHitObject)d).Apply(hitObject));
+            {
+                return (DrawableHitObject)pool.Get(d =>
+                {
+                    var dho = (DrawableHitObject)d;
+
+                    if (!dho.IsLoaded)
+                    {
+                        foreach (var m in Mods.OfType<IApplicableToDrawableHitObjects>())
+                            m.ApplyToDrawableHitObjects(dho.Yield());
+                    }
+
+                    dho.Apply(hitObject);
+                });
+            }
 
             return null;
         }

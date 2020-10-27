@@ -5,15 +5,16 @@ using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
+using osu.Game.Beatmaps;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 
 namespace osu.Game.Rulesets.Mods
 {
-    public abstract class ModHidden : Mod, IReadFromConfig, IApplicableToDrawableHitObjects, IApplicableToScoreProcessor
+    public abstract class ModHidden : Mod, IReadFromConfig, IApplicableToDrawableHitObjects, IApplicableToScoreProcessor, IApplicableToBeatmap
     {
         public override string Name => "Hidden";
         public override string Acronym => "HD";
@@ -28,7 +29,9 @@ namespace osu.Game.Rulesets.Mods
         /// Can be used to skip spinners, for instance.
         /// </summary>
         /// <param name="hitObject">The hitobject to check.</param>
-        protected virtual bool IsFirstHideableObject(DrawableHitObject hitObject) => true;
+        protected virtual bool IsFirstHideableObject(HitObject hitObject) => true;
+
+        private HitObject firstHideableObject;
 
         public void ReadFromConfig(OsuConfigManager config)
         {
@@ -37,25 +40,34 @@ namespace osu.Game.Rulesets.Mods
 
         public virtual void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
         {
-            if (IncreaseFirstObjectVisibility.Value)
-            {
-                drawables = drawables.SkipWhile(h => !IsFirstHideableObject(h));
-
-                var firstObject = drawables.FirstOrDefault();
-                if (firstObject != null)
-                    firstObject.ApplyCustomUpdateState += ApplyFirstObjectIncreaseVisibilityState;
-
-                drawables = drawables.Skip(1);
-            }
-
             foreach (var dho in drawables)
-                dho.ApplyCustomUpdateState += ApplyHiddenState;
+                dho.ApplyCustomUpdateState += applyCustomState;
         }
 
         public void ApplyToScoreProcessor(ScoreProcessor scoreProcessor)
         {
             // Default value of ScoreProcessor's Rank in Hidden Mod should be SS+
             scoreProcessor.Rank.Value = ScoreRank.XH;
+        }
+
+        public void ApplyToBeatmap(IBeatmap beatmap)
+        {
+            firstHideableObject = getFirstHideableObjectRecursive(beatmap.HitObjects);
+
+            HitObject getFirstHideableObjectRecursive(IReadOnlyList<HitObject> hitObjects)
+            {
+                foreach (var h in hitObjects)
+                {
+                    if (IsFirstHideableObject(h))
+                        return h;
+
+                    var nestedResult = getFirstHideableObjectRecursive(h.NestedHitObjects);
+                    if (nestedResult != null)
+                        return nestedResult;
+                }
+
+                return null;
+            }
         }
 
         public ScoreRank AdjustRank(ScoreRank rank, double accuracy)
@@ -71,6 +83,14 @@ namespace osu.Game.Rulesets.Mods
                 default:
                     return rank;
             }
+        }
+
+        private void applyCustomState(DrawableHitObject hitObject, ArmedState state)
+        {
+            if (hitObject.HitObject == firstHideableObject && IncreaseFirstObjectVisibility.Value)
+                ApplyFirstObjectIncreaseVisibilityState(hitObject, state);
+            else
+                ApplyHiddenState(hitObject, state);
         }
 
         /// <summary>
