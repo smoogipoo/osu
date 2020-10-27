@@ -211,13 +211,17 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             foreach (var h in hitObject.NestedHitObjects)
             {
-                var obj = drawableRuleset.CreateDrawableRepresentation(h)
-                          ?? CreateNestedHitObject(h)
-                          ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
+                DrawableHitObject obj = drawableRuleset.CreateDrawableRepresentation(h);
+                bool fromPool = obj != null;
+
+                obj ??= CreateNestedHitObject(h) ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
 
                 obj.OnNewResult += onNewResult;
                 obj.OnRevertResult += onRevertResult;
-                obj.ApplyCustomUpdateState += applyCustomUpdateState;
+
+                if (!fromPool)
+                    obj.ApplyCustomUpdateState += applyCustomUpdateState;
+
                 obj.ApplyParent(this);
 
                 nestedHitObjects.Value.Add(obj);
