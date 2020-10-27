@@ -28,19 +28,21 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
         {
-            foreach (var drawable in drawables)
-                drawable.ApplyCustomUpdateState += drawableOnApplyCustomUpdateState;
+            foreach (var dho in drawables)
+                dho.ApplyCustomUpdateState += drawableOnApplyCustomUpdateState;
         }
 
         private void drawableOnApplyCustomUpdateState(DrawableHitObject drawable, ArmedState state)
         {
             var osuObject = (OsuHitObject)drawable.HitObject;
-            Vector2 origin = drawable.Position;
+            Vector2 origin = osuObject.Position;
 
             // Wiggle the repeat points with the slider instead of independently.
             // Also fixes an issue with repeat points being positioned incorrectly.
-            if (osuObject is SliderRepeat)
+            if (osuObject is SliderRepeat || osuObject is SliderTailCircle)
                 return;
+
+            drawable.MoveTo(osuObject.Position);
 
             Random objRand = new Random((int)osuObject.StartTime);
 
