@@ -527,23 +527,24 @@ namespace osu.Game.Rulesets.UI
 
         public virtual DrawableHitObject CreateDrawableRepresentation(HitObject hitObject)
         {
-            if (pools.TryGetValue(hitObject.GetType(), out var pool))
+            if (!pools.TryGetValue(hitObject.GetType(), out var pool))
+                return null;
+
+            return (DrawableHitObject)pool.Get(d =>
             {
-                return (DrawableHitObject)pool.Get(d =>
+                var dho = (DrawableHitObject)d;
+
+                // If this is the first time this DHO is being used (not loaded), then apply the custom state.
+                // This is done before Apply() so that the state is updated once when the hitobject is applied.
+                // Nested hitobjects are excluded as their events propagate from their parent.
+                if (!dho.IsLoaded)
                 {
-                    var dho = (DrawableHitObject)d;
+                    foreach (var m in Mods.OfType<IApplicableToDrawableHitObjects>())
+                        m.ApplyToDrawableHitObjects(dho.Yield());
+                }
 
-                    if (!dho.IsLoaded)
-                    {
-                        foreach (var m in Mods.OfType<IApplicableToDrawableHitObjects>())
-                            m.ApplyToDrawableHitObjects(dho.Yield());
-                    }
-
-                    dho.Apply(hitObject);
-                });
-            }
-
-            return null;
+                dho.Apply(hitObject);
+            });
         }
     }
 
