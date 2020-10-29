@@ -37,9 +37,8 @@ namespace osu.Game.Rulesets.Osu.Mods
             var osuObject = (OsuHitObject)drawable.HitObject;
             Vector2 origin = osuObject.Position;
 
-            // Wiggle the repeat points with the slider instead of independently.
-            // Also fixes an issue with repeat points being positioned incorrectly.
-            if (osuObject is SliderRepeat || osuObject is SliderTailCircle)
+            // Wiggle slider elements with the slider instead of independently.
+            if (osuObject is SliderRepeat || osuObject is SliderTick || osuObject is SliderHeadCircle || osuObject is SliderTailCircle)
                 return;
 
             drawable.MoveTo(osuObject.Position);
