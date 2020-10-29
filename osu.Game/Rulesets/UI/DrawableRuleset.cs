@@ -67,7 +67,7 @@ namespace osu.Game.Rulesets.UI
 
         public override Container FrameStableComponents { get; } = new Container { RelativeSizeAxes = Axes.Both };
 
-        public override GameplayClock FrameStableClock => frameStabilityContainer.GameplayClock;
+        public override IFrameStableClock FrameStableClock => frameStabilityContainer.FrameStableClock;
 
         private bool frameStablePlayback = true;
 
@@ -406,7 +406,7 @@ namespace osu.Game.Rulesets.UI
         /// <summary>
         /// The frame-stable clock which is being used for playfield display.
         /// </summary>
-        public abstract GameplayClock FrameStableClock { get; }
+        public abstract IFrameStableClock FrameStableClock { get; }
 
         /// <summary>
         /// The mods which are to be applied.
