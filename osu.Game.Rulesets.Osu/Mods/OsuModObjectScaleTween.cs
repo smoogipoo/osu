@@ -2,13 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Game.Beatmaps;
-using osu.Game.Configuration;
 using osu.Game.Rulesets.Mods;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -18,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Mods
     /// <summary>
     /// Adjusts the size of hit objects during their fade in animation.
     /// </summary>
-    public abstract class OsuModObjectScaleTween : Mod, IReadFromConfig, IApplicableToDrawableHitObjects, IApplicableToBeatmap
+    public abstract class OsuModObjectScaleTween : ModWithFirstObjectVisibilityIncrease
     {
         public override ModType Type => ModType.Fun;
 
@@ -28,37 +24,19 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         protected virtual float EndScale => 1;
 
-        private Bindable<bool> increaseFirstObjectVisibility = new Bindable<bool>();
-
         public override Type[] IncompatibleMods => new[] { typeof(OsuModSpinIn), typeof(OsuModTraceable) };
 
-        private HitObject firstObject;
-
-        public void ReadFromConfig(OsuConfigManager config)
+        protected override void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
-            increaseFirstObjectVisibility = config.GetBindable<bool>(OsuSetting.IncreaseFirstObjectVisibility);
-        }
+            base.ApplyVisibilityState(hitObject, state);
 
-        public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
-        {
-            foreach (var dho in drawables)
-                dho.ApplyCustomUpdateState += ApplyCustomState;
-        }
-
-        public void ApplyToBeatmap(IBeatmap beatmap) => firstObject = beatmap.HitObjects[0];
-
-        protected virtual void ApplyCustomState(DrawableHitObject drawable, ArmedState state)
-        {
-            if (drawable is DrawableSpinner)
+            if (hitObject is DrawableSpinner)
                 return;
 
-            if (drawable.HitObject == firstObject && increaseFirstObjectVisibility.Value)
-                return;
-
-            var h = (OsuHitObject)drawable.HitObject;
+            var h = (OsuHitObject)hitObject.HitObject;
 
             // apply grow effect
-            switch (drawable)
+            switch (hitObject)
             {
                 case DrawableSliderHead _:
                 case DrawableSliderTail _:
@@ -68,14 +46,14 @@ namespace osu.Game.Rulesets.Osu.Mods
                 case DrawableSlider _:
                 case DrawableHitCircle _:
                 {
-                    using (drawable.BeginAbsoluteSequence(h.StartTime - h.TimePreempt))
-                        drawable.ScaleTo(StartScale.Value).Then().ScaleTo(EndScale, h.TimePreempt, Easing.OutSine);
+                    using (hitObject.BeginAbsoluteSequence(h.StartTime - h.TimePreempt))
+                        hitObject.ScaleTo(StartScale.Value).Then().ScaleTo(EndScale, h.TimePreempt, Easing.OutSine);
                     break;
                 }
             }
 
             // remove approach circles
-            switch (drawable)
+            switch (hitObject)
             {
                 case DrawableHitCircle circle:
                     // we don't want to see the approach circle

@@ -2,12 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
-using osu.Game.Configuration;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
@@ -16,7 +12,7 @@ using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
-    public class OsuModSpinIn : Mod, IApplicableToDrawableHitObjects, IReadFromConfig
+    public class OsuModSpinIn : ModWithFirstObjectVisibilityIncrease
     {
         public override string Name => "Spin In";
         public override string Acronym => "SI";
@@ -31,34 +27,16 @@ namespace osu.Game.Rulesets.Osu.Mods
         private const int rotate_offset = 360;
         private const float rotate_starting_width = 2;
 
-        private Bindable<bool> increaseFirstObjectVisibility = new Bindable<bool>();
-
-        public void ReadFromConfig(OsuConfigManager config)
+        protected override void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
-            increaseFirstObjectVisibility = config.GetBindable<bool>(OsuSetting.IncreaseFirstObjectVisibility);
-        }
+            base.ApplyVisibilityState(hitObject, state);
 
-        public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
-        {
-            foreach (var drawable in drawables.Skip(increaseFirstObjectVisibility.Value ? 1 : 0))
-            {
-                switch (drawable)
-                {
-                    case DrawableSpinner _:
-                        continue;
+            if (hitObject is DrawableSpinner)
+                return;
 
-                    default:
-                        drawable.ApplyCustomUpdateState += applyZoomState;
-                        break;
-                }
-            }
-        }
+            var h = (OsuHitObject)hitObject.HitObject;
 
-        private void applyZoomState(DrawableHitObject drawable, ArmedState state)
-        {
-            var h = (OsuHitObject)drawable.HitObject;
-
-            switch (drawable)
+            switch (hitObject)
             {
                 case DrawableHitCircle circle:
                     using (circle.BeginAbsoluteSequence(h.StartTime - h.TimePreempt, true))

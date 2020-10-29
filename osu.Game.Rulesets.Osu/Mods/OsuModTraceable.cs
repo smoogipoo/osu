@@ -2,12 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
-using osu.Framework.Bindables;
-using System.Collections.Generic;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
-using osu.Game.Configuration;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -15,7 +11,7 @@ using osu.Game.Rulesets.Osu.Objects.Drawables.Pieces;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
-    internal class OsuModTraceable : Mod, IReadFromConfig, IApplicableToDrawableHitObjects
+    internal class OsuModTraceable : ModWithFirstObjectVisibilityIncrease
     {
         public override string Name => "Traceable";
         public override string Acronym => "TC";
@@ -24,27 +20,17 @@ namespace osu.Game.Rulesets.Osu.Mods
         public override double ScoreMultiplier => 1;
 
         public override Type[] IncompatibleMods => new[] { typeof(OsuModHidden), typeof(OsuModSpinIn), typeof(OsuModObjectScaleTween) };
-        private Bindable<bool> increaseFirstObjectVisibility = new Bindable<bool>();
 
-        public void ReadFromConfig(OsuConfigManager config)
+        protected override void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
-            increaseFirstObjectVisibility = config.GetBindable<bool>(OsuSetting.IncreaseFirstObjectVisibility);
-        }
+            base.ApplyVisibilityState(hitObject, state);
 
-        public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
-        {
-            foreach (var drawable in drawables.Skip(increaseFirstObjectVisibility.Value ? 1 : 0))
-                drawable.ApplyCustomUpdateState += ApplyTraceableState;
-        }
-
-        protected void ApplyTraceableState(DrawableHitObject drawable, ArmedState state)
-        {
-            if (!(drawable is DrawableOsuHitObject))
+            if (!(hitObject is DrawableOsuHitObject))
                 return;
 
             //todo: expose and hide spinner background somehow
 
-            switch (drawable)
+            switch (hitObject)
             {
                 case DrawableHitCircle circle:
                     // we only want to see the approach circle

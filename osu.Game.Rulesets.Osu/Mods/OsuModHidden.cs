@@ -22,7 +22,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         private const double fade_in_duration_multiplier = 0.4;
         private const double fade_out_duration_multiplier = 0.3;
 
-        protected override bool IsFirstHideableObject(HitObject hitObject) => hitObject is SliderHeadCircle || hitObject is HitCircle;
+        protected override bool IsFirstAdjustableObject(HitObject hitObject) => hitObject is SliderHeadCircle || hitObject is HitCircle;
 
         public override void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
         {
@@ -45,7 +45,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         protected override void ApplyFirstObjectIncreaseVisibilityState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, true);
 
-        protected override void ApplyHiddenState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, false);
+        protected override void ApplyVisibilityState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, false);
 
         private void applyState(DrawableHitObject drawable, bool increaseVisibility)
         {
