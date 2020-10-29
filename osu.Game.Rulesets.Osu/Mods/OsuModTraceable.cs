@@ -61,8 +61,9 @@ namespace osu.Game.Rulesets.Osu.Mods
                     break;
 
                 case DrawableSlider slider:
-                    slider.Body.OnSkinChanged += () => applySliderState(slider);
-                    applySliderState(slider);
+                    slider.AccentChanged -= onAccentChanged;
+                    slider.AccentChanged += onAccentChanged;
+                    onAccentChanged(slider);
                     break;
             }
         }
@@ -74,7 +75,7 @@ namespace osu.Game.Rulesets.Osu.Mods
                 (hitCircle ?? hitObject).Hide();
         }
 
-        private void applySliderState(DrawableSlider slider)
+        private void onAccentChanged(DrawableSlider slider)
         {
             ((PlaySliderBody)slider.Body.Drawable).AccentColour = slider.AccentColour.Value.Opacity(0);
             ((PlaySliderBody)slider.Body.Drawable).BorderColour = slider.AccentColour.Value;

@@ -25,6 +25,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         public new Slider HitObject => (Slider)base.HitObject;
 
+        public event Action<DrawableSlider> AccentChanged;
+
         public IBindable<int> PathVersion => pathVersion;
         private readonly Bindable<int> pathVersion = new Bindable<int>();
 
@@ -75,6 +77,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             {
                 foreach (var drawableHitObject in NestedHitObjects)
                     drawableHitObject.AccentColour.Value = colour.NewValue;
+
+                AccentChanged?.Invoke(this);
             }, true);
 
             Tracking.BindValueChanged(updateSlidingSample);
