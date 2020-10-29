@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Mods
     /// <summary>
     /// Adjusts the size of hit objects during their fade in animation.
     /// </summary>
-    public abstract class OsuModObjectScaleTween : ModWithFirstObjectVisibilityIncrease
+    public abstract class OsuModObjectScaleTween : ModWithVisibilityAdjustment
     {
         public override ModType Type => ModType.Fun;
 
@@ -26,9 +26,9 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public override Type[] IncompatibleMods => new[] { typeof(OsuModSpinIn), typeof(OsuModTraceable) };
 
-        protected override void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
+        protected override void ApplyNormalVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
-            base.ApplyVisibilityState(hitObject, state);
+            base.ApplyNormalVisibilityState(hitObject, state);
 
             if (hitObject is DrawableSpinner)
                 return;

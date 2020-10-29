@@ -10,10 +10,10 @@ using osu.Game.Rulesets.Objects.Drawables;
 
 namespace osu.Game.Rulesets.Mods
 {
-    public abstract class ModWithFirstObjectVisibilityIncrease : Mod, IReadFromConfig, IApplicableToBeatmap, IApplicableToDrawableHitObjects
+    public abstract class ModWithVisibilityAdjustment : Mod, IReadFromConfig, IApplicableToBeatmap, IApplicableToDrawableHitObjects
     {
         /// <summary>
-        /// The first hideable object.
+        /// The first adjustable object.
         /// </summary>
         protected HitObject FirstObject { get; private set; }
 
@@ -23,27 +23,28 @@ namespace osu.Game.Rulesets.Mods
         protected readonly Bindable<bool> IncreaseFirstObjectVisibility = new Bindable<bool>();
 
         /// <summary>
-        /// Check whether the provided hitobject should be considered the "first" hideable object.
+        /// Check whether the provided hitobject should be considered the "first" adjustable object.
         /// Can be used to skip spinners, for instance.
         /// </summary>
         /// <param name="hitObject">The hitobject to check.</param>
         protected virtual bool IsFirstAdjustableObject(HitObject hitObject) => true;
 
         /// <summary>
-        /// Apply a special visibility state to the first object in a beatmap, if the user chooses to turn on the "increase first object visibility" setting.
+        /// Apply a special increased-visibility state to the first adjustable object..
+        /// Only applicable if the user chooses to turn on the "increase first object visibility" setting.
         /// </summary>
         /// <param name="hitObject">The hit object to apply the state change to.</param>
         /// <param name="state">The state of the hit object.</param>
-        protected virtual void ApplyFirstObjectIncreaseVisibilityState(DrawableHitObject hitObject, ArmedState state)
+        protected virtual void ApplyIncreasedVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
         }
 
         /// <summary>
-        /// Apply a hidden state to the provided object.
+        /// Apply a normal visibility state adjustment to an object.
         /// </summary>
         /// <param name="hitObject">The hit object to apply the state change to.</param>
         /// <param name="state">The state of the hit object.</param>
-        protected virtual void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
+        protected virtual void ApplyNormalVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
         }
 
@@ -54,16 +55,16 @@ namespace osu.Game.Rulesets.Mods
 
         public virtual void ApplyToBeatmap(IBeatmap beatmap)
         {
-            FirstObject = getFirstHideableObjectRecursive(beatmap.HitObjects);
+            FirstObject = getFirstAdjustableObjectRecursive(beatmap.HitObjects);
 
-            HitObject getFirstHideableObjectRecursive(IReadOnlyList<HitObject> hitObjects)
+            HitObject getFirstAdjustableObjectRecursive(IReadOnlyList<HitObject> hitObjects)
             {
                 foreach (var h in hitObjects)
                 {
                     if (IsFirstAdjustableObject(h))
                         return h;
 
-                    var nestedResult = getFirstHideableObjectRecursive(h.NestedHitObjects);
+                    var nestedResult = getFirstAdjustableObjectRecursive(h.NestedHitObjects);
                     if (nestedResult != null)
                         return nestedResult;
                 }
@@ -79,9 +80,9 @@ namespace osu.Game.Rulesets.Mods
                 dho.ApplyCustomUpdateState += (o, state) =>
                 {
                     if (IncreaseFirstObjectVisibility.Value && isObjectObjectOrNested(o.HitObject, FirstObject))
-                        ApplyFirstObjectIncreaseVisibilityState(o, state);
+                        ApplyIncreasedVisibilityState(o, state);
                     else
-                        ApplyVisibilityState(o, state);
+                        ApplyNormalVisibilityState(o, state);
                 };
             }
         }

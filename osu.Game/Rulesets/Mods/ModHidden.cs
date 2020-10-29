@@ -9,7 +9,7 @@ using osu.Game.Scoring;
 
 namespace osu.Game.Rulesets.Mods
 {
-    public abstract class ModHidden : ModWithFirstObjectVisibilityIncrease, IApplicableToScoreProcessor
+    public abstract class ModHidden : ModWithVisibilityAdjustment, IApplicableToScoreProcessor
     {
         public override string Name => "Hidden";
         public override string Acronym => "HD";

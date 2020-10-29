@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
-    public class OsuModSpinIn : ModWithFirstObjectVisibilityIncrease
+    public class OsuModSpinIn : ModWithVisibilityAdjustment
     {
         public override string Name => "Spin In";
         public override string Acronym => "SI";
@@ -27,9 +27,9 @@ namespace osu.Game.Rulesets.Osu.Mods
         private const int rotate_offset = 360;
         private const float rotate_starting_width = 2;
 
-        protected override void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
+        protected override void ApplyNormalVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
-            base.ApplyVisibilityState(hitObject, state);
+            base.ApplyNormalVisibilityState(hitObject, state);
 
             if (hitObject is DrawableSpinner)
                 return;

@@ -11,7 +11,7 @@ using osu.Game.Rulesets.Osu.Objects.Drawables.Pieces;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
-    internal class OsuModTraceable : ModWithFirstObjectVisibilityIncrease
+    internal class OsuModTraceable : ModWithVisibilityAdjustment
     {
         public override string Name => "Traceable";
         public override string Acronym => "TC";
@@ -21,9 +21,9 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public override Type[] IncompatibleMods => new[] { typeof(OsuModHidden), typeof(OsuModSpinIn), typeof(OsuModObjectScaleTween) };
 
-        protected override void ApplyVisibilityState(DrawableHitObject hitObject, ArmedState state)
+        protected override void ApplyNormalVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
-            base.ApplyVisibilityState(hitObject, state);
+            base.ApplyNormalVisibilityState(hitObject, state);
 
             if (!(hitObject is DrawableOsuHitObject))
                 return;

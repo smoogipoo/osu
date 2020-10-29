@@ -43,9 +43,9 @@ namespace osu.Game.Rulesets.Osu.Mods
         private double lastSliderHeadFadeOutStartTime;
         private double lastSliderHeadFadeOutDuration;
 
-        protected override void ApplyFirstObjectIncreaseVisibilityState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, true);
+        protected override void ApplyIncreasedVisibilityState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, true);
 
-        protected override void ApplyVisibilityState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, false);
+        protected override void ApplyNormalVisibilityState(DrawableHitObject drawable, ArmedState state) => applyState(drawable, false);
 
         private void applyState(DrawableHitObject drawable, bool increaseVisibility)
         {

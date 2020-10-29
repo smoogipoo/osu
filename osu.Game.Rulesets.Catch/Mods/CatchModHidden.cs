@@ -17,7 +17,7 @@ namespace osu.Game.Rulesets.Catch.Mods
         private const double fade_out_offset_multiplier = 0.6;
         private const double fade_out_duration_multiplier = 0.44;
 
-        protected override void ApplyVisibilityState(DrawableHitObject drawable, ArmedState state)
+        protected override void ApplyNormalVisibilityState(DrawableHitObject drawable, ArmedState state)
         {
             if (!(drawable is DrawableCatchHitObject catchDrawable))
                 return;
