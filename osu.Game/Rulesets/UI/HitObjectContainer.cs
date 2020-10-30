@@ -11,6 +11,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
 using osu.Game.Rulesets.Judgements;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 
 namespace osu.Game.Rulesets.UI
@@ -24,25 +25,20 @@ namespace osu.Game.Rulesets.UI
         public event Action<DrawableHitObject, JudgementResult> OnRevertResult;
 
         /// <summary>
-        /// Invoked when a <see cref="DrawableHitObject"/> becomes "current".
+        /// Invoked when a <see cref="HitObject"/> becomes "current".
         /// </summary>
         /// <remarks>
-        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become alive.
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="HitObject"/>s become alive.
         /// </remarks>
-        public event Action<DrawableHitObject> HitObjectEnteredCurrent;
+        public event Action<HitObject> HitObjectEnteredCurrent;
 
         /// <summary>
-        /// Invoked when a <see cref="DrawableHitObject"/> becomes "not current".
+        /// Invoked when a <see cref="HitObject"/> becomes "not current".
         /// </summary>
         /// <remarks>
-        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become dead.
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="HitObject"/>s become dead.
         /// </remarks>
-        public event Action<DrawableHitObject> HitObjectExitedCurrent;
-
-        /// <summary>
-        /// The list of all "current" <see cref="DrawableHitObject"/>s. See <see cref="HitObjectEnteredCurrent"/> for more information.
-        /// </summary>
-        public IEnumerable<DrawableHitObject> CurrentObjects => InternalChildren.OfType<DrawableHitObject>().Reverse();
+        public event Action<HitObject> HitObjectExitedCurrent;
 
         public double PastLifetimeExtension { get; set; }
 
@@ -106,7 +102,7 @@ namespace osu.Game.Rulesets.UI
             bindStartTime(drawable);
             AddInternal(drawableMap[entry] = drawable, false);
 
-            HitObjectEnteredCurrent?.Invoke(drawable);
+            HitObjectEnteredCurrent?.Invoke(entry.HitObject);
         }
 
         private void removeDrawable(HitObjectLifetimeEntry entry)
@@ -126,7 +122,7 @@ namespace osu.Game.Rulesets.UI
             unbindStartTime(drawable);
             RemoveInternal(drawable);
 
-            HitObjectExitedCurrent?.Invoke(drawable);
+            HitObjectExitedCurrent?.Invoke(entry.HitObject);
         }
 
         #endregion
@@ -200,26 +196,6 @@ namespace osu.Game.Rulesets.UI
         }
 
         public int IndexOf(DrawableHitObject hitObject) => IndexOfInternal(hitObject);
-
-        protected override void OnChildLifetimeBoundaryCrossed(LifetimeBoundaryCrossedEvent e)
-        {
-            if (!(e.Child is DrawableHitObject hitObject))
-                return;
-
-            switch (e.Kind)
-            {
-                case LifetimeBoundaryKind.Start when e.Direction == LifetimeBoundaryCrossingDirection.Forward:
-                case LifetimeBoundaryKind.End when e.Direction == LifetimeBoundaryCrossingDirection.Backward:
-                    HitObjectEnteredCurrent?.Invoke(hitObject);
-                    break;
-
-                case LifetimeBoundaryKind.End when e.Direction == LifetimeBoundaryCrossingDirection.Forward:
-                case LifetimeBoundaryKind.Start when e.Direction == LifetimeBoundaryCrossingDirection.Backward:
-                    hitObject.OnKilled();
-                    HitObjectExitedCurrent?.Invoke(hitObject);
-                    break;
-            }
-        }
 
         #endregion
 

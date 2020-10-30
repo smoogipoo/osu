@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
@@ -46,6 +47,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         private readonly BindableList<HitObject> selectedHitObjects = new BindableList<HitObject>();
         private readonly Playfield playfield;
+        private readonly Dictionary<HitObject, SelectionBlueprint> blueprintMap = new Dictionary<HitObject, SelectionBlueprint>();
 
         [Resolved(canBeNull: true)]
         private IPositionSnapProvider snapProvider { get; set; }
@@ -71,10 +73,11 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 DragBox.CreateProxy().With(p => p.Depth = float.MinValue)
             });
 
+            // For non-pooled rulesets, hitobjects are already present in the playfield which allows the blueprints to be loaded in the async context.
             if (playfield != null)
             {
                 foreach (var obj in playfield.AllHitObjects)
-                    AddBlueprintFor(obj.HitObject);
+                    addBlueprintFor(obj.HitObject);
             }
 
             selectedHitObjects.BindTo(Beatmap.SelectedHitObjects);
@@ -100,22 +103,17 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             base.LoadComplete();
 
-            Beatmap.HitObjectAdded += AddBlueprintFor;
+            Beatmap.HitObjectAdded += addBlueprintFor;
             Beatmap.HitObjectRemoved += removeBlueprintFor;
 
             if (playfield != null)
             {
-                // A hashset is used to avoid a potential O(n^2) operation.
-                var selectionBlueprintsSet = SelectionBlueprints.Select(h => h.HitObject).ToHashSet();
-
+                // For pooled rulesets, blueprints must be added for hitobjects already "current" as they would've not been "current" during the async load addition process above.
                 foreach (var obj in playfield.AllHitObjects)
-                {
-                    if (!selectionBlueprintsSet.Contains(obj.HitObject))
-                        AddBlueprintFor(obj.HitObject);
-                }
+                    addBlueprintFor(obj.HitObject);
 
-                playfield.HitObjectEnteredCurrent += d => AddBlueprintFor(d.HitObject);
-                playfield.HitObjectExitedCurrent += d => removeBlueprintFor(d.HitObject);
+                playfield.HitObjectEnteredCurrent += addBlueprintFor;
+                playfield.HitObjectExitedCurrent += removeBlueprintFor;
             }
         }
 
@@ -270,28 +268,16 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         #region Blueprint Addition/Removal
 
-        private void removeBlueprintFor(HitObject hitObject)
+        private void addBlueprintFor(HitObject hitObject)
         {
-            var blueprint = SelectionBlueprints.SingleOrDefault(m => m.HitObject == hitObject);
-            if (blueprint == null)
+            if (blueprintMap.ContainsKey(hitObject))
                 return;
 
-            blueprint.Deselect();
-
-            blueprint.Selected -= onBlueprintSelected;
-            blueprint.Deselected -= onBlueprintDeselected;
-
-            SelectionBlueprints.Remove(blueprint);
-
-            if (movementBlueprint == blueprint)
-                finishSelectionMovement();
-        }
-
-        protected virtual void AddBlueprintFor(HitObject hitObject)
-        {
             var blueprint = CreateBlueprintFor(hitObject);
             if (blueprint == null)
                 return;
+
+            blueprintMap[hitObject] = blueprint;
 
             blueprint.Selected += onBlueprintSelected;
             blueprint.Deselected += onBlueprintDeselected;
@@ -300,6 +286,33 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 blueprint.Select();
 
             SelectionBlueprints.Add(blueprint);
+
+            OnBlueprintAdded(hitObject);
+        }
+
+        private void removeBlueprintFor(HitObject hitObject)
+        {
+            if (!blueprintMap.Remove(hitObject, out var blueprint))
+                return;
+
+            blueprint.Deselect();
+            blueprint.Selected -= onBlueprintSelected;
+            blueprint.Deselected -= onBlueprintDeselected;
+
+            SelectionBlueprints.Remove(blueprint);
+
+            if (movementBlueprint == blueprint)
+                finishSelectionMovement();
+
+            OnBlueprintRemoved(hitObject);
+        }
+
+        protected virtual void OnBlueprintAdded(HitObject hitObject)
+        {
+        }
+
+        protected virtual void OnBlueprintRemoved(HitObject hitObject)
+        {
         }
 
         #endregion
@@ -493,8 +506,14 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             if (Beatmap != null)
             {
-                Beatmap.HitObjectAdded -= AddBlueprintFor;
+                Beatmap.HitObjectAdded -= addBlueprintFor;
                 Beatmap.HitObjectRemoved -= removeBlueprintFor;
+            }
+
+            if (playfield != null)
+            {
+                playfield.HitObjectEnteredCurrent -= addBlueprintFor;
+                playfield.HitObjectExitedCurrent -= removeBlueprintFor;
             }
         }
     }

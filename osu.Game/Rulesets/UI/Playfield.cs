@@ -59,36 +59,20 @@ namespace osu.Game.Rulesets.UI
         }
 
         /// <summary>
-        /// Invoked when a <see cref="DrawableHitObject"/> becomes "current".
+        /// Invoked when a <see cref="HitObject"/> becomes "current".
         /// </summary>
         /// <remarks>
-        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become alive.
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="HitObject"/>s become alive.
         /// </remarks>
-        public event Action<DrawableHitObject> HitObjectEnteredCurrent;
+        public event Action<HitObject> HitObjectEnteredCurrent;
 
         /// <summary>
-        /// Invoked when a <see cref="DrawableHitObject"/> becomes "not current".
+        /// Invoked when a <see cref="HitObject"/> becomes "not current".
         /// </summary>
         /// <remarks>
-        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="DrawableHitObject"/>s become dead.
+        /// If this <see cref="HitObjectContainer"/> uses pooled objects, this represents the time when the <see cref="HitObject"/>s become dead.
         /// </remarks>
-        public event Action<DrawableHitObject> HitObjectExitedCurrent;
-
-        public IEnumerable<DrawableHitObject> CurrentObjects
-        {
-            get
-            {
-                if (HitObjectContainer == null)
-                    return Enumerable.Empty<DrawableHitObject>();
-
-                var enumerable = HitObjectContainer.CurrentObjects;
-
-                if (nestedPlayfields.IsValueCreated)
-                    enumerable = enumerable.Concat(NestedPlayfields.SelectMany(p => p.CurrentObjects));
-
-                return enumerable;
-            }
-        }
+        public event Action<HitObject> HitObjectExitedCurrent;
 
         public double PastLifetimeExtension
         {

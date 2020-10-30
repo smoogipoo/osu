@@ -188,7 +188,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         protected sealed override SelectionBlueprint CreateBlueprintFor(HitObject hitObject)
         {
-            var drawable = playfield.CurrentObjects.FirstOrDefault(d => d.HitObject == hitObject);
+            var drawable = playfield.AllHitObjects.FirstOrDefault(d => d.HitObject == hitObject);
 
             if (drawable == null)
                 return null;
@@ -198,11 +198,11 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         public virtual OverlaySelectionBlueprint CreateBlueprintFor(DrawableHitObject hitObject) => null;
 
-        protected override void AddBlueprintFor(HitObject hitObject)
+        protected override void OnBlueprintAdded(HitObject hitObject)
         {
-            refreshTool();
+            base.OnBlueprintAdded(hitObject);
 
-            base.AddBlueprintFor(hitObject);
+            refreshTool();
 
             // on successful placement, the new combo button should be reset as this is the most common user interaction.
             if (Beatmap.SelectedHitObjects.Count == 0)
