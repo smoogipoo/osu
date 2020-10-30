@@ -73,7 +73,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             if (playfield != null)
             {
-                foreach (var obj in playfield.CurrentObjects)
+                foreach (var obj in playfield.AllHitObjects)
                     AddBlueprintFor(obj.HitObject);
             }
 
@@ -105,6 +105,15 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             if (playfield != null)
             {
+                // A hashset is used to avoid a potential O(n^2) operation.
+                var selectionBlueprintsSet = SelectionBlueprints.Select(h => h.HitObject).ToHashSet();
+
+                foreach (var obj in playfield.AllHitObjects)
+                {
+                    if (!selectionBlueprintsSet.Contains(obj.HitObject))
+                        AddBlueprintFor(obj.HitObject);
+                }
+
                 playfield.HitObjectEnteredCurrent += d => AddBlueprintFor(d.HitObject);
                 playfield.HitObjectExitedCurrent += d => removeBlueprintFor(d.HitObject);
             }
