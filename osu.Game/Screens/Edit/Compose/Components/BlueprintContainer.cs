@@ -304,10 +304,18 @@ namespace osu.Game.Screens.Edit.Compose.Components
             OnBlueprintRemoved(hitObject);
         }
 
+        /// <summary>
+        /// Called after a <see cref="HitObject"/> blueprint has been added.
+        /// </summary>
+        /// <param name="hitObject">The <see cref="HitObject"/> for which the blueprint has been added.</param>
         protected virtual void OnBlueprintAdded(HitObject hitObject)
         {
         }
 
+        /// <summary>
+        /// Called after a <see cref="HitObject"/> blueprint has been removed.
+        /// </summary>
+        /// <param name="hitObject">The <see cref="HitObject"/> for which the blueprint has been removed.</param>
         protected virtual void OnBlueprintRemoved(HitObject hitObject)
         {
         }
@@ -386,6 +394,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
         private void selectAll()
         {
             playfield.KeepAllAlive();
+
+            // Scheduled to allow the change in lifetime to take place.
             Schedule(() => SelectionBlueprints.ToList().ForEach(m => m.Select()));
         }
 

@@ -54,6 +54,9 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
         private Track track;
 
+        /// <summary>
+        /// The total amount of time visible on the timeline.
+        /// </summary>
         public double VisibleRange => track.Length / Zoom;
 
         public Timeline()
