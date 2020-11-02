@@ -154,9 +154,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         protected override void FreeAfterUse()
         {
-            if (!IsInPool)
-                return;
-
             StartTimeBindable.UnbindFrom(HitObject.StartTimeBindable);
             if (HitObject is IHasComboInformation combo)
                 ComboIndexBindable.UnbindFrom(combo.ComboIndexBindable);
