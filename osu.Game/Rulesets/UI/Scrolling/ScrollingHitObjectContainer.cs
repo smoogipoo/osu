@@ -51,6 +51,7 @@ namespace osu.Game.Rulesets.UI.Scrolling
         public override void Add(DrawableHitObject hitObject)
         {
             combinedObjCache.Invalidate();
+            hitObject.DefaultsApplied += onDefaultsApplied;
             base.Add(hitObject);
         }
 
@@ -62,6 +63,8 @@ namespace osu.Game.Rulesets.UI.Scrolling
             {
                 combinedObjCache.Invalidate();
                 hitObjectInitialStateCache.Remove(hitObject);
+
+                hitObject.DefaultsApplied -= onDefaultsApplied;
             }
 
             return result;
@@ -69,6 +72,9 @@ namespace osu.Game.Rulesets.UI.Scrolling
 
         public override void Clear(bool disposeChildren = true)
         {
+            foreach (var h in Objects)
+                h.DefaultsApplied -= onDefaultsApplied;
+
             base.Clear(disposeChildren);
 
             combinedObjCache.Invalidate();

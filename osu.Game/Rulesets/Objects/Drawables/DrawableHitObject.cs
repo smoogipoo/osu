@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -28,6 +30,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
     [Cached(typeof(DrawableHitObject))]
     public class DrawableHitObject : SkinReloadableDrawable
     {
+        public event Action<DrawableHitObject> DefaultsApplied;
+
         public HitObject HitObject { get; private set; }
 
         /// <summary>
@@ -174,6 +178,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 ClearNestedHitObjects();
             }
 
+            HitObject.DefaultsApplied -= onHitObjectDefaultsApplied;
             HitObject = null;
 
             base.FreeAfterUse();
@@ -214,6 +219,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
             SamplesBindable.BindTo(hitObject.SamplesBindable);
             SamplesBindable.BindCollectionChanged(onSamplesChanged, true);
 
+            HitObject.DefaultsApplied += onHitObjectDefaultsApplied;
+
             Schedule(() => updateState(ArmedState.Idle, true));
         }
 
@@ -252,6 +259,13 @@ namespace osu.Game.Rulesets.Objects.Drawables
             return result
                    ?? CreateNestedHitObject(hitObject)
                    ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {hitObject.GetType().ReadableName()}.");
+        }
+
+        private void onHitObjectDefaultsApplied(HitObject hitObject)
+        {
+            FreeAfterUse();
+            Apply(hitObject);
+            DefaultsApplied?.Invoke(this);
         }
 
         /// <summary>
@@ -659,6 +673,14 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 LifetimeStart = value.LifetimeStart;
                 LifetimeEnd = value.LifetimeEnd;
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            if (HitObject != null)
+                HitObject.DefaultsApplied -= onHitObjectDefaultsApplied;
         }
     }
 
