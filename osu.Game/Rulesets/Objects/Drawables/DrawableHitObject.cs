@@ -211,7 +211,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             foreach (var h in hitObject.NestedHitObjects)
             {
-                DrawableHitObject obj = drawableRuleset.CreateDrawableRepresentation(h);
+                DrawableHitObject obj = drawableRuleset.GetDrawableRepresentation(h);
                 bool fromPool = obj != null;
 
                 obj ??= CreateNestedHitObject(h) ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");

@@ -282,8 +282,8 @@ namespace osu.Game.Rulesets.UI
             }
         }
 
-        public sealed override DrawableHitObject CreateDrawableRepresentation(HitObject hitObject)
-            => base.CreateDrawableRepresentation(hitObject) ?? CreateDrawableRepresentation((TObject)hitObject);
+        public sealed override DrawableHitObject GetDrawableRepresentation(HitObject hitObject)
+            => base.GetDrawableRepresentation(hitObject) ?? CreateDrawableRepresentation((TObject)hitObject);
 
         /// <summary>
         /// Creates a DrawableHitObject from a HitObject.
@@ -525,7 +525,7 @@ namespace osu.Game.Rulesets.UI
             where TDrawable : DrawableHitObject, new()
             => new DrawablePool<TDrawable>(initialSize, maximumSize);
 
-        public virtual DrawableHitObject CreateDrawableRepresentation(HitObject hitObject)
+        public virtual DrawableHitObject GetDrawableRepresentation(HitObject hitObject)
         {
             if (!pools.TryGetValue(hitObject.GetType(), out var pool))
                 return null;

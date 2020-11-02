@@ -92,7 +92,7 @@ namespace osu.Game.Rulesets.UI
         {
             Debug.Assert(!drawableMap.ContainsKey(entry));
 
-            var drawable = drawableRuleset.CreateDrawableRepresentation(entry.HitObject);
+            var drawable = drawableRuleset.GetDrawableRepresentation(entry.HitObject);
             Debug.Assert(drawable.LifetimeEntry == null);
 
             drawable.LifetimeEntry = entry;
