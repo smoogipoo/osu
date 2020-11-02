@@ -229,10 +229,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             }
 
             if (DragBox.State == Visibility.Visible)
-            {
                 DragBox.Hide();
-                SelectionHandler.UpdateVisibility();
-            }
         }
 
         protected override bool OnKeyDown(KeyDownEvent e)
@@ -389,12 +386,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         private void selectAll()
         {
             playfield.KeepAllAlive();
-
-            Schedule(() =>
-            {
-                SelectionBlueprints.ToList().ForEach(m => m.Select());
-                SelectionHandler.UpdateVisibility();
-            });
+            Schedule(() => SelectionBlueprints.ToList().ForEach(m => m.Select()));
         }
 
         /// <summary>
