@@ -228,14 +228,14 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 AddNestedHitObject(obj);
             }
 
-            updateState(ArmedState.Idle, true);
-
             StartTimeBindable.BindTo(hitObject.StartTimeBindable);
             if (HitObject is IHasComboInformation combo1)
                 ComboIndexBindable.BindTo(combo1.ComboIndexBindable);
 
             SamplesBindable.BindTo(hitObject.SamplesBindable);
             SamplesBindable.BindCollectionChanged(onSamplesChanged, true);
+
+            Schedule(() => updateState(ArmedState.Idle, true));
         }
 
         public virtual void ApplyParent(DrawableHitObject parent)
