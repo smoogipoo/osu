@@ -38,6 +38,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             : base(playfield)
         {
             this.playfield = playfield;
+
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
@@ -104,8 +105,8 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             if (playfield != null)
             {
-                playfield.PastLifetimeExtension = timeline.VisibleRange;
-                playfield.FutureLifetimeExtension = timeline.VisibleRange;
+                playfield.PastLifetimeExtension = timeline.VisibleRange / 2;
+                playfield.FutureLifetimeExtension = timeline.VisibleRange / 2;
             }
 
             base.Update();
