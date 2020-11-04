@@ -24,8 +24,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         public OsuAction? HitAction => HitArea.HitAction;
 
-        public HitReceptor HitArea;
-        public SkinnableDrawable CirclePiece;
+        public HitReceptor HitArea { get; private set; }
+        public SkinnableDrawable CirclePiece { get; private set; }
+
         private Container scaleContainer;
 
         protected virtual OsuSkinComponents CirclePieceComponent => OsuSkinComponents.HitCircle;

@@ -55,7 +55,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 },
             };
 
-            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
+            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue));
         }
 
         protected override void UpdateInitialTransforms()

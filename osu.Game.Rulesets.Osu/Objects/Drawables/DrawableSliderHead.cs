@@ -33,11 +33,15 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             pathVersion.BindValueChanged(_ => updatePosition());
         }
 
+        protected override void FreeAfterUse()
+        {
+            base.FreeAfterUse();
+
+            pathVersion.UnbindFrom(drawableSlider.PathVersion);
+        }
+
         public override void ApplyParent(DrawableHitObject parent)
         {
-            if (drawableSlider != null)
-                pathVersion.UnbindFrom(drawableSlider.PathVersion);
-
             base.ApplyParent(parent);
 
             drawableSlider = (DrawableSlider)parent;

@@ -47,7 +47,6 @@ namespace osu.Game.Rulesets.Osu.Mods
                     break;
 
                 case DrawableSlider slider:
-                    slider.AccentChanged -= onAccentChanged;
                     slider.AccentChanged += onAccentChanged;
                     onAccentChanged(slider);
                     break;

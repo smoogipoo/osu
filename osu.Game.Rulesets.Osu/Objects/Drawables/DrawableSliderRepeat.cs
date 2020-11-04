@@ -21,7 +21,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         private double animDuration;
 
         private Drawable scaleContainer;
-        public Drawable CirclePiece;
+        public Drawable CirclePiece { get; private set; }
 
         private DrawableSlider drawableSlider;
 
@@ -55,7 +55,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 }
             };
 
-            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue), true);
+            ScaleBindable.BindValueChanged(scale => scaleContainer.Scale = new Vector2(scale.NewValue));
         }
 
         public override void ApplyParent(DrawableHitObject parent)

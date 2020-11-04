@@ -30,8 +30,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         public IBindable<int> PathVersion => pathVersion;
         private readonly Bindable<int> pathVersion = new Bindable<int>();
 
-        public SliderBall Ball;
-        public SkinnableDrawable Body;
+        public SliderBall Ball { get; private set; }
+        public SkinnableDrawable Body { get; private set; }
 
         public override bool DisplayResult => false;
 
@@ -97,6 +97,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             base.Apply(hitObject);
 
+            // Ensure that the version will change after the upcoming BindTo().
             pathVersion.Value = int.MinValue;
             PathVersion.BindTo(HitObject.Path.Version);
         }

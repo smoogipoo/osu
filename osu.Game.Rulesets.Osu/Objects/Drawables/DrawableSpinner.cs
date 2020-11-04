@@ -24,8 +24,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         private Container<DrawableSpinnerTick> ticks;
 
-        public SpinnerRotationTracker RotationTracker;
-        public SpinnerSpmCounter SpmCounter;
+        public SpinnerRotationTracker RotationTracker { get; private set; }
+        public SpinnerSpmCounter SpmCounter { get; private set; }
         private SpinnerBonusDisplay bonusDisplay;
         private Container sampleContainer;
 
