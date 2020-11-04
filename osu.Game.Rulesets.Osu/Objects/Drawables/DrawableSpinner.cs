@@ -27,6 +27,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         public SpinnerRotationTracker RotationTracker;
         public SpinnerSpmCounter SpmCounter;
         private SpinnerBonusDisplay bonusDisplay;
+        private Container sampleContainer;
 
         private bool spinnerFrequencyModulate;
 
@@ -71,7 +72,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Y = -120,
-                }
+                },
+                sampleContainer = new Container { RelativeSizeAxes = Axes.Both }
             };
 
             PositionBindable.BindValueChanged(pos => Position = pos.NewValue);
@@ -95,7 +97,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             base.LoadSamples();
 
-            spinningSample?.Expire();
+            sampleContainer.Clear();
             spinningSample = null;
 
             var firstSample = HitObject.Samples.FirstOrDefault();
@@ -105,7 +107,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 var clone = HitObject.SampleControlPoint.ApplyTo(firstSample);
                 clone.Name = "spinnerspin";
 
-                AddInternal(spinningSample = new PausableSkinnableSound(clone)
+                sampleContainer.Add(spinningSample = new PausableSkinnableSound(clone)
                 {
                     Volume = { Value = 0 },
                     Looping = true,
