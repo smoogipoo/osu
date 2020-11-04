@@ -221,7 +221,13 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             HitObject.DefaultsApplied += onHitObjectDefaultsApplied;
 
-            Schedule(() => updateState(ArmedState.Idle, true));
+            // A user may want to apply a result before this DHO is loaded. In such cases, Apply() (called from LoadAsyncComplete()) should not be scheduled
+            // in order to avoid the armed state changing back to idle.
+            // In other cases, such as when pooling, this is invoked on the next update frame in order for lifetime updates to take place.
+            if (IsLoaded)
+                Schedule(() => updateState(ArmedState.Idle, true));
+            else
+                updateState(ArmedState.Idle, true);
         }
 
         public virtual void ApplyParent(DrawableHitObject parent)
