@@ -121,6 +121,8 @@ namespace osu.Game.Rulesets.Objects.Drawables
         [Resolved(CanBeNull = true)]
         private DrawableRuleset drawableRuleset { get; set; }
 
+        private HitObjectLifetimeEntry lifetime;
+
         protected DrawableHitObject()
         {
         }
@@ -143,7 +145,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
             base.LoadAsyncComplete();
 
             if (HitObject != null)
-                Apply(HitObject);
+                Apply(HitObject, lifetime);
         }
 
         protected override void LoadComplete()
@@ -181,22 +183,34 @@ namespace osu.Game.Rulesets.Objects.Drawables
             HitObject.DefaultsApplied -= onHitObjectDefaultsApplied;
             HitObject = null;
 
+            lifetime = null;
+
             base.FreeAfterUse();
         }
 
-        public virtual void Apply(HitObject hitObject)
+        public virtual void Apply(HitObject hitObject, HitObjectLifetimeEntry lifetime)
         {
+            this.lifetime = lifetime;
+
             HitObject = hitObject;
 
-            // Copy any existing result from the hitobject (required for rewind / judgement revert).
-            Result = HitObject.Result;
+            if (lifetime != null)
+            {
+                // Transfer lifetime from the entry.
+                LifetimeStart = lifetime.LifetimeStart;
+                LifetimeEnd = lifetime.LifetimeEnd;
+
+                // Copy any existing result from the entry (required for rewind / judgement revert).
+                Result = lifetime.Result;
+            }
 
             // Ensure this DHO has a result.
             Result ??= CreateResult(hitObject.CreateJudgement())
                        ?? throw new InvalidOperationException($"{GetType().ReadableName()} must provide a {nameof(JudgementResult)} through {nameof(CreateResult)}.");
 
-            // Copy back the result to the hitobject for potential future retrieval.
-            HitObject.Result = Result;
+            // Copy back the result to the lifetime for potential future retrieval.
+            if (lifetime != null)
+                lifetime.Result = Result;
 
             foreach (var h in hitObject.NestedHitObjects)
             {
@@ -266,7 +280,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         private void onHitObjectDefaultsApplied(HitObject hitObject)
         {
             FreeAfterUse();
-            Apply(hitObject);
+            Apply(hitObject, lifetime);
             DefaultsApplied?.Invoke(this);
         }
 
@@ -652,28 +666,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
             base.LifetimeStart = start;
             base.LifetimeEnd = end;
 
-            if (LifetimeEntry != null)
+            if (lifetime != null)
             {
-                LifetimeEntry.LifetimeStart = start;
-                LifetimeEntry.LifetimeEnd = end;
-            }
-        }
-
-        private HitObjectLifetimeEntry lifetimeEntry;
-
-        protected internal HitObjectLifetimeEntry LifetimeEntry
-        {
-            get => lifetimeEntry;
-            set
-            {
-                lifetimeEntry = value;
-
-                if (value == null)
-                    return;
-
-                // Transfer lifetime from the entry.
-                LifetimeStart = value.LifetimeStart;
-                LifetimeEnd = value.LifetimeEnd;
+                lifetime.LifetimeStart = start;
+                lifetime.LifetimeEnd = end;
             }
         }
 

@@ -16,6 +16,7 @@ using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Input;
@@ -224,6 +225,14 @@ namespace osu.Game.Rulesets.UI
         }
 
         public void RemoveHitObject(TObject hitObject) => Playfield.Remove(hitObject);
+
+        protected sealed override HitObjectLifetimeEntry CreateLifetimeEntry(HitObject hitObject)
+        {
+            if (!(hitObject is TObject tHitObject))
+                throw new InvalidOperationException($"Unexpected hitobject type: {hitObject.GetType().ReadableName()}");
+
+            return CreateLifetimeEntry(tHitObject);
+        }
 
         protected virtual HitObjectLifetimeEntry CreateLifetimeEntry(TObject hitObject) => new HitObjectLifetimeEntry(hitObject);
 
@@ -542,8 +551,20 @@ namespace osu.Game.Rulesets.UI
                         m.ApplyToDrawableHitObjects(dho.Yield());
                 }
 
-                dho.Apply(hitObject);
+                dho.Apply(hitObject, getLifetimeEntry(hitObject));
             });
+        }
+
+        protected abstract HitObjectLifetimeEntry CreateLifetimeEntry(HitObject hitObject);
+
+        private readonly Dictionary<HitObject, HitObjectLifetimeEntry> lifetimeEntries = new Dictionary<HitObject, HitObjectLifetimeEntry>();
+
+        private HitObjectLifetimeEntry getLifetimeEntry(HitObject hitObject)
+        {
+            if (lifetimeEntries.TryGetValue(hitObject, out var entry))
+                return entry;
+
+            return lifetimeEntries[hitObject] = CreateLifetimeEntry(hitObject);
         }
     }
 

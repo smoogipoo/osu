@@ -11,6 +11,7 @@ using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.UI;
+using osu.Game.Rulesets.UI;
 using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
@@ -66,9 +67,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.FreeAfterUse();
         }
 
-        public override void Apply(HitObject hitObject)
+        public override void Apply(HitObject hitObject, HitObjectLifetimeEntry lifetime)
         {
-            base.Apply(hitObject);
+            base.Apply(hitObject, lifetime);
 
             IndexInCurrentComboBindable.BindTo(HitObject.IndexInCurrentComboBindable);
             PositionBindable.BindTo(HitObject.PositionBindable);

@@ -1,7 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Performance;
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 
 namespace osu.Game.Rulesets.UI
@@ -10,10 +12,19 @@ namespace osu.Game.Rulesets.UI
     {
         public readonly HitObject HitObject;
 
+        /// <summary>
+        /// The <see cref="JudgementResult"/> achieved for <see cref="HitObject"/>.
+        /// </summary>
+        internal JudgementResult Result;
+
+        private readonly IBindable<double> startTimeBindable = new BindableDouble();
+
         public HitObjectLifetimeEntry(HitObject hitObject)
         {
             HitObject = hitObject;
-            UpdateLifetimeStart();
+
+            startTimeBindable.BindTo(HitObject.StartTimeBindable);
+            startTimeBindable.BindValueChanged(onStartTimeChanged, true);
         }
 
         private double realLifetimeStart = double.MinValue;
@@ -60,6 +71,6 @@ namespace osu.Game.Rulesets.UI
 
         protected virtual double InitialLifetimeOffset => 10000;
 
-        internal void UpdateLifetimeStart() => LifetimeStart = HitObject.StartTime - InitialLifetimeOffset;
+        private void onStartTimeChanged(ValueChangedEvent<double> startTime) => LifetimeStart = startTime.NewValue - InitialLifetimeOffset;
     }
 }

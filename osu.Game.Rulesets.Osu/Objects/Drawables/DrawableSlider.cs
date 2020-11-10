@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Skinning;
 using osu.Game.Rulesets.Osu.UI;
+using osu.Game.Rulesets.UI;
 using osuTK.Graphics;
 using osu.Game.Skinning;
 
@@ -93,9 +94,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.FreeAfterUse();
         }
 
-        public override void Apply(HitObject hitObject)
+        public override void Apply(HitObject hitObject, HitObjectLifetimeEntry lifetime)
         {
-            base.Apply(hitObject);
+            base.Apply(hitObject, lifetime);
 
             // Ensure that the version will change after the upcoming BindTo().
             pathVersion.Value = int.MinValue;

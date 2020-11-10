@@ -93,9 +93,6 @@ namespace osu.Game.Rulesets.UI
             Debug.Assert(!drawableMap.ContainsKey(entry));
 
             var drawable = drawableRuleset.GetDrawableRepresentation(entry.HitObject);
-            Debug.Assert(drawable.LifetimeEntry == null);
-
-            drawable.LifetimeEntry = entry;
             drawable.OnNewResult += onNewResult;
             drawable.OnRevertResult += onRevertResult;
 
@@ -110,9 +107,6 @@ namespace osu.Game.Rulesets.UI
             Debug.Assert(drawableMap.ContainsKey(entry));
 
             var drawable = drawableMap[entry];
-            Debug.Assert(drawable.LifetimeEntry != null);
-
-            drawable.LifetimeEntry = null;
             drawable.OnNewResult -= onNewResult;
             drawable.OnRevertResult -= onRevertResult;
             drawable.OnKilled();
@@ -135,7 +129,7 @@ namespace osu.Game.Rulesets.UI
         private void bindStartTime(DrawableHitObject hitObject)
         {
             var bindable = hitObject.StartTimeBindable.GetBoundCopy();
-            bindable.BindValueChanged(_ => onStartTimeChanged(hitObject));
+            bindable.BindValueChanged(_ => onStartTimeChanged());
 
             startTimeMap[hitObject] = bindable;
         }
@@ -153,11 +147,7 @@ namespace osu.Game.Rulesets.UI
             startTimeMap.Clear();
         }
 
-        private void onStartTimeChanged(DrawableHitObject hitObject)
-        {
-            hitObject.LifetimeEntry?.UpdateLifetimeStart();
-            SortInternal();
-        }
+        private void onStartTimeChanged() => SortInternal();
 
         protected override int Compare(Drawable x, Drawable y)
         {
