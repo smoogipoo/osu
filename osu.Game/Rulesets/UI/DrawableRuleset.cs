@@ -218,10 +218,12 @@ namespace osu.Game.Rulesets.UI
 
         public void AddHitObject(TObject hitObject)
         {
-            if (PoolHitObjects)
-                Playfield.Add(CreateLifetimeEntry(hitObject));
+            var representation = CreateDrawableRepresentation(hitObject);
+
+            if (representation != null)
+                Playfield.Add(representation);
             else
-                Playfield.Add(CreateDrawableRepresentation(hitObject));
+                Playfield.Add(CreateLifetimeEntry(hitObject));
         }
 
         public void RemoveHitObject(TObject hitObject) => Playfield.Remove(hitObject);
@@ -513,8 +515,6 @@ namespace osu.Game.Rulesets.UI
         /// Invoked when the user requests to pause while the resume overlay is active.
         /// </summary>
         public abstract void CancelResume();
-
-        protected virtual bool PoolHitObjects => false;
 
         private readonly Dictionary<Type, IDrawablePool> pools = new Dictionary<Type, IDrawablePool>();
 
