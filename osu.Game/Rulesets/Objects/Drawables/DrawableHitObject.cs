@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -214,7 +212,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             foreach (var h in hitObject.NestedHitObjects)
             {
-                DrawableHitObject obj = getDrawableNestedRepresentation(h);
+                DrawableHitObject obj = drawableRuleset.GetPooledDrawableRepresentation(h)
+                                        ?? CreateNestedHitObject(h)
+                                        ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {h.GetType().ReadableName()}.");
 
                 obj.OnNewResult += onNewResult;
                 obj.OnRevertResult += onRevertResult;
@@ -242,39 +242,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         public virtual void ApplyParent(DrawableHitObject parent)
         {
-        }
-
-        /// <summary>
-        /// Retrieves the drawable representation of a <see cref="HitObject"/> via (in order):
-        /// <list type="number">
-        ///     <item>
-        ///         <description><see cref="DrawableRuleset.GetDrawableRepresentation"/> (if <see cref="CreateNestedHitObject"/> is not overridden).</description>
-        ///     </item>
-        ///     <item>
-        ///         <description><see cref="CreateNestedHitObject"/> (if still null).</description>
-        ///     </item>
-        ///     <item>
-        ///         <description>An exception (if still null).</description>
-        ///     </item>
-        /// </list>
-        /// </summary>
-        /// <param name="hitObject">The <see cref="HitObject"/> to retrieve the drawable representation for.</param>
-        /// <returns>The <see cref="DrawableHitObject"/> representation for <paramref name="hitObject"/>.</returns>
-        private DrawableHitObject getDrawableNestedRepresentation(HitObject hitObject)
-        {
-            var createMethod = GetType().GetMethod(nameof(CreateNestedHitObject), BindingFlags.NonPublic | BindingFlags.Instance);
-            Debug.Assert(createMethod != null);
-
-            DrawableHitObject result = null;
-
-            // Only go through the DrawableRuleset if the local method hasn't been overridden.
-            // Going through DrawableRuleset can result in incorrect return values when derived hitobjects are present due to type matching.
-            if (createMethod.DeclaringType == typeof(DrawableHitObject))
-                result = drawableRuleset.GetDrawableRepresentation(hitObject);
-
-            return result
-                   ?? CreateNestedHitObject(hitObject)
-                   ?? throw new InvalidOperationException($"{nameof(CreateNestedHitObject)} returned null for {hitObject.GetType().ReadableName()}.");
         }
 
         private void onHitObjectDefaultsApplied(HitObject hitObject)
