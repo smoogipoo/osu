@@ -12,6 +12,7 @@ using osu.Game.Input.Handlers;
 using osu.Game.Replays;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -33,25 +34,29 @@ namespace osu.Game.Rulesets.Osu.UI
         {
         }
 
-        protected override bool PoolHitObjects => true;
-
         [BackgroundDependencyLoader]
         private void load()
         {
-            RegisterPool<HitCircle, DrawableHitCircle>(10, 100);
+            registerPool<HitCircle, DrawableHitCircle>(10, 100);
 
-            RegisterPool<Slider, DrawableSlider>(10, 100);
-            RegisterPool<SliderHeadCircle, DrawableSliderHead>(10, 100);
-            RegisterPool<SliderTailCircle, DrawableSliderTail>(10, 100);
-            RegisterPool<SliderTick, DrawableSliderTick>(10, 100);
-            RegisterPool<SliderRepeat, DrawableSliderRepeat>(5, 50);
+            registerPool<Slider, DrawableSlider>(10, 100);
+            registerPool<SliderHeadCircle, DrawableSliderHead>(10, 100);
+            registerPool<SliderTailCircle, DrawableSliderTail>(10, 100);
+            registerPool<SliderTick, DrawableSliderTick>(10, 100);
+            registerPool<SliderRepeat, DrawableSliderRepeat>(5, 50);
 
-            RegisterPool<Spinner, DrawableSpinner>(2, 20);
-            RegisterPool<SpinnerTick, DrawableSpinnerTick>(10, 100);
-            RegisterPool<SpinnerBonusTick, DrawableSpinnerBonusTick>(10, 100);
+            registerPool<Spinner, DrawableSpinner>(2, 20);
+            registerPool<SpinnerTick, DrawableSpinnerTick>(10, 100);
+            registerPool<SpinnerBonusTick, DrawableSpinnerBonusTick>(10, 100);
         }
 
-        protected override DrawablePool<TDrawable> CreatePool<TDrawable>(int initialSize, int? maximumSize = null)
+        private void registerPool<TObject, TDrawable>(int initialSize, int? maximumSize = null)
+            where TObject : HitObject
+            where TDrawable : DrawableHitObject, new()
+            => RegisterPool<TObject, TDrawable>(CreatePool<TDrawable>(initialSize, maximumSize));
+
+        protected virtual DrawablePool<TDrawable> CreatePool<TDrawable>(int initialSize, int? maximumSize = null)
+            where TDrawable : DrawableHitObject, new()
             => new OsuDrawablePool<TDrawable>(Playfield.CheckHittable, Playfield.OnHitObjectLoaded, initialSize, maximumSize);
 
         protected override HitObjectLifetimeEntry CreateLifetimeEntry(OsuHitObject hitObject) => new OsuHitObjectLifetimeEntry(hitObject);

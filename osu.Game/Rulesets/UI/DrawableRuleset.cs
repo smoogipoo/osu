@@ -521,15 +521,14 @@ namespace osu.Game.Rulesets.UI
         protected void RegisterPool<TObject, TDrawable>(int initialSize, int? maximumSize = null)
             where TObject : HitObject
             where TDrawable : DrawableHitObject, new()
+            => RegisterPool<TObject, TDrawable>(new DrawablePool<TDrawable>(initialSize, maximumSize));
+
+        protected void RegisterPool<TObject, TDrawable>(DrawablePool<TDrawable> pool)
+            where TDrawable : DrawableHitObject, new()
         {
-            var pool = CreatePool<TDrawable>(initialSize, maximumSize);
             pools[typeof(TObject)] = pool;
             AddInternal(pool);
         }
-
-        protected virtual DrawablePool<TDrawable> CreatePool<TDrawable>(int initialSize, int? maximumSize = null)
-            where TDrawable : DrawableHitObject, new()
-            => new DrawablePool<TDrawable>(initialSize, maximumSize);
 
         public DrawableHitObject GetPooledDrawableRepresentation(HitObject hitObject)
         {
