@@ -77,6 +77,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         protected override void UpdateInitialTransforms()
         {
+            base.UpdateInitialTransforms();
+
             animDuration = Math.Min(300, HitObject.SpanDuration);
 
             this.Animate(

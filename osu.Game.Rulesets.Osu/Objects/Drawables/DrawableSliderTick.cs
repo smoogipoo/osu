@@ -77,6 +77,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         protected override void UpdateInitialTransforms()
         {
+            base.UpdateInitialTransforms();
+
             this.FadeOut().FadeIn(ANIM_DURATION);
             this.ScaleTo(0.5f).ScaleTo(1f, ANIM_DURATION * 4, Easing.OutElasticHalf);
         }

@@ -225,6 +225,8 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
 
         protected override void UpdateHitStateTransforms(ArmedState state)
         {
+            base.UpdateHitStateTransforms(state);
+
             const double transition_duration = 300;
 
             switch (state)
