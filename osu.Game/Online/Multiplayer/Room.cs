@@ -36,7 +36,7 @@ namespace osu.Game.Online.Multiplayer
 
         [Cached]
         [JsonProperty("category")]
-        public readonly Bindable<RoomCategory> Category = new Bindable<RoomCategory>();
+        public readonly Bindable<RoomCategory> Category = new Bindable<RoomCategory>(RoomCategory.Normal);
 
         [Cached]
         [JsonIgnore]

@@ -27,7 +27,7 @@ using Footer = osu.Game.Screens.Multi.Match.Components.Footer;
 namespace osu.Game.Screens.Multi.Match
 {
     [Cached(typeof(IPreviewTrackOwner))]
-    public class MatchSubScreen : MultiplayerSubScreen, IPreviewTrackOwner
+    public abstract class MatchSubScreen : MultiplayerSubScreen, IPreviewTrackOwner
     {
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
@@ -58,7 +58,7 @@ namespace osu.Game.Screens.Multi.Match
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
         private OverlinedHeader participantsHeader;
 
-        public MatchSubScreen(Room room)
+        protected MatchSubScreen(Room room)
         {
             Title = room.RoomID.Value == null ? "New room" : room.Name.Value;
             Activity.Value = new UserActivity.InLobby(room);

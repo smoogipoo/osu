@@ -193,9 +193,11 @@ namespace osu.Game.Screens.Multi.Lounge
 
             selectedRoom.Value = room;
 
-            this.Push(new MatchSubScreen(room));
+            this.Push(CreateMatchSubScreen(room));
         }
 
-        protected virtual FilterControl CreateFilterControl() => new FilterControl();
+        protected abstract FilterControl CreateFilterControl();
+
+        protected abstract MatchSubScreen CreateMatchSubScreen(Room room);
     }
 }

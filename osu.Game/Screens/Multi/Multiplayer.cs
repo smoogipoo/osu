@@ -291,7 +291,7 @@ namespace osu.Game.Screens.Multi
         /// Create a new room.
         /// </summary>
         /// <param name="room">An optional template to use when creating the room.</param>
-        public void CreateRoom(Room room = null) => loungeSubScreen.Open(room ?? new Room { Name = { Value = $"{api.LocalUser}'s awesome room" } });
+        public void CreateRoom(Room room = null) => loungeSubScreen.Open(room ?? CreateNewRoom());
 
         private void beginHandlingTrack()
         {
@@ -376,6 +376,8 @@ namespace osu.Game.Screens.Multi
         }
 
         protected virtual CreateRoomButton CreateCreateRoomButton() => new CreateRoomButton();
+
+        protected virtual Room CreateNewRoom() => new Room { Name = { Value = $"{api.LocalUser}'s awesome room" } };
 
         protected abstract LoungeSubScreen CreateLounge();
 

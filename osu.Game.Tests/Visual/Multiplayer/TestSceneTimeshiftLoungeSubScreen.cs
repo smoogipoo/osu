@@ -12,7 +12,7 @@ using osu.Game.Screens.Multi.Timeshift;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneTimeshiftLounge : RoomManagerTestScene
+    public class TestSceneTimeshiftLoungeSubScreen : RoomManagerTestScene
     {
         private LoungeSubScreen loungeScreen;
 
@@ -20,7 +20,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             base.SetUpSteps();
 
-            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeshiftLounge()));
+            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeShiftLoungeSubScreen()));
 
             AddUntilStep("wait for present", () => loungeScreen.IsCurrentScreen());
         }
