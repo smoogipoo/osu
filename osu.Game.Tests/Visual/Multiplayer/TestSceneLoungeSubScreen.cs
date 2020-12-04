@@ -10,6 +10,7 @@ using osu.Framework.Testing;
 using osu.Game.Graphics.Containers;
 using osu.Game.Screens.Multi.Lounge;
 using osu.Game.Screens.Multi.Lounge.Components;
+using osu.Game.Screens.Multi.Timeshift;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -26,7 +27,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             base.SetUpSteps();
 
-            AddStep("push screen", () => LoadScreen(loungeScreen = new LoungeSubScreen
+            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeshiftLounge
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,

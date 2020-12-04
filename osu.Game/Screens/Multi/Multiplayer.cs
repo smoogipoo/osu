@@ -13,7 +13,6 @@ using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics.Containers;
-using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
@@ -30,7 +29,7 @@ using osuTK;
 namespace osu.Game.Screens.Multi
 {
     [Cached]
-    public class Multiplayer : OsuScreen
+    public abstract class Multiplayer : OsuScreen
     {
         public override bool CursorVisible => (screenStack.CurrentScreen as IMultiplayerSubScreen)?.CursorVisible ?? true;
 
@@ -40,7 +39,6 @@ namespace osu.Game.Screens.Multi
 
         private readonly MultiplayerWaveContainer waves;
 
-        private readonly OsuButton createButton;
         private readonly LoungeSubScreen loungeSubScreen;
         private readonly ScreenStack screenStack;
 
@@ -67,10 +65,11 @@ namespace osu.Game.Screens.Multi
         [Resolved(CanBeNull = true)]
         private OsuLogo logo { get; set; }
 
+        private readonly Drawable createButton;
         private readonly Drawable header;
         private readonly Drawable headerBackground;
 
-        public Multiplayer()
+        protected Multiplayer()
         {
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
@@ -82,7 +81,7 @@ namespace osu.Game.Screens.Multi
             InternalChild = waves = new MultiplayerWaveContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
+                Children = new[]
                 {
                     new Box
                     {
@@ -131,12 +130,7 @@ namespace osu.Game.Screens.Multi
                         }
                     },
                     new Header(screenStack),
-                    createButton = new CreateRoomButton
-                    {
-                        Anchor = Anchor.TopRight,
-                        Origin = Anchor.TopRight,
-                        Action = () => CreateRoom()
-                    },
+                    createButton = CreateCreateRoomButton().With(b => b.Action = () => CreateRoom()),
                     roomManager = new RoomManager()
                 }
             };
@@ -144,7 +138,7 @@ namespace osu.Game.Screens.Multi
             screenStack.ScreenPushed += screenPushed;
             screenStack.ScreenExited += screenExited;
 
-            screenStack.Push(loungeSubScreen = new LoungeSubScreen());
+            screenStack.Push(loungeSubScreen = CreateLounge());
         }
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
@@ -381,6 +375,10 @@ namespace osu.Game.Screens.Multi
             }
         }
 
+        protected virtual CreateRoomButton CreateCreateRoomButton() => new CreateRoomButton();
+
+        protected abstract LoungeSubScreen CreateLounge();
+
         private class MultiplayerWaveContainer : WaveContainer
         {
             protected override bool StartHidden => true;
@@ -404,24 +402,27 @@ namespace osu.Game.Screens.Multi
             }
         }
 
-        public class CreateRoomButton : PurpleTriangleButton
+        protected class CreateRoomButton : PurpleTriangleButton
         {
             public CreateRoomButton()
             {
+                Anchor = Anchor.TopRight;
+                Origin = Anchor.TopRight;
+
                 Size = new Vector2(150, Header.HEIGHT - 20);
                 Margin = new MarginPadding
                 {
                     Top = 10,
                     Right = 10 + HORIZONTAL_OVERFLOW_PADDING,
                 };
+
+                Text = "Create room";
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
                 Triangles.TriangleScale = 1.5f;
-
-                Text = "Create room";
             }
         }
     }
