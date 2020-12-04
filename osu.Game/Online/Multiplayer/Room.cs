@@ -35,8 +35,15 @@ namespace osu.Game.Online.Multiplayer
         public readonly Bindable<int> ChannelId = new Bindable<int>();
 
         [Cached]
-        [JsonProperty("category")]
+        [JsonIgnore]
         public readonly Bindable<RoomCategory> Category = new Bindable<RoomCategory>(RoomCategory.Normal);
+
+        [JsonProperty("category")]
+        private string categoryString
+        {
+            get => Category.Value.ToString().ToLower();
+            set => Category.Value = Enum.Parse<RoomCategory>(value, true);
+        }
 
         [Cached]
         [JsonIgnore]
