@@ -37,7 +37,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black,
-                    Alpha = 0.5f,
+                    Alpha = 0.25f,
                 },
                 tabStrip = new Box
                 {
