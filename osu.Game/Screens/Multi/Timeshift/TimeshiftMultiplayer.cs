@@ -7,6 +7,8 @@ namespace osu.Game.Screens.Multi.Timeshift
 {
     public class TimeshiftMultiplayer : Multiplayer
     {
+        public override string Title => "Playlists";
+
         protected override LoungeSubScreen CreateLounge() => new TimeShiftLoungeSubScreen();
     }
 }

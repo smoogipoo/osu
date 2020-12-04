@@ -72,18 +72,19 @@ namespace osu.Game.Screens.Multi
         {
             private const float spacing = 6;
 
-            private readonly OsuSpriteText dot;
-            private readonly OsuSpriteText pageTitle;
+            [Resolved]
+            private Multiplayer multiplayer { get; set; }
 
-            public IMultiplayerSubScreen Screen
-            {
-                set => pageTitle.Text = value.ShortTitle.Titleize();
-            }
+            private OsuSpriteText pageTitle;
 
             public MultiHeaderTitle()
             {
                 AutoSizeAxes = Axes.Both;
+            }
 
+            [BackgroundDependencyLoader]
+            private void load(OsuColour colours)
+            {
                 InternalChildren = new Drawable[]
                 {
                     new FillFlowContainer
@@ -98,31 +99,40 @@ namespace osu.Game.Screens.Multi
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Font = OsuFont.GetFont(size: 24),
-                                Text = "Multiplayer"
+                                Text = multiplayer.Title
                             },
-                            dot = new OsuSpriteText
+                            new OsuSpriteText
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Font = OsuFont.GetFont(size: 24),
-                                Text = "·"
+                                Text = "·",
+                                Colour = colours.Yellow
                             },
                             pageTitle = new OsuSpriteText
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Font = OsuFont.GetFont(size: 24),
-                                Text = "Lounge"
+                                Text = subScreenTitle,
+                                Colour = colours.Yellow
                             }
                         }
                     },
                 };
             }
 
-            [BackgroundDependencyLoader]
-            private void load(OsuColour colours)
+            private string subScreenTitle;
+
+            public IMultiplayerSubScreen Screen
             {
-                pageTitle.Colour = dot.Colour = colours.Yellow;
+                set
+                {
+                    subScreenTitle = value.ShortTitle.Titleize();
+
+                    if (pageTitle != null)
+                        pageTitle.Text = subScreenTitle;
+                }
             }
         }
 

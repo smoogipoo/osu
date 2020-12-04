@@ -9,6 +9,8 @@ namespace osu.Game.Screens.Multi.Realtime
 {
     public class RealtimeMultiplayer : Multiplayer
     {
+        public override string Title => "Multiplayer";
+
         protected override LoungeSubScreen CreateLounge() => new RealtimeLoungeSubScreen();
 
         protected override CreateRoomButton CreateCreateRoomButton() => base.CreateCreateRoomButton().With(b => b.Text = "Create match");
