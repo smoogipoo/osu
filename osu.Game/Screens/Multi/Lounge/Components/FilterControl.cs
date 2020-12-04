@@ -2,24 +2,32 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Rulesets;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Multi.Lounge.Components
 {
     public class FilterControl : CompositeDrawable
     {
-        private const float vertical_padding = 10;
-        private const float horizontal_padding = 80;
+        protected const float VERTICAL_PADDING = 10;
+        protected const float HORIZONTAL_PADDING = 80;
+
+        [Resolved(CanBeNull = true)]
+        private Bindable<FilterCriteria> filter { get; set; }
+
+        [Resolved]
+        private IBindable<RulesetInfo> ruleset { get; set; }
 
         private readonly Box tabStrip;
-
-        public readonly SearchTextBox Search;
-        public readonly PageTabControl<RoomStatusFilter> Tabs;
+        private readonly SearchTextBox search;
+        private readonly PageTabControl<RoomStatusFilter> tabs;
 
         public FilterControl()
         {
@@ -43,16 +51,16 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding
                     {
-                        Top = vertical_padding,
-                        Horizontal = horizontal_padding
+                        Top = VERTICAL_PADDING,
+                        Horizontal = HORIZONTAL_PADDING
                     },
                     Children = new Drawable[]
                     {
-                        Search = new FilterSearchTextBox
+                        search = new FilterSearchTextBox
                         {
                             RelativeSizeAxes = Axes.X,
                         },
-                        Tabs = new PageTabControl<RoomStatusFilter>
+                        tabs = new PageTabControl<RoomStatusFilter>
                         {
                             Anchor = Anchor.BottomLeft,
                             Origin = Anchor.BottomLeft,
@@ -62,23 +70,55 @@ namespace osu.Game.Screens.Multi.Lounge.Components
                 }
             };
 
-            Tabs.Current.Value = RoomStatusFilter.Open;
-            Tabs.Current.TriggerChange();
+            tabs.Current.Value = RoomStatusFilter.Open;
+            tabs.Current.TriggerChange();
         }
 
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
+            filter ??= new Bindable<FilterCriteria>();
             tabStrip.Colour = colours.Yellow;
         }
 
-        public bool HoldFocus
+        protected override void LoadComplete()
         {
-            get => Search.HoldFocus;
-            set => Search.HoldFocus = value;
+            base.LoadComplete();
+
+            search.Current.BindValueChanged(_ => updateFilterDebounced());
+            ruleset.BindValueChanged(_ => UpdateFilter());
+            tabs.Current.BindValueChanged(_ => UpdateFilter(), true);
         }
 
-        public void TakeFocus() => Search.TakeFocus();
+        private ScheduledDelegate scheduledFilterUpdate;
+
+        private void updateFilterDebounced()
+        {
+            scheduledFilterUpdate?.Cancel();
+            scheduledFilterUpdate = Scheduler.AddDelayed(UpdateFilter, 200);
+        }
+
+        protected void UpdateFilter()
+        {
+            scheduledFilterUpdate?.Cancel();
+
+            var criteria = CreateCriteria();
+            criteria.SearchString = search.Current.Value;
+            criteria.Status = tabs.Current.Value;
+            criteria.Ruleset = ruleset.Value;
+
+            filter.Value = criteria;
+        }
+
+        protected virtual FilterCriteria CreateCriteria() => new FilterCriteria();
+
+        public bool HoldFocus
+        {
+            get => search.HoldFocus;
+            set => search.HoldFocus = value;
+        }
+
+        public void TakeFocus() => search.TakeFocus();
 
         private class FilterSearchTextBox : SearchTextBox
         {
