@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Multi.Lounge.Components
 {
-    public class FilterControl2 : CompositeDrawable
+    public class FilterControl : CompositeDrawable
     {
         private const float vertical_padding = 10;
         private const float horizontal_padding = 80;
@@ -21,7 +21,7 @@ namespace osu.Game.Screens.Multi.Lounge.Components
         public readonly SearchTextBox Search;
         public readonly PageTabControl<RoomStatusFilter> Tabs;
 
-        public FilterControl2()
+        public FilterControl()
         {
             InternalChildren = new Drawable[]
             {

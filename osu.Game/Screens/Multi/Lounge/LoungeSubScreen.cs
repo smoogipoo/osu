@@ -27,7 +27,7 @@ namespace osu.Game.Screens.Multi.Lounge
 
         private readonly Bindable<bool> initialRoomsReceived = new Bindable<bool>();
 
-        private FilterControl2 filterControl;
+        private FilterControl filterControl;
         private Container content;
         private LoadingLayer loadingLayer;
 
@@ -196,6 +196,6 @@ namespace osu.Game.Screens.Multi.Lounge
             this.Push(new MatchSubScreen(room));
         }
 
-        protected virtual FilterControl2 CreateFilterControl() => new FilterControl2();
+        protected virtual FilterControl CreateFilterControl() => new FilterControl();
     }
 }
