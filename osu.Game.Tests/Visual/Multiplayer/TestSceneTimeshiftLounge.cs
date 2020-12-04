@@ -3,8 +3,6 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Graphics.Containers;
@@ -14,25 +12,15 @@ using osu.Game.Screens.Multi.Timeshift;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneLoungeSubScreen : RoomManagerTestScene
+    public class TestSceneTimeshiftLounge : RoomManagerTestScene
     {
         private LoungeSubScreen loungeScreen;
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-        }
 
         public override void SetUpSteps()
         {
             base.SetUpSteps();
 
-            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeshiftLounge
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Width = 0.5f,
-            }));
+            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeshiftLounge()));
 
             AddUntilStep("wait for present", () => loungeScreen.IsCurrentScreen());
         }

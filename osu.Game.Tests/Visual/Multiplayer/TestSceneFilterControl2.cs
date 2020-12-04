@@ -6,15 +6,16 @@ using osu.Game.Screens.Multi.Lounge.Components;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneLoungeFilterControl : OsuTestScene
+    public class TestSceneFilterControl2 : OsuTestScene
     {
-        public TestSceneLoungeFilterControl()
+        public TestSceneFilterControl2()
         {
-            Child = new FilterControl
+            Add(new FilterControl2
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            };
+                RelativeSizeAxes = Axes.X,
+                Width = 0.7f,
+                Height = 80,
+            });
         }
     }
 }

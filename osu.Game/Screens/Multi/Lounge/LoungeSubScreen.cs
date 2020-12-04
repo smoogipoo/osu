@@ -23,12 +23,11 @@ namespace osu.Game.Screens.Multi.Lounge
     {
         public override string Title => "Lounge";
 
-        protected FilterControl Filter;
-
         protected override UserActivity InitialActivity => new UserActivity.SearchingForLobby();
 
         private readonly Bindable<bool> initialRoomsReceived = new Bindable<bool>();
 
+        private FilterControl2 filterControl;
         private Container content;
         private LoadingLayer loadingLayer;
 
@@ -48,7 +47,12 @@ namespace osu.Game.Screens.Multi.Lounge
 
             InternalChildren = new Drawable[]
             {
-                Filter = new FilterControl { Depth = -1 },
+                filterControl = CreateFilterControl().With(d =>
+                {
+                    d.RelativeSizeAxes = Axes.X;
+                    d.Height = 80;
+                    d.Depth = -1;
+                }),
                 content = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -104,7 +108,7 @@ namespace osu.Game.Screens.Multi.Lounge
 
             content.Padding = new MarginPadding
             {
-                Top = Filter.DrawHeight,
+                Top = filterControl.DrawHeight,
                 Left = WaveOverlayContainer.WIDTH_PADDING - DrawableRoom.SELECTION_BORDER_WIDTH + HORIZONTAL_OVERFLOW_PADDING,
                 Right = WaveOverlayContainer.WIDTH_PADDING + HORIZONTAL_OVERFLOW_PADDING,
             };
@@ -112,7 +116,7 @@ namespace osu.Game.Screens.Multi.Lounge
 
         protected override void OnFocus(FocusEvent e)
         {
-            Filter.Search.TakeFocus();
+            filterControl.TakeFocus();
         }
 
         public override void OnEntering(IScreen last)
@@ -136,19 +140,19 @@ namespace osu.Game.Screens.Multi.Lounge
 
         private void onReturning()
         {
-            Filter.Search.HoldFocus = true;
+            filterControl.HoldFocus = true;
         }
 
         public override bool OnExiting(IScreen next)
         {
-            Filter.Search.HoldFocus = false;
+            filterControl.HoldFocus = false;
             return base.OnExiting(next);
         }
 
         public override void OnSuspending(IScreen next)
         {
             base.OnSuspending(next);
-            Filter.Search.HoldFocus = false;
+            filterControl.HoldFocus = false;
         }
 
         private void joinRequested(Room room)
@@ -191,5 +195,7 @@ namespace osu.Game.Screens.Multi.Lounge
 
             this.Push(new MatchSubScreen(room));
         }
+
+        protected virtual FilterControl2 CreateFilterControl() => new FilterControl2();
     }
 }
