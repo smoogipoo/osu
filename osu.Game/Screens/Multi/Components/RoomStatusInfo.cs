@@ -48,16 +48,19 @@ namespace osu.Game.Screens.Multi.Components
 
         private class EndDatePart : DrawableDate
         {
-            public readonly IBindable<DateTimeOffset> EndDate = new Bindable<DateTimeOffset>();
+            public readonly IBindable<DateTimeOffset?> EndDate = new Bindable<DateTimeOffset?>();
 
             public EndDatePart()
                 : base(DateTimeOffset.UtcNow)
             {
-                EndDate.BindValueChanged(date => Date = date.NewValue);
+                EndDate.BindValueChanged(date => Date = date.NewValue ?? default);
             }
 
             protected override string Format()
             {
+                if (EndDate.Value == null)
+                    return string.Empty;
+
                 var diffToNow = Date.Subtract(DateTimeOffset.Now);
 
                 if (diffToNow.TotalSeconds < -5)
@@ -100,7 +103,8 @@ namespace osu.Game.Screens.Multi.Components
                 if (!IsLoaded)
                     return string.Empty;
 
-                RoomStatus status = Date < DateTimeOffset.Now ? new RoomStatusEnded() : Status.Value ?? new RoomStatusOpen();
+                RoomStatus status = EndDate.Value != null && Date < DateTimeOffset.Now ? new RoomStatusEnded() : Status.Value;
+                status ??= new RoomStatusOpen();
 
                 this.FadeColour(status.GetAppropriateColour(colours), 100);
                 return $"{Availability.Value.GetDescription()}, {status.Message}";

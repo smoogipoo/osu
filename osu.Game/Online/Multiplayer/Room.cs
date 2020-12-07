@@ -94,7 +94,7 @@ namespace osu.Game.Online.Multiplayer
         // Only supports retrieval for now
         [Cached]
         [JsonProperty("ends_at")]
-        public readonly Bindable<DateTimeOffset> EndDate = new Bindable<DateTimeOffset>();
+        public readonly Bindable<DateTimeOffset?> EndDate = new Bindable<DateTimeOffset?>();
 
         // Todo: Find a better way to do this (https://github.com/ppy/osu-framework/issues/1930)
         [JsonProperty("max_attempts", DefaultValueHandling = DefaultValueHandling.Ignore)]

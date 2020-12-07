@@ -18,7 +18,7 @@ namespace osu.Game.Screens.Multi.Match.Components
         public readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
 
         [Resolved(typeof(Room), nameof(Room.EndDate))]
-        private Bindable<DateTimeOffset> endDate { get; set; }
+        private Bindable<DateTimeOffset?> endDate { get; set; }
 
         [Resolved]
         private IBindable<WorkingBeatmap> gameBeatmap { get; set; }
@@ -100,7 +100,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                 return;
             }
 
-            bool hasEnoughTime = DateTimeOffset.UtcNow.AddSeconds(30).AddMilliseconds(gameBeatmap.Value.Track.Length) < endDate.Value;
+            bool hasEnoughTime = endDate.Value == null || DateTimeOffset.UtcNow.AddSeconds(30).AddMilliseconds(gameBeatmap.Value.Track.Length) < endDate.Value;
 
             Enabled.Value = hasBeatmap && hasEnoughTime;
         }
