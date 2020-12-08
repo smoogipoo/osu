@@ -3,16 +3,26 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Screens;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
+using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
     public class RealtimeMatchSubScreen : RoomSubScreen, IMultiplayerClient
     {
+        public override string Title { get; }
+
+        public override string ShortTitle => "match";
+
+        [Resolved(typeof(Room), nameof(Room.RoomID))]
+        private Bindable<int?> roomId { get; set; }
+
         [Cached(typeof(IBindable<MultiplayerRoomState>))]
         private readonly Bindable<MultiplayerRoomState> roomState = new Bindable<MultiplayerRoomState>();
 
@@ -25,8 +35,39 @@ namespace osu.Game.Screens.Multi.Realtime
         [Cached(typeof(IBindable<MultiplayerRoomUser>))]
         private readonly Bindable<MultiplayerRoomUser> roomHost = new Bindable<MultiplayerRoomUser>();
 
+        private RealtimeMatchSettingsOverlay settingsOverlay;
+
         public RealtimeMatchSubScreen(Room room)
         {
+            Title = room.RoomID.Value == null ? "New match" : room.Name.Value;
+            Activity.Value = new UserActivity.InLobby(room);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            InternalChildren = new Drawable[]
+            {
+                settingsOverlay = new RealtimeMatchSettingsOverlay
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    OpenSongSelect = () => this.Push(new RealtimeMatchSongSelect()),
+                    State = { Value = roomId.Value == null ? Visibility.Visible : Visibility.Hidden }
+                }
+            };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            roomId.BindValueChanged(id =>
+            {
+                if (id.NewValue == null)
+                    settingsOverlay.Show();
+                else
+                    settingsOverlay.Hide();
+            }, true);
         }
 
         Task IMultiplayerClient.RoomStateChanged(MultiplayerRoomState state)
