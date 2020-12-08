@@ -21,7 +21,6 @@ using osu.Game.Screens.Menu;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Lounge;
 using osu.Game.Screens.Multi.Lounge.Components;
-using osu.Game.Screens.Multi.Match;
 using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Users;
 using osuTK;
@@ -188,7 +187,7 @@ namespace osu.Game.Screens.Multi
                         roomManager.TimeBetweenSelectionPolls = idle ? 120000 : 15000;
                         break;
 
-                    case MatchSubScreen _:
+                    case RoomSubScreen _:
                         roomManager.TimeBetweenListingPolls = 0;
                         roomManager.TimeBetweenSelectionPolls = idle ? 30000 : 5000;
                         break;
@@ -326,7 +325,7 @@ namespace osu.Game.Screens.Multi
                     headerBackground.MoveToX(0, MultiplayerSubScreen.X_MOVE_DURATION, Easing.OutQuint);
                     break;
 
-                case MatchSubScreen _:
+                case RoomSubScreen _:
                     header.ResizeHeightTo(135, MultiplayerSubScreen.APPEAR_DURATION, Easing.OutQuint);
                     headerBackground.MoveToX(-MultiplayerSubScreen.X_SHIFT, MultiplayerSubScreen.X_MOVE_DURATION, Easing.OutQuint);
                     break;
@@ -346,7 +345,7 @@ namespace osu.Game.Screens.Multi
 
         private void updateTrack(ValueChangedEvent<WorkingBeatmap> _ = null)
         {
-            if (screenStack.CurrentScreen is MatchSubScreen)
+            if (screenStack.CurrentScreen is RoomSubScreen)
             {
                 var track = Beatmap.Value?.Track;
 

@@ -197,6 +197,6 @@ namespace osu.Game.Screens.Multi.Lounge
 
         protected abstract FilterControl CreateFilterControl();
 
-        protected abstract MultiplayerSubScreen CreateRoomSubScreen(Room room);
+        protected abstract RoomSubScreen CreateRoomSubScreen(Room room);
     }
 }

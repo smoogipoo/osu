@@ -11,6 +11,6 @@ namespace osu.Game.Screens.Multi.Realtime
     {
         protected override FilterControl CreateFilterControl() => new RealtimeFilterControl();
 
-        protected override MultiplayerSubScreen CreateRoomSubScreen(Room room) => new RealtimeMatchSubScreen(room);
+        protected override RoomSubScreen CreateRoomSubScreen(Room room) => new RealtimeMatchSubScreen(room);
     }
 }
