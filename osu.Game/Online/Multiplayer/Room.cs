@@ -42,7 +42,12 @@ namespace osu.Game.Online.Multiplayer
         private string categoryString
         {
             get => Category.Value.ToString().ToLower();
-            set => Category.Value = Enum.Parse<RoomCategory>(value, true);
+            set
+            {
+                if (!Enum.TryParse<RoomCategory>(value, out var enumValue))
+                    enumValue = RoomCategory.Normal;
+                Category.Value = enumValue;
+            }
         }
 
         [Cached]
