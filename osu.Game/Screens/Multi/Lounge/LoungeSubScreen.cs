@@ -13,7 +13,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Screens.Multi.Lounge.Components;
-using osu.Game.Screens.Multi.Match;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Lounge
@@ -193,11 +192,11 @@ namespace osu.Game.Screens.Multi.Lounge
 
             selectedRoom.Value = room;
 
-            this.Push(CreateMatchSubScreen(room));
+            this.Push(CreateRoomSubScreen(room));
         }
 
         protected abstract FilterControl CreateFilterControl();
 
-        protected abstract MatchSubScreen CreateMatchSubScreen(Room room);
+        protected abstract MultiplayerSubScreen CreateRoomSubScreen(Room room);
     }
 }

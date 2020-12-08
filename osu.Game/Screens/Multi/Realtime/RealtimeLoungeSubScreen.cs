@@ -4,7 +4,6 @@
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Lounge;
 using osu.Game.Screens.Multi.Lounge.Components;
-using osu.Game.Screens.Multi.Match;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
@@ -12,6 +11,6 @@ namespace osu.Game.Screens.Multi.Realtime
     {
         protected override FilterControl CreateFilterControl() => new RealtimeFilterControl();
 
-        protected override MatchSubScreen CreateMatchSubScreen(Room room) => new RealtimeMatchSubScreen(room);
+        protected override MultiplayerSubScreen CreateRoomSubScreen(Room room) => new RealtimeMatchSubScreen(room);
     }
 }
