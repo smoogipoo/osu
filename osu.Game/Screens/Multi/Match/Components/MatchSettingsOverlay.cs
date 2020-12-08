@@ -55,19 +55,14 @@ namespace osu.Game.Screens.Multi.Match.Components
 
         protected class MatchSettings : MultiplayerComposite
         {
-            private const float disabled_alpha = 0.2f;
-
             public Action EditPlaylist;
 
-            public OsuTextBox NameField, MaxParticipantsField;
+            public OsuTextBox NameField;
             public OsuDropdown<TimeSpan> DurationField;
-            public RoomAvailabilityPicker AvailabilityPicker;
-            public GameTypePicker TypePicker;
             public TriangleButton ApplyButton;
 
             public OsuSpriteText ErrorText;
 
-            private OsuSpriteText typeLabel;
             private LoadingLayer loadingLayer;
             private DrawableRoomPlaylist playlist;
             private OsuSpriteText playlistLength;
@@ -156,58 +151,6 @@ namespace osu.Game.Screens.Multi.Match.Components
                                                                             TimeSpan.FromDays(7)
                                                                         }
                                                                     }
-                                                                },
-                                                                new Section("Room visibility")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = AvailabilityPicker = new RoomAvailabilityPicker
-                                                                    {
-                                                                        Enabled = { Value = false }
-                                                                    },
-                                                                },
-                                                                new Section("Game type")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = new FillFlowContainer
-                                                                    {
-                                                                        AutoSizeAxes = Axes.Y,
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        Direction = FillDirection.Vertical,
-                                                                        Spacing = new Vector2(7),
-                                                                        Children = new Drawable[]
-                                                                        {
-                                                                            TypePicker = new GameTypePicker
-                                                                            {
-                                                                                RelativeSizeAxes = Axes.X,
-                                                                                Enabled = { Value = false }
-                                                                            },
-                                                                            typeLabel = new OsuSpriteText
-                                                                            {
-                                                                                Font = OsuFont.GetFont(size: 14),
-                                                                                Colour = colours.Yellow
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                },
-                                                                new Section("Max participants")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = MaxParticipantsField = new SettingsNumberTextBox
-                                                                    {
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        TabbableContentContainer = this,
-                                                                        ReadOnly = true,
-                                                                    },
-                                                                },
-                                                                new Section("Password (optional)")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = new SettingsPasswordTextBox
-                                                                    {
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        TabbableContentContainer = this,
-                                                                        ReadOnly = true,
-                                                                    },
                                                                 },
                                                             },
                                                         },
@@ -319,11 +262,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                     loadingLayer = new LoadingLayer(dimContent)
                 };
 
-                TypePicker.Current.BindValueChanged(type => typeLabel.Text = type.NewValue?.Name ?? string.Empty, true);
                 RoomName.BindValueChanged(name => NameField.Text = name.NewValue, true);
-                Availability.BindValueChanged(availability => AvailabilityPicker.Current.Value = availability.NewValue, true);
-                Type.BindValueChanged(type => TypePicker.Current.Value = type.NewValue, true);
-                MaxParticipants.BindValueChanged(count => MaxParticipantsField.Text = count.NewValue?.ToString(), true);
                 Duration.BindValueChanged(duration => DurationField.Current.Value = duration.NewValue, true);
 
                 playlist.Items.BindTo(Playlist);
@@ -350,14 +289,6 @@ namespace osu.Game.Screens.Multi.Match.Components
                 hideError();
 
                 RoomName.Value = NameField.Text;
-                Availability.Value = AvailabilityPicker.Current.Value;
-                Type.Value = TypePicker.Current.Value;
-
-                if (int.TryParse(MaxParticipantsField.Text, out int max))
-                    MaxParticipants.Value = max;
-                else
-                    MaxParticipants.Value = null;
-
                 Duration.Value = DurationField.Current.Value;
 
                 manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
@@ -386,11 +317,6 @@ namespace osu.Game.Screens.Multi.Match.Components
                 BackgroundUnfocused = Color4.Black;
                 BackgroundFocused = Color4.Black;
             }
-        }
-
-        private class SettingsNumberTextBox : SettingsTextBox
-        {
-            protected override bool CanAddCharacter(char character) => char.IsNumber(character);
         }
 
         private class SettingsPasswordTextBox : OsuPasswordTextBox
