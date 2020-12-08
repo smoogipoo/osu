@@ -48,6 +48,46 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             InternalChildren = new Drawable[]
             {
+                new GridContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Content = new[]
+                    {
+                        new Drawable[]
+                        {
+                            new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding
+                                {
+                                    Horizontal = 105,
+                                    Vertical = 20
+                                },
+                                Child = new GridContainer
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    RowDimensions = new[]
+                                    {
+                                        new Dimension(GridSizeMode.AutoSize),
+                                        new Dimension(),
+                                    },
+                                    Content = new[]
+                                    {
+                                        new Drawable[] { new Match.Components.Header() },
+                                    },
+                                }
+                            }
+                        },
+                        new Drawable[]
+                        {
+                        }
+                    },
+                    RowDimensions = new[]
+                    {
+                        new Dimension(),
+                        new Dimension(GridSizeMode.AutoSize),
+                    }
+                },
                 settingsOverlay = new RealtimeMatchSettingsOverlay
                 {
                     RelativeSizeAxes = Axes.Both,
