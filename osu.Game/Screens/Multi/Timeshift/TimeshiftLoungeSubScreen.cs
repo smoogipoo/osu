@@ -11,6 +11,6 @@ namespace osu.Game.Screens.Multi.Timeshift
     {
         protected override FilterControl CreateFilterControl() => new TimeshiftFilterControl();
 
-        protected override RoomSubScreen CreateRoomSubScreen(Room room) => new TimeshiftMatchSubScreen(room);
+        protected override RoomSubScreen CreateRoomSubScreen(Room room) => new TimeshiftRoomSubScreen(room);
     }
 }

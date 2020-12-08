@@ -24,7 +24,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Timeshift
 {
-    public class TimeshiftMatchSubScreen : RoomSubScreen
+    public class TimeshiftRoomSubScreen : RoomSubScreen
     {
         public override string Title { get; }
 
@@ -53,7 +53,7 @@ namespace osu.Game.Screens.Multi.Timeshift
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
         private OverlinedHeader participantsHeader;
 
-        public TimeshiftMatchSubScreen(Room room)
+        public TimeshiftRoomSubScreen(Room room)
         {
             Title = room.RoomID.Value == null ? "New room" : room.Name.Value;
             Activity.Value = new UserActivity.InLobby(room);

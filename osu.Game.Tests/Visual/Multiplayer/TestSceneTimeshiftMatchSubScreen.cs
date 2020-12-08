@@ -34,7 +34,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private BeatmapManager manager;
         private RulesetStore rulesets;
 
-        private TestMatchSubScreen match;
+        private TestRoomSubScreen room;
 
         [BackgroundDependencyLoader]
         private void load(GameHost host, AudioManager audio)
@@ -54,8 +54,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [SetUpSteps]
         public void SetupSteps()
         {
-            AddStep("load match", () => LoadScreen(match = new TestMatchSubScreen(Room)));
-            AddUntilStep("wait for load", () => match.IsCurrentScreen());
+            AddStep("load match", () => LoadScreen(room = new TestRoomSubScreen(Room)));
+            AddUntilStep("wait for load", () => room.IsCurrentScreen());
         }
 
         [Test]
@@ -91,13 +91,13 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("move mouse to create button", () =>
             {
-                var footer = match.ChildrenOfType<Footer>().Single();
+                var footer = room.ChildrenOfType<Footer>().Single();
                 InputManager.MoveMouseTo(footer.ChildrenOfType<OsuButton>().Single());
             });
 
             AddStep("click", () => InputManager.Click(MouseButton.Left));
 
-            AddAssert("first playlist item selected", () => match.SelectedItem.Value == Room.Playlist[0]);
+            AddAssert("first playlist item selected", () => room.SelectedItem.Value == Room.Playlist[0]);
         }
 
         [Test]
@@ -126,24 +126,24 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("create room", () =>
             {
-                InputManager.MoveMouseTo(match.ChildrenOfType<MatchSettingsOverlay.CreateRoomButton>().Single());
+                InputManager.MoveMouseTo(room.ChildrenOfType<MatchSettingsOverlay.CreateRoomButton>().Single());
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("match has altered beatmap", () => match.Beatmap.Value.Beatmap.BeatmapInfo.BaseDifficulty.CircleSize == 1);
+            AddAssert("match has altered beatmap", () => room.Beatmap.Value.Beatmap.BeatmapInfo.BaseDifficulty.CircleSize == 1);
 
             AddStep("re-import original beatmap", () => manager.Import(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo.BeatmapSet).Wait());
 
-            AddAssert("match has original beatmap", () => match.Beatmap.Value.Beatmap.BeatmapInfo.BaseDifficulty.CircleSize != 1);
+            AddAssert("match has original beatmap", () => room.Beatmap.Value.Beatmap.BeatmapInfo.BaseDifficulty.CircleSize != 1);
         }
 
-        private class TestMatchSubScreen : TimeshiftMatchSubScreen
+        private class TestRoomSubScreen : TimeshiftRoomSubScreen
         {
             public new Bindable<PlaylistItem> SelectedItem => base.SelectedItem;
 
             public new Bindable<WorkingBeatmap> Beatmap => base.Beatmap;
 
-            public TestMatchSubScreen(Room room)
+            public TestRoomSubScreen(Room room)
                 : base(room)
             {
             }
