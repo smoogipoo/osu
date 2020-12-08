@@ -33,7 +33,6 @@ namespace osu.Game.Screens.Multi.Match.Components
             AddItem(new GameTypeVersus());
             AddItem(new GameTypeTagTeam());
             AddItem(new GameTypeTeamVersus());
-            AddItem(new GameTypeTimeshift());
         }
 
         private class GameTypePickerItem : DisableableTabItem

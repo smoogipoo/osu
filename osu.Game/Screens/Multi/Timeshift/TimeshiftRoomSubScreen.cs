@@ -12,7 +12,6 @@ using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.Multiplayer.GameTypes;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Match.Components;
@@ -32,9 +31,6 @@ namespace osu.Game.Screens.Multi.Timeshift
 
         [Resolved(typeof(Room), nameof(Room.RoomID))]
         private Bindable<int?> roomId { get; set; }
-
-        [Resolved(typeof(Room), nameof(Room.Type))]
-        private Bindable<GameType> type { get; set; }
 
         [Resolved(typeof(Room), nameof(Room.Playlist))]
         private BindableList<PlaylistItem> playlist { get; set; }
@@ -274,16 +270,10 @@ namespace osu.Game.Screens.Multi.Timeshift
 
         private void onStart()
         {
-            switch (type.Value)
+            multiplayer?.Push(new PlayerLoader(() => new TimeshiftPlayer(SelectedItem.Value)
             {
-                default:
-                case GameTypeTimeshift _:
-                    multiplayer?.Push(new PlayerLoader(() => new TimeshiftPlayer(SelectedItem.Value)
-                    {
-                        Exited = () => leaderboard.RefreshScores()
-                    }));
-                    break;
-            }
+                Exited = () => leaderboard.RefreshScores()
+            }));
         }
     }
 }
