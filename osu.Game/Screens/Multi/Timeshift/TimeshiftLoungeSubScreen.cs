@@ -7,7 +7,7 @@ using osu.Game.Screens.Multi.Lounge.Components;
 
 namespace osu.Game.Screens.Multi.Timeshift
 {
-    public class TimeShiftLoungeSubScreen : LoungeSubScreen
+    public class TimeshiftLoungeSubScreen : LoungeSubScreen
     {
         protected override FilterControl CreateFilterControl() => new TimeshiftFilterControl();
 

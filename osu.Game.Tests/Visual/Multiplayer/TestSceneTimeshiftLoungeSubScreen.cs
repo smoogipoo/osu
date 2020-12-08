@@ -20,7 +20,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             base.SetUpSteps();
 
-            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeShiftLoungeSubScreen()));
+            AddStep("push screen", () => LoadScreen(loungeScreen = new TimeshiftLoungeSubScreen()));
 
             AddUntilStep("wait for present", () => loungeScreen.IsCurrentScreen());
         }
