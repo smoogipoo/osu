@@ -22,7 +22,6 @@ using osu.Game.Screens.Multi.Components;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
-    [Cached(typeof(RealtimeRoomManager))]
     public class RealtimeRoomManager : CompositeDrawable, IRoomManager
     {
         public event Action RoomsUpdated;

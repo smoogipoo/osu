@@ -36,7 +36,10 @@ namespace osu.Game.Screens.Multi
         // while leases may be taken out by a subscreen.
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
+        [Cached]
+        [Cached(typeof(IRoomManager))]
         protected readonly IRoomManager RoomManager;
+
         protected readonly ScreenStack ScreenStack;
 
         private readonly MultiplayerWaveContainer waves;
