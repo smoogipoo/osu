@@ -32,9 +32,13 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 switch (req)
                 {
                     case CreateRoomRequest createRoomRequest:
-                        var room = new APICreatedRoom { RoomID = { Value = 1 } };
-                        rooms.Add(room);
-                        createRoomRequest.TriggerSuccess(room);
+                        var createdRoom = new APICreatedRoom();
+
+                        createdRoom.CopyFrom(createRoomRequest.Room);
+                        createdRoom.RoomID.Value = 1;
+
+                        rooms.Add(createdRoom);
+                        createRoomRequest.TriggerSuccess(createdRoom);
                         break;
 
                     case JoinRoomRequest joinRoomRequest:
@@ -113,7 +117,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             public Task<MultiplayerRoom> JoinRoom(long roomId)
             {
-                throw new System.NotImplementedException();
+                Room = new MultiplayerRoom(roomId);
+                return Task.FromResult(Room);
             }
 
             public Task LeaveRoom()
@@ -141,9 +146,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 throw new System.NotImplementedException();
             }
 
-            public MultiplayerUserState State { get; }
+            public MultiplayerUserState State { get; private set; }
 
-            public MultiplayerRoom? Room { get; }
+            public MultiplayerRoom? Room { get; private set; }
         }
 
 #nullable disable

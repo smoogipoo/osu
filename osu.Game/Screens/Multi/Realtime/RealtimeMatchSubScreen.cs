@@ -11,6 +11,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
+    [Cached]
     public class RealtimeMatchSubScreen : RoomSubScreen
     {
         public override string Title { get; }
@@ -59,6 +60,26 @@ namespace osu.Game.Screens.Multi.Realtime
                                     Content = new[]
                                     {
                                         new Drawable[] { new Match.Components.Header() },
+                                        new Drawable[]
+                                        {
+                                            new GridContainer
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                                Content = new[]
+                                                {
+                                                    new Drawable[]
+                                                    {
+                                                        null,
+                                                        new BeatmapSelectionControl
+                                                        {
+                                                            Anchor = Anchor.Centre,
+                                                            Origin = Anchor.Centre,
+                                                            RelativeSizeAxes = Axes.X
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     },
                                 }
                             }

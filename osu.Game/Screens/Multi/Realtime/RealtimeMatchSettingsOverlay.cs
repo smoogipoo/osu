@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Specialized;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -68,7 +66,6 @@ namespace osu.Game.Screens.Multi.Realtime
 
             public OsuSpriteText ErrorText;
 
-            private Container beatmapPanelContainer;
             private OsuSpriteText typeLabel;
             private LoadingLayer loadingLayer;
 
@@ -203,27 +200,7 @@ namespace osu.Game.Screens.Multi.Realtime
                                                             {
                                                                 new Section("Beatmap")
                                                                 {
-                                                                    Child = new FillFlowContainer
-                                                                    {
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        AutoSizeAxes = Axes.Y,
-                                                                        Direction = FillDirection.Vertical,
-                                                                        Children = new Drawable[]
-                                                                        {
-                                                                            beatmapPanelContainer = new Container
-                                                                            {
-                                                                                RelativeSizeAxes = Axes.X,
-                                                                                AutoSizeAxes = Axes.Y
-                                                                            },
-                                                                            new PurpleTriangleButton
-                                                                            {
-                                                                                RelativeSizeAxes = Axes.X,
-                                                                                Height = 40,
-                                                                                Text = "Select beatmap",
-                                                                                Action = () => OpenSongSelect?.Invoke()
-                                                                            }
-                                                                        }
-                                                                    }
+                                                                    Child = new BeatmapSelectionControl { RelativeSizeAxes = Axes.X }
                                                                 },
                                                             },
                                                         },
@@ -291,7 +268,6 @@ namespace osu.Game.Screens.Multi.Realtime
                 Availability.BindValueChanged(availability => AvailabilityPicker.Current.Value = availability.NewValue, true);
                 Type.BindValueChanged(type => TypePicker.Current.Value = type.NewValue, true);
                 MaxParticipants.BindValueChanged(count => MaxParticipantsField.Text = count.NewValue?.ToString(), true);
-                Playlist.BindCollectionChanged(onPlaylistChanged, true);
             }
 
             protected override void Update()
@@ -299,14 +275,6 @@ namespace osu.Game.Screens.Multi.Realtime
                 base.Update();
 
                 ApplyButton.Enabled.Value = hasValidSettings;
-            }
-
-            private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e)
-            {
-                if (Playlist.Any())
-                    beatmapPanelContainer.Child = new DrawableRoomPlaylistItem(Playlist.Single(), false, false);
-                else
-                    beatmapPanelContainer.Clear();
             }
 
             private bool hasValidSettings
