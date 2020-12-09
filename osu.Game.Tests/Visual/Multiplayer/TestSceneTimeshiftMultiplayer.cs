@@ -9,14 +9,14 @@ using osu.Game.Screens.Multi.Timeshift;
 namespace osu.Game.Tests.Visual.Multiplayer
 {
     [TestFixture]
-    public class TestSceneMultiScreen : ScreenTestScene
+    public class TestSceneTimeshiftMultiplayer : ScreenTestScene
     {
         protected override bool UseOnlineAPI => true;
 
         [Cached]
         private MusicController musicController { get; set; } = new MusicController();
 
-        public TestSceneMultiScreen()
+        public TestSceneTimeshiftMultiplayer()
         {
             Screens.Multi.Multiplayer multi = new TimeshiftMultiplayer();
 

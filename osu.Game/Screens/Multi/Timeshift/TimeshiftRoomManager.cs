@@ -18,6 +18,7 @@ using osu.Game.Screens.Multi.Components;
 
 namespace osu.Game.Screens.Multi.Timeshift
 {
+    [Cached(typeof(TimeshiftRoomManager))]
     public class TimeshiftRoomManager : CompositeDrawable, IRoomManager
     {
         public event Action RoomsUpdated;
