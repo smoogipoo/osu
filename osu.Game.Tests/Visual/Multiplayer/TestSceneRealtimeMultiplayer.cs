@@ -121,10 +121,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 return Task.FromResult(Room);
             }
 
-            public Task LeaveRoom()
-            {
-                throw new System.NotImplementedException();
-            }
+            public Task LeaveRoom() => Task.CompletedTask;
 
             public Task TransferHost(long userId)
             {
