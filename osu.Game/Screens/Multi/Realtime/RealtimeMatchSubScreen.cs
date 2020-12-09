@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Components;
+using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -87,6 +88,22 @@ namespace osu.Game.Screens.Multi.Realtime
                                                 }
                                             }
                                         },
+                                        new Drawable[]
+                                        {
+                                            new GridContainer
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                                RowDimensions = new[]
+                                                {
+                                                    new Dimension(GridSizeMode.AutoSize)
+                                                },
+                                                Content = new[]
+                                                {
+                                                    new Drawable[] { new OverlinedHeader("Chat") },
+                                                    new Drawable[] { new MatchChatDisplay { RelativeSizeAxes = Axes.Both } }
+                                                }
+                                            }
+                                        }
                                     },
                                 }
                             }
