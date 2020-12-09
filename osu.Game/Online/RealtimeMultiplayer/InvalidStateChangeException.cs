@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.SignalR;
 namespace osu.Game.Online.RealtimeMultiplayer
 {
     [Serializable]
-    public class InvalidStateException : HubException
+    public class InvalidStateChangeException : HubException
     {
-        public InvalidStateException(string message)
-            : base(message)
+        public InvalidStateChangeException(MultiplayerUserState oldState, MultiplayerUserState newState)
+            : base($"Cannot change from {oldState} to {newState}")
         {
         }
 
-        protected InvalidStateException(SerializationInfo info, StreamingContext context)
+        protected InvalidStateChangeException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

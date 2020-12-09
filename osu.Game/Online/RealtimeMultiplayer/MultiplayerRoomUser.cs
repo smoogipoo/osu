@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using Newtonsoft.Json;
 using osu.Game.Users;
 
 namespace osu.Game.Online.RealtimeMultiplayer
@@ -11,12 +12,13 @@ namespace osu.Game.Online.RealtimeMultiplayer
     [Serializable]
     public class MultiplayerRoomUser : IEquatable<MultiplayerRoomUser>
     {
-        public readonly long UserID;
+        public readonly int UserID;
 
         public MultiplayerUserState State { get; set; } = MultiplayerUserState.Idle;
 
         public User? User { get; set; }
 
+        [JsonConstructor]
         public MultiplayerRoomUser(in int userId)
         {
             UserID = userId;

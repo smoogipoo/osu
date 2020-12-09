@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.SignalR;
 namespace osu.Game.Online.RealtimeMultiplayer
 {
     [Serializable]
-    public class InvalidStateException : HubException
+    public class NotHostException : HubException
     {
-        public InvalidStateException(string message)
-            : base(message)
+        public NotHostException()
+            : base("User is attempting to perform a host level operation while not the host")
         {
         }
 
-        protected InvalidStateException(SerializationInfo info, StreamingContext context)
+        protected NotHostException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

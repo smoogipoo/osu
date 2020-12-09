@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace osu.Game.Online.RealtimeMultiplayer
 {
@@ -28,7 +28,7 @@ namespace osu.Game.Online.RealtimeMultiplayer
         /// <summary>
         /// All currently enforced game settings for this room.
         /// </summary>
-        public MultiplayerRoomSettings Settings { get; set; } = MultiplayerRoomSettings.Empty();
+        public MultiplayerRoomSettings Settings { get; set; } = new MultiplayerRoomSettings();
 
         /// <summary>
         /// All users currently in this room.
@@ -42,18 +42,17 @@ namespace osu.Game.Online.RealtimeMultiplayer
 
         private object writeLock = new object();
 
+        [JsonConstructor]
         public MultiplayerRoom(in long roomId)
         {
             RoomID = roomId;
         }
 
         /// <summary>
-        /// Perform an update on this room in a thread-safe manner.
+        /// Request a lock on this room to perform a thread-safe update.
         /// </summary>
-        /// <param name="action">The action to perform.</param>
-        public void PerformUpdate([InstantHandle] Action<MultiplayerRoom> action)
-        {
-            lock (writeLock) action(this);
-        }
+        public LockUntilDisposal LockForUpdate() => new LockUntilDisposal(writeLock);
+
+        public override string ToString() => $"RoomID:{RoomID} Host:{Host?.UserID} Users:{Users.Count} State:{State} Settings: [{Settings}]";
     }
 }
