@@ -17,7 +17,6 @@ using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Rulesets;
 using osu.Game.Screens.Multi.Components;
 
@@ -34,14 +33,21 @@ namespace osu.Game.Screens.Multi.Realtime
 
         public IBindableList<Room> Rooms => rooms;
 
+        private double timeBetweenListingPolls;
+
         public double TimeBetweenListingPolls
         {
-            get => listingPollingComponent.TimeBetweenPolls;
-            set => listingPollingComponent.TimeBetweenPolls = value;
+            get => timeBetweenListingPolls;
+            set
+            {
+                timeBetweenListingPolls = value;
+
+                if (listingPollingComponent != null)
+                    listingPollingComponent.TimeBetweenPolls = value;
+            }
         }
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
-        private bool isConnected;
 
         [Resolved]
         private RulesetStore rulesets { get; set; }
@@ -56,9 +62,10 @@ namespace osu.Game.Screens.Multi.Realtime
         private Bindable<Room> selectedRoom { get; set; }
 
         private ListingPollingComponent listingPollingComponent;
+        private HubConnection connection;
+        private IStatefulMultiplayerClient client;
         private JoinRoomRequest currentJoinRoomRequest;
         private Room joinedRoom;
-        private HubConnection multiplayerConnection;
 
         public RealtimeRoomManager()
         {
@@ -78,41 +85,50 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 case APIState.Failing:
                 case APIState.Offline:
-                    multiplayerConnection?.StopAsync();
-                    multiplayerConnection = null;
+                    connection?.StopAsync();
+                    connection = null;
+                    client = null;
+
+                    ClearInternal();
                     break;
 
                 case APIState.Online:
-                    Task.Run(Connect).ContinueWith(_ => Schedule(() =>
+                    Task.Run(Connect).ContinueWith(t =>
                     {
-                        InternalChild = listingPollingComponent = new ListingPollingComponent
+                        client = t.Result;
+
+                        Schedule(() =>
                         {
-                            InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
-                            RoomsReceived = onListingReceived
-                        };
-                    }), TaskContinuationOptions.OnlyOnRanToCompletion);
+                            InternalChild = listingPollingComponent = new ListingPollingComponent
+                            {
+                                TimeBetweenPolls = timeBetweenListingPolls,
+                                InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
+                                RoomsReceived = onListingReceived
+                            };
+                        });
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
                     break;
             }
         }
 
         private const string endpoint = "https://spectator.ppy.sh/spectator";
 
-        protected virtual async Task Connect()
+        protected virtual async Task<IStatefulMultiplayerClient> Connect()
         {
-            if (multiplayerConnection != null)
-                return;
+            if (connection != null)
+                return client;
 
-            multiplayerConnection = new HubConnectionBuilder()
-                                    .WithUrl(endpoint, options =>
-                                    {
-                                        options.Headers.Add("Authorization", $"Bearer {api.AccessToken}");
-                                    })
-                                    .AddNewtonsoftJsonProtocol(options => { options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; })
-                                    .Build();
+            connection = new HubConnectionBuilder()
+                         .WithUrl(endpoint, options =>
+                         {
+                             options.Headers.Add("Authorization", $"Bearer {api.AccessToken}");
+                         })
+                         .AddNewtonsoftJsonProtocol(options => { options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; })
+                         .Build();
 
-            multiplayerConnection.Closed += async ex =>
+            connection.Closed += async ex =>
             {
-                isConnected = false;
+                client = null;
 
                 if (ex != null)
                 {
@@ -121,9 +137,9 @@ namespace osu.Game.Screens.Multi.Realtime
                 }
             };
 
-            await tryUntilConnected();
+            return await tryUntilConnected();
 
-            async Task tryUntilConnected()
+            async Task<IStatefulMultiplayerClient> tryUntilConnected()
             {
                 Logger.Log("Multiplayer client connecting...", LoggingTarget.Network);
 
@@ -132,24 +148,26 @@ namespace osu.Game.Screens.Multi.Realtime
                     try
                     {
                         // reconnect on any failure
-                        await multiplayerConnection.StartAsync();
+                        await connection.StartAsync();
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
                         // success
-                        isConnected = true;
-
-                        break;
+                        return CreateClient(connection, api.LocalUser.Value.Id);
                     }
                     catch (Exception e)
                     {
-                        Logger.Log($"Spectator client connection error: {e}", LoggingTarget.Network);
+                        Logger.Log($"Multiplayer client connection error: {e}", LoggingTarget.Network);
                         await Task.Delay(5000);
                     }
                 }
+
+                return null;
             }
         }
 
-        public void CreateRoom(Room room, Action<Room, MultiplayerRoom> onSuccess, Action<string> onError)
+        protected virtual IStatefulMultiplayerClient CreateClient(HubConnection connection, int userId) => new RealtimeMultiplayerClient(connection, userId);
+
+        public void CreateRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
         {
             room.Host.Value = api.LocalUser.Value;
             room.Category.Value = RoomCategory.Realtime;
@@ -165,7 +183,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
                 RoomsUpdated?.Invoke();
 
-                JoinMultiplayerRoom(room, (r, mp) => onSuccess?.Invoke(r, mp), err => onError?.Invoke(err));
+                joinMultiplayerRoom(room, onSuccess, onError);
             };
 
             req.Failure += exception =>
@@ -179,7 +197,7 @@ namespace osu.Game.Screens.Multi.Realtime
             api.Queue(req);
         }
 
-        public void JoinRoom(Room room, Action<Room, MultiplayerRoom> onSuccess, Action<string> onError)
+        public void JoinRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
         {
             // The API is joined first to join chat channels/etc, with the multiplayer room joined afterwards.
             currentJoinRoomRequest?.Cancel();
@@ -188,7 +206,7 @@ namespace osu.Game.Screens.Multi.Realtime
             currentJoinRoomRequest.Success += () =>
             {
                 joinedRoom = room;
-                JoinMultiplayerRoom(room, (r, mp) => onSuccess?.Invoke(r, mp), onError);
+                joinMultiplayerRoom(room, onSuccess, onError);
             };
 
             currentJoinRoomRequest.Failure += exception =>
@@ -211,35 +229,27 @@ namespace osu.Game.Screens.Multi.Realtime
             api.Queue(new PartRoomRequest(joinedRoom));
             joinedRoom = null;
 
-            PartMultiplayerRoom();
+            client.LeaveRoom().Wait();
         }
 
         void IRoomManager.CreateRoom(Room room, Action<Room> onSuccess, Action<string> onError) => CreateRoom(room, (r, _) => onSuccess?.Invoke(r), onError);
 
         void IRoomManager.JoinRoom(Room room, Action<Room> onSuccess, Action<string> onError) => JoinRoom(room, (r, _) => onSuccess?.Invoke(r), onError);
 
-        protected virtual void JoinMultiplayerRoom(Room room, Action<Room, MultiplayerRoom> onSuccess, Action<string> onError)
+        private void joinMultiplayerRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
         {
             Debug.Assert(room.RoomID.Value != null);
 
             try
             {
-                onSuccess?.Invoke(room, multiplayerConnection.InvokeAsync<MultiplayerRoom>(nameof(IMultiplayerServer.JoinRoom), (long)room.RoomID.Value).Result);
+                client.JoinRoom((long)room.RoomID.Value);
+                onSuccess?.Invoke(room, client);
             }
             catch (Exception ex)
             {
                 onError?.Invoke($"Failed to join the room: {ex}");
                 PartRoom();
             }
-        }
-
-        protected virtual void PartMultiplayerRoom()
-        {
-            if (!isConnected)
-                return;
-
-            // Todo: This should not throw server-side (or we need special handling).
-            multiplayerConnection.SendAsync(nameof(IMultiplayerServer.LeaveRoom));
         }
 
         private readonly HashSet<int> ignoredRooms = new HashSet<int>();

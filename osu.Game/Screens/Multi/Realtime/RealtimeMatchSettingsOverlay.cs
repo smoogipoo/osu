@@ -14,7 +14,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Overlays;
 using osu.Game.Screens.Multi.Match.Components;
 using osuTK;
@@ -344,7 +343,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             private void hideError() => ErrorText.FadeOut(50);
 
-            private void onSuccess(Room room, MultiplayerRoom multiplayerRoom) => loadingLayer.Hide();
+            private void onSuccess(Room room, IStatefulMultiplayerClient client) => loadingLayer.Hide();
 
             private void onError(string text)
             {
