@@ -46,6 +46,8 @@ namespace osu.Game.Screens.Multi.Realtime
             }
         }
 
+        public IStatefulMultiplayerClient Client { get; private set; } // Todo: Public?
+
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
 
         [Resolved]
@@ -62,7 +64,6 @@ namespace osu.Game.Screens.Multi.Realtime
 
         private ListingPollingComponent listingPollingComponent;
         private HubConnection connection;
-        private IStatefulMultiplayerClient client;
         private JoinRoomRequest currentJoinRoomRequest;
         private Room joinedRoom;
 
@@ -86,7 +87,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 case APIState.Offline:
                     connection?.StopAsync();
                     connection = null;
-                    client = null;
+                    Client = null;
 
                     ClearInternal();
                     break;
@@ -94,7 +95,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 case APIState.Online:
                     Task.Run(Connect).ContinueWith(t =>
                     {
-                        client = t.Result;
+                        Client = t.Result;
 
                         Schedule(() =>
                         {
@@ -115,7 +116,7 @@ namespace osu.Game.Screens.Multi.Realtime
         protected virtual async Task<IStatefulMultiplayerClient> Connect()
         {
             if (connection != null)
-                return client;
+                return Client;
 
             connection = new HubConnectionBuilder()
                          .WithUrl(endpoint, options =>
@@ -127,7 +128,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             connection.Closed += async ex =>
             {
-                client = null;
+                Client = null;
 
                 if (ex != null)
                 {
@@ -226,7 +227,7 @@ namespace osu.Game.Screens.Multi.Realtime
             api.Queue(new PartRoomRequest(joinedRoom));
             joinedRoom = null;
 
-            client.LeaveRoom().Wait();
+            Client.LeaveRoom().Wait();
         }
 
         void IRoomManager.CreateRoom(Room room, Action<Room> onSuccess, Action<string> onError) => CreateRoom(room, (r, _) => onSuccess?.Invoke(r), onError);
@@ -239,8 +240,8 @@ namespace osu.Game.Screens.Multi.Realtime
 
             try
             {
-                client.JoinRoom((long)room.RoomID.Value);
-                onSuccess?.Invoke(room, client);
+                Client.JoinRoom((long)room.RoomID.Value);
+                onSuccess?.Invoke(room, Client);
             }
             catch (Exception ex)
             {

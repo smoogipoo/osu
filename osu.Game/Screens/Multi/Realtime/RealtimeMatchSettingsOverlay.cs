@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -13,6 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Screens.Multi.Match.Components;
@@ -66,16 +68,18 @@ namespace osu.Game.Screens.Multi.Realtime
 
             public OsuSpriteText ErrorText;
 
+            private Container beatmapPanelContainer;
             private OsuSpriteText typeLabel;
             private LoadingLayer loadingLayer;
-            private DrawableRoomPlaylist playlist;
-            private OsuSpriteText playlistLength;
 
             [Resolved(CanBeNull = true)]
             private RealtimeRoomManager manager { get; set; }
 
             [Resolved]
             private Bindable<Room> currentRoom { get; set; }
+
+            [Resolved]
+            private IAPIProvider api { get; set; }
 
             [BackgroundDependencyLoader]
             private void load(OsuColour colours)
@@ -197,43 +201,27 @@ namespace osu.Game.Screens.Multi.Realtime
                                                             Padding = new MarginPadding { Left = field_padding / 2 },
                                                             Children = new[]
                                                             {
-                                                                new Section("Playlist")
+                                                                new Section("Beatmap")
                                                                 {
-                                                                    Child = new GridContainer
+                                                                    Child = new FillFlowContainer
                                                                     {
                                                                         RelativeSizeAxes = Axes.X,
-                                                                        Height = 300,
-                                                                        Content = new[]
+                                                                        AutoSizeAxes = Axes.Y,
+                                                                        Direction = FillDirection.Vertical,
+                                                                        Children = new Drawable[]
                                                                         {
-                                                                            new Drawable[]
+                                                                            beatmapPanelContainer = new Container
                                                                             {
-                                                                                playlist = new DrawableRoomPlaylist(true, true) { RelativeSizeAxes = Axes.Both }
+                                                                                RelativeSizeAxes = Axes.X,
+                                                                                AutoSizeAxes = Axes.Y
                                                                             },
-                                                                            new Drawable[]
+                                                                            new PurpleTriangleButton
                                                                             {
-                                                                                playlistLength = new OsuSpriteText
-                                                                                {
-                                                                                    Margin = new MarginPadding { Vertical = 5 },
-                                                                                    Colour = colours.Yellow,
-                                                                                    Font = OsuFont.GetFont(size: 12),
-                                                                                }
-                                                                            },
-                                                                            new Drawable[]
-                                                                            {
-                                                                                new PurpleTriangleButton
-                                                                                {
-                                                                                    RelativeSizeAxes = Axes.X,
-                                                                                    Height = 40,
-                                                                                    Text = "Edit playlist",
-                                                                                    Action = () => OpenSongSelect?.Invoke()
-                                                                                }
+                                                                                RelativeSizeAxes = Axes.X,
+                                                                                Height = 40,
+                                                                                Text = "Select beatmap",
+                                                                                Action = () => OpenSongSelect?.Invoke()
                                                                             }
-                                                                        },
-                                                                        RowDimensions = new[]
-                                                                        {
-                                                                            new Dimension(),
-                                                                            new Dimension(GridSizeMode.AutoSize),
-                                                                            new Dimension(GridSizeMode.AutoSize),
                                                                         }
                                                                     }
                                                                 },
@@ -303,8 +291,6 @@ namespace osu.Game.Screens.Multi.Realtime
                 Availability.BindValueChanged(availability => AvailabilityPicker.Current.Value = availability.NewValue, true);
                 Type.BindValueChanged(type => TypePicker.Current.Value = type.NewValue, true);
                 MaxParticipants.BindValueChanged(count => MaxParticipantsField.Text = count.NewValue?.ToString(), true);
-
-                playlist.Items.BindTo(Playlist);
                 Playlist.BindCollectionChanged(onPlaylistChanged, true);
             }
 
@@ -315,10 +301,18 @@ namespace osu.Game.Screens.Multi.Realtime
                 ApplyButton.Enabled.Value = hasValidSettings;
             }
 
-            private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e) =>
-                playlistLength.Text = $"Length: {Playlist.GetTotalDuration()}";
+            private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e)
+            {
+                if (Playlist.Any())
+                    beatmapPanelContainer.Child = new DrawableRoomPlaylistItem(Playlist.Single(), false, false);
+                else
+                    beatmapPanelContainer.Clear();
+            }
 
-            private bool hasValidSettings => RoomID.Value == null && NameField.Text.Length > 0 && Playlist.Count > 0;
+            private bool hasValidSettings
+                => (RoomID.Value == null || manager.Client.Room?.Host?.UserID == api.LocalUser.Value.Id)
+                   && NameField.Text.Length > 0
+                   && Playlist.Count > 0;
 
             private void apply()
             {
