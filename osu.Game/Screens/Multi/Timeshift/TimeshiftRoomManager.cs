@@ -5,22 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
-using osu.Game.Online;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets;
-using osu.Game.Screens.Multi.Lounge.Components;
+using osu.Game.Screens.Multi.Components;
 
-namespace osu.Game.Screens.Multi
+namespace osu.Game.Screens.Multi.Timeshift
 {
-    public class RoomManager : CompositeDrawable, IRoomManager
+    public class TimeshiftRoomManager : CompositeDrawable, IRoomManager
     {
         public event Action RoomsUpdated;
 
@@ -59,7 +57,7 @@ namespace osu.Game.Screens.Multi
 
         private Room joinedRoom;
 
-        public RoomManager()
+        public TimeshiftRoomManager()
         {
             RelativeSizeAxes = Axes.Both;
 
@@ -232,106 +230,6 @@ namespace osu.Game.Screens.Multi
                 rooms.Add(room);
             else
                 existing.CopyFrom(room);
-        }
-
-        private class SelectionPollingComponent : PollingComponent
-        {
-            public Action<Room> RoomReceived;
-
-            [Resolved]
-            private IAPIProvider api { get; set; }
-
-            [Resolved]
-            private Bindable<Room> selectedRoom { get; set; }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                selectedRoom.BindValueChanged(_ =>
-                {
-                    if (IsLoaded)
-                        PollImmediately();
-                });
-            }
-
-            private GetRoomRequest pollReq;
-
-            protected override Task Poll()
-            {
-                if (!api.IsLoggedIn)
-                    return base.Poll();
-
-                if (selectedRoom.Value?.RoomID.Value == null)
-                    return base.Poll();
-
-                var tcs = new TaskCompletionSource<bool>();
-
-                pollReq?.Cancel();
-                pollReq = new GetRoomRequest(selectedRoom.Value.RoomID.Value.Value);
-
-                pollReq.Success += result =>
-                {
-                    RoomReceived?.Invoke(result);
-                    tcs.SetResult(true);
-                };
-
-                pollReq.Failure += _ => tcs.SetResult(false);
-
-                api.Queue(pollReq);
-
-                return tcs.Task;
-            }
-        }
-
-        private class ListingPollingComponent : PollingComponent
-        {
-            public Action<List<Room>> RoomsReceived;
-
-            public readonly Bindable<bool> InitialRoomsReceived = new Bindable<bool>();
-
-            [Resolved]
-            private IAPIProvider api { get; set; }
-
-            [Resolved]
-            private Bindable<FilterCriteria> currentFilter { get; set; }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                currentFilter.BindValueChanged(_ =>
-                {
-                    InitialRoomsReceived.Value = false;
-
-                    if (IsLoaded)
-                        PollImmediately();
-                });
-            }
-
-            private GetRoomsRequest pollReq;
-
-            protected override Task Poll()
-            {
-                if (!api.IsLoggedIn)
-                    return base.Poll();
-
-                var tcs = new TaskCompletionSource<bool>();
-
-                pollReq?.Cancel();
-                pollReq = new GetRoomsRequest(currentFilter.Value.Status, currentFilter.Value.Category);
-
-                pollReq.Success += result =>
-                {
-                    InitialRoomsReceived.Value = true;
-                    RoomsReceived?.Invoke(result);
-                    tcs.SetResult(true);
-                };
-
-                pollReq.Failure += _ => tcs.SetResult(false);
-
-                api.Queue(pollReq);
-
-                return tcs.Task;
-            }
         }
     }
 }

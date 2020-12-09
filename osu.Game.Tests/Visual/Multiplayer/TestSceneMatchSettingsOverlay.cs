@@ -137,6 +137,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             public IBindableList<Room> Rooms => null;
 
+            public double TimeBetweenListingPolls { get; set; }
+
             public void CreateRoom(Room room, Action<Room> onSuccess = null, Action<string> onError = null)
             {
                 if (CreateRequested == null)

@@ -22,6 +22,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         IBindableList<Room> IRoomManager.Rooms => Rooms;
 
+        public double TimeBetweenListingPolls { get; set; }
+
         public void CreateRoom(Room room, Action<Room> onSuccess = null, Action<string> onError = null) => Rooms.Add(room);
 
         public void JoinRoom(Room room, Action<Room> onSuccess = null, Action<string> onError = null)
