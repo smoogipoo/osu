@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Screens.Multi.Components;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -70,16 +71,22 @@ namespace osu.Game.Screens.Multi.Realtime
                                                     new Drawable[]
                                                     {
                                                         null,
-                                                        new BeatmapSelectionControl
+                                                        new FillFlowContainer
                                                         {
                                                             Anchor = Anchor.Centre,
                                                             Origin = Anchor.Centre,
-                                                            RelativeSizeAxes = Axes.X
+                                                            RelativeSizeAxes = Axes.X,
+                                                            AutoSizeAxes = Axes.Y,
+                                                            Children = new Drawable[]
+                                                            {
+                                                                new OverlinedHeader("Beatmap"),
+                                                                new BeatmapSelectionControl { RelativeSizeAxes = Axes.X }
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
                                     },
                                 }
                             }
