@@ -152,7 +152,7 @@ namespace osu.Game.Screens.Multi.Realtime
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
                         // success
-                        return CreateClient(connection, api.LocalUser.Value.Id);
+                        return new RealtimeMultiplayerClient(connection, api.LocalUser.Value.Id);
                     }
                     catch (Exception e)
                     {
@@ -164,8 +164,6 @@ namespace osu.Game.Screens.Multi.Realtime
                 return null;
             }
         }
-
-        protected virtual IStatefulMultiplayerClient CreateClient(HubConnection connection, int userId) => new RealtimeMultiplayerClient(connection, userId);
 
         public void CreateRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
         {
