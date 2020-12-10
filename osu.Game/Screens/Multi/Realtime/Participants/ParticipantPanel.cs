@@ -22,6 +22,8 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
     {
         public readonly MultiplayerRoomUser User;
 
+        private ParticipantReadyMark readyMark;
+
         public ParticipantPanel(MultiplayerRoomUser user)
         {
             User = user;
@@ -96,14 +98,25 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
                             }
                         }
                     },
-                    new ParticipantReadyMark
+                    readyMark = new ParticipantReadyMark
                     {
                         Anchor = Anchor.CentreRight,
                         Origin = Anchor.CentreRight,
-                        Margin = new MarginPadding { Right = 10 }
+                        Margin = new MarginPadding { Right = 10 },
+                        Alpha = 0
                     }
                 }
             };
+        }
+
+        protected override void OnRoomChanged()
+        {
+            base.OnRoomChanged();
+
+            if (User.State == MultiplayerUserState.Ready)
+                readyMark.FadeIn(50);
+            else
+                readyMark.FadeOut(50);
         }
     }
 }

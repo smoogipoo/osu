@@ -112,6 +112,28 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddAssert("single panel is for second user", () => this.ChildrenOfType<ParticipantPanel>().Single().User.User == secondUser);
         }
 
+        [Test]
+        public void TestToggleReadyState()
+        {
+            User user = null;
+
+            AddStep("add user", () => client.AddUser(user = new User
+            {
+                Id = 2,
+                Username = "First",
+                CoverUrl = @"https://osu.ppy.sh/images/headers/profile-covers/c6.jpg",
+                CurrentModeRank = 1234
+            }));
+
+            AddAssert("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
+
+            AddStep("make user ready", () => client.ChangeUserState(user, MultiplayerUserState.Ready));
+            AddUntilStep("ready mark visible", () => this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
+
+            AddStep("make user idle", () => client.ChangeUserState(user, MultiplayerUserState.Idle));
+            AddUntilStep("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
+        }
+
         private class TestRoomManager : RealtimeRoomManager
         {
             protected override Task Connect() => Task.CompletedTask;
@@ -135,6 +157,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 Debug.Assert(room != null);
                 ((IMultiplayerClient)this).UserLeft(room.Users.Single(u => u.User == user));
             }
+
+            public void ChangeUserState(User user, MultiplayerUserState newState) => ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
 
             public override Task<MultiplayerRoom> JoinRoom(long roomId) => throw new NotImplementedException();
 
