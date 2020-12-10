@@ -15,6 +15,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets;
@@ -61,6 +62,9 @@ namespace osu.Game.Screens.Multi.Realtime
 
         [Resolved]
         private Bindable<Room> selectedRoom { get; set; }
+
+        [Resolved]
+        private UserLookupCache userLookupCache { get; set; }
 
         private ListingPollingComponent listingPollingComponent;
         private HubConnection connection;
@@ -152,7 +156,7 @@ namespace osu.Game.Screens.Multi.Realtime
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
                         // Success. Reuse any existing client and bind the connection.
-                        var client = Client ?? new RealtimeMultiplayerClient(api.LocalUser.Value.Id);
+                        var client = Client ?? new RealtimeMultiplayerClient(api.LocalUser.Value.Id, userLookupCache);
                         (client as RealtimeMultiplayerClient)?.BindConnection(connection);
                         return client;
                     }

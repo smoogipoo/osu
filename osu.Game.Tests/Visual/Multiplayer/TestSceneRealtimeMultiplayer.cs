@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
+using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
@@ -64,7 +66,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private class TestRealtimeRoomManager : RealtimeRoomManager
         {
-            protected override Task<IStatefulMultiplayerClient> Connect() => Task.FromResult<IStatefulMultiplayerClient>(new TestRealtimeMultiplayerClient(0));
+            [Resolved]
+            private UserLookupCache userLookupCache { get; set; }
+
+            protected override Task<IStatefulMultiplayerClient> Connect() => Task.FromResult<IStatefulMultiplayerClient>(new TestRealtimeMultiplayerClient(0, userLookupCache));
         }
 
 #nullable enable
@@ -74,8 +79,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
             public override MultiplayerRoom? Room => room;
             private MultiplayerRoom? room;
 
-            public TestRealtimeMultiplayerClient(int userId)
-                : base(userId)
+            public TestRealtimeMultiplayerClient(int userId, UserLookupCache userLookupCache)
+                : base(userId, userLookupCache)
             {
             }
 

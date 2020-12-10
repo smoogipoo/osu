@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
+using osu.Game.Database;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -19,8 +20,8 @@ namespace osu.Game.Screens.Multi.Realtime
         private readonly List<IDisposable> boundDelegates = new List<IDisposable>();
         private HubConnection? connection;
 
-        public RealtimeMultiplayerClient(int userId)
-            : base(userId)
+        public RealtimeMultiplayerClient(int userId, UserLookupCache userLookupCache)
+            : base(userId, userLookupCache)
         {
         }
 
@@ -50,7 +51,14 @@ namespace osu.Game.Screens.Multi.Realtime
         }
 
         public override async Task<MultiplayerRoom> JoinRoom(long roomId)
-            => room = await connection.InvokeAsync<MultiplayerRoom>(nameof(IMultiplayerServer.JoinRoom), roomId);
+        {
+            var joinedRoom = await connection.InvokeAsync<MultiplayerRoom>(nameof(IMultiplayerServer.JoinRoom), roomId);
+
+            foreach (var user in joinedRoom.Users)
+                await PopulateUser(user);
+
+            return room = joinedRoom;
+        }
 
         public override async Task LeaveRoom()
         {

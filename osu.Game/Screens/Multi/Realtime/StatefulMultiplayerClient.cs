@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Game.Database;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -19,9 +20,12 @@ namespace osu.Game.Screens.Multi.Realtime
 
         public readonly int UserID;
 
-        protected StatefulMultiplayerClient(int userId)
+        private readonly UserLookupCache userLookupCache;
+
+        protected StatefulMultiplayerClient(int userId, UserLookupCache userLookupCache)
         {
             UserID = userId;
+            this.userLookupCache = userLookupCache;
         }
 
         public abstract Task<MultiplayerRoom> JoinRoom(long roomId);
@@ -44,14 +48,14 @@ namespace osu.Game.Screens.Multi.Realtime
             return Task.CompletedTask;
         }
 
-        Task IMultiplayerClient.UserJoined(MultiplayerRoomUser user)
+        async Task IMultiplayerClient.UserJoined(MultiplayerRoomUser user)
         {
+            await PopulateUser(user);
+
             Debug.Assert(Room != null);
             Room.Users.Add(user);
 
             RoomChanged?.Invoke();
-
-            return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.UserLeft(MultiplayerRoomUser user)
@@ -111,5 +115,7 @@ namespace osu.Game.Screens.Multi.Realtime
             Console.WriteLine($"User {UserID} was informed the results are ready");
             return Task.CompletedTask;
         }
+
+        protected async Task PopulateUser(MultiplayerRoomUser multiplayerUser) => multiplayerUser.User ??= await userLookupCache.GetUserAsync(multiplayerUser.UserID);
     }
 }
