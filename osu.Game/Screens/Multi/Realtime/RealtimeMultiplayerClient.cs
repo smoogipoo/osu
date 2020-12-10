@@ -3,6 +3,8 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using osu.Game.Online.RealtimeMultiplayer;
@@ -14,24 +16,37 @@ namespace osu.Game.Screens.Multi.Realtime
         public override MultiplayerRoom? Room => room;
         private MultiplayerRoom? room;
 
-        private readonly HubConnection connection;
+        private readonly List<IDisposable> boundDelegates = new List<IDisposable>();
+        private HubConnection? connection;
 
-        public RealtimeMultiplayerClient(int userId, HubConnection connection)
+        public RealtimeMultiplayerClient(int userId)
             : base(userId)
+        {
+        }
+
+        public void BindConnection(HubConnection connection)
         {
             this.connection = connection;
 
             // this is kind of SILLY
             // https://github.com/dotnet/aspnetcore/issues/15198
-            connection.On<MultiplayerRoomState>(nameof(IMultiplayerClient.RoomStateChanged), ((IMultiplayerClient)this).RoomStateChanged);
-            connection.On<MultiplayerRoomUser>(nameof(IMultiplayerClient.UserJoined), ((IMultiplayerClient)this).UserJoined);
-            connection.On<MultiplayerRoomUser>(nameof(IMultiplayerClient.UserLeft), ((IMultiplayerClient)this).UserLeft);
-            connection.On<long>(nameof(IMultiplayerClient.HostChanged), ((IMultiplayerClient)this).HostChanged);
-            connection.On<MultiplayerRoomSettings>(nameof(IMultiplayerClient.SettingsChanged), ((IMultiplayerClient)this).SettingsChanged);
-            connection.On<long, MultiplayerUserState>(nameof(IMultiplayerClient.UserStateChanged), ((IMultiplayerClient)this).UserStateChanged);
-            connection.On(nameof(IMultiplayerClient.LoadRequested), ((IMultiplayerClient)this).LoadRequested);
-            connection.On(nameof(IMultiplayerClient.MatchStarted), ((IMultiplayerClient)this).MatchStarted);
-            connection.On(nameof(IMultiplayerClient.ResultsReady), ((IMultiplayerClient)this).ResultsReady);
+            boundDelegates.Add(connection.On<MultiplayerRoomState>(nameof(IMultiplayerClient.RoomStateChanged), ((IMultiplayerClient)this).RoomStateChanged));
+            boundDelegates.Add(connection.On<MultiplayerRoomUser>(nameof(IMultiplayerClient.UserJoined), ((IMultiplayerClient)this).UserJoined));
+            boundDelegates.Add(connection.On<MultiplayerRoomUser>(nameof(IMultiplayerClient.UserLeft), ((IMultiplayerClient)this).UserLeft));
+            boundDelegates.Add(connection.On<long>(nameof(IMultiplayerClient.HostChanged), ((IMultiplayerClient)this).HostChanged));
+            boundDelegates.Add(connection.On<MultiplayerRoomSettings>(nameof(IMultiplayerClient.SettingsChanged), ((IMultiplayerClient)this).SettingsChanged));
+            boundDelegates.Add(connection.On<long, MultiplayerUserState>(nameof(IMultiplayerClient.UserStateChanged), ((IMultiplayerClient)this).UserStateChanged));
+            boundDelegates.Add(connection.On(nameof(IMultiplayerClient.LoadRequested), ((IMultiplayerClient)this).LoadRequested));
+            boundDelegates.Add(connection.On(nameof(IMultiplayerClient.MatchStarted), ((IMultiplayerClient)this).MatchStarted));
+            boundDelegates.Add(connection.On(nameof(IMultiplayerClient.ResultsReady), ((IMultiplayerClient)this).ResultsReady));
+        }
+
+        public void UnbindConnection()
+        {
+            foreach (var b in boundDelegates)
+                b.Dispose();
+            boundDelegates.Clear();
+            connection = null;
         }
 
         public override async Task<MultiplayerRoom> JoinRoom(long roomId)

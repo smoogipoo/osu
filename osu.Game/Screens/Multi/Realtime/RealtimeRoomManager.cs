@@ -87,7 +87,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 case APIState.Offline:
                     connection?.StopAsync();
                     connection = null;
-                    Client = null;
+                    (Client as RealtimeMultiplayerClient)?.UnbindConnection();
 
                     ClearInternal();
                     break;
@@ -128,7 +128,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             connection.Closed += async ex =>
             {
-                Client = null;
+                (Client as RealtimeMultiplayerClient)?.UnbindConnection();
 
                 if (ex != null)
                 {
@@ -151,8 +151,10 @@ namespace osu.Game.Screens.Multi.Realtime
                         await connection.StartAsync();
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
-                        // success
-                        return new RealtimeMultiplayerClient(api.LocalUser.Value.Id, connection);
+                        // Success. Reuse any existing client and bind the connection.
+                        var client = Client ?? new RealtimeMultiplayerClient(api.LocalUser.Value.Id);
+                        (client as RealtimeMultiplayerClient)?.BindConnection(connection);
+                        return client;
                     }
                     catch (Exception e)
                     {
@@ -329,6 +331,9 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             base.Dispose(isDisposing);
             PartRoom();
+
+            (Client as RealtimeMultiplayerClient)?.UnbindConnection();
+            connection?.DisposeAsync();
         }
     }
 }
