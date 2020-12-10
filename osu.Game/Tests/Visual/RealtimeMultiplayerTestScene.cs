@@ -10,7 +10,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Screens.Multi.Lounge.Components;
 using osu.Game.Screens.Multi.Realtime;
@@ -18,18 +17,17 @@ using osu.Game.Users;
 
 namespace osu.Game.Tests.Visual
 {
-    public abstract class RealtimeMultiplayerTestScene : OsuManualInputManagerTestScene
+    public abstract class RealtimeMultiplayerTestScene : MultiplayerTestScene
     {
         [Cached(typeof(RealtimeRoomManager))]
         private readonly TestRoomManager roomManager = new TestRoomManager();
 
         [Cached]
-        private readonly Bindable<Room> room = new Bindable<Room>();
-
-        [Cached]
         private readonly Bindable<FilterCriteria> filter = new Bindable<FilterCriteria>();
 
         protected TestMultiplayerClient Client => (TestMultiplayerClient)roomManager.Client;
+
+        protected virtual bool CreateRoom => true;
 
         protected override Container<Drawable> Content => content;
         private readonly Container content;
@@ -46,7 +44,8 @@ namespace osu.Game.Tests.Visual
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Client.SetRoom(new MultiplayerRoom(1));
+            if (CreateRoom)
+                Client.SetRoom(new MultiplayerRoom(0));
         });
 
         public class TestRoomManager : RealtimeRoomManager
