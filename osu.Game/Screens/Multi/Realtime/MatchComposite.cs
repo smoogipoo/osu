@@ -11,7 +11,10 @@ namespace osu.Game.Screens.Multi.Realtime
     public abstract class MatchComposite : CompositeDrawable
     {
         [CanBeNull]
-        protected MultiplayerRoom Room => roomManager?.Client.Room;
+        protected MultiplayerRoom Room => roomManager.Client.Room;
+
+        [NotNull]
+        protected IStatefulMultiplayerClient Client => roomManager.Client;
 
         [Resolved]
         private RealtimeRoomManager roomManager { get; set; }

@@ -10,6 +10,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Screens.Multi.Lounge.Components;
@@ -18,7 +19,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Tests.Visual
 {
-    public class RealtimeMultiplayerTestScene : OsuTestScene
+    public abstract class RealtimeMultiplayerTestScene : OsuManualInputManagerTestScene
     {
         [Cached(typeof(RealtimeRoomManager))]
         private readonly TestRoomManager roomManager = new TestRoomManager();
@@ -34,7 +35,7 @@ namespace osu.Game.Tests.Visual
         protected override Container<Drawable> Content => content;
         private readonly Container content;
 
-        public RealtimeMultiplayerTestScene()
+        protected RealtimeMultiplayerTestScene()
         {
             base.Content.AddRange(new Drawable[]
             {
@@ -63,6 +64,9 @@ namespace osu.Game.Tests.Visual
             public override MultiplayerRoom? Room => room;
             private MultiplayerRoom? room;
 
+            [Resolved]
+            private IAPIProvider api { get; set; } = null!;
+
             public void SetRoom(MultiplayerRoom room) => this.room = room;
 
             public void AddUser(User user) => ((IMultiplayerClient)this).UserJoined(new MultiplayerRoomUser(user.Id) { User = user });
@@ -79,11 +83,15 @@ namespace osu.Game.Tests.Visual
 
             public override Task LeaveRoom() => throw new NotImplementedException();
 
-            public override Task TransferHost(long userId) => throw new NotImplementedException();
+            public override Task TransferHost(long userId) => ((IMultiplayerClient)this).HostChanged(userId);
 
-            public override Task ChangeSettings(MultiplayerRoomSettings settings) => throw new NotImplementedException();
+            public override Task ChangeSettings(MultiplayerRoomSettings settings) => ((IMultiplayerClient)this).SettingsChanged(settings);
 
-            public override Task ChangeState(MultiplayerUserState newState) => throw new NotImplementedException();
+            public override Task ChangeState(MultiplayerUserState newState)
+            {
+                ChangeUserState(api.LocalUser.Value, newState);
+                return Task.CompletedTask;
+            }
 
             public override Task StartMatch() => throw new NotImplementedException();
         }
