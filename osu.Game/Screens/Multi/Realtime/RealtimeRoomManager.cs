@@ -152,7 +152,7 @@ namespace osu.Game.Screens.Multi.Realtime
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
                         // success
-                        return new RealtimeMultiplayerClient(connection, api.LocalUser.Value.Id);
+                        return new RealtimeMultiplayerClient(api.LocalUser.Value.Id, connection);
                     }
                     catch (Exception e)
                     {

@@ -3,13 +3,14 @@
 
 #nullable enable
 
+using System;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
     public interface IStatefulMultiplayerClient : IMultiplayerClient, IMultiplayerServer
     {
-        MultiplayerUserState State { get; }
+        event Action RoomChanged;
 
         MultiplayerRoom? Room { get; }
     }

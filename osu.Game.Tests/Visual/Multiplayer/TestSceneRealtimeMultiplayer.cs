@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Game.Online.API;
@@ -63,89 +64,34 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private class TestRealtimeRoomManager : RealtimeRoomManager
         {
-            protected override Task<IStatefulMultiplayerClient> Connect() => Task.FromResult<IStatefulMultiplayerClient>(new TestRealtimeMultiplayerClient());
+            protected override Task<IStatefulMultiplayerClient> Connect() => Task.FromResult<IStatefulMultiplayerClient>(new TestRealtimeMultiplayerClient(0));
         }
 
 #nullable enable
 
-        private class TestRealtimeMultiplayerClient : IStatefulMultiplayerClient
+        private class TestRealtimeMultiplayerClient : StatefulMultiplayerClient
         {
-            public Task RoomStateChanged(MultiplayerRoomState state)
+            public override MultiplayerRoom? Room => room;
+            private MultiplayerRoom? room;
+
+            public TestRealtimeMultiplayerClient(int userId)
+                : base(userId)
             {
-                throw new System.NotImplementedException();
             }
 
-            public Task UserJoined(MultiplayerRoomUser user)
-            {
-                throw new System.NotImplementedException();
-            }
+            public override Task<MultiplayerRoom> JoinRoom(long roomId)
+                => Task.FromResult(room = new MultiplayerRoom(roomId));
 
-            public Task UserLeft(MultiplayerRoomUser user)
-            {
-                throw new System.NotImplementedException();
-            }
+            public override Task LeaveRoom()
+                => Task.CompletedTask;
 
-            public Task HostChanged(long userId)
-            {
-                throw new System.NotImplementedException();
-            }
+            public override Task TransferHost(long userId) => throw new NotImplementedException();
 
-            public Task SettingsChanged(MultiplayerRoomSettings newSettings)
-            {
-                throw new System.NotImplementedException();
-            }
+            public override Task ChangeSettings(MultiplayerRoomSettings settings) => throw new NotImplementedException();
 
-            public Task UserStateChanged(long userId, MultiplayerUserState state)
-            {
-                throw new System.NotImplementedException();
-            }
+            public override Task ChangeState(MultiplayerUserState newState) => throw new NotImplementedException();
 
-            public Task LoadRequested()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task MatchStarted()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task ResultsReady()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task<MultiplayerRoom> JoinRoom(long roomId)
-            {
-                Room = new MultiplayerRoom(roomId);
-                return Task.FromResult(Room);
-            }
-
-            public Task LeaveRoom() => Task.CompletedTask;
-
-            public Task TransferHost(long userId)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task ChangeSettings(MultiplayerRoomSettings settings)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task ChangeState(MultiplayerUserState newState)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task StartMatch()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public MultiplayerUserState State { get; private set; }
-
-            public MultiplayerRoom? Room { get; private set; }
+            public override Task StartMatch() => throw new NotImplementedException();
         }
 
 #nullable disable
