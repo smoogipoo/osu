@@ -1,56 +1,22 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using NUnit.Framework;
-using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
-using osu.Game.Screens.Multi.Lounge.Components;
-using osu.Game.Screens.Multi.Realtime;
 using osu.Game.Screens.Multi.Realtime.Participants;
 using osu.Game.Users;
 using osuTK;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneRealtimeParticipantsList : OsuTestScene
+    public class TestSceneRealtimeParticipantsList : RealtimeMultiplayerTestScene
     {
-        [Cached(typeof(RealtimeRoomManager))]
-        private readonly TestRoomManager roomManager = new TestRoomManager();
-
-        [Cached]
-        private readonly Bindable<Room> room = new Bindable<Room>();
-
-        [Cached]
-        private readonly Bindable<FilterCriteria> filter = new Bindable<FilterCriteria>();
-
-        private TestMultiplayerClient client => (TestMultiplayerClient)roomManager.Client;
-
-        protected override Container<Drawable> Content => content;
-        private readonly Container content;
-
-        public TestSceneRealtimeParticipantsList()
-        {
-            base.Content.AddRange(new Drawable[]
-            {
-                roomManager,
-                content = new Container { RelativeSizeAxes = Axes.Both }
-            });
-        }
-
         [SetUp]
-        public void Setup() => Schedule(() =>
+        public new void Setup() => Schedule(() =>
         {
-            client.SetRoom(new MultiplayerRoom(1));
-
             Child = new ParticipantsList
             {
                 Anchor = Anchor.Centre,
@@ -63,7 +29,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestAddUser()
         {
-            AddStep("add user", () => client.AddUser(new User
+            AddStep("add user", () => Client.AddUser(new User
             {
                 Id = 2,
                 Username = "First",
@@ -73,7 +39,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddAssert("one unique panel", () => this.ChildrenOfType<ParticipantPanel>().Select(p => p.User).Distinct().Count() == 1);
 
-            AddStep("add user", () => client.AddUser(new User
+            AddStep("add user", () => Client.AddUser(new User
             {
                 Id = 3,
                 Username = "Second",
@@ -91,7 +57,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("add two users", () =>
             {
-                client.AddUser(firstUser = new User
+                Client.AddUser(firstUser = new User
                 {
                     Id = 2,
                     Username = "First",
@@ -99,7 +65,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     CurrentModeRank = 1234
                 });
 
-                client.AddUser(secondUser = new User
+                Client.AddUser(secondUser = new User
                 {
                     Id = 3,
                     Username = "Second",
@@ -107,7 +73,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 });
             });
 
-            AddStep("remove first user", () => client.RemoveUser(firstUser));
+            AddStep("remove first user", () => Client.RemoveUser(firstUser));
 
             AddAssert("single panel is for second user", () => this.ChildrenOfType<ParticipantPanel>().Single().User.User == secondUser);
         }
@@ -117,7 +83,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             User user = null;
 
-            AddStep("add user", () => client.AddUser(user = new User
+            AddStep("add user", () => Client.AddUser(user = new User
             {
                 Id = 2,
                 Username = "First",
@@ -127,52 +93,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddAssert("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
 
-            AddStep("make user ready", () => client.ChangeUserState(user, MultiplayerUserState.Ready));
+            AddStep("make user ready", () => Client.ChangeUserState(user, MultiplayerUserState.Ready));
             AddUntilStep("ready mark visible", () => this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
 
-            AddStep("make user idle", () => client.ChangeUserState(user, MultiplayerUserState.Idle));
+            AddStep("make user idle", () => Client.ChangeUserState(user, MultiplayerUserState.Idle));
             AddUntilStep("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
         }
-
-        private class TestRoomManager : RealtimeRoomManager
-        {
-            protected override Task Connect() => Task.CompletedTask;
-
-            protected override IStatefulMultiplayerClient CreateClient() => new TestMultiplayerClient();
-        }
-
-#nullable enable
-
-        private class TestMultiplayerClient : StatefulMultiplayerClient
-        {
-            public override MultiplayerRoom? Room => room;
-            private MultiplayerRoom? room;
-
-            public void SetRoom(MultiplayerRoom room) => this.room = room;
-
-            public void AddUser(User user) => ((IMultiplayerClient)this).UserJoined(new MultiplayerRoomUser(user.Id) { User = user });
-
-            public void RemoveUser(User user)
-            {
-                Debug.Assert(room != null);
-                ((IMultiplayerClient)this).UserLeft(room.Users.Single(u => u.User == user));
-            }
-
-            public void ChangeUserState(User user, MultiplayerUserState newState) => ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
-
-            public override Task<MultiplayerRoom> JoinRoom(long roomId) => throw new NotImplementedException();
-
-            public override Task LeaveRoom() => throw new NotImplementedException();
-
-            public override Task TransferHost(long userId) => throw new NotImplementedException();
-
-            public override Task ChangeSettings(MultiplayerRoomSettings settings) => throw new NotImplementedException();
-
-            public override Task ChangeState(MultiplayerUserState newState) => throw new NotImplementedException();
-
-            public override Task StartMatch() => throw new NotImplementedException();
-        }
-
-#nullable disable
     }
 }
