@@ -15,7 +15,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
-using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets;
@@ -47,7 +46,7 @@ namespace osu.Game.Screens.Multi.Realtime
             }
         }
 
-        public IStatefulMultiplayerClient Client { get; private set; } // Todo: Public?
+        public readonly IStatefulMultiplayerClient Client;
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
 
@@ -63,10 +62,7 @@ namespace osu.Game.Screens.Multi.Realtime
         [Resolved]
         private Bindable<Room> selectedRoom { get; set; }
 
-        [Resolved]
-        private UserLookupCache userLookupCache { get; set; }
-
-        private ListingPollingComponent listingPollingComponent;
+        private readonly ListingPollingComponent listingPollingComponent;
         private HubConnection connection;
         private JoinRoomRequest currentJoinRoomRequest;
         private Room joinedRoom;
@@ -74,6 +70,17 @@ namespace osu.Game.Screens.Multi.Realtime
         public RealtimeRoomManager()
         {
             RelativeSizeAxes = Axes.Both;
+
+            InternalChildren = new[]
+            {
+                listingPollingComponent = new ListingPollingComponent
+                {
+                    TimeBetweenPolls = timeBetweenListingPolls,
+                    InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
+                    RoomsReceived = onListingReceived
+                },
+                (Drawable)(Client = CreateClient())
+            };
         }
 
         [BackgroundDependencyLoader]
@@ -92,35 +99,20 @@ namespace osu.Game.Screens.Multi.Realtime
                     connection?.StopAsync();
                     connection = null;
                     (Client as RealtimeMultiplayerClient)?.UnbindConnection();
-
-                    ClearInternal();
                     break;
 
                 case APIState.Online:
-                    Task.Run(Connect).ContinueWith(t =>
-                    {
-                        Client = t.Result;
-
-                        Schedule(() =>
-                        {
-                            InternalChild = listingPollingComponent = new ListingPollingComponent
-                            {
-                                TimeBetweenPolls = timeBetweenListingPolls,
-                                InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
-                                RoomsReceived = onListingReceived
-                            };
-                        });
-                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                    Task.Run(Connect);
                     break;
             }
         }
 
         private const string endpoint = "https://spectator.ppy.sh/spectator";
 
-        protected virtual async Task<IStatefulMultiplayerClient> Connect()
+        protected virtual async Task Connect()
         {
             if (connection != null)
-                return Client;
+                return;
 
             connection = new HubConnectionBuilder()
                          .WithUrl(endpoint, options =>
@@ -141,9 +133,9 @@ namespace osu.Game.Screens.Multi.Realtime
                 }
             };
 
-            return await tryUntilConnected();
+            await tryUntilConnected();
 
-            async Task<IStatefulMultiplayerClient> tryUntilConnected()
+            async Task tryUntilConnected()
             {
                 Logger.Log("Multiplayer client connecting...", LoggingTarget.Network);
 
@@ -156,9 +148,7 @@ namespace osu.Game.Screens.Multi.Realtime
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
                         // Success. Reuse any existing client and bind the connection.
-                        var client = Client ?? new RealtimeMultiplayerClient(api.LocalUser.Value.Id, userLookupCache);
-                        (client as RealtimeMultiplayerClient)?.BindConnection(connection);
-                        return client;
+                        (Client as RealtimeMultiplayerClient)?.BindConnection(connection);
                     }
                     catch (Exception e)
                     {
@@ -166,10 +156,10 @@ namespace osu.Game.Screens.Multi.Realtime
                         await Task.Delay(5000);
                     }
                 }
-
-                return null;
             }
         }
+
+        protected virtual IStatefulMultiplayerClient CreateClient() => new RealtimeMultiplayerClient();
 
         public void CreateRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
         {

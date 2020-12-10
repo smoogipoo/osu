@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
-using osu.Game.Database;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -19,11 +18,6 @@ namespace osu.Game.Screens.Multi.Realtime
 
         private readonly List<IDisposable> boundDelegates = new List<IDisposable>();
         private HubConnection? connection;
-
-        public RealtimeMultiplayerClient(int userId, UserLookupCache userLookupCache)
-            : base(userId, userLookupCache)
-        {
-        }
 
         public void BindConnection(HubConnection connection)
         {

@@ -7,26 +7,21 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Game.Database;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
-    public abstract class StatefulMultiplayerClient : IStatefulMultiplayerClient
+    public abstract class StatefulMultiplayerClient : Component, IStatefulMultiplayerClient
     {
         public event Action? RoomChanged;
 
         public abstract MultiplayerRoom? Room { get; }
 
-        public readonly int UserID;
-
-        private readonly UserLookupCache userLookupCache;
-
-        protected StatefulMultiplayerClient(int userId, UserLookupCache userLookupCache)
-        {
-            UserID = userId;
-            this.userLookupCache = userLookupCache;
-        }
+        [Resolved]
+        private UserLookupCache userLookupCache { get; set; } = null!;
 
         public abstract Task<MultiplayerRoom> JoinRoom(long roomId);
 
@@ -42,8 +37,13 @@ namespace osu.Game.Screens.Multi.Realtime
 
         Task IMultiplayerClient.RoomStateChanged(MultiplayerRoomState state)
         {
-            Debug.Assert(Room != null);
-            Room.State = state;
+            Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+                Room.State = state;
+
+                RoomChanged?.Invoke();
+            });
 
             return Task.CompletedTask;
         }
@@ -52,67 +52,79 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             await PopulateUser(user);
 
-            Debug.Assert(Room != null);
-            Room.Users.Add(user);
+            Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+                Room.Users.Add(user);
 
-            RoomChanged?.Invoke();
+                RoomChanged?.Invoke();
+            });
         }
 
         Task IMultiplayerClient.UserLeft(MultiplayerRoomUser user)
         {
-            Debug.Assert(Room != null);
-            Room.Users.Remove(user);
+            Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+                Room.Users.Remove(user);
 
-            RoomChanged?.Invoke();
+                RoomChanged?.Invoke();
+            });
 
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.HostChanged(long userId)
         {
-            Debug.Assert(Room != null);
-            Room.Host = Room.Users.FirstOrDefault(u => u.UserID == userId);
+            Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+                Room.Host = Room.Users.FirstOrDefault(u => u.UserID == userId);
 
-            RoomChanged?.Invoke();
+                RoomChanged?.Invoke();
+            });
 
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.SettingsChanged(MultiplayerRoomSettings newSettings)
         {
-            Debug.Assert(Room != null);
-            Room.Settings = newSettings;
+            Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+                Room.Settings = newSettings;
 
-            RoomChanged?.Invoke();
+                RoomChanged?.Invoke();
+            });
 
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.UserStateChanged(long userId, MultiplayerUserState state)
         {
-            Debug.Assert(Room != null);
-            Room.Users.Single(u => u.UserID == userId).State = state;
+            Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+                Room.Users.Single(u => u.UserID == userId).State = state;
 
-            RoomChanged?.Invoke();
+                RoomChanged?.Invoke();
+            });
 
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.LoadRequested()
         {
-            Console.WriteLine($"User {UserID} was requested to load");
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.MatchStarted()
         {
-            Console.WriteLine($"User {UserID} was informed the game started");
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.ResultsReady()
         {
-            Console.WriteLine($"User {UserID} was informed the results are ready");
             return Task.CompletedTask;
         }
 
