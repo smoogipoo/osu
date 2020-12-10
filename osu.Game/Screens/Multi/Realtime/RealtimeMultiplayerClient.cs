@@ -51,16 +51,22 @@ namespace osu.Game.Screens.Multi.Realtime
             foreach (var user in joinedRoom.Users)
                 await PopulateUser(user);
 
-            return room = joinedRoom;
+            room = joinedRoom;
+
+            InvokeRoomChanged();
+
+            return room;
         }
 
         public override async Task LeaveRoom()
         {
-            if (Room == null)
+            if (room == null)
                 return;
 
             await connection.InvokeAsync(nameof(IMultiplayerServer.LeaveRoom));
             room = null;
+
+            InvokeRoomChanged();
         }
 
         public override Task TransferHost(long userId)

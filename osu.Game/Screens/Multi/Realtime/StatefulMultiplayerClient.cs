@@ -42,7 +42,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 Debug.Assert(Room != null);
                 Room.State = state;
 
-                RoomChanged?.Invoke();
+                InvokeRoomChanged();
             });
 
             return Task.CompletedTask;
@@ -57,7 +57,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 Debug.Assert(Room != null);
                 Room.Users.Add(user);
 
-                RoomChanged?.Invoke();
+                InvokeRoomChanged();
             });
         }
 
@@ -68,7 +68,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 Debug.Assert(Room != null);
                 Room.Users.Remove(user);
 
-                RoomChanged?.Invoke();
+                InvokeRoomChanged();
             });
 
             return Task.CompletedTask;
@@ -81,7 +81,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 Debug.Assert(Room != null);
                 Room.Host = Room.Users.FirstOrDefault(u => u.UserID == userId);
 
-                RoomChanged?.Invoke();
+                InvokeRoomChanged();
             });
 
             return Task.CompletedTask;
@@ -94,7 +94,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 Debug.Assert(Room != null);
                 Room.Settings = newSettings;
 
-                RoomChanged?.Invoke();
+                InvokeRoomChanged();
             });
 
             return Task.CompletedTask;
@@ -107,7 +107,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 Debug.Assert(Room != null);
                 Room.Users.Single(u => u.UserID == userId).State = state;
 
-                RoomChanged?.Invoke();
+                InvokeRoomChanged();
             });
 
             return Task.CompletedTask;
@@ -127,6 +127,8 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             return Task.CompletedTask;
         }
+
+        protected void InvokeRoomChanged() => RoomChanged?.Invoke();
 
         protected async Task PopulateUser(MultiplayerRoomUser multiplayerUser) => multiplayerUser.User ??= await userLookupCache.GetUserAsync(multiplayerUser.UserID);
     }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
@@ -76,11 +77,29 @@ namespace osu.Game.Tests.Visual.Multiplayer
             public override MultiplayerRoom? Room => room;
             private MultiplayerRoom? room;
 
+            [Resolved]
+            private IAPIProvider api { get; set; } = null!;
+
             public override Task<MultiplayerRoom> JoinRoom(long roomId)
-                => Task.FromResult(room = new MultiplayerRoom(roomId));
+            {
+                room = new MultiplayerRoom(roomId)
+                {
+                    Users = { new MultiplayerRoomUser(api.LocalUser.Value.Id) { User = api.LocalUser.Value } }
+                };
+
+                InvokeRoomChanged();
+
+                return Task.FromResult(room);
+            }
 
             public override Task LeaveRoom()
-                => Task.CompletedTask;
+            {
+                room = null;
+
+                InvokeRoomChanged();
+
+                return Task.CompletedTask;
+            }
 
             public override Task TransferHost(long userId) => throw new NotImplementedException();
 
