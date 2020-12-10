@@ -111,6 +111,10 @@ namespace osu.Game.Screens.Multi.Realtime
                                 }
                             }
                         },
+                        new Drawable[]
+                        {
+                            new Footer()
+                        }
                     },
                     RowDimensions = new[]
                     {
