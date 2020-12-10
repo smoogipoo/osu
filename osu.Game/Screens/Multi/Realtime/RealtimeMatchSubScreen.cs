@@ -71,7 +71,10 @@ namespace osu.Game.Screens.Multi.Realtime
                                                 {
                                                     new Drawable[]
                                                     {
-                                                        null,
+                                                        new Participants.ParticipantsList
+                                                        {
+                                                            RelativeSizeAxes = Axes.Both
+                                                        },
                                                         new FillFlowContainer
                                                         {
                                                             Anchor = Anchor.Centre,
