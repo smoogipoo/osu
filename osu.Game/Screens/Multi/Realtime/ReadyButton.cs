@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
@@ -17,8 +16,6 @@ namespace osu.Game.Screens.Multi.Realtime
 {
     public class ReadyButton : MatchComposite
     {
-        public Action Start;
-
         [Resolved]
         private IAPIProvider api { get; set; }
 
@@ -59,7 +56,7 @@ namespace osu.Game.Screens.Multi.Realtime
             switch (localUser.State)
             {
                 case MultiplayerUserState.Idle:
-                    button.Text = "Ready!";
+                    button.Text = "Ready";
                     button.BackgroundColour = colours.Green;
                     break;
 
@@ -92,7 +89,7 @@ namespace osu.Game.Screens.Multi.Realtime
             else
             {
                 if (Room?.Host?.Equals(localUser) == true)
-                    Start?.Invoke();
+                    Client.StartMatch();
                 else
                     Client.ChangeState(MultiplayerUserState.Idle);
             }

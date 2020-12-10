@@ -31,73 +31,56 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestToggleStateWhenNotHost()
         {
-            bool actionInvoked = false;
-
-            AddStep("setup", () => button.Start = () => actionInvoked = true);
-
             addClickButtonStep();
             AddAssert("user is ready", () => Client.Room?.Users[0].State == MultiplayerUserState.Ready);
 
             addClickButtonStep();
             AddAssert("user is idle", () => Client.Room?.Users[0].State == MultiplayerUserState.Idle);
-            AddAssert("start not invoked", () => !actionInvoked);
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public void TestToggleStateWhenHost(bool allReady)
         {
-            bool actionInvoked = false;
-
             AddStep("setup", () =>
             {
                 Client.TransferHost(Client.Room?.Users[0].UserID ?? 0);
 
                 if (!allReady)
                     Client.AddUser(new User { Id = 2, Username = "Another user" });
-
-                button.Start = () => actionInvoked = true;
             });
 
             addClickButtonStep();
             AddAssert("user is ready", () => Client.Room?.Users[0].State == MultiplayerUserState.Ready);
 
             addClickButtonStep();
-            AddAssert("user is still ready", () => Client.Room?.Users[0].State == MultiplayerUserState.Ready);
-            AddAssert("start invoked", () => actionInvoked);
+            AddAssert("match started", () => Client.Room?.Users[0].State == MultiplayerUserState.WaitingForLoad);
         }
 
         [Test]
         public void TestBecomeHostWhileReady()
         {
-            bool actionInvoked = false;
-
-            AddStep("setup", () => button.Start = () => actionInvoked = true);
-
             addClickButtonStep();
             AddStep("make user host", () => Client.TransferHost(Client.Room?.Users[0].UserID ?? 0));
 
             addClickButtonStep();
-            AddAssert("start invoked", () => actionInvoked);
+            AddAssert("match started", () => Client.Room?.Users[0].State == MultiplayerUserState.WaitingForLoad);
         }
 
         [Test]
         public void TestLoseHostWhileReady()
         {
-            bool actionInvoked = false;
-
             AddStep("setup", () =>
             {
                 Client.TransferHost(Client.Room?.Users[0].UserID ?? 0);
                 Client.AddUser(new User { Id = 2, Username = "Another user" });
-                button.Start = () => actionInvoked = true;
             });
 
             addClickButtonStep();
             AddStep("transfer host", () => Client.TransferHost(Client.Room?.Users[1].UserID ?? 0));
 
             addClickButtonStep();
-            AddAssert("start invoked", () => !actionInvoked);
+            AddAssert("match not started", () => Client.Room?.Users[0].State == MultiplayerUserState.Idle);
         }
 
         private void addClickButtonStep() => AddStep("click button", () =>

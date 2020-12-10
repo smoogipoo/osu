@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,7 +49,7 @@ namespace osu.Game.Tests.Visual
             Client.SetRoom(new MultiplayerRoom(1));
         });
 
-        private class TestRoomManager : RealtimeRoomManager
+        public class TestRoomManager : RealtimeRoomManager
         {
             protected override Task Connect() => Task.CompletedTask;
 
@@ -59,7 +58,7 @@ namespace osu.Game.Tests.Visual
 
 #nullable enable
 
-        protected class TestMultiplayerClient : StatefulMultiplayerClient
+        public class TestMultiplayerClient : StatefulMultiplayerClient
         {
             public override MultiplayerRoom? Room => room;
             private MultiplayerRoom? room;
@@ -79,9 +78,24 @@ namespace osu.Game.Tests.Visual
 
             public void ChangeUserState(User user, MultiplayerUserState newState) => ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
 
-            public override Task<MultiplayerRoom> JoinRoom(long roomId) => throw new NotImplementedException();
+            public override Task<MultiplayerRoom> JoinRoom(long roomId)
+            {
+                room ??= new MultiplayerRoom(roomId);
+                room.Users.Add(new MultiplayerRoomUser(api.LocalUser.Value.Id) { User = api.LocalUser.Value });
 
-            public override Task LeaveRoom() => throw new NotImplementedException();
+                InvokeRoomChanged();
+
+                return Task.FromResult(room);
+            }
+
+            public override Task LeaveRoom()
+            {
+                room = null;
+
+                InvokeRoomChanged();
+
+                return Task.CompletedTask;
+            }
 
             public override Task TransferHost(long userId) => ((IMultiplayerClient)this).HostChanged(userId);
 
@@ -93,7 +107,18 @@ namespace osu.Game.Tests.Visual
                 return Task.CompletedTask;
             }
 
-            public override Task StartMatch() => throw new NotImplementedException();
+            public override Task StartMatch()
+            {
+                Debug.Assert(Room != null);
+
+                foreach (var user in Room.Users)
+                {
+                    Debug.Assert(user.User != null);
+                    ChangeUserState(user.User, MultiplayerUserState.WaitingForLoad);
+                }
+
+                return Task.CompletedTask;
+            }
         }
 
 #nullable disable
