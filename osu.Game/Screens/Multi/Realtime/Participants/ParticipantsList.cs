@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Game.Screens.Multi.Realtime.Participants
 {
-    public class ParticipantList : MatchComposite
+    public class ParticipantsList : MatchComposite
     {
         private FillFlowContainer<ParticipantPanel> panels;
 
@@ -34,9 +34,17 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
         {
             base.OnRoomChanged();
 
-            panels.RemoveAll(p => !Room.Users.Contains(p.User));
-            foreach (var user in Room.Users.Except(panels.Select(p => p.User)))
-                panels.Add(new ParticipantPanel(user));
+            if (Room == null)
+                panels.Clear();
+            else
+            {
+                // Remove panels for users no longer in the room.
+                panels.RemoveAll(p => !Room.Users.Contains(p.User));
+
+                // Add panels for all users new to the room.
+                foreach (var user in Room.Users.Except(panels.Select(p => p.User)))
+                    panels.Add(new ParticipantPanel(user));
+            }
         }
     }
 }

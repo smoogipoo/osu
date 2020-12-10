@@ -21,7 +21,7 @@ using osuTK;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneRealtimeMatchParticipantsList : OsuTestScene
+    public class TestSceneRealtimeParticipantsList : OsuTestScene
     {
         [Cached(typeof(RealtimeRoomManager))]
         private readonly TestRoomManager roomManager = new TestRoomManager();
@@ -37,7 +37,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         protected override Container<Drawable> Content => content;
         private readonly Container content;
 
-        public TestSceneRealtimeMatchParticipantsList()
+        public TestSceneRealtimeParticipantsList()
         {
             base.Content.AddRange(new Drawable[]
             {
@@ -51,7 +51,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             client.SetRoom(new MultiplayerRoom(1));
 
-            Child = new ParticipantList
+            Child = new ParticipantsList
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
