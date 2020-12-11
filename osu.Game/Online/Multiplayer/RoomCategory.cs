@@ -7,6 +7,7 @@ namespace osu.Game.Online.Multiplayer
     {
         Realtime,
         Normal,
-        Spotlight
+        Spotlight,
+        Realtime,
     }
 }

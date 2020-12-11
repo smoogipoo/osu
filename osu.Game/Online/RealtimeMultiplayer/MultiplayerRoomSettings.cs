@@ -14,15 +14,17 @@ namespace osu.Game.Online.RealtimeMultiplayer
     [Serializable]
     public class MultiplayerRoomSettings : IEquatable<MultiplayerRoomSettings>
     {
-        public int? BeatmapID { get; set; }
+        public int BeatmapID { get; set; }
 
         public int? RulesetID { get; set; }
+
+        public string Name { get; set; } = "Unnamed room";
 
         [NotNull]
         public IEnumerable<APIMod> Mods { get; set; } = Enumerable.Empty<APIMod>();
 
-        public bool Equals(MultiplayerRoomSettings other) => BeatmapID == other.BeatmapID && Mods.SequenceEqual(other.Mods) && RulesetID == other.RulesetID;
+        public bool Equals(MultiplayerRoomSettings other) => BeatmapID == other.BeatmapID && Mods.SequenceEqual(other.Mods) && RulesetID == other.RulesetID && Name.Equals(other.Name, StringComparison.Ordinal);
 
-        public override string ToString() => $"Beatmap:{BeatmapID} Mods:{string.Join(',', Mods)} Ruleset:{RulesetID}";
+        public override string ToString() => $"Name:{Name} Beatmap:{BeatmapID} Mods:{string.Join(',', Mods)} Ruleset:{RulesetID}";
     }
 }
