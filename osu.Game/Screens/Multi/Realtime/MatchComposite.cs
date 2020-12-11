@@ -8,7 +8,7 @@ using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
-    public abstract class MatchComposite : CompositeDrawable
+    public abstract class MatchComposite : MultiplayerComposite
     {
         [CanBeNull]
         protected MultiplayerRoom Room => roomManager.Client.Room;
