@@ -3,9 +3,11 @@
 
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.Multi.Realtime;
@@ -19,6 +21,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
         protected override bool CreateRoom => false;
 
         private RealtimeMatchSubScreen screen;
+
+        [Resolved]
+        private IAPIProvider onlineApi { get; set; }
 
         protected override void LoadComplete()
         {
@@ -42,6 +47,13 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                     case PartRoomRequest partRoomRequest:
                         partRoomRequest.TriggerSuccess();
+                        break;
+
+                    case GetBeatmapSetRequest getBeatmapSetRequest:
+                        var onlineReq = new GetBeatmapSetRequest(getBeatmapSetRequest.ID, getBeatmapSetRequest.Type);
+                        onlineReq.Success += res => getBeatmapSetRequest.TriggerSuccess(res);
+                        onlineReq.Failure += e => getBeatmapSetRequest.TriggerFailure(e);
+                        onlineApi.Queue(onlineReq);
                         break;
                 }
             };
@@ -95,7 +107,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("click create button", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateRoomButton>().Single());
+                InputManager.MoveMouseTo(this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateOrUpdateButton>().Single());
                 InputManager.Click(MouseButton.Left);
             });
 

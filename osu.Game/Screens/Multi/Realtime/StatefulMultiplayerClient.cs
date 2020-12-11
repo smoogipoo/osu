@@ -8,9 +8,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Database;
+using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
+using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.RoomStatuses;
 using osu.Game.Online.RealtimeMultiplayer;
+using osu.Game.Rulesets;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
@@ -22,6 +28,15 @@ namespace osu.Game.Screens.Multi.Realtime
 
         [Resolved]
         private UserLookupCache userLookupCache { get; set; } = null!;
+
+        [Resolved]
+        private Bindable<Room> apiRoom { get; set; } = null!;
+
+        [Resolved]
+        private IAPIProvider api { get; set; } = null!;
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; } = null!;
 
         public abstract Task<MultiplayerRoom> JoinRoom(long roomId);
 
@@ -40,7 +55,24 @@ namespace osu.Game.Screens.Multi.Realtime
             Schedule(() =>
             {
                 Debug.Assert(Room != null);
+                Debug.Assert(apiRoom.Value != null);
+
                 Room.State = state;
+
+                switch (state)
+                {
+                    case MultiplayerRoomState.Open:
+                        apiRoom.Value.Status.Value = new RoomStatusOpen();
+                        break;
+
+                    case MultiplayerRoomState.Playing:
+                        apiRoom.Value.Status.Value = new RoomStatusPlaying();
+                        break;
+
+                    case MultiplayerRoomState.Closed:
+                        apiRoom.Value.Status.Value = new RoomStatusEnded();
+                        break;
+                }
 
                 InvokeRoomChanged();
             });
@@ -79,7 +111,12 @@ namespace osu.Game.Screens.Multi.Realtime
             Schedule(() =>
             {
                 Debug.Assert(Room != null);
-                Room.Host = Room.Users.FirstOrDefault(u => u.UserID == userId);
+                Debug.Assert(apiRoom.Value != null);
+
+                var user = Room.Users.FirstOrDefault(u => u.UserID == userId);
+
+                Room.Host = user;
+                apiRoom.Value.Host.Value = user?.User;
 
                 InvokeRoomChanged();
             });
@@ -87,17 +124,65 @@ namespace osu.Game.Screens.Multi.Realtime
             return Task.CompletedTask;
         }
 
-        Task IMultiplayerClient.SettingsChanged(MultiplayerRoomSettings newSettings)
+        async Task IMultiplayerClient.SettingsChanged(MultiplayerRoomSettings newSettings)
         {
+            var req = new GetBeatmapSetRequest(newSettings.BeatmapID, BeatmapSetLookupType.BeatmapId);
+            bool reqCompleted = false;
+            Exception? reqException = null;
+            PlaylistItem? playlistItem = null;
+
+            req.Success += res => Task.Run(() =>
+            {
+                try
+                {
+                    var beatmapSet = res.ToBeatmapSet(rulesets);
+
+                    var beatmap = beatmapSet.Beatmaps.Single(b => b.OnlineBeatmapID == newSettings.BeatmapID);
+                    var ruleset = rulesets.GetRuleset(newSettings.RulesetID ?? 0);
+                    var mods = newSettings.Mods.Select(m => m.ToMod(ruleset.CreateInstance()));
+
+                    playlistItem = new PlaylistItem
+                    {
+                        Beatmap = { Value = beatmap },
+                        Ruleset = { Value = ruleset },
+                    };
+
+                    playlistItem.RequiredMods.AddRange(mods);
+                }
+                finally
+                {
+                    reqCompleted = true;
+                }
+            });
+
+            req.Failure += e =>
+            {
+                reqException = e;
+                reqCompleted = true;
+            };
+
+            api.Queue(req);
+
+            while (!reqCompleted)
+                await Task.Delay(100);
+
+            if (reqException != null)
+                throw reqException;
+
+            Debug.Assert(playlistItem != null);
+
             Schedule(() =>
             {
                 Debug.Assert(Room != null);
+                Debug.Assert(apiRoom.Value != null);
+
                 Room.Settings = newSettings;
+                apiRoom.Value.Name.Value = newSettings.Name;
+                apiRoom.Value.Playlist.Clear();
+                apiRoom.Value.Playlist.Add(playlistItem);
 
                 InvokeRoomChanged();
             });
-
-            return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.UserStateChanged(long userId, MultiplayerUserState state)

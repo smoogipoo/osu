@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -14,6 +15,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Overlays;
 using osu.Game.Screens.Multi.Match.Components;
 using osuTK;
@@ -39,7 +41,8 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 RelativeSizeAxes = Axes.Both,
                 RelativePositionAxes = Axes.Y,
-                OpenSongSelect = () => OpenSongSelect?.Invoke()
+                OpenSongSelect = () => OpenSongSelect?.Invoke(),
+                SettingsApplied = Hide
             };
         }
 
@@ -58,6 +61,7 @@ namespace osu.Game.Screens.Multi.Realtime
             private const float disabled_alpha = 0.2f;
 
             public Action OpenSongSelect;
+            public Action SettingsApplied;
 
             public OsuTextBox NameField, MaxParticipantsField;
             public RoomAvailabilityPicker AvailabilityPicker;
@@ -235,7 +239,7 @@ namespace osu.Game.Screens.Multi.Realtime
                                                     Padding = new MarginPadding { Horizontal = OsuScreen.HORIZONTAL_OVERFLOW_PADDING },
                                                     Children = new Drawable[]
                                                     {
-                                                        ApplyButton = new CreateRoomButton
+                                                        ApplyButton = new CreateOrUpdateButton
                                                         {
                                                             Anchor = Anchor.BottomCentre,
                                                             Origin = Anchor.BottomCentre,
@@ -278,7 +282,7 @@ namespace osu.Game.Screens.Multi.Realtime
             }
 
             private bool hasValidSettings
-                => (RoomID.Value == null || manager.Client.Room?.Host?.UserID == api.LocalUser.Value.Id)
+                => (RoomID.Value == null || Host.Value == api.LocalUser.Value)
                    && NameField.Text.Length > 0
                    && Playlist.Count > 0;
 
@@ -288,6 +292,7 @@ namespace osu.Game.Screens.Multi.Realtime
                     return;
 
                 hideError();
+                loadingLayer.Show();
 
                 RoomName.Value = NameField.Text;
                 Availability.Value = AvailabilityPicker.Current.Value;
@@ -298,14 +303,29 @@ namespace osu.Game.Screens.Multi.Realtime
                 else
                     MaxParticipants.Value = null;
 
-                manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
+                if (RoomID.Value == null)
+                    manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
+                else
+                {
+                    manager.Client.ChangeSettings(new MultiplayerRoomSettings
+                    {
+                        Name = RoomName.Value,
+                        BeatmapID = Playlist.Single().BeatmapID,
+                        RulesetID = Playlist.Single().RulesetID,
+                        Mods = Playlist.Single().RequiredMods.Select(m => new APIMod(m)).ToList(),
+                    });
 
-                loadingLayer.Show();
+                    onSuccess(currentRoom.Value);
+                }
             }
 
             private void hideError() => ErrorText.FadeOut(50);
 
-            private void onSuccess(Room room) => loadingLayer.Hide();
+            private void onSuccess(Room room)
+            {
+                loadingLayer.Hide();
+                SettingsApplied?.Invoke();
+            }
 
             private void onError(string text)
             {
@@ -387,11 +407,15 @@ namespace osu.Game.Screens.Multi.Realtime
             }
         }
 
-        public class CreateRoomButton : TriangleButton
+        public class CreateOrUpdateButton : TriangleButton
         {
-            public CreateRoomButton()
+            [Resolved(typeof(Room), nameof(Room.RoomID))]
+            private Bindable<int?> roomId { get; set; }
+
+            protected override void LoadComplete()
             {
-                Text = "Create";
+                base.LoadComplete();
+                roomId.BindValueChanged(id => Text = id.NewValue == null ? "Create" : "Update", true);
             }
 
             [BackgroundDependencyLoader]

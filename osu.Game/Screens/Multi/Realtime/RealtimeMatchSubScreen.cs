@@ -61,7 +61,13 @@ namespace osu.Game.Screens.Multi.Realtime
                                     },
                                     Content = new[]
                                     {
-                                        new Drawable[] { new Match.Components.Header() },
+                                        new Drawable[]
+                                        {
+                                            new Match.Components.Header
+                                            {
+                                                OpenSettings = () => settingsOverlay.Show()
+                                            }
+                                        },
                                         new Drawable[]
                                         {
                                             new GridContainer
@@ -129,19 +135,6 @@ namespace osu.Game.Screens.Multi.Realtime
                     State = { Value = roomId.Value == null ? Visibility.Visible : Visibility.Hidden }
                 }
             };
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            roomId.BindValueChanged(id =>
-            {
-                if (id.NewValue == null)
-                    settingsOverlay.Show();
-                else
-                    settingsOverlay.Hide();
-            }, true);
         }
     }
 }

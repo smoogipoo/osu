@@ -3,7 +3,6 @@
 
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Containers;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
