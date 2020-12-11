@@ -51,11 +51,13 @@ namespace osu.Game.Screens.Multi.Realtime
             foreach (var user in joinedRoom.Users)
                 await PopulateUser(user);
 
-            room = joinedRoom;
+            Schedule(() =>
+            {
+                room = joinedRoom;
+                InvokeRoomChanged();
+            });
 
-            InvokeRoomChanged();
-
-            return room;
+            return joinedRoom;
         }
 
         public override async Task LeaveRoom()
@@ -64,9 +66,12 @@ namespace osu.Game.Screens.Multi.Realtime
                 return;
 
             await connection.InvokeAsync(nameof(IMultiplayerServer.LeaveRoom));
-            room = null;
 
-            InvokeRoomChanged();
+            Schedule(() =>
+            {
+                room = null;
+                InvokeRoomChanged();
+            });
         }
 
         public override Task TransferHost(long userId)
