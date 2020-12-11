@@ -2,21 +2,20 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Overlays;
+using osu.Game.Rulesets;
 using osu.Game.Screens.Multi.Match.Components;
 using osuTK;
 using osuTK.Graphics;
@@ -69,14 +68,17 @@ namespace osu.Game.Screens.Multi.Realtime
             private OsuSpriteText typeLabel;
             private LoadingLayer loadingLayer;
 
-            [Resolved(CanBeNull = true)]
+            [Resolved]
             private RealtimeRoomManager manager { get; set; }
 
             [Resolved]
             private Bindable<Room> currentRoom { get; set; }
 
             [Resolved]
-            private IAPIProvider api { get; set; }
+            private Bindable<WorkingBeatmap> beatmap { get; set; }
+
+            [Resolved]
+            private Bindable<RulesetInfo> ruleset { get; set; }
 
             [BackgroundDependencyLoader]
             private void load(OsuColour colours)
@@ -196,13 +198,7 @@ namespace osu.Game.Screens.Multi.Realtime
                                                             Anchor = Anchor.TopRight,
                                                             Origin = Anchor.TopRight,
                                                             Padding = new MarginPadding { Left = field_padding / 2 },
-                                                            Children = new[]
-                                                            {
-                                                                new Section("Beatmap")
-                                                                {
-                                                                    Child = new BeatmapSelectionControl { RelativeSizeAxes = Axes.X }
-                                                                },
-                                                            },
+                                                            // Todo: More children here?
                                                         },
                                                     },
                                                 }
@@ -274,13 +270,8 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 base.Update();
 
-                ApplyButton.Enabled.Value = hasValidSettings;
+                ApplyButton.Enabled.Value = NameField.Text.Length > 0;
             }
-
-            private bool hasValidSettings
-                => (RoomID.Value == null || Host.Value == api.LocalUser.Value)
-                   && NameField.Text.Length > 0
-                   && Playlist.Count > 0;
 
             private void apply()
             {
@@ -300,19 +291,19 @@ namespace osu.Game.Screens.Multi.Realtime
                     MaxParticipants.Value = null;
 
                 if (RoomID.Value == null)
-                    manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
-                else
                 {
-                    manager.Client.ChangeSettings(new MultiplayerRoomSettings
+                    // If this is a new room, add a playlist item based on the currently selected beatmap/ruleset.
+                    // In all other cases, the beatmap/ruleset are changed via the selection control in the match subscreen itself.
+                    Playlist.Add(new PlaylistItem
                     {
-                        Name = RoomName.Value,
-                        BeatmapID = Playlist.Single().BeatmapID,
-                        RulesetID = Playlist.Single().RulesetID,
-                        Mods = Playlist.Single().RequiredMods.Select(m => new APIMod(m)).ToList(),
+                        Beatmap = { Value = beatmap.Value.BeatmapInfo },
+                        Ruleset = { Value = ruleset.Value },
                     });
 
-                    onSuccess(currentRoom.Value);
+                    manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
                 }
+                else
+                    onSuccess(currentRoom.Value);
             }
 
             private void hideError() => ErrorText.FadeOut(50);

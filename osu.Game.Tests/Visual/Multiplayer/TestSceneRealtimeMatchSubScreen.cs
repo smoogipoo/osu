@@ -9,9 +9,8 @@ using osu.Framework.Testing;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Rulesets.Osu;
+using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Screens.Multi.Realtime;
-using osu.Game.Tests.Beatmaps;
 using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -71,40 +70,19 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("load match", () => LoadScreen(screen = new RealtimeMatchSubScreen(Room)));
             AddUntilStep("wait for load", () => screen.IsCurrentScreen());
         }
-        //
-        // [Test]
-        // public void TestCreateButtonDisabledWithNoBeatmap()
-        // {
-        //     AddAssert("create button not enabled", () => !this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateRoomButton>().Single().Enabled.Value);
-        // }
-        //
-        // [Test]
-        // public void TestCreateButtonEnabledWithBeatmap()
-        // {
-        //     AddStep("create room", () =>
-        //     {
-        //         Room.Playlist.Add(new PlaylistItem
-        //         {
-        //             Beatmap = { Value = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo },
-        //             Ruleset = { Value = new OsuRuleset().RulesetInfo }
-        //         });
-        //     });
-        //
-        //     AddAssert("create button enabled", () => this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateRoomButton>().Single().Enabled.Value);
-        // }
+
+        [Test]
+        public void TestSettingValidity()
+        {
+            AddAssert("create button enabled", () => this.ChildrenOfType<MatchSettingsOverlay.CreateRoomButton>().Single().Enabled.Value);
+
+            AddStep("make room name empty", () => Room.Name.Value = string.Empty);
+            AddAssert("create button not enabled", () => !this.ChildrenOfType<MatchSettingsOverlay.CreateRoomButton>().Single().Enabled.Value);
+        }
 
         [Test]
         public void TestCreatedRoom()
         {
-            AddStep("set valid properties", () =>
-            {
-                Room.Playlist.Add(new PlaylistItem
-                {
-                    Beatmap = { Value = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo },
-                    Ruleset = { Value = new OsuRuleset().RulesetInfo }
-                });
-            });
-
             AddStep("click create button", () =>
             {
                 InputManager.MoveMouseTo(this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateOrUpdateButton>().Single());

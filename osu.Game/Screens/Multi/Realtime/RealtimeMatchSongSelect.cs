@@ -22,7 +22,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
         protected override bool OnStart()
         {
-            var item = playlist.SingleOrDefault() ?? new PlaylistItem();
+            var item = new PlaylistItem();
 
             item.Beatmap.Value = Beatmap.Value.BeatmapInfo;
             item.Ruleset.Value = Ruleset.Value;
@@ -30,7 +30,9 @@ namespace osu.Game.Screens.Multi.Realtime
             item.RequiredMods.Clear();
             item.RequiredMods.AddRange(Mods.Value.Select(m => m.CreateCopy()));
 
-            if (!playlist.Any())
+            if (playlist.Any())
+                playlist[0] = item;
+            else
                 playlist.Add(item);
 
             this.Exit();

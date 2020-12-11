@@ -8,8 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
-using osu.Framework.Graphics;
+using osu.Framework.Threading;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
@@ -20,7 +19,7 @@ using osu.Game.Rulesets;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
-    public abstract class StatefulMultiplayerClient : Component, IStatefulMultiplayerClient
+    public abstract class StatefulMultiplayerClient : MultiplayerComposite, IStatefulMultiplayerClient
     {
         public event Action? RoomChanged;
 
@@ -30,13 +29,46 @@ namespace osu.Game.Screens.Multi.Realtime
         private UserLookupCache userLookupCache { get; set; } = null!;
 
         [Resolved]
-        private Bindable<Room> apiRoom { get; set; } = null!;
-
-        [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
         private RulesetStore rulesets { get; set; } = null!;
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            RoomName.BindValueChanged(_ => scheduleRoomUpdate());
+            Playlist.BindCollectionChanged((_, __) => scheduleRoomUpdate());
+        }
+
+        private ScheduledDelegate? scheduledUpdate;
+
+        private void scheduleRoomUpdate()
+        {
+            if (RoomID.Value == null)
+                return;
+
+            scheduledUpdate?.Cancel();
+            scheduledUpdate = Schedule(() =>
+            {
+                Debug.Assert(Room != null);
+
+                var newSettings = new MultiplayerRoomSettings
+                {
+                    Name = RoomName.Value,
+                    BeatmapID = Playlist.Single().BeatmapID,
+                    RulesetID = Playlist.Single().RulesetID,
+                    Mods = Playlist.Single().RequiredMods.Select(m => new APIMod(m)).ToList()
+                };
+
+                // Make sure there would be a meaningful change in settings.
+                if (newSettings.Equals(Room.Settings))
+                    return;
+
+                ChangeSettings(newSettings);
+            });
+        }
 
         public abstract Task<MultiplayerRoom> JoinRoom(long roomId);
 
@@ -55,22 +87,21 @@ namespace osu.Game.Screens.Multi.Realtime
             Schedule(() =>
             {
                 Debug.Assert(Room != null);
-                Debug.Assert(apiRoom.Value != null);
 
                 Room.State = state;
 
                 switch (state)
                 {
                     case MultiplayerRoomState.Open:
-                        apiRoom.Value.Status.Value = new RoomStatusOpen();
+                        Status.Value = new RoomStatusOpen();
                         break;
 
                     case MultiplayerRoomState.Playing:
-                        apiRoom.Value.Status.Value = new RoomStatusPlaying();
+                        Status.Value = new RoomStatusPlaying();
                         break;
 
                     case MultiplayerRoomState.Closed:
-                        apiRoom.Value.Status.Value = new RoomStatusEnded();
+                        Status.Value = new RoomStatusEnded();
                         break;
                 }
 
@@ -111,12 +142,11 @@ namespace osu.Game.Screens.Multi.Realtime
             Schedule(() =>
             {
                 Debug.Assert(Room != null);
-                Debug.Assert(apiRoom.Value != null);
 
                 var user = Room.Users.FirstOrDefault(u => u.UserID == userId);
 
                 Room.Host = user;
-                apiRoom.Value.Host.Value = user?.User;
+                Host.Value = user?.User;
 
                 InvokeRoomChanged();
             });
@@ -174,12 +204,11 @@ namespace osu.Game.Screens.Multi.Realtime
             Schedule(() =>
             {
                 Debug.Assert(Room != null);
-                Debug.Assert(apiRoom.Value != null);
 
                 Room.Settings = newSettings;
-                apiRoom.Value.Name.Value = newSettings.Name;
-                apiRoom.Value.Playlist.Clear();
-                apiRoom.Value.Playlist.Add(playlistItem);
+                RoomName.Value = newSettings.Name;
+                Playlist.Clear();
+                Playlist.Add(playlistItem);
 
                 InvokeRoomChanged();
             });
