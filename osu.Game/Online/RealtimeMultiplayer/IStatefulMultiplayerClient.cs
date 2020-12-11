@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 #nullable enable
 
 namespace osu.Game.Online.RealtimeMultiplayer
@@ -10,7 +12,7 @@ namespace osu.Game.Online.RealtimeMultiplayer
     /// </summary>
     public interface IStatefulMultiplayerClient : IMultiplayerClient, IMultiplayerServer
     {
-        MultiplayerUserState State { get; }
+        event Action? RoomChanged;
 
         MultiplayerRoom? Room { get; }
     }

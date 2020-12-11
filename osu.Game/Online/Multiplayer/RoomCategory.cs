@@ -5,7 +5,6 @@ namespace osu.Game.Online.Multiplayer
 {
     public enum RoomCategory
     {
-        Realtime,
         Normal,
         Spotlight,
         Realtime,
