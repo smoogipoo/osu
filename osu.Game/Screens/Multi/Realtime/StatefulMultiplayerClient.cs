@@ -46,13 +46,14 @@ namespace osu.Game.Screens.Multi.Realtime
 
         private void scheduleRoomUpdate()
         {
-            if (RoomID.Value == null)
+            if (RoomID.Value == null || Room == null)
                 return;
 
             scheduledUpdate?.Cancel();
             scheduledUpdate = Schedule(() =>
             {
-                Debug.Assert(Room != null);
+                if (RoomID.Value == null || Room == null)
+                    return;
 
                 var newSettings = new MultiplayerRoomSettings
                 {

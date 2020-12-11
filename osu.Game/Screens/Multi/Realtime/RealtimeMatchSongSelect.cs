@@ -30,10 +30,8 @@ namespace osu.Game.Screens.Multi.Realtime
             item.RequiredMods.Clear();
             item.RequiredMods.AddRange(Mods.Value.Select(m => m.CreateCopy()));
 
-            if (playlist.Any())
-                playlist[0] = item;
-            else
-                playlist.Add(item);
+            playlist.Clear();
+            playlist.Add(item);
 
             this.Exit();
             return true;

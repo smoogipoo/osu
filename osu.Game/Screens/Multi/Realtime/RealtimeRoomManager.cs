@@ -63,10 +63,13 @@ namespace osu.Game.Screens.Multi.Realtime
         [Resolved]
         private Bindable<Room> selectedRoom { get; set; }
 
-        private readonly ListingPollingComponent listingPollingComponent;
+        private readonly Container pollingComponents;
+        private ListingPollingComponent listingPollingComponent;
         private HubConnection connection;
         private JoinRoomRequest currentJoinRoomRequest;
         private Room joinedRoom;
+        private bool allowConnection = true;
+        private bool connected;
 
         public RealtimeRoomManager()
         {
@@ -74,12 +77,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             InternalChildren = new[]
             {
-                listingPollingComponent = new ListingPollingComponent
-                {
-                    TimeBetweenPolls = timeBetweenListingPolls,
-                    InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
-                    RoomsReceived = onListingReceived
-                },
+                pollingComponents = new Container { RelativeSizeAxes = Axes.Both },
                 (Drawable)(Client = CreateClient())
             };
         }
@@ -99,7 +97,15 @@ namespace osu.Game.Screens.Multi.Realtime
                 case APIState.Offline:
                     connection?.StopAsync();
                     connection = null;
+
                     (Client as RealtimeMultiplayerClient)?.UnbindConnection();
+
+                    Schedule(() =>
+                    {
+                        rooms.Clear();
+                        InitialRoomsReceived.Value = false;
+                        pollingComponents.Clear();
+                    });
                     break;
 
                 case APIState.Online:
@@ -108,7 +114,7 @@ namespace osu.Game.Screens.Multi.Realtime
             }
         }
 
-        private const string endpoint = "https://spectator.ppy.sh/spectator";
+        private const string endpoint = "https://spectator.ppy.sh/multiplayer";
 
         protected virtual async Task Connect()
         {
@@ -125,6 +131,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             connection.Closed += async ex =>
             {
+                connected = false;
                 (Client as RealtimeMultiplayerClient)?.UnbindConnection();
 
                 if (ex != null)
@@ -140,7 +147,7 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 Logger.Log("Multiplayer client connecting...", LoggingTarget.Network);
 
-                while (api.State.Value == APIState.Online)
+                while (allowConnection && api.State.Value == APIState.Online)
                 {
                     try
                     {
@@ -148,8 +155,25 @@ namespace osu.Game.Screens.Multi.Realtime
                         await connection.StartAsync();
                         Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
 
-                        // Success. Reuse any existing client and bind the connection.
+                        // Success. Bind the connection.
                         (Client as RealtimeMultiplayerClient)?.BindConnection(connection);
+
+                        connected = true;
+
+                        Schedule(() =>
+                        {
+                            if (!connected)
+                                return;
+
+                            pollingComponents.Add(listingPollingComponent = new ListingPollingComponent
+                            {
+                                TimeBetweenPolls = TimeBetweenListingPolls,
+                                InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
+                                RoomsReceived = onListingReceived
+                            });
+                        });
+
+                        break;
                     }
                     catch (Exception e)
                     {
@@ -178,7 +202,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
                 RoomsUpdated?.Invoke();
 
-                joinMultiplayerRoom(room, onSuccess, onError);
+                joinMultiplayerRoom(room, onSuccess, onException);
             };
 
             req.Failure += exception =>
@@ -186,10 +210,12 @@ namespace osu.Game.Screens.Multi.Realtime
                 if (req.Result != null)
                     onError?.Invoke(req.Result.Error);
                 else
-                    Logger.Log($"Failed to create the room: {exception}", level: LogLevel.Important);
+                    onException(exception);
             };
 
             api.Queue(req);
+
+            void onException(Exception ex) => Logger.Log($"Failed to create the room: {ex}", level: LogLevel.Important);
         }
 
         public void JoinRoom(Room room, Action<Room> onSuccess, Action<string> onError)
@@ -201,17 +227,19 @@ namespace osu.Game.Screens.Multi.Realtime
             currentJoinRoomRequest.Success += () =>
             {
                 joinedRoom = room;
-                joinMultiplayerRoom(room, onSuccess, onError);
+                joinMultiplayerRoom(room, onSuccess, onException);
             };
 
-            currentJoinRoomRequest.Failure += exception =>
-            {
-                if (!(exception is OperationCanceledException))
-                    Logger.Log($"Failed to join room: {exception}", level: LogLevel.Important);
-                onError?.Invoke(exception.ToString());
-            };
+            currentJoinRoomRequest.Failure += onException;
 
             api.Queue(currentJoinRoomRequest);
+
+            void onException(Exception ex)
+            {
+                if (!(ex is OperationCanceledException))
+                    Logger.Log($"Failed to join room: {ex}", level: LogLevel.Important);
+                onError?.Invoke(ex.ToString());
+            }
         }
 
         public void PartRoom()
@@ -227,19 +255,19 @@ namespace osu.Game.Screens.Multi.Realtime
             Client.LeaveRoom().Wait();
         }
 
-        private void joinMultiplayerRoom(Room room, Action<Room> onSuccess, Action<string> onError)
+        private void joinMultiplayerRoom(Room room, Action<Room> onSuccess, Action<Exception> onError)
         {
             Debug.Assert(room.RoomID.Value != null);
 
             try
             {
-                Client.JoinRoom((long)room.RoomID.Value);
+                Client.JoinRoom((long)room.RoomID.Value).Wait();
                 onSuccess?.Invoke(room);
             }
             catch (Exception ex)
             {
-                onError?.Invoke($"Failed to join the room: {ex}");
                 PartRoom();
+                onError?.Invoke(ex);
             }
         }
 
@@ -251,6 +279,9 @@ namespace osu.Game.Screens.Multi.Realtime
         /// <param name="listing">The listing.</param>
         private void onListingReceived(List<Room> listing)
         {
+            if (!connected)
+                return;
+
             // Remove past matches
             foreach (var r in rooms.ToList())
             {
@@ -322,6 +353,8 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             base.Dispose(isDisposing);
             PartRoom();
+
+            allowConnection = false;
 
             (Client as RealtimeMultiplayerClient)?.UnbindConnection();
             connection?.DisposeAsync();
