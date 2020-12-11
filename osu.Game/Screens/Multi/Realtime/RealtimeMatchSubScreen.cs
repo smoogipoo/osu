@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Match.Components;
+using osu.Game.Screens.Multi.Realtime.Participants;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -76,9 +77,29 @@ namespace osu.Game.Screens.Multi.Realtime
                                                 {
                                                     new Drawable[]
                                                     {
-                                                        new Participants.ParticipantsList
+                                                        new Container
                                                         {
-                                                            RelativeSizeAxes = Axes.Both
+                                                            RelativeSizeAxes = Axes.Both,
+                                                            Padding = new MarginPadding { Horizontal = 5, Vertical = 10 },
+                                                            Child = new GridContainer
+                                                            {
+                                                                RelativeSizeAxes = Axes.Both,
+                                                                RowDimensions = new[]
+                                                                {
+                                                                    new Dimension(GridSizeMode.AutoSize)
+                                                                },
+                                                                Content = new[]
+                                                                {
+                                                                    new Drawable[] { new ParticipantsHeader() },
+                                                                    new Drawable[]
+                                                                    {
+                                                                        new Participants.ParticipantsList
+                                                                        {
+                                                                            RelativeSizeAxes = Axes.Both
+                                                                        },
+                                                                    }
+                                                                }
+                                                            }
                                                         },
                                                         new FillFlowContainer
                                                         {
@@ -86,6 +107,7 @@ namespace osu.Game.Screens.Multi.Realtime
                                                             Origin = Anchor.Centre,
                                                             RelativeSizeAxes = Axes.X,
                                                             AutoSizeAxes = Axes.Y,
+                                                            Padding = new MarginPadding { Horizontal = 5 },
                                                             Children = new Drawable[]
                                                             {
                                                                 new OverlinedHeader("Beatmap"),
