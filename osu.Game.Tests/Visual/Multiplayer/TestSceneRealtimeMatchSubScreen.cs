@@ -9,7 +9,6 @@ using osu.Framework.Testing;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Screens.Multi.Realtime;
 using osuTK.Input;
 
@@ -74,10 +73,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestSettingValidity()
         {
-            AddAssert("create button enabled", () => this.ChildrenOfType<MatchSettingsOverlay.CreateRoomButton>().Single().Enabled.Value);
+            AddAssert("create button enabled", () => this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateOrUpdateButton>().Single().Enabled.Value);
 
             AddStep("make room name empty", () => Room.Name.Value = string.Empty);
-            AddAssert("create button not enabled", () => !this.ChildrenOfType<MatchSettingsOverlay.CreateRoomButton>().Single().Enabled.Value);
+            AddAssert("create button not enabled", () => !this.ChildrenOfType<RealtimeMatchSettingsOverlay.CreateOrUpdateButton>().Single().Enabled.Value);
         }
 
         [Test]
