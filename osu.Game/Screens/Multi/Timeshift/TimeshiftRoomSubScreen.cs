@@ -236,14 +236,6 @@ namespace osu.Game.Screens.Multi.Timeshift
             managerUpdated.BindValueChanged(beatmapUpdated);
         }
 
-        public override bool OnExiting(IScreen next)
-        {
-            RoomManager?.PartRoom();
-            Mods.Value = Array.Empty<Mod>();
-
-            return base.OnExiting(next);
-        }
-
         private void selectedItemChanged()
         {
             updateWorkingBeatmap();
