@@ -46,6 +46,6 @@ namespace osu.Game.Screens.Multi
         protected Bindable<RoomAvailability> Availability { get; private set; }
 
         [Resolved(typeof(Room))]
-        protected Bindable<TimeSpan> Duration { get; private set; }
+        protected Bindable<TimeSpan?> Duration { get; private set; }
     }
 }

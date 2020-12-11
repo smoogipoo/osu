@@ -263,7 +263,7 @@ namespace osu.Game.Screens.Multi.Match.Components
                 };
 
                 RoomName.BindValueChanged(name => NameField.Text = name.NewValue, true);
-                Duration.BindValueChanged(duration => DurationField.Current.Value = duration.NewValue, true);
+                Duration.BindValueChanged(duration => DurationField.Current.Value = duration.NewValue ?? TimeSpan.FromMinutes(30), true);
 
                 playlist.Items.BindTo(Playlist);
                 Playlist.BindCollectionChanged(onPlaylistChanged, true);
