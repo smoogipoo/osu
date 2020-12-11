@@ -5,7 +5,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Screens;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Match.Components;
@@ -131,7 +130,6 @@ namespace osu.Game.Screens.Multi.Realtime
                 settingsOverlay = new RealtimeMatchSettingsOverlay
                 {
                     RelativeSizeAxes = Axes.Both,
-                    OpenSongSelect = () => this.Push(new RealtimeMatchSongSelect()),
                     State = { Value = roomId.Value == null ? Visibility.Visible : Visibility.Hidden }
                 }
             };

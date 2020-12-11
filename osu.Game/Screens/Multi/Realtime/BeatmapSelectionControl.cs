@@ -6,7 +6,9 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Screens;
+using osu.Game.Online.API;
 using osu.Game.Screens.Multi.Match.Components;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -16,7 +18,11 @@ namespace osu.Game.Screens.Multi.Realtime
         [Resolved]
         private RealtimeMatchSubScreen matchSubScreen { get; set; }
 
+        [Resolved]
+        private IAPIProvider api { get; set; }
+
         private Container beatmapPanelContainer;
+        private Button selectButton;
 
         public BeatmapSelectionControl()
         {
@@ -38,12 +44,13 @@ namespace osu.Game.Screens.Multi.Realtime
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y
                     },
-                    new PurpleTriangleButton
+                    selectButton = new PurpleTriangleButton
                     {
                         RelativeSizeAxes = Axes.X,
                         Height = 40,
                         Text = "Select beatmap",
-                        Action = () => matchSubScreen.Push(new RealtimeMatchSongSelect())
+                        Action = () => matchSubScreen.Push(new RealtimeMatchSongSelect()),
+                        Alpha = 0
                     }
                 }
             };
@@ -54,6 +61,13 @@ namespace osu.Game.Screens.Multi.Realtime
             base.LoadComplete();
 
             Playlist.BindCollectionChanged(onPlaylistChanged, true);
+            Host.BindValueChanged(host =>
+            {
+                if (host.NewValue?.Equals(api.LocalUser.Value) == true)
+                    selectButton.Show();
+                else
+                    selectButton.Hide();
+            }, true);
         }
 
         private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e)

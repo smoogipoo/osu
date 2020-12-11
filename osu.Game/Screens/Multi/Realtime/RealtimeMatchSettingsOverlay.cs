@@ -28,8 +28,6 @@ namespace osu.Game.Screens.Multi.Realtime
         private const float transition_duration = 350;
         private const float field_padding = 45;
 
-        public Action OpenSongSelect;
-
         protected MatchSettings Settings { get; private set; }
 
         [BackgroundDependencyLoader]
@@ -41,7 +39,6 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 RelativeSizeAxes = Axes.Both,
                 RelativePositionAxes = Axes.Y,
-                OpenSongSelect = () => OpenSongSelect?.Invoke(),
                 SettingsApplied = Hide
             };
         }
@@ -60,7 +57,6 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             private const float disabled_alpha = 0.2f;
 
-            public Action OpenSongSelect;
             public Action SettingsApplied;
 
             public OsuTextBox NameField, MaxParticipantsField;
