@@ -171,6 +171,15 @@ namespace osu.Game.Screens.Multi.Realtime
                                                                         },
                                                                     },
                                                                 },
+                                                            },
+                                                        },
+                                                        new SectionContainer
+                                                        {
+                                                            Anchor = Anchor.TopRight,
+                                                            Origin = Anchor.TopRight,
+                                                            Padding = new MarginPadding { Left = field_padding / 2 },
+                                                            Children = new[]
+                                                            {
                                                                 new Section("Max participants")
                                                                 {
                                                                     Alpha = disabled_alpha,
@@ -191,15 +200,8 @@ namespace osu.Game.Screens.Multi.Realtime
                                                                         ReadOnly = true,
                                                                     },
                                                                 },
-                                                            },
-                                                        },
-                                                        new SectionContainer
-                                                        {
-                                                            Anchor = Anchor.TopRight,
-                                                            Origin = Anchor.TopRight,
-                                                            Padding = new MarginPadding { Left = field_padding / 2 },
-                                                            // Todo: More children here?
-                                                        },
+                                                            }
+                                                        }
                                                     },
                                                 }
                                             },
