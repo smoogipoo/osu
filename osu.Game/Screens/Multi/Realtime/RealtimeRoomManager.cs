@@ -162,7 +162,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
         protected virtual IStatefulMultiplayerClient CreateClient() => new RealtimeMultiplayerClient();
 
-        public void CreateRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
+        public void CreateRoom(Room room, Action<Room> onSuccess, Action<string> onError)
         {
             room.Host.Value = api.LocalUser.Value;
             room.Category.Value = RoomCategory.Realtime;
@@ -192,7 +192,7 @@ namespace osu.Game.Screens.Multi.Realtime
             api.Queue(req);
         }
 
-        public void JoinRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
+        public void JoinRoom(Room room, Action<Room> onSuccess, Action<string> onError)
         {
             // The API is joined first to join chat channels/etc, with the multiplayer room joined afterwards.
             currentJoinRoomRequest?.Cancel();
@@ -227,18 +227,14 @@ namespace osu.Game.Screens.Multi.Realtime
             Client.LeaveRoom().Wait();
         }
 
-        void IRoomManager.CreateRoom(Room room, Action<Room> onSuccess, Action<string> onError) => CreateRoom(room, (r, _) => onSuccess?.Invoke(r), onError);
-
-        void IRoomManager.JoinRoom(Room room, Action<Room> onSuccess, Action<string> onError) => JoinRoom(room, (r, _) => onSuccess?.Invoke(r), onError);
-
-        private void joinMultiplayerRoom(Room room, Action<Room, IStatefulMultiplayerClient> onSuccess, Action<string> onError)
+        private void joinMultiplayerRoom(Room room, Action<Room> onSuccess, Action<string> onError)
         {
             Debug.Assert(room.RoomID.Value != null);
 
             try
             {
                 Client.JoinRoom((long)room.RoomID.Value);
-                onSuccess?.Invoke(room, Client);
+                onSuccess?.Invoke(room);
             }
             catch (Exception ex)
             {

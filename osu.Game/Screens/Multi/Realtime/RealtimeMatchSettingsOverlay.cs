@@ -305,7 +305,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             private void hideError() => ErrorText.FadeOut(50);
 
-            private void onSuccess(Room room, IStatefulMultiplayerClient client) => loadingLayer.Hide();
+            private void onSuccess(Room room) => loadingLayer.Hide();
 
             private void onError(string text)
             {
