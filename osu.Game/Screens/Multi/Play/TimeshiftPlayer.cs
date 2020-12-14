@@ -23,6 +23,8 @@ namespace osu.Game.Screens.Multi.Play
     {
         public Action Exited;
 
+        protected int? Token { get; private set; }
+
         [Resolved(typeof(Room), nameof(Room.RoomID))]
         private Bindable<int?> roomId { get; set; }
 
@@ -39,12 +41,10 @@ namespace osu.Game.Screens.Multi.Play
             this.playlistItem = playlistItem;
         }
 
-        private int? token;
-
         [BackgroundDependencyLoader]
         private void load()
         {
-            token = null;
+            Token = null;
 
             bool failed = false;
 
@@ -59,7 +59,7 @@ namespace osu.Game.Screens.Multi.Play
                 throw new InvalidOperationException("Current Mods do not match PlaylistItem's RequiredMods");
 
             var req = new CreateRoomScoreRequest(roomId.Value ?? 0, playlistItem.ID, Game.VersionHash);
-            req.Success += r => token = r.ID;
+            req.Success += r => Token = r.ID;
             req.Failure += e =>
             {
                 failed = true;
@@ -75,7 +75,7 @@ namespace osu.Game.Screens.Multi.Play
 
             api.Queue(req);
 
-            while (!failed && !token.HasValue)
+            while (!failed && !Token.HasValue)
                 Thread.Sleep(1000);
         }
 
@@ -100,9 +100,9 @@ namespace osu.Game.Screens.Multi.Play
             var score = base.CreateScore();
             score.TotalScore = (int)Math.Round(ScoreProcessor.GetStandardisedScore());
 
-            Debug.Assert(token != null);
+            Debug.Assert(Token != null);
 
-            var request = new SubmitRoomScoreRequest(token.Value, roomId.Value ?? 0, playlistItem.ID, score);
+            var request = new SubmitRoomScoreRequest(Token.Value, roomId.Value ?? 0, playlistItem.ID, score);
             request.Success += s => score.OnlineScoreID = s.ID;
             request.Failure += e => Logger.Error(e, "Failed to submit score");
             api.Queue(request);

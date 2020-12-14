@@ -7,10 +7,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Screens;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Match.Components;
 using osu.Game.Screens.Multi.Realtime.Participants;
+using osu.Game.Screens.Play;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -24,6 +26,12 @@ namespace osu.Game.Screens.Multi.Realtime
 
         [Resolved(typeof(Room), nameof(Room.RoomID))]
         private Bindable<int?> roomId { get; set; }
+
+        [Resolved(canBeNull: true)]
+        private Multiplayer multiplayer { get; set; }
+
+        [Resolved]
+        private RealtimeRoomManager roomManager { get; set; }
 
         private RealtimeMatchSettingsOverlay settingsOverlay;
 
@@ -164,8 +172,20 @@ namespace osu.Game.Screens.Multi.Realtime
             base.LoadComplete();
 
             Playlist.BindCollectionChanged(onPlaylistChanged, true);
+
+            roomManager.Client.LoadRequested += onLoadRequested;
         }
 
         private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e) => SelectedItem.Value = Playlist.FirstOrDefault();
+
+        private void onLoadRequested() => multiplayer?.Push(new PlayerLoader(() => new RealtimePlayer(SelectedItem.Value)));
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            if (roomManager != null)
+                roomManager.Client.LoadRequested -= onLoadRequested;
+        }
     }
 }

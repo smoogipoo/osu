@@ -22,6 +22,9 @@ namespace osu.Game.Screens.Multi.Realtime
     public abstract class StatefulMultiplayerClient : MultiplayerComposite, IStatefulMultiplayerClient
     {
         public event Action? RoomChanged;
+        public event Action? LoadRequested;
+        public event Action? MatchStarted;
+        public event Action? ResultsReady;
 
         public abstract MultiplayerRoom? Room { get; }
 
@@ -230,16 +233,19 @@ namespace osu.Game.Screens.Multi.Realtime
 
         Task IMultiplayerClient.LoadRequested()
         {
+            Schedule(() => LoadRequested?.Invoke());
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.MatchStarted()
         {
+            Schedule(() => MatchStarted?.Invoke());
             return Task.CompletedTask;
         }
 
         Task IMultiplayerClient.ResultsReady()
         {
+            Schedule(() => ResultsReady?.Invoke());
             return Task.CompletedTask;
         }
 

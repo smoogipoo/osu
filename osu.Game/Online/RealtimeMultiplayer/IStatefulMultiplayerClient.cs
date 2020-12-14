@@ -13,6 +13,9 @@ namespace osu.Game.Online.RealtimeMultiplayer
     public interface IStatefulMultiplayerClient : IMultiplayerClient, IMultiplayerServer
     {
         event Action? RoomChanged;
+        new event Action? LoadRequested;
+        new event Action? MatchStarted;
+        new event Action? ResultsReady;
 
         MultiplayerRoom? Room { get; }
     }
