@@ -5,17 +5,22 @@ using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Graphics;
-using osu.Game.Graphics.UserInterface;
+using osu.Game.Graphics.Backgrounds;
 using osu.Game.Online.API;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
+using osu.Game.Screens.Multi.Match.Components;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
-    public class ReadyButton : MatchComposite
+    public class RealtimeReadyButton : MatchComposite
     {
+        public Bindable<PlaylistItem> SelectedItem => button.SelectedItem;
+
         [Resolved]
         private IAPIProvider api { get; set; }
 
@@ -25,15 +30,15 @@ namespace osu.Game.Screens.Multi.Realtime
         [Resolved]
         private OsuColour colours { get; set; }
 
-        private OsuButton button;
+        private readonly ButtonWithTrianglesExposed button;
 
-        [BackgroundDependencyLoader]
-        private void load()
+        public RealtimeReadyButton()
         {
-            InternalChild = button = new OsuButton
+            InternalChild = button = new ButtonWithTrianglesExposed
             {
                 RelativeSizeAxes = Axes.Both,
                 Size = Vector2.One,
+                Enabled = { Value = true },
                 Action = onClick
             };
         }
@@ -57,25 +62,38 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 case MultiplayerUserState.Idle:
                     button.Text = "Ready";
-                    button.BackgroundColour = colours.Green;
+                    updateButtonColour(true);
                     break;
 
                 case MultiplayerUserState.Ready:
                     if (Room?.Host?.Equals(localUser) == true)
                     {
                         button.Text = "Let's go!";
-
-                        button.BackgroundColour = Room.Users.All(u => u.State == MultiplayerUserState.Ready)
-                            ? colours.Green
-                            : colours.YellowDark;
+                        updateButtonColour(Room.Users.All(u => u.State == MultiplayerUserState.Ready));
                     }
                     else
                     {
                         button.Text = "Waiting for host...";
-                        button.BackgroundColour = colours.YellowDark;
+                        updateButtonColour(false);
                     }
 
                     break;
+            }
+        }
+
+        private void updateButtonColour(bool green)
+        {
+            if (green)
+            {
+                button.BackgroundColour = colours.Green;
+                button.Triangles.ColourDark = colours.Green;
+                button.Triangles.ColourLight = colours.GreenLight;
+            }
+            else
+            {
+                button.BackgroundColour = colours.YellowDark;
+                button.Triangles.ColourDark = colours.YellowDark;
+                button.Triangles.ColourLight = colours.Yellow;
             }
         }
 
@@ -93,6 +111,11 @@ namespace osu.Game.Screens.Multi.Realtime
                 else
                     Client.ChangeState(MultiplayerUserState.Idle);
             }
+        }
+
+        private class ButtonWithTrianglesExposed : ReadyButton
+        {
+            public new Triangles Triangles => base.Triangles;
         }
     }
 }

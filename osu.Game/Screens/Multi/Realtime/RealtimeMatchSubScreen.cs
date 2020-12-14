@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Specialized;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -140,7 +142,7 @@ namespace osu.Game.Screens.Multi.Realtime
                         },
                         new Drawable[]
                         {
-                            new Footer()
+                            new Footer { SelectedItem = { BindTarget = SelectedItem } }
                         }
                     },
                     RowDimensions = new[]
@@ -156,5 +158,14 @@ namespace osu.Game.Screens.Multi.Realtime
                 }
             };
         }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            Playlist.BindCollectionChanged(onPlaylistChanged, true);
+        }
+
+        private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e) => SelectedItem.Value = Playlist.FirstOrDefault();
     }
 }
