@@ -63,7 +63,7 @@ namespace osu.Game.Screens.Multi.Realtime
             Playlist.BindCollectionChanged(onPlaylistChanged, true);
             Host.BindValueChanged(host =>
             {
-                if (host.NewValue?.Equals(api.LocalUser.Value) == true)
+                if (RoomID.Value == null || host.NewValue?.Equals(api.LocalUser.Value) == true)
                     selectButton.Show();
                 else
                     selectButton.Hide();

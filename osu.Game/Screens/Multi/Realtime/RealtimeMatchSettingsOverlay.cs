@@ -67,6 +67,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             private OsuSpriteText typeLabel;
             private LoadingLayer loadingLayer;
+            private BeatmapSelectionControl initialBeatmapControl;
 
             [Resolved]
             private RealtimeRoomManager manager { get; set; }
@@ -119,90 +120,109 @@ namespace osu.Game.Screens.Multi.Realtime
                                             RelativeSizeAxes = Axes.Both,
                                             Children = new[]
                                             {
-                                                new Container
+                                                new FillFlowContainer
                                                 {
-                                                    Padding = new MarginPadding { Horizontal = WaveOverlayContainer.WIDTH_PADDING },
                                                     RelativeSizeAxes = Axes.X,
                                                     AutoSizeAxes = Axes.Y,
+                                                    Direction = FillDirection.Vertical,
+                                                    Spacing = new Vector2(0, 10),
                                                     Children = new Drawable[]
                                                     {
-                                                        new SectionContainer
+                                                        new Container
                                                         {
-                                                            Padding = new MarginPadding { Right = field_padding / 2 },
-                                                            Children = new[]
+                                                            Anchor = Anchor.TopCentre,
+                                                            Origin = Anchor.TopCentre,
+                                                            Padding = new MarginPadding { Horizontal = WaveOverlayContainer.WIDTH_PADDING },
+                                                            RelativeSizeAxes = Axes.X,
+                                                            AutoSizeAxes = Axes.Y,
+                                                            Children = new Drawable[]
                                                             {
-                                                                new Section("Room name")
+                                                                new SectionContainer
                                                                 {
-                                                                    Child = NameField = new SettingsTextBox
+                                                                    Padding = new MarginPadding { Right = field_padding / 2 },
+                                                                    Children = new[]
                                                                     {
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        TabbableContentContainer = this,
-                                                                    },
-                                                                },
-                                                                new Section("Room visibility")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = AvailabilityPicker = new RoomAvailabilityPicker
-                                                                    {
-                                                                        Enabled = { Value = false }
-                                                                    },
-                                                                },
-                                                                new Section("Game type")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = new FillFlowContainer
-                                                                    {
-                                                                        AutoSizeAxes = Axes.Y,
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        Direction = FillDirection.Vertical,
-                                                                        Spacing = new Vector2(7),
-                                                                        Children = new Drawable[]
+                                                                        new Section("Room name")
                                                                         {
-                                                                            TypePicker = new GameTypePicker
+                                                                            Child = NameField = new SettingsTextBox
                                                                             {
                                                                                 RelativeSizeAxes = Axes.X,
+                                                                                TabbableContentContainer = this,
+                                                                            },
+                                                                        },
+                                                                        new Section("Room visibility")
+                                                                        {
+                                                                            Alpha = disabled_alpha,
+                                                                            Child = AvailabilityPicker = new RoomAvailabilityPicker
+                                                                            {
                                                                                 Enabled = { Value = false }
                                                                             },
-                                                                            typeLabel = new OsuSpriteText
+                                                                        },
+                                                                        new Section("Game type")
+                                                                        {
+                                                                            Alpha = disabled_alpha,
+                                                                            Child = new FillFlowContainer
                                                                             {
-                                                                                Font = OsuFont.GetFont(size: 14),
-                                                                                Colour = colours.Yellow
+                                                                                AutoSizeAxes = Axes.Y,
+                                                                                RelativeSizeAxes = Axes.X,
+                                                                                Direction = FillDirection.Vertical,
+                                                                                Spacing = new Vector2(7),
+                                                                                Children = new Drawable[]
+                                                                                {
+                                                                                    TypePicker = new GameTypePicker
+                                                                                    {
+                                                                                        RelativeSizeAxes = Axes.X,
+                                                                                        Enabled = { Value = false }
+                                                                                    },
+                                                                                    typeLabel = new OsuSpriteText
+                                                                                    {
+                                                                                        Font = OsuFont.GetFont(size: 14),
+                                                                                        Colour = colours.Yellow
+                                                                                    },
+                                                                                },
                                                                             },
                                                                         },
                                                                     },
                                                                 },
+                                                                new SectionContainer
+                                                                {
+                                                                    Anchor = Anchor.TopRight,
+                                                                    Origin = Anchor.TopRight,
+                                                                    Padding = new MarginPadding { Left = field_padding / 2 },
+                                                                    Children = new[]
+                                                                    {
+                                                                        new Section("Max participants")
+                                                                        {
+                                                                            Alpha = disabled_alpha,
+                                                                            Child = MaxParticipantsField = new SettingsNumberTextBox
+                                                                            {
+                                                                                RelativeSizeAxes = Axes.X,
+                                                                                TabbableContentContainer = this,
+                                                                                ReadOnly = true,
+                                                                            },
+                                                                        },
+                                                                        new Section("Password (optional)")
+                                                                        {
+                                                                            Alpha = disabled_alpha,
+                                                                            Child = new SettingsPasswordTextBox
+                                                                            {
+                                                                                RelativeSizeAxes = Axes.X,
+                                                                                TabbableContentContainer = this,
+                                                                                ReadOnly = true,
+                                                                            },
+                                                                        },
+                                                                    }
+                                                                }
                                                             },
                                                         },
-                                                        new SectionContainer
+                                                        initialBeatmapControl = new BeatmapSelectionControl
                                                         {
-                                                            Anchor = Anchor.TopRight,
-                                                            Origin = Anchor.TopRight,
-                                                            Padding = new MarginPadding { Left = field_padding / 2 },
-                                                            Children = new[]
-                                                            {
-                                                                new Section("Max participants")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = MaxParticipantsField = new SettingsNumberTextBox
-                                                                    {
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        TabbableContentContainer = this,
-                                                                        ReadOnly = true,
-                                                                    },
-                                                                },
-                                                                new Section("Password (optional)")
-                                                                {
-                                                                    Alpha = disabled_alpha,
-                                                                    Child = new SettingsPasswordTextBox
-                                                                    {
-                                                                        RelativeSizeAxes = Axes.X,
-                                                                        TabbableContentContainer = this,
-                                                                        ReadOnly = true,
-                                                                    },
-                                                                },
-                                                            }
+                                                            Anchor = Anchor.TopCentre,
+                                                            Origin = Anchor.TopCentre,
+                                                            RelativeSizeAxes = Axes.X,
+                                                            Width = 0.5f
                                                         }
-                                                    },
+                                                    }
                                                 }
                                             },
                                         },
@@ -266,13 +286,14 @@ namespace osu.Game.Screens.Multi.Realtime
                 Availability.BindValueChanged(availability => AvailabilityPicker.Current.Value = availability.NewValue, true);
                 Type.BindValueChanged(type => TypePicker.Current.Value = type.NewValue, true);
                 MaxParticipants.BindValueChanged(count => MaxParticipantsField.Text = count.NewValue?.ToString(), true);
+                RoomID.BindValueChanged(roomId => initialBeatmapControl.Alpha = roomId.NewValue == null ? 1 : 0, true);
             }
 
             protected override void Update()
             {
                 base.Update();
 
-                ApplyButton.Enabled.Value = NameField.Text.Length > 0;
+                ApplyButton.Enabled.Value = Playlist.Count > 0 && NameField.Text.Length > 0;
             }
 
             private void apply()
@@ -293,17 +314,7 @@ namespace osu.Game.Screens.Multi.Realtime
                     MaxParticipants.Value = null;
 
                 if (RoomID.Value == null)
-                {
-                    // If this is a new room, add a playlist item based on the currently selected beatmap/ruleset.
-                    // In all other cases, the beatmap/ruleset are changed via the selection control in the match subscreen itself.
-                    Playlist.Add(new PlaylistItem
-                    {
-                        Beatmap = { Value = beatmap.Value.BeatmapInfo },
-                        Ruleset = { Value = ruleset.Value },
-                    });
-
                     manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
-                }
                 else
                     onSuccess(currentRoom.Value);
             }
