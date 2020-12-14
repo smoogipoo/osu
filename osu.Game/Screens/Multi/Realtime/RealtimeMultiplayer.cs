@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Graphics;
+using osu.Framework.Bindables;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Lounge;
 
@@ -19,13 +19,34 @@ namespace osu.Game.Screens.Multi.Realtime
 
         protected override LoungeSubScreen CreateLounge() => new RealtimeLoungeSubScreen();
 
-        protected override CreateRoomButton CreateCreateRoomButton() => base.CreateCreateRoomButton().With(b => b.Text = "Create match");
+        protected override CreateRoomButton CreateCreateRoomButton() => new CreateMatchButton();
 
         protected override Room CreateNewRoom()
         {
             var room = base.CreateNewRoom();
             room.Category.Value = RoomCategory.Realtime;
             return room;
+        }
+
+        protected class CreateMatchButton : CreateRoomButton
+        {
+            private readonly IBindable<bool> connected = new Bindable<bool>();
+
+            [Resolved]
+            private RealtimeRoomManager roomManager { get; set; }
+
+            public CreateMatchButton()
+            {
+                Text = "Create match";
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                connected.BindTo(roomManager.Connected);
+                connected.BindValueChanged(c => Enabled.Value = c.NewValue, true);
+            }
         }
     }
 }

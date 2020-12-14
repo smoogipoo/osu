@@ -49,6 +49,9 @@ namespace osu.Game.Screens.Multi.Realtime
 
         public readonly IStatefulMultiplayerClient Client;
 
+        public IBindable<bool> Connected => connected;
+        private readonly Bindable<bool> connected = new Bindable<bool>();
+
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
 
         [Resolved]
@@ -69,7 +72,6 @@ namespace osu.Game.Screens.Multi.Realtime
         private JoinRoomRequest currentJoinRoomRequest;
         private Room joinedRoom;
         private bool allowConnection = true;
-        private bool connected;
 
         public RealtimeRoomManager()
         {
@@ -131,7 +133,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             connection.Closed += async ex =>
             {
-                connected = false;
+                connected.Value = false;
                 (Client as RealtimeMultiplayerClient)?.UnbindConnection();
 
                 if (ex != null)
@@ -158,11 +160,11 @@ namespace osu.Game.Screens.Multi.Realtime
                         // Success. Bind the connection.
                         (Client as RealtimeMultiplayerClient)?.BindConnection(connection);
 
-                        connected = true;
+                        connected.Value = true;
 
                         Schedule(() =>
                         {
-                            if (!connected)
+                            if (!connected.Value)
                                 return;
 
                             pollingComponents.Add(listingPollingComponent = new ListingPollingComponent
@@ -289,7 +291,7 @@ namespace osu.Game.Screens.Multi.Realtime
         /// <param name="listing">The listing.</param>
         private void onListingReceived(List<Room> listing)
         {
-            if (!connected)
+            if (!connected.Value)
                 return;
 
             // Remove past matches
