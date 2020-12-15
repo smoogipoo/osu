@@ -111,7 +111,23 @@ namespace osu.Game.Screens.Multi.Realtime
                     break;
 
                 case APIState.Online:
-                    Task.Run(Connect);
+                    Task.Run(Connect).ContinueWith(_ =>
+                    {
+                        connected.Value = true;
+
+                        Schedule(() =>
+                        {
+                            if (!connected.Value)
+                                return;
+
+                            pollingComponents.Add(listingPollingComponent = new ListingPollingComponent
+                            {
+                                TimeBetweenPolls = TimeBetweenListingPolls,
+                                InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
+                                RoomsReceived = onListingReceived
+                            });
+                        });
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
                     break;
             }
         }
@@ -159,22 +175,6 @@ namespace osu.Game.Screens.Multi.Realtime
 
                         // Success. Bind the connection.
                         (Client as RealtimeMultiplayerClient)?.BindConnection(connection);
-
-                        connected.Value = true;
-
-                        Schedule(() =>
-                        {
-                            if (!connected.Value)
-                                return;
-
-                            pollingComponents.Add(listingPollingComponent = new ListingPollingComponent
-                            {
-                                TimeBetweenPolls = TimeBetweenListingPolls,
-                                InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
-                                RoomsReceived = onListingReceived
-                            });
-                        });
-
                         break;
                     }
                     catch (Exception e)

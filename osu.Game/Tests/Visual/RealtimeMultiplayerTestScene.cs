@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +11,8 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Screens.Multi.Lounge.Components;
 using osu.Game.Screens.Multi.Realtime;
@@ -50,6 +53,56 @@ namespace osu.Game.Tests.Visual
 
         public class TestRoomManager : RealtimeRoomManager
         {
+            [Resolved]
+            private IAPIProvider api { get; set; }
+
+            [Resolved]
+            private OsuGameBase game { get; set; }
+
+            private readonly List<Room> rooms = new List<Room>();
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                ((DummyAPIAccess)api).HandleRequest = req =>
+                {
+                    switch (req)
+                    {
+                        case CreateRoomRequest createRoomRequest:
+                            var createdRoom = new APICreatedRoom();
+
+                            createdRoom.CopyFrom(createRoomRequest.Room);
+                            createdRoom.RoomID.Value = 1;
+
+                            rooms.Add(createdRoom);
+                            createRoomRequest.TriggerSuccess(createdRoom);
+                            break;
+
+                        case JoinRoomRequest joinRoomRequest:
+                            joinRoomRequest.TriggerSuccess();
+                            break;
+
+                        case PartRoomRequest partRoomRequest:
+                            partRoomRequest.TriggerSuccess();
+                            break;
+
+                        case GetRoomsRequest getRoomsRequest:
+                            getRoomsRequest.TriggerSuccess(rooms);
+                            break;
+
+                        case GetBeatmapSetRequest getBeatmapSetRequest:
+                            var onlineReq = new GetBeatmapSetRequest(getBeatmapSetRequest.ID, getBeatmapSetRequest.Type);
+                            onlineReq.Success += res => getBeatmapSetRequest.TriggerSuccess(res);
+                            onlineReq.Failure += e => getBeatmapSetRequest.TriggerFailure(e);
+
+                            // Get the online API from the game's dependencies.
+                            game.Dependencies.Get<IAPIProvider>().Queue(onlineReq);
+                            break;
+                    }
+                };
+            }
+
             protected override Task Connect() => Task.CompletedTask;
 
             protected override IStatefulMultiplayerClient CreateClient() => new TestMultiplayerClient();
