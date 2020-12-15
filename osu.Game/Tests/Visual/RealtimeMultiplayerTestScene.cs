@@ -132,8 +132,13 @@ namespace osu.Game.Tests.Visual
 
             public override Task<MultiplayerRoom> JoinRoom(long roomId)
             {
+                var user = new MultiplayerRoomUser(api.LocalUser.Value.Id) { User = api.LocalUser.Value };
+
                 room ??= new MultiplayerRoom(roomId);
-                room.Users.Add(new MultiplayerRoomUser(api.LocalUser.Value.Id) { User = api.LocalUser.Value });
+                room.Users.Add(user);
+
+                if (room.Users.Count == 1)
+                    room.Host = user;
 
                 InvokeRoomChanged();
 
