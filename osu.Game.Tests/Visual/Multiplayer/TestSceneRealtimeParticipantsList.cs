@@ -29,14 +29,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestAddUser()
         {
-            AddStep("add user", () => Client.AddUser(new User
-            {
-                Id = 2,
-                Username = "First",
-                CoverUrl = @"https://osu.ppy.sh/images/headers/profile-covers/c6.jpg",
-                CurrentModeRank = 1234
-            }));
-
             AddAssert("one unique panel", () => this.ChildrenOfType<ParticipantPanel>().Select(p => p.User).Distinct().Count() == 1);
 
             AddStep("add user", () => Client.AddUser(new User
@@ -52,19 +44,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestRemoveUser()
         {
-            User firstUser = null;
             User secondUser = null;
 
-            AddStep("add two users", () =>
+            AddStep("add a user", () =>
             {
-                Client.AddUser(firstUser = new User
-                {
-                    Id = 2,
-                    Username = "First",
-                    CoverUrl = @"https://osu.ppy.sh/images/headers/profile-covers/c6.jpg",
-                    CurrentModeRank = 1234
-                });
-
                 Client.AddUser(secondUser = new User
                 {
                     Id = 3,
@@ -73,7 +56,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 });
             });
 
-            AddStep("remove first user", () => Client.RemoveUser(firstUser));
+            AddStep("remove host", () => Client.RemoveUser(API.LocalUser.Value));
 
             AddAssert("single panel is for second user", () => this.ChildrenOfType<ParticipantPanel>().Single().User.User == secondUser);
         }
@@ -81,22 +64,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestToggleReadyState()
         {
-            User user = null;
-
-            AddStep("add user", () => Client.AddUser(user = new User
-            {
-                Id = 2,
-                Username = "First",
-                CoverUrl = @"https://osu.ppy.sh/images/headers/profile-covers/c6.jpg",
-                CurrentModeRank = 1234
-            }));
-
             AddAssert("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
 
-            AddStep("make user ready", () => Client.ChangeUserState(user, MultiplayerUserState.Ready));
+            AddStep("make user ready", () => Client.ChangeState(MultiplayerUserState.Ready));
             AddUntilStep("ready mark visible", () => this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
 
-            AddStep("make user idle", () => Client.ChangeUserState(user, MultiplayerUserState.Idle));
+            AddStep("make user idle", () => Client.ChangeState(MultiplayerUserState.Idle));
             AddUntilStep("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
         }
     }
