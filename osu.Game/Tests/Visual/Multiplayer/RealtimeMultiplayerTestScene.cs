@@ -40,15 +40,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [SetUp]
         public new void Setup() => Schedule(() =>
         {
+            RoomManager.Schedule(() => RoomManager.PartRoom());
+
             if (joinRoom)
             {
                 Room.RoomID.Value = 1;
-
-                RoomManager.Schedule(() =>
-                {
-                    RoomManager.PartRoom();
-                    RoomManager.JoinRoom(Room, null, null);
-                });
+                RoomManager.Schedule(() => RoomManager.JoinRoom(Room, null, null));
             }
         });
     }
