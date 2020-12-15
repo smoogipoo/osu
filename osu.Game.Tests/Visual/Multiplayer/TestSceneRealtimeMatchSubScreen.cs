@@ -5,7 +5,6 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Multi.Realtime;
 using osuTK.Input;
 
@@ -13,14 +12,17 @@ namespace osu.Game.Tests.Visual.Multiplayer
 {
     public class TestSceneRealtimeMatchSubScreen : RealtimeMultiplayerTestScene
     {
-        protected override bool CreateRoom => false;
-
         private RealtimeMatchSubScreen screen;
+
+        public TestSceneRealtimeMatchSubScreen()
+            : base(false)
+        {
+        }
 
         [SetUp]
         public new void Setup() => Schedule(() =>
         {
-            Room = new Room { Name = { Value = "Test Room" } };
+            Room.Name.Value = "Test Room";
         });
 
         [SetUpSteps]

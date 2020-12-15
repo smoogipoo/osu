@@ -174,7 +174,7 @@ namespace osu.Game.Screens.Multi.Realtime
             // Todo: Have I said this is not the way to do this?
             Schedule(() =>
             {
-                listingPollingComponent.PollImmediately();
+                listingPollingComponent?.PollImmediately();
             });
 
             joinedRoom = null;

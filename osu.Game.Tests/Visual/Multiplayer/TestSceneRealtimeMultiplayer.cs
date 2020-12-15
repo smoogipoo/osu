@@ -6,11 +6,11 @@ using osu.Game.Screens.Multi.Realtime;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneRealtimeMultiplayer : ScreenTestScene
+    public class TestSceneRealtimeMultiplayer : RealtimeMultiplayerTestScene
     {
         public TestSceneRealtimeMultiplayer()
         {
-            Screens.Multi.Multiplayer multi = new TestRealtimeMultiplayer();
+            var multi = new TestRealtimeMultiplayer();
 
             AddStep("show", () => LoadScreen(multi));
             AddUntilStep("wait for loaded", () => multi.IsLoaded);
@@ -18,7 +18,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private class TestRealtimeMultiplayer : RealtimeMultiplayer
         {
-            protected override IRoomManager CreateRoomManager() => new RealtimeMultiplayerTestScene.TestRoomManager();
+            protected override IRoomManager CreateRoomManager() => new RealtimeTestRoomManager();
         }
     }
 }
