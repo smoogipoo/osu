@@ -62,6 +62,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestToggleStateWhenNotHost()
         {
+            AddStep("add second user as host", () =>
+            {
+                Client.AddUser(new User { Id = 2, Username = "Another user" });
+                Client.TransferHost(2);
+            });
+
             addClickButtonStep();
             AddAssert("user is ready", () => Client.Room?.Users[0].State == MultiplayerUserState.Ready);
 
