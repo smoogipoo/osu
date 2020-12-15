@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -157,36 +158,39 @@ namespace osu.Game.Tests.Visual
 
                 ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
 
-                switch (newState)
+                Schedule(() =>
                 {
-                    case MultiplayerUserState.Loaded:
-                        if (room.Users.All(u => u.State != MultiplayerUserState.WaitingForLoad))
-                        {
-                            foreach (var u in room.Users.Where(u => u.State == MultiplayerUserState.Loaded))
+                    switch (newState)
+                    {
+                        case MultiplayerUserState.Loaded:
+                            if (room.Users.All(u => u.State != MultiplayerUserState.WaitingForLoad))
                             {
-                                Debug.Assert(u.User != null);
-                                ChangeUserState(u.User, MultiplayerUserState.Playing);
+                                foreach (var u in room.Users.Where(u => u.State == MultiplayerUserState.Loaded))
+                                {
+                                    Debug.Assert(u.User != null);
+                                    ChangeUserState(u.User, MultiplayerUserState.Playing);
+                                }
+
+                                ((IMultiplayerClient)this).MatchStarted();
                             }
 
-                            ((IMultiplayerClient)this).MatchStarted();
-                        }
+                            break;
 
-                        break;
-
-                    case MultiplayerUserState.FinishedPlay:
-                        if (room.Users.All(u => u.State != MultiplayerUserState.Playing))
-                        {
-                            foreach (var u in room.Users.Where(u => u.State == MultiplayerUserState.FinishedPlay))
+                        case MultiplayerUserState.FinishedPlay:
+                            if (room.Users.All(u => u.State != MultiplayerUserState.Playing))
                             {
-                                Debug.Assert(u.User != null);
-                                ChangeUserState(u.User, MultiplayerUserState.Results);
+                                foreach (var u in room.Users.Where(u => u.State == MultiplayerUserState.FinishedPlay))
+                                {
+                                    Debug.Assert(u.User != null);
+                                    ChangeUserState(u.User, MultiplayerUserState.Results);
+                                }
+
+                                ((IMultiplayerClient)this).ResultsReady();
                             }
 
-                            ((IMultiplayerClient)this).ResultsReady();
-                        }
-
-                        break;
-                }
+                            break;
+                    }
+                });
             }
 
             public override Task<MultiplayerRoom> JoinRoom(long roomId)
