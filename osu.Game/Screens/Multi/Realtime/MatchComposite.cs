@@ -29,10 +29,10 @@ namespace osu.Game.Screens.Multi.Realtime
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-
             if (Client != null)
                 Client.RoomChanged -= OnRoomChanged;
+
+            base.Dispose(isDisposing);
         }
     }
 }
