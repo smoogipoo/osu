@@ -92,6 +92,9 @@ namespace osu.Game.Screens.Multi.Realtime
                 if (Room == null)
                     return;
 
+                if (!apiRoom.Playlist.Any())
+                    return;
+
                 Debug.Assert(apiRoom != null);
 
                 var newSettings = new MultiplayerRoomSettings
