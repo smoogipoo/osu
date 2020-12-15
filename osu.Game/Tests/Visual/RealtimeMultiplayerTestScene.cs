@@ -128,7 +128,43 @@ namespace osu.Game.Tests.Visual
                 ((IMultiplayerClient)this).UserLeft(room.Users.Single(u => u.User == user));
             }
 
-            public void ChangeUserState(User user, MultiplayerUserState newState) => ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
+            public void ChangeUserState(User user, MultiplayerUserState newState)
+            {
+                Debug.Assert(room != null);
+
+                ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
+
+                switch (newState)
+                {
+                    case MultiplayerUserState.Loaded:
+                        if (room.Users.All(u => u.State != MultiplayerUserState.WaitingForLoad))
+                        {
+                            foreach (var u in room.Users.Where(u => u.State == MultiplayerUserState.Loaded))
+                            {
+                                Debug.Assert(u.User != null);
+                                ChangeUserState(u.User, MultiplayerUserState.Playing);
+                            }
+
+                            ((IMultiplayerClient)this).MatchStarted();
+                        }
+
+                        break;
+
+                    case MultiplayerUserState.FinishedPlay:
+                        if (room.Users.All(u => u.State != MultiplayerUserState.Playing))
+                        {
+                            foreach (var u in room.Users.Where(u => u.State == MultiplayerUserState.FinishedPlay))
+                            {
+                                Debug.Assert(u.User != null);
+                                ChangeUserState(u.User, MultiplayerUserState.Results);
+                            }
+
+                            ((IMultiplayerClient)this).ResultsReady();
+                        }
+
+                        break;
+                }
+            }
 
             public override Task<MultiplayerRoom> JoinRoom(long roomId)
             {
@@ -173,6 +209,8 @@ namespace osu.Game.Tests.Visual
                     Debug.Assert(user.User != null);
                     ChangeUserState(user.User, MultiplayerUserState.WaitingForLoad);
                 }
+
+                ((IMultiplayerClient)this).LoadRequested();
 
                 return Task.CompletedTask;
             }
