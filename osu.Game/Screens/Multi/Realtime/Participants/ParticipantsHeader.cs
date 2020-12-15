@@ -9,7 +9,7 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
     public class ParticipantsHeader : OverlinedHeader
     {
         [Resolved]
-        private RealtimeRoomManager roomManager { get; set; }
+        private StatefulMultiplayerClient client { get; set; }
 
         public ParticipantsHeader()
             : base("Participants")
@@ -20,7 +20,7 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
         {
             base.Update();
 
-            var room = roomManager.Client.Room;
+            var room = client.Room;
             if (room == null)
                 return;
 

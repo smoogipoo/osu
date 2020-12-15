@@ -4,7 +4,6 @@
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
@@ -24,14 +23,11 @@ namespace osu.Game.Screens.Multi.Realtime
 
         public override string ShortTitle => "match";
 
-        [Resolved(typeof(Room), nameof(Room.RoomID))]
-        private Bindable<int?> roomId { get; set; }
-
         [Resolved(canBeNull: true)]
         private Multiplayer multiplayer { get; set; }
 
         [Resolved]
-        private RealtimeRoomManager roomManager { get; set; }
+        private StatefulMultiplayerClient client { get; set; }
 
         private RealtimeMatchSettingsOverlay settingsOverlay;
 
@@ -162,7 +158,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 settingsOverlay = new RealtimeMatchSettingsOverlay
                 {
                     RelativeSizeAxes = Axes.Both,
-                    State = { Value = roomId.Value == null ? Visibility.Visible : Visibility.Hidden }
+                    State = { Value = client.Room == null ? Visibility.Visible : Visibility.Hidden }
                 }
             };
         }
@@ -173,7 +169,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             Playlist.BindCollectionChanged(onPlaylistChanged, true);
 
-            roomManager.Client.LoadRequested += onLoadRequested;
+            client.LoadRequested += onLoadRequested;
         }
 
         private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e) => SelectedItem.Value = Playlist.FirstOrDefault();
@@ -184,8 +180,8 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             base.Dispose(isDisposing);
 
-            if (roomManager != null)
-                roomManager.Client.LoadRequested -= onLoadRequested;
+            if (client != null)
+                client.LoadRequested -= onLoadRequested;
         }
     }
 }

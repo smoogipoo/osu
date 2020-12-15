@@ -12,7 +12,7 @@ namespace osu.Game.Screens.Multi.Realtime
     public class RealtimePlayer : TimeshiftPlayer
     {
         [Resolved]
-        private RealtimeRoomManager roomManager { get; set; }
+        private StatefulMultiplayerClient client { get; set; }
 
         private bool started;
 
@@ -27,9 +27,9 @@ namespace osu.Game.Screens.Multi.Realtime
             if (Token == null)
                 return; // Todo: Somehow handle token retrieval failure.
 
-            roomManager.Client.MatchStarted += onMatchStarted;
-            roomManager.Client.ResultsReady += onResultsReady;
-            roomManager.Client.ChangeState(MultiplayerUserState.Loaded);
+            client.MatchStarted += onMatchStarted;
+            client.ResultsReady += onResultsReady;
+            client.ChangeState(MultiplayerUserState.Loaded);
 
             while (!started)
                 Thread.Sleep(100);
@@ -45,10 +45,10 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             base.Dispose(isDisposing);
 
-            if (roomManager != null)
+            if (client != null)
             {
-                roomManager.Client.MatchStarted -= onMatchStarted;
-                roomManager.Client.ResultsReady -= onResultsReady;
+                client.MatchStarted -= onMatchStarted;
+                client.ResultsReady -= onResultsReady;
             }
         }
     }

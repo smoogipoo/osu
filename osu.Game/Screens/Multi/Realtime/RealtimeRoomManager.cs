@@ -5,10 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -17,7 +13,6 @@ using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Rulesets;
 using osu.Game.Screens.Multi.Components;
 
@@ -47,12 +42,7 @@ namespace osu.Game.Screens.Multi.Realtime
             }
         }
 
-        public readonly IStatefulMultiplayerClient Client;
-
-        public IBindable<bool> Connected => connected;
-        private readonly Bindable<bool> connected = new Bindable<bool>();
-
-        private readonly IBindable<APIState> apiState = new Bindable<APIState>();
+        private readonly IBindable<bool> isConnected = new Bindable<bool>();
 
         [Resolved]
         private RulesetStore rulesets { get; set; }
@@ -66,12 +56,13 @@ namespace osu.Game.Screens.Multi.Realtime
         [Resolved]
         private Bindable<Room> selectedRoom { get; set; }
 
+        [Resolved]
+        private StatefulMultiplayerClient multiplayerClient { get; set; }
+
         private readonly Container pollingComponents;
         private ListingPollingComponent listingPollingComponent;
-        private HubConnection connection;
         private JoinRoomRequest currentJoinRoomRequest;
         private Room joinedRoom;
-        private bool allowConnection = true;
 
         public RealtimeRoomManager()
         {
@@ -80,113 +71,35 @@ namespace osu.Game.Screens.Multi.Realtime
             InternalChildren = new[]
             {
                 pollingComponents = new Container { RelativeSizeAxes = Axes.Both },
-                (Drawable)(Client = CreateClient())
             };
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
+        protected override void LoadComplete()
         {
-            apiState.BindTo(api.State);
-            apiState.BindValueChanged(apiStateChanged, true);
+            base.LoadComplete();
+
+            isConnected.BindTo(multiplayerClient.IsConnected);
+            isConnected.BindValueChanged(onIsConnectedChanged, true);
         }
 
-        private void apiStateChanged(ValueChangedEvent<APIState> state)
+        private void onIsConnectedChanged(ValueChangedEvent<bool> connected) => Schedule(() =>
         {
-            switch (state.NewValue)
+            if (connected.NewValue)
             {
-                case APIState.Failing:
-                case APIState.Offline:
-                    connection?.StopAsync();
-                    connection = null;
-
-                    (Client as RealtimeMultiplayerClient)?.UnbindConnection();
-
-                    Schedule(() =>
-                    {
-                        rooms.Clear();
-                        InitialRoomsReceived.Value = false;
-                        pollingComponents.Clear();
-                    });
-                    break;
-
-                case APIState.Online:
-                    Task.Run(Connect).ContinueWith(_ =>
-                    {
-                        connected.Value = true;
-
-                        Schedule(() =>
-                        {
-                            if (!connected.Value)
-                                return;
-
-                            pollingComponents.Add(listingPollingComponent = new ListingPollingComponent
-                            {
-                                TimeBetweenPolls = TimeBetweenListingPolls,
-                                InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
-                                RoomsReceived = onListingReceived
-                            });
-                        });
-                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
-                    break;
+                rooms.Clear();
+                InitialRoomsReceived.Value = false;
+                pollingComponents.Clear();
             }
-        }
-
-        private const string endpoint = "https://spectator.ppy.sh/multiplayer";
-
-        protected virtual async Task Connect()
-        {
-            if (connection != null)
-                return;
-
-            connection = new HubConnectionBuilder()
-                         .WithUrl(endpoint, options =>
-                         {
-                             options.Headers.Add("Authorization", $"Bearer {api.AccessToken}");
-                         })
-                         .AddNewtonsoftJsonProtocol(options => { options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; })
-                         .Build();
-
-            connection.Closed += async ex =>
+            else
             {
-                connected.Value = false;
-                (Client as RealtimeMultiplayerClient)?.UnbindConnection();
-
-                if (ex != null)
+                pollingComponents.Add(listingPollingComponent = new ListingPollingComponent
                 {
-                    Logger.Log($"Multiplayer client lost connection: {ex}", LoggingTarget.Network);
-                    await tryUntilConnected();
-                }
-            };
-
-            await tryUntilConnected();
-
-            async Task tryUntilConnected()
-            {
-                Logger.Log("Multiplayer client connecting...", LoggingTarget.Network);
-
-                while (allowConnection && api.State.Value == APIState.Online)
-                {
-                    try
-                    {
-                        // reconnect on any failure
-                        await connection.StartAsync();
-                        Logger.Log("Multiplayer client connected!", LoggingTarget.Network);
-
-                        // Success. Bind the connection.
-                        (Client as RealtimeMultiplayerClient)?.BindConnection(connection);
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log($"Multiplayer client connection error: {e}", LoggingTarget.Network);
-                        await Task.Delay(5000);
-                    }
-                }
+                    TimeBetweenPolls = TimeBetweenListingPolls,
+                    InitialRoomsReceived = { BindTarget = InitialRoomsReceived },
+                    RoomsReceived = onListingReceived
+                });
             }
-        }
-
-        protected virtual IStatefulMultiplayerClient CreateClient() => new RealtimeMultiplayerClient();
+        });
 
         public void CreateRoom(Room room, Action<Room> onSuccess, Action<string> onError)
         {
@@ -252,7 +165,7 @@ namespace osu.Game.Screens.Multi.Realtime
                 return;
 
             api.Queue(new PartRoomRequest(joinedRoom));
-            Client.LeaveRoom().Wait();
+            multiplayerClient.LeaveRoom().Wait();
 
             // Todo: This is not the way to do this. Basically when we're the only participant and the room closes, there's no way to know if this is actually the case.
             rooms.Remove(joinedRoom);
@@ -273,7 +186,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
             try
             {
-                Client.JoinRoom((long)room.RoomID.Value).Wait();
+                multiplayerClient.JoinRoom(room).Wait();
                 onSuccess?.Invoke(room);
             }
             catch (Exception ex)
@@ -291,7 +204,7 @@ namespace osu.Game.Screens.Multi.Realtime
         /// <param name="listing">The listing.</param>
         private void onListingReceived(List<Room> listing)
         {
-            if (!connected.Value)
+            if (!isConnected.Value)
                 return;
 
             // Remove past matches
@@ -365,11 +278,6 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             base.Dispose(isDisposing);
             PartRoom();
-
-            allowConnection = false;
-
-            (Client as RealtimeMultiplayerClient)?.UnbindConnection();
-            connection?.DisposeAsync();
         }
     }
 }

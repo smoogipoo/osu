@@ -10,19 +10,16 @@ namespace osu.Game.Screens.Multi.Realtime
     public abstract class MatchComposite : MultiplayerComposite
     {
         [CanBeNull]
-        protected MultiplayerRoom Room => roomManager.Client.Room;
-
-        [NotNull]
-        protected IStatefulMultiplayerClient Client => roomManager.Client;
+        protected MultiplayerRoom Room => Client.Room;
 
         [Resolved]
-        private RealtimeRoomManager roomManager { get; set; }
+        protected StatefulMultiplayerClient Client { get; set; }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            roomManager.Client.RoomChanged += OnRoomChanged;
+            Client.RoomChanged += OnRoomChanged;
             OnRoomChanged();
         }
 
@@ -34,8 +31,8 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             base.Dispose(isDisposing);
 
-            if (roomManager != null)
-                roomManager.Client.RoomChanged -= OnRoomChanged;
+            if (Client != null)
+                Client.RoomChanged -= OnRoomChanged;
         }
     }
 }

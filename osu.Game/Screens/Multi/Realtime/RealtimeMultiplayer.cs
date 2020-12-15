@@ -30,10 +30,10 @@ namespace osu.Game.Screens.Multi.Realtime
 
         protected class CreateMatchButton : CreateRoomButton
         {
-            private readonly IBindable<bool> connected = new Bindable<bool>();
+            private readonly IBindable<bool> isConnected = new Bindable<bool>();
 
             [Resolved]
-            private RealtimeRoomManager roomManager { get; set; }
+            private StatefulMultiplayerClient client { get; set; }
 
             public CreateMatchButton()
             {
@@ -44,8 +44,8 @@ namespace osu.Game.Screens.Multi.Realtime
             {
                 base.LoadComplete();
 
-                connected.BindTo(roomManager.Connected);
-                connected.BindValueChanged(c => Enabled.Value = c.NewValue, true);
+                isConnected.BindTo(client.IsConnected);
+                isConnected.BindValueChanged(c => Enabled.Value = c.NewValue, true);
             }
         }
     }
