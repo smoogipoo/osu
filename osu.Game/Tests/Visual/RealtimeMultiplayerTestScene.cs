@@ -14,6 +14,8 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
+using osu.Game.Rulesets.Scoring;
+using osu.Game.Scoring;
 using osu.Game.Screens.Multi.Lounge.Components;
 using osu.Game.Screens.Multi.Realtime;
 using osu.Game.Users;
@@ -65,6 +67,8 @@ namespace osu.Game.Tests.Visual
             {
                 base.LoadComplete();
 
+                int currentScoreId = 0;
+
                 ((DummyAPIAccess)api).HandleRequest = req =>
                 {
                     switch (req)
@@ -98,6 +102,25 @@ namespace osu.Game.Tests.Visual
 
                             // Get the online API from the game's dependencies.
                             game.Dependencies.Get<IAPIProvider>().Queue(onlineReq);
+                            break;
+
+                        case CreateRoomScoreRequest createRoomScoreRequest:
+                            createRoomScoreRequest.TriggerSuccess(new APIScoreToken { ID = 1 });
+                            break;
+
+                        case SubmitRoomScoreRequest submitRoomScoreRequest:
+                            submitRoomScoreRequest.TriggerSuccess(new MultiplayerScore
+                            {
+                                ID = currentScoreId++,
+                                Accuracy = 1,
+                                EndedAt = DateTimeOffset.Now,
+                                Passed = true,
+                                Rank = ScoreRank.S,
+                                MaxCombo = 1000,
+                                TotalScore = 1000000,
+                                User = api.LocalUser.Value,
+                                Statistics = new Dictionary<HitResult, int>()
+                            });
                             break;
                     }
                 };
