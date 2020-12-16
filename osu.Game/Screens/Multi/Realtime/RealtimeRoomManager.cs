@@ -84,7 +84,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
         private void onIsConnectedChanged(ValueChangedEvent<bool> connected) => Schedule(() =>
         {
-            if (connected.NewValue)
+            if (!connected.NewValue)
             {
                 rooms.Clear();
                 InitialRoomsReceived.Value = false;
