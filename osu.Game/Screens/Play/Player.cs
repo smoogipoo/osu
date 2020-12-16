@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
@@ -524,32 +525,14 @@ namespace osu.Game.Screens.Play
 
             if (!showResults) return;
 
-            using (BeginDelayedSequence(RESULTS_DISPLAY_DELAY))
-                completionProgressDelegate = Schedule(GotoRanking);
-        }
-
-        protected virtual ScoreInfo CreateScore()
-        {
-            var score = new ScoreInfo
+            CreateScore().ContinueWith(t =>
             {
-                Beatmap = Beatmap.Value.BeatmapInfo,
-                Ruleset = rulesetInfo,
-                Mods = Mods.Value.ToArray(),
-            };
-
-            if (DrawableRuleset.ReplayScore != null)
-                score.User = DrawableRuleset.ReplayScore.ScoreInfo?.User ?? new GuestUser();
-            else
-                score.User = api.LocalUser.Value;
-
-            ScoreProcessor.PopulateScore(score);
-
-            return score;
+                using (BeginDelayedSequence(RESULTS_DISPLAY_DELAY))
+                    completionProgressDelegate = Schedule(() => GotoRanking(t.Result));
+            });
         }
 
         protected override bool OnScroll(ScrollEvent e) => mouseWheelDisabled.Value && !GameplayClockContainer.IsPaused.Value;
-
-        protected virtual ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, true);
 
         #region Fail Logic
 
@@ -745,18 +728,30 @@ namespace osu.Game.Screens.Play
             return base.OnExiting(next);
         }
 
-        protected virtual void GotoRanking()
+        protected virtual async Task<ScoreInfo> CreateScore()
         {
-            if (DrawableRuleset.ReplayScore != null)
+            var score = new Score
             {
-                // if a replay is present, we likely don't want to import into the local database.
-                this.Push(CreateResults(CreateScore()));
-                return;
-            }
+                ScoreInfo = new ScoreInfo
+                {
+                    Beatmap = Beatmap.Value.BeatmapInfo,
+                    Ruleset = rulesetInfo,
+                    Mods = Mods.Value.ToArray(),
+                }
+            };
+
+            // Populate various score statistics for display in results screen / serialisation.
+            if (DrawableRuleset.ReplayScore != null)
+                score.ScoreInfo.User = DrawableRuleset.ReplayScore.ScoreInfo?.User ?? new GuestUser();
+            else
+                score.ScoreInfo.User = api.LocalUser.Value;
+            ScoreProcessor.PopulateScore(score.ScoreInfo);
+
+            // Replays are already populated and present in the game's database, so should not be re-imported.
+            if (DrawableRuleset.ReplayScore != null)
+                return score.ScoreInfo;
 
             LegacyByteArrayReader replayReader = null;
-
-            var score = new Score { ScoreInfo = CreateScore() };
 
             if (recordingReplay?.Frames.Count > 0)
             {
@@ -769,14 +764,20 @@ namespace osu.Game.Screens.Play
                 }
             }
 
-            scoreManager.Import(score.ScoreInfo, replayReader)
-                        .ContinueWith(imported => Schedule(() =>
-                        {
-                            // screen may be in the exiting transition phase.
-                            if (this.IsCurrentScreen())
-                                this.Push(CreateResults(imported.Result));
-                        }));
+            // Import the score.
+            await scoreManager.Import(score.ScoreInfo, replayReader);
+
+            return score.ScoreInfo;
         }
+
+        protected virtual void GotoRanking(ScoreInfo score)
+        {
+            // screen may be in the exiting transition phase.
+            if (this.IsCurrentScreen())
+                this.Push(CreateResults(score));
+        }
+
+        protected virtual ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, true);
 
         private void fadeOut(bool instant = false)
         {

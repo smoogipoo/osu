@@ -2,9 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
+using osu.Game.Scoring;
 using osu.Game.Screens.Multi.Play;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -15,6 +17,7 @@ namespace osu.Game.Screens.Multi.Realtime
         private StatefulMultiplayerClient client { get; set; }
 
         private bool started;
+        private bool resultsReady;
 
         public RealtimePlayer(PlaylistItem playlistItem)
             : base(playlistItem)
@@ -37,8 +40,17 @@ namespace osu.Game.Screens.Multi.Realtime
 
         private void onMatchStarted() => started = true;
 
-        private void onResultsReady()
+        private void onResultsReady() => resultsReady = true;
+
+        protected override async Task<ScoreInfo> CreateScore()
         {
+            var score = await base.CreateScore();
+
+            await client.ChangeState(MultiplayerUserState.FinishedPlay);
+            while (!resultsReady)
+                await Task.Delay(100);
+
+            return score;
         }
 
         protected override void Dispose(bool isDisposing)

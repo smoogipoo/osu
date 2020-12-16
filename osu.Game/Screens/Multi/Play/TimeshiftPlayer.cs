@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Logging;
@@ -95,17 +96,33 @@ namespace osu.Game.Screens.Multi.Play
             return new TimeshiftResultsScreen(score, roomId.Value.Value, playlistItem, true);
         }
 
-        protected override ScoreInfo CreateScore()
+        protected override async Task<ScoreInfo> CreateScore()
         {
-            var score = base.CreateScore();
+            var score = await base.CreateScore();
             score.TotalScore = (int)Math.Round(ScoreProcessor.GetStandardisedScore());
 
             Debug.Assert(Token != null);
 
+            bool completed = false;
+
             var request = new SubmitRoomScoreRequest(Token.Value, roomId.Value ?? 0, playlistItem.ID, score);
-            request.Success += s => score.OnlineScoreID = s.ID;
-            request.Failure += e => Logger.Error(e, "Failed to submit score");
+
+            request.Success += s =>
+            {
+                score.OnlineScoreID = s.ID;
+                completed = true;
+            };
+
+            request.Failure += e =>
+            {
+                Logger.Error(e, "Failed to submit score");
+                completed = true;
+            };
+
             api.Queue(request);
+
+            while (!completed)
+                await Task.Delay(100);
 
             return score;
         }

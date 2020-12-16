@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading.Tasks;
 using osu.Framework.Input.Bindings;
 using osu.Game.Input.Bindings;
 using osu.Game.Scoring;
@@ -28,9 +29,9 @@ namespace osu.Game.Screens.Play
 
         protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, false);
 
-        protected override ScoreInfo CreateScore()
+        protected override async Task<ScoreInfo> CreateScore()
         {
-            var baseScore = base.CreateScore();
+            var baseScore = await base.CreateScore();
 
             // Since the replay score doesn't contain statistics, we'll pass them through here.
             Score.ScoreInfo.HitEvents = baseScore.HitEvents;
