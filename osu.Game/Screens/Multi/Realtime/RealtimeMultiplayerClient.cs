@@ -138,6 +138,10 @@ namespace osu.Game.Screens.Multi.Realtime
         public override async Task LeaveRoom()
         {
             await base.LeaveRoom();
+
+            if (Room == null)
+                return;
+
             await connection.InvokeAsync(nameof(IMultiplayerServer.LeaveRoom));
 
             Schedule(() =>

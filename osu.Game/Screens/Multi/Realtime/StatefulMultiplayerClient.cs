@@ -61,8 +61,8 @@ namespace osu.Game.Screens.Multi.Realtime
 
         public virtual Task LeaveRoom()
         {
-            Debug.Assert(Room != null);
-            Debug.Assert(apiRoom != null);
+            if (apiRoom == null)
+                return Task.CompletedTask;
 
             roomName.UnbindFrom(apiRoom.Name);
             playlist.UnbindFrom(apiRoom.Playlist);
