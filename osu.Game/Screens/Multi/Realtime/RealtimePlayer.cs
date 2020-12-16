@@ -15,14 +15,16 @@ namespace osu.Game.Screens.Multi.Realtime
 {
     public class RealtimePlayer : TimeshiftPlayer
     {
+        protected override bool PauseOnFocusLost => false;
+
         [Resolved]
         private StatefulMultiplayerClient client { get; set; }
 
         private bool started;
         private bool resultsReady;
 
-        public RealtimePlayer(PlaylistItem playlistItem)
-            : base(playlistItem)
+        public RealtimePlayer(PlaylistItem playlistItem, bool showResults = true)
+            : base(playlistItem, false, showResults)
         {
         }
 
