@@ -31,6 +31,8 @@ namespace osu.Game.Screens.Multi.Realtime
         public abstract MultiplayerRoom? Room { get; }
         public abstract IBindable<bool> IsConnected { get; }
 
+        public readonly BindableList<int> PlayingUsers = new BindableList<int>();
+
         private readonly Bindable<string> roomName = new Bindable<string>();
         private readonly BindableList<PlaylistItem> playlist = new BindableList<PlaylistItem>();
 
@@ -176,6 +178,7 @@ namespace osu.Game.Screens.Multi.Realtime
                     return;
 
                 Room.Users.Remove(user);
+                PlayingUsers.Remove(user.UserID);
 
                 InvokeRoomChanged();
             });
@@ -275,6 +278,9 @@ namespace osu.Game.Screens.Multi.Realtime
 
                 Room.Users.Single(u => u.UserID == userId).State = state;
 
+                if (state != MultiplayerUserState.Playing)
+                    PlayingUsers.Remove(userId);
+
                 InvokeRoomChanged();
             });
 
@@ -296,10 +302,15 @@ namespace osu.Game.Screens.Multi.Realtime
 
         Task IMultiplayerClient.MatchStarted()
         {
+            Debug.Assert(Room != null);
+            var players = Room.Users.Where(u => u.State == MultiplayerUserState.Playing).Select(u => u.UserID).ToList();
+
             Schedule(() =>
             {
                 if (Room == null)
                     return;
+
+                PlayingUsers.AddRange(players);
 
                 MatchStarted?.Invoke();
             });
