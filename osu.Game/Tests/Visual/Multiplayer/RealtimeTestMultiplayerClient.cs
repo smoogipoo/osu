@@ -105,7 +105,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Task.CompletedTask;
         }
 
-        public override Task TransferHost(long userId) => ((IMultiplayerClient)this).HostChanged(userId);
+        public override Task TransferHost(int userId) => ((IMultiplayerClient)this).HostChanged(userId);
 
         public override Task ChangeSettings(MultiplayerRoomSettings settings) => ((IMultiplayerClient)this).SettingsChanged(settings);
 

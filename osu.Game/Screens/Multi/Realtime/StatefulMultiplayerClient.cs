@@ -113,7 +113,7 @@ namespace osu.Game.Screens.Multi.Realtime
             });
         }
 
-        public abstract Task TransferHost(long userId);
+        public abstract Task TransferHost(int userId);
 
         public abstract Task ChangeSettings(MultiplayerRoomSettings settings);
 
@@ -183,7 +183,7 @@ namespace osu.Game.Screens.Multi.Realtime
             return Task.CompletedTask;
         }
 
-        Task IMultiplayerClient.HostChanged(long userId)
+        Task IMultiplayerClient.HostChanged(int userId)
         {
             Schedule(() =>
             {
@@ -266,7 +266,7 @@ namespace osu.Game.Screens.Multi.Realtime
             });
         }
 
-        Task IMultiplayerClient.UserStateChanged(long userId, MultiplayerUserState state)
+        Task IMultiplayerClient.UserStateChanged(int userId, MultiplayerUserState state)
         {
             Schedule(() =>
             {
