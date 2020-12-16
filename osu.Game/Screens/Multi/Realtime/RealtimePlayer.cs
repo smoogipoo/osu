@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
@@ -8,6 +9,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Scoring;
 using osu.Game.Screens.Multi.Play;
+using osu.Game.Screens.Ranking;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
@@ -51,6 +53,12 @@ namespace osu.Game.Screens.Multi.Realtime
                 await Task.Delay(100);
 
             return score;
+        }
+
+        protected override ResultsScreen CreateResults(ScoreInfo score)
+        {
+            Debug.Assert(RoomId.Value != null);
+            return new RealtimeResultsScreen(score, RoomId.Value.Value, PlaylistItem);
         }
 
         protected override void Dispose(bool isDisposing)

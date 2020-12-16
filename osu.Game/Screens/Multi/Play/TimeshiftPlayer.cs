@@ -27,9 +27,9 @@ namespace osu.Game.Screens.Multi.Play
         protected int? Token { get; private set; }
 
         [Resolved(typeof(Room), nameof(Room.RoomID))]
-        private Bindable<int?> roomId { get; set; }
+        protected Bindable<int?> RoomId { get; private set; }
 
-        private readonly PlaylistItem playlistItem;
+        protected readonly PlaylistItem PlaylistItem;
 
         [Resolved]
         private IAPIProvider api { get; set; }
@@ -37,9 +37,10 @@ namespace osu.Game.Screens.Multi.Play
         [Resolved]
         private IBindable<RulesetInfo> ruleset { get; set; }
 
-        public TimeshiftPlayer(PlaylistItem playlistItem)
+        public TimeshiftPlayer(PlaylistItem playlistItem, bool allowPause = true, bool showResults = true)
+            : base(allowPause, showResults)
         {
-            this.playlistItem = playlistItem;
+            PlaylistItem = playlistItem;
         }
 
         [BackgroundDependencyLoader]
@@ -50,16 +51,16 @@ namespace osu.Game.Screens.Multi.Play
             bool failed = false;
 
             // Sanity checks to ensure that TimeshiftPlayer matches the settings for the current PlaylistItem
-            if (Beatmap.Value.BeatmapInfo.OnlineBeatmapID != playlistItem.Beatmap.Value.OnlineBeatmapID)
+            if (Beatmap.Value.BeatmapInfo.OnlineBeatmapID != PlaylistItem.Beatmap.Value.OnlineBeatmapID)
                 throw new InvalidOperationException("Current Beatmap does not match PlaylistItem's Beatmap");
 
-            if (ruleset.Value.ID != playlistItem.Ruleset.Value.ID)
+            if (ruleset.Value.ID != PlaylistItem.Ruleset.Value.ID)
                 throw new InvalidOperationException("Current Ruleset does not match PlaylistItem's Ruleset");
 
-            if (!playlistItem.RequiredMods.All(m => Mods.Value.Any(m.Equals)))
+            if (!PlaylistItem.RequiredMods.All(m => Mods.Value.Any(m.Equals)))
                 throw new InvalidOperationException("Current Mods do not match PlaylistItem's RequiredMods");
 
-            var req = new CreateRoomScoreRequest(roomId.Value ?? 0, playlistItem.ID, Game.VersionHash);
+            var req = new CreateRoomScoreRequest(RoomId.Value ?? 0, PlaylistItem.ID, Game.VersionHash);
             req.Success += r => Token = r.ID;
             req.Failure += e =>
             {
@@ -92,8 +93,8 @@ namespace osu.Game.Screens.Multi.Play
 
         protected override ResultsScreen CreateResults(ScoreInfo score)
         {
-            Debug.Assert(roomId.Value != null);
-            return new TimeshiftResultsScreen(score, roomId.Value.Value, playlistItem, true);
+            Debug.Assert(RoomId.Value != null);
+            return new TimeshiftResultsScreen(score, RoomId.Value.Value, PlaylistItem, true);
         }
 
         protected override async Task<ScoreInfo> CreateScore()
@@ -105,7 +106,7 @@ namespace osu.Game.Screens.Multi.Play
 
             bool completed = false;
 
-            var request = new SubmitRoomScoreRequest(Token.Value, roomId.Value ?? 0, playlistItem.ID, score);
+            var request = new SubmitRoomScoreRequest(Token.Value, RoomId.Value ?? 0, PlaylistItem.ID, score);
 
             request.Success += s =>
             {
