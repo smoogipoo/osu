@@ -17,6 +17,9 @@ namespace osu.Game.Screens.Multi.Realtime
     {
         protected override bool PauseOnFocusLost => false;
 
+        // Disallow fails in multiplayer for now.
+        protected override bool CheckModsAllowFailure() => false;
+
         [Resolved]
         private StatefulMultiplayerClient client { get; set; }
 
