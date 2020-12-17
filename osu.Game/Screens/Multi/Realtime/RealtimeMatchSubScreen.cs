@@ -172,6 +172,17 @@ namespace osu.Game.Screens.Multi.Realtime
             client.LoadRequested += onLoadRequested;
         }
 
+        public override bool OnBackButton()
+        {
+            if (client.Room != null && settingsOverlay.State.Value == Visibility.Visible)
+            {
+                settingsOverlay.Hide();
+                return true;
+            }
+
+            return base.OnBackButton();
+        }
+
         private void onPlaylistChanged(object sender, NotifyCollectionChangedEventArgs e) => SelectedItem.Value = Playlist.FirstOrDefault();
 
         private void onLoadRequested() => multiplayer?.Push(new PlayerLoader(() => new RealtimePlayer(SelectedItem.Value)));
