@@ -16,7 +16,7 @@ namespace osu.Game.Online.RealtimeMultiplayer
     {
         public int BeatmapID { get; set; }
 
-        public int? RulesetID { get; set; }
+        public int RulesetID { get; set; }
 
         public string BeatmapChecksum { get; set; } = string.Empty;
 
