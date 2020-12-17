@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.Cursor;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Realtime.Participants
@@ -17,15 +18,19 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = new OsuScrollContainer
+            InternalChild = new OsuContextMenuContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Child = panels = new FillFlowContainer<ParticipantPanel>
+                Child = new OsuScrollContainer
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(0, 2)
+                    RelativeSizeAxes = Axes.Both,
+                    Child = panels = new FillFlowContainer<ParticipantPanel>
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(0, 2)
+                    }
                 }
             };
         }

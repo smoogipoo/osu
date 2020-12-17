@@ -7,10 +7,14 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.API;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
@@ -19,9 +23,12 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Multi.Realtime.Participants
 {
-    public class ParticipantPanel : MatchComposite
+    public class ParticipantPanel : MatchComposite, IHasContextMenu
     {
         public readonly MultiplayerRoomUser User;
+
+        [Resolved]
+        private IAPIProvider api { get; set; }
 
         private ParticipantReadyMark readyMark;
         private SpriteIcon crown;
@@ -144,6 +151,37 @@ namespace osu.Game.Screens.Multi.Realtime.Participants
                 crown.FadeIn(50);
             else
                 crown.FadeOut(50);
+        }
+
+        public MenuItem[] ContextMenuItems
+        {
+            get
+            {
+                if (Room == null)
+                    return null;
+
+                // If the local user is targetted.
+                if (User.UserID == api.LocalUser.Value.Id)
+                    return null;
+
+                // If the local user is not the host of the room.
+                if (Room.Host?.UserID != api.LocalUser.Value.Id)
+                    return null;
+
+                int targetUser = User.UserID;
+
+                return new MenuItem[]
+                {
+                    new OsuMenuItem("Give host", MenuItemType.Standard, () =>
+                    {
+                        // Ensure the local user is still host.
+                        if (Room.Host?.UserID != api.LocalUser.Value.Id)
+                            return;
+
+                        Client.TransferHost(targetUser);
+                    })
+                };
+            }
         }
     }
 }
