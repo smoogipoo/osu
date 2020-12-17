@@ -45,6 +45,7 @@ namespace osu.Game.Screens.Multi.Realtime
         private RulesetStore rulesets { get; set; } = null!;
 
         private Room? apiRoom;
+        private int playlistItemId; // Todo: THIS IS SUPER TEMPORARY!!
 
         public async Task JoinRoom(Room room)
         {
@@ -52,6 +53,8 @@ namespace osu.Game.Screens.Multi.Realtime
             Debug.Assert(room.RoomID.Value != null);
 
             apiRoom = room;
+            playlistItemId = room.Playlist.Single().ID;
+
             Room = await JoinRoom(room.RoomID.Value.Value);
 
             Debug.Assert(Room != null);
@@ -303,6 +306,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
                 PlaylistItem playlistItem = new PlaylistItem
                 {
+                    ID = playlistItemId,
                     Beatmap = { Value = beatmap },
                     Ruleset = { Value = ruleset },
                 };
