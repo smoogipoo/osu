@@ -10,7 +10,7 @@ namespace osu.Game.Screens.Multi.Realtime
     public class RealtimeResultsScreen : TimeshiftResultsScreen
     {
         public RealtimeResultsScreen(ScoreInfo score, int roomId, PlaylistItem playlistItem)
-            : base(score, roomId, playlistItem, false)
+            : base(score, roomId, playlistItem, false, false)
         {
         }
     }
