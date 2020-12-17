@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Online.API;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Screens.Multi.Realtime;
 using osu.Game.Users;
@@ -18,11 +17,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 {
     public class RealtimeTestMultiplayerClient : StatefulMultiplayerClient
     {
-        public override MultiplayerRoom? Room => joinedRoom;
-
         public override IBindable<bool> IsConnected { get; } = new Bindable<bool>(true);
-
-        private MultiplayerRoom? joinedRoom;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -31,13 +26,13 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         public void RemoveUser(User user)
         {
-            Debug.Assert(joinedRoom != null);
-            ((IMultiplayerClient)this).UserLeft(joinedRoom.Users.Single(u => u.User == user));
+            Debug.Assert(Room != null);
+            ((IMultiplayerClient)this).UserLeft(Room.Users.Single(u => u.User == user));
         }
 
         public void ChangeUserState(User user, MultiplayerUserState newState)
         {
-            Debug.Assert(joinedRoom != null);
+            Debug.Assert(Room != null);
 
             ((IMultiplayerClient)this).UserStateChanged(user.Id, newState);
 
@@ -46,9 +41,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 switch (newState)
                 {
                     case MultiplayerUserState.Loaded:
-                        if (joinedRoom.Users.All(u => u.State != MultiplayerUserState.WaitingForLoad))
+                        if (Room.Users.All(u => u.State != MultiplayerUserState.WaitingForLoad))
                         {
-                            foreach (var u in joinedRoom.Users.Where(u => u.State == MultiplayerUserState.Loaded))
+                            foreach (var u in Room.Users.Where(u => u.State == MultiplayerUserState.Loaded))
                             {
                                 Debug.Assert(u.User != null);
                                 ChangeUserState(u.User, MultiplayerUserState.Playing);
@@ -60,9 +55,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         break;
 
                     case MultiplayerUserState.FinishedPlay:
-                        if (joinedRoom.Users.All(u => u.State != MultiplayerUserState.Playing))
+                        if (Room.Users.All(u => u.State != MultiplayerUserState.Playing))
                         {
-                            foreach (var u in joinedRoom.Users.Where(u => u.State == MultiplayerUserState.FinishedPlay))
+                            foreach (var u in Room.Users.Where(u => u.State == MultiplayerUserState.FinishedPlay))
                             {
                                 Debug.Assert(u.User != null);
                                 ChangeUserState(u.User, MultiplayerUserState.Results);
@@ -76,33 +71,17 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
         }
 
-        public override Task JoinRoom(Room room)
+        protected override Task<MultiplayerRoom> JoinRoom(long roomId)
         {
-            Debug.Assert(room.RoomID.Value != null);
-
-            base.JoinRoom(room);
-
             var user = new MultiplayerRoomUser(api.LocalUser.Value.Id) { User = api.LocalUser.Value };
 
-            joinedRoom ??= new MultiplayerRoom(room.RoomID.Value.Value);
-            joinedRoom.Users.Add(user);
+            var room = new MultiplayerRoom(roomId);
+            room.Users.Add(user);
 
-            if (joinedRoom.Users.Count == 1)
-                joinedRoom.Host = user;
-
-            InvokeRoomChanged();
+            if (room.Users.Count == 1)
+                room.Host = user;
 
             return Task.FromResult(room);
-        }
-
-        public override Task LeaveRoom()
-        {
-            base.LeaveRoom();
-
-            joinedRoom = null;
-            InvokeRoomChanged();
-
-            return Task.CompletedTask;
         }
 
         public override Task TransferHost(int userId) => ((IMultiplayerClient)this).HostChanged(userId);

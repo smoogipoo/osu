@@ -28,8 +28,9 @@ namespace osu.Game.Screens.Multi.Realtime
         public event Action? MatchStarted;
         public event Action? ResultsReady;
 
-        public abstract MultiplayerRoom? Room { get; }
         public abstract IBindable<bool> IsConnected { get; }
+
+        public MultiplayerRoom? Room { get; private set; }
 
         public readonly BindableList<int> PlayingUsers = new BindableList<int>();
 
@@ -44,21 +45,34 @@ namespace osu.Game.Screens.Multi.Realtime
 
         private Room? apiRoom;
 
-        public virtual Task JoinRoom(Room room)
+        public async Task JoinRoom(Room room)
         {
             Debug.Assert(Room == null);
             Debug.Assert(room.RoomID.Value != null);
 
             apiRoom = room;
-            return Task.CompletedTask;
+            Room = await JoinRoom(room.RoomID.Value.Value);
+
+            Debug.Assert(Room != null);
+
+            foreach (var user in Room.Users)
+                await PopulateUser(user);
+
+            await updateLocalRoomSettings(Room.Settings);
         }
+
+        protected abstract Task<MultiplayerRoom> JoinRoom(long roomId);
 
         public virtual Task LeaveRoom()
         {
-            if (apiRoom == null)
+            if (Room == null)
                 return Task.CompletedTask;
 
             apiRoom = null;
+            Room = null;
+
+            Schedule(InvokeRoomChanged);
+
             return Task.CompletedTask;
         }
 
@@ -173,68 +187,7 @@ namespace osu.Game.Screens.Multi.Realtime
             return Task.CompletedTask;
         }
 
-        async Task IMultiplayerClient.SettingsChanged(MultiplayerRoomSettings newSettings)
-        {
-            var req = new GetBeatmapSetRequest(newSettings.BeatmapID, BeatmapSetLookupType.BeatmapId);
-            bool reqCompleted = false;
-            Exception? reqException = null;
-            PlaylistItem? playlistItem = null;
-
-            req.Success += res => Task.Run(() =>
-            {
-                try
-                {
-                    var beatmapSet = res.ToBeatmapSet(rulesets);
-
-                    var beatmap = beatmapSet.Beatmaps.Single(b => b.OnlineBeatmapID == newSettings.BeatmapID);
-                    var ruleset = rulesets.GetRuleset(newSettings.RulesetID ?? 0);
-                    var mods = newSettings.Mods.Select(m => m.ToMod(ruleset.CreateInstance()));
-
-                    playlistItem = new PlaylistItem
-                    {
-                        Beatmap = { Value = beatmap },
-                        Ruleset = { Value = ruleset },
-                    };
-
-                    playlistItem.RequiredMods.AddRange(mods);
-                }
-                finally
-                {
-                    reqCompleted = true;
-                }
-            });
-
-            req.Failure += e =>
-            {
-                reqException = e;
-                reqCompleted = true;
-            };
-
-            api.Queue(req);
-
-            while (!reqCompleted)
-                await Task.Delay(100);
-
-            if (reqException != null)
-                throw reqException;
-
-            Debug.Assert(playlistItem != null);
-
-            Schedule(() =>
-            {
-                if (Room == null)
-                    return;
-
-                Debug.Assert(apiRoom != null);
-
-                Room.Settings = newSettings;
-                apiRoom.Name.Value = newSettings.Name;
-                apiRoom.Playlist.Clear();
-                apiRoom.Playlist.Add(playlistItem);
-
-                InvokeRoomChanged();
-            });
-        }
+        async Task IMultiplayerClient.SettingsChanged(MultiplayerRoomSettings newSettings) => await updateLocalRoomSettings(newSettings);
 
         Task IMultiplayerClient.UserStateChanged(int userId, MultiplayerUserState state)
         {
@@ -301,5 +254,71 @@ namespace osu.Game.Screens.Multi.Realtime
         protected void InvokeRoomChanged() => RoomChanged?.Invoke();
 
         protected async Task PopulateUser(MultiplayerRoomUser multiplayerUser) => multiplayerUser.User ??= await userLookupCache.GetUserAsync(multiplayerUser.UserID);
+
+        private async Task updateLocalRoomSettings(MultiplayerRoomSettings settings)
+        {
+            if (Room == null)
+                return;
+
+            var req = new GetBeatmapSetRequest(settings.BeatmapID, BeatmapSetLookupType.BeatmapId);
+            bool reqCompleted = false;
+            Exception? reqException = null;
+            PlaylistItem? playlistItem = null;
+
+            req.Success += res => Task.Run(() =>
+            {
+                try
+                {
+                    var beatmapSet = res.ToBeatmapSet(rulesets);
+
+                    var beatmap = beatmapSet.Beatmaps.Single(b => b.OnlineBeatmapID == settings.BeatmapID);
+                    var ruleset = rulesets.GetRuleset(settings.RulesetID ?? 0);
+                    var mods = settings.Mods.Select(m => m.ToMod(ruleset.CreateInstance()));
+
+                    playlistItem = new PlaylistItem
+                    {
+                        Beatmap = { Value = beatmap },
+                        Ruleset = { Value = ruleset },
+                    };
+
+                    playlistItem.RequiredMods.AddRange(mods);
+                }
+                finally
+                {
+                    reqCompleted = true;
+                }
+            });
+
+            req.Failure += e =>
+            {
+                reqException = e;
+                reqCompleted = true;
+            };
+
+            api.Queue(req);
+
+            while (!reqCompleted)
+                await Task.Delay(100);
+
+            if (reqException != null)
+                throw reqException;
+
+            Debug.Assert(playlistItem != null);
+
+            Schedule(() =>
+            {
+                if (Room == null)
+                    return;
+
+                Debug.Assert(apiRoom != null);
+
+                Room.Settings = settings;
+                apiRoom.Name.Value = settings.Name;
+                apiRoom.Playlist.Clear();
+                apiRoom.Playlist.Add(playlistItem);
+
+                InvokeRoomChanged();
+            });
+        }
     }
 }

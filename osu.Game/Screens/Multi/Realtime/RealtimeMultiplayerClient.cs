@@ -12,7 +12,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Game.Online.API;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RealtimeMultiplayer;
 
 namespace osu.Game.Screens.Multi.Realtime
@@ -23,15 +22,12 @@ namespace osu.Game.Screens.Multi.Realtime
 
         public override IBindable<bool> IsConnected => isConnected; // Not thread-safe!!
 
-        public override MultiplayerRoom? Room => joinedRoom;
-
         private readonly Bindable<bool> isConnected = new Bindable<bool>();
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
-        private MultiplayerRoom? joinedRoom;
         private HubConnection? connection;
 
         [BackgroundDependencyLoader]
@@ -120,35 +116,15 @@ namespace osu.Game.Screens.Multi.Realtime
             }
         }
 
-        public override async Task JoinRoom(Room room)
-        {
-            await base.JoinRoom(room);
-            var joined = await connection.InvokeAsync<MultiplayerRoom>(nameof(IMultiplayerServer.JoinRoom), room.RoomID.Value);
-
-            foreach (var user in joined.Users)
-                await PopulateUser(user);
-
-            Schedule(() =>
-            {
-                joinedRoom = joined;
-                InvokeRoomChanged();
-            });
-        }
+        protected override async Task<MultiplayerRoom> JoinRoom(long roomId) => await connection.InvokeAsync<MultiplayerRoom>(nameof(IMultiplayerServer.JoinRoom), roomId);
 
         public override async Task LeaveRoom()
         {
-            await base.LeaveRoom();
-
             if (Room == null)
                 return;
 
+            await base.LeaveRoom();
             await connection.InvokeAsync(nameof(IMultiplayerServer.LeaveRoom));
-
-            Schedule(() =>
-            {
-                joinedRoom = null;
-                InvokeRoomChanged();
-            });
         }
 
         public override Task TransferHost(int userId)
