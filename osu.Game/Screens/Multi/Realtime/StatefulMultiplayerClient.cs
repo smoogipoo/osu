@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
@@ -81,11 +82,26 @@ namespace osu.Game.Screens.Multi.Realtime
             if (Room == null)
                 return;
 
+            // A dummy playlist item filled with the current room settings (except mods).
+            var existingPlaylistItem = new PlaylistItem
+            {
+                Beatmap =
+                {
+                    Value = new BeatmapInfo
+                    {
+                        OnlineBeatmapID = Room.Settings.BeatmapID,
+                        MD5Hash = Room.Settings.BeatmapChecksum
+                    }
+                },
+                RulesetID = Room.Settings.RulesetID
+            };
+
             var newSettings = new MultiplayerRoomSettings
             {
                 Name = name.GetOr(Room.Settings.Name),
-                BeatmapID = item.GetOr(new PlaylistItem { BeatmapID = Room.Settings.BeatmapID }).BeatmapID,
-                RulesetID = item.GetOr(new PlaylistItem { RulesetID = Room.Settings.RulesetID!.Value }).RulesetID,
+                BeatmapID = item.GetOr(existingPlaylistItem).BeatmapID,
+                BeatmapChecksum = item.GetOr(existingPlaylistItem).Beatmap.Value.MD5Hash,
+                RulesetID = item.GetOr(existingPlaylistItem).RulesetID,
                 Mods = item.HasValue ? item.Value!.RequiredMods.Select(m => new APIMod(m)).ToList() : Room.Settings.Mods
             };
 
@@ -265,7 +281,12 @@ namespace osu.Game.Screens.Multi.Realtime
                 if (Room == null)
                     return;
 
+                Debug.Assert(apiRoom != null);
+
                 Room.Settings = settings;
+
+                apiRoom.Playlist.Clear();
+
                 InvokeRoomChanged();
             });
 
@@ -275,7 +296,9 @@ namespace osu.Game.Screens.Multi.Realtime
                 var beatmapSet = res.ToBeatmapSet(rulesets);
 
                 var beatmap = beatmapSet.Beatmaps.Single(b => b.OnlineBeatmapID == settings.BeatmapID);
-                var ruleset = rulesets.GetRuleset(settings.RulesetID ?? 0);
+                beatmap.MD5Hash = settings.BeatmapChecksum;
+
+                var ruleset = rulesets.GetRuleset(settings.RulesetID);
                 var mods = settings.Mods.Select(m => m.ToMod(ruleset.CreateInstance()));
 
                 PlaylistItem playlistItem = new PlaylistItem
