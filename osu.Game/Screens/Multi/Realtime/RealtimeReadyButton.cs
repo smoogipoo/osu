@@ -48,6 +48,7 @@ namespace osu.Game.Screens.Multi.Realtime
             base.OnRoomChanged();
 
             localUser = Room?.Users.Single(u => u.User?.Id == api.LocalUser.Value.Id);
+            button.Enabled.Value = Client.Room?.State == MultiplayerRoomState.Open;
             updateState();
         }
 
