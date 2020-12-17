@@ -28,6 +28,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             Debug.Assert(Room != null);
             ((IMultiplayerClient)this).UserLeft(Room.Users.Single(u => u.User == user));
+
+            Schedule(() =>
+            {
+                if (Room.Users.Any())
+                    TransferHost(Room.Users.First().UserID);
+            });
         }
 
         public void ChangeUserState(User user, MultiplayerUserState newState)

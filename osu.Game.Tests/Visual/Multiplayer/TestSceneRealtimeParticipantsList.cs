@@ -4,6 +4,7 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Screens.Multi.Realtime.Participants;
@@ -71,6 +72,25 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("make user idle", () => Client.ChangeState(MultiplayerUserState.Idle));
             AddUntilStep("ready mark invisible", () => !this.ChildrenOfType<ParticipantReadyMark>().Single().IsPresent);
+        }
+
+        [Test]
+        public void TestCrownChangesStateWhenHostTransferred()
+        {
+            AddStep("add user", () => Client.AddUser(new User
+            {
+                Id = 3,
+                Username = "Second",
+                CoverUrl = @"https://osu.ppy.sh/images/headers/profile-covers/c3.jpg",
+            }));
+
+            AddUntilStep("first user crown visible", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(0).ChildrenOfType<SpriteIcon>().First().Alpha == 1);
+            AddUntilStep("second user crown hidden", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(1).ChildrenOfType<SpriteIcon>().First().Alpha == 0);
+
+            AddStep("make second user host", () => Client.TransferHost(3));
+
+            AddUntilStep("first user crown hidden", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(0).ChildrenOfType<SpriteIcon>().First().Alpha == 0);
+            AddUntilStep("second user crown visible", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(1).ChildrenOfType<SpriteIcon>().First().Alpha == 1);
         }
     }
 }
