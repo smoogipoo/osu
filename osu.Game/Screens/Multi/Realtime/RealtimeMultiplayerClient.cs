@@ -41,12 +41,6 @@ namespace osu.Game.Screens.Multi.Realtime
         {
             switch (state.NewValue)
             {
-                case APIState.Failing:
-                case APIState.Offline:
-                    connection?.StopAsync();
-                    connection = null;
-                    break;
-
                 case APIState.Online:
                     Task.Run(Connect);
                     break;
