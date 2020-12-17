@@ -20,6 +20,9 @@ namespace osu.Game.Screens.Multi.Realtime
         [Resolved(typeof(Room), nameof(Room.Playlist))]
         private BindableList<PlaylistItem> playlist { get; set; }
 
+        [Resolved]
+        private StatefulMultiplayerClient client { get; set; }
+
         protected override bool OnStart()
         {
             var item = new PlaylistItem();
@@ -30,8 +33,15 @@ namespace osu.Game.Screens.Multi.Realtime
             item.RequiredMods.Clear();
             item.RequiredMods.AddRange(Mods.Value.Select(m => m.CreateCopy()));
 
-            playlist.Clear();
-            playlist.Add(item);
+            // If the client is already in a room, update via the client.
+            // Otherwise, update the playlist directly in preparation for it to be submitted to the API on match creation.
+            if (client.Room != null)
+                client.ChangeSettings(item: item);
+            else
+            {
+                playlist.Clear();
+                playlist.Add(item);
+            }
 
             this.Exit();
             return true;

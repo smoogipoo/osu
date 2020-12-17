@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Threading;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
@@ -18,6 +17,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.RoomStatuses;
 using osu.Game.Online.RealtimeMultiplayer;
 using osu.Game.Rulesets;
+using osu.Game.Utils;
 
 namespace osu.Game.Screens.Multi.Realtime
 {
@@ -32,9 +32,6 @@ namespace osu.Game.Screens.Multi.Realtime
         public abstract IBindable<bool> IsConnected { get; }
 
         public readonly BindableList<int> PlayingUsers = new BindableList<int>();
-
-        private readonly Bindable<string> roomName = new Bindable<string>();
-        private readonly BindableList<PlaylistItem> playlist = new BindableList<PlaylistItem>();
 
         [Resolved]
         private UserLookupCache userLookupCache { get; set; } = null!;
@@ -52,9 +49,6 @@ namespace osu.Game.Screens.Multi.Realtime
             Debug.Assert(Room == null);
             Debug.Assert(room.RoomID.Value != null);
 
-            roomName.BindTo(room.Name);
-            playlist.BindTo(room.Playlist);
-
             apiRoom = room;
             return Task.CompletedTask;
         }
@@ -64,55 +58,28 @@ namespace osu.Game.Screens.Multi.Realtime
             if (apiRoom == null)
                 return Task.CompletedTask;
 
-            roomName.UnbindFrom(apiRoom.Name);
-            playlist.UnbindFrom(apiRoom.Playlist);
-
             apiRoom = null;
             return Task.CompletedTask;
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            roomName.BindValueChanged(_ => scheduleRoomUpdate());
-            playlist.BindCollectionChanged((_, __) => scheduleRoomUpdate());
-        }
-
-        private ScheduledDelegate? scheduledUpdate;
-
-        private void scheduleRoomUpdate()
+        public void ChangeSettings(Optional<string> name = default, Optional<PlaylistItem> item = default)
         {
             if (Room == null)
                 return;
 
-            Debug.Assert(apiRoom != null);
-
-            scheduledUpdate?.Cancel();
-            scheduledUpdate = Schedule(() =>
+            var newSettings = new MultiplayerRoomSettings
             {
-                if (Room == null)
-                    return;
+                Name = name.GetOr(Room.Settings.Name),
+                BeatmapID = item.GetOr(new PlaylistItem { BeatmapID = Room.Settings.BeatmapID }).BeatmapID,
+                RulesetID = item.GetOr(new PlaylistItem { RulesetID = Room.Settings.RulesetID!.Value }).RulesetID,
+                Mods = item.HasValue ? item.Value!.RequiredMods.Select(m => new APIMod(m)).ToList() : Room.Settings.Mods
+            };
 
-                if (!apiRoom.Playlist.Any())
-                    return;
+            // Make sure there would be a meaningful change in settings.
+            if (newSettings.Equals(Room.Settings))
+                return;
 
-                Debug.Assert(apiRoom != null);
-
-                var newSettings = new MultiplayerRoomSettings
-                {
-                    Name = apiRoom.Name.Value,
-                    BeatmapID = apiRoom.Playlist.Single().BeatmapID,
-                    RulesetID = apiRoom.Playlist.Single().RulesetID,
-                    Mods = apiRoom.Playlist.Single().RequiredMods.Select(m => new APIMod(m)).ToList()
-                };
-
-                // Make sure there would be a meaningful change in settings.
-                if (newSettings.Equals(Room.Settings))
-                    return;
-
-                ChangeSettings(newSettings);
-            });
+            ChangeSettings(newSettings);
         }
 
         public abstract Task TransferHost(int userId);

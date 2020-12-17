@@ -73,6 +73,9 @@ namespace osu.Game.Screens.Multi.Realtime
             private RealtimeRoomManager manager { get; set; }
 
             [Resolved]
+            private StatefulMultiplayerClient client { get; set; }
+
+            [Resolved]
             private Bindable<Room> currentRoom { get; set; }
 
             [Resolved]
@@ -304,19 +307,26 @@ namespace osu.Game.Screens.Multi.Realtime
                 hideError();
                 loadingLayer.Show();
 
-                RoomName.Value = NameField.Text;
-                Availability.Value = AvailabilityPicker.Current.Value;
-                Type.Value = TypePicker.Current.Value;
-
-                if (int.TryParse(MaxParticipantsField.Text, out int max))
-                    MaxParticipants.Value = max;
-                else
-                    MaxParticipants.Value = null;
-
-                if (RoomID.Value == null)
-                    manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
-                else
+                // If the client is already in a room, update via the client.
+                // Otherwise, update the room directly in preparation for it to be submitted to the API on match creation.
+                if (client.Room != null)
+                {
+                    client.ChangeSettings(name: NameField.Text);
                     onSuccess(currentRoom.Value);
+                }
+                else
+                {
+                    currentRoom.Value.Name.Value = NameField.Text;
+                    currentRoom.Value.Availability.Value = AvailabilityPicker.Current.Value;
+                    currentRoom.Value.Type.Value = TypePicker.Current.Value;
+
+                    if (int.TryParse(MaxParticipantsField.Text, out int max))
+                        currentRoom.Value.MaxParticipants.Value = max;
+                    else
+                        currentRoom.Value.MaxParticipants.Value = null;
+
+                    manager?.CreateRoom(currentRoom.Value, onSuccess, onError);
+                }
             }
 
             private void hideError() => ErrorText.FadeOut(50);
