@@ -53,7 +53,7 @@ namespace osu.Game.Screens.Multi.Realtime
             Debug.Assert(room.RoomID.Value != null);
 
             apiRoom = room;
-            playlistItemId = room.Playlist.Single().ID;
+            playlistItemId = room.Playlist.SingleOrDefault()?.ID ?? 0;
 
             Room = await JoinRoom(room.RoomID.Value.Value);
 

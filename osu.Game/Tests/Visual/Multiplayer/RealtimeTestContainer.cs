@@ -22,7 +22,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public readonly RealtimeTestRoomManager RoomManager;
 
         [Cached]
-        public readonly Bindable<FilterCriteria> Filter = new Bindable<FilterCriteria>();
+        public readonly Bindable<FilterCriteria> Filter = new Bindable<FilterCriteria>(new FilterCriteria());
 
         public RealtimeTestContainer()
         {
