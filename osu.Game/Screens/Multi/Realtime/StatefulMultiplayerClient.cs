@@ -255,70 +255,51 @@ namespace osu.Game.Screens.Multi.Realtime
 
         protected async Task PopulateUser(MultiplayerRoomUser multiplayerUser) => multiplayerUser.User ??= await userLookupCache.GetUserAsync(multiplayerUser.UserID);
 
-        private async Task updateLocalRoomSettings(MultiplayerRoomSettings settings)
+        private Task updateLocalRoomSettings(MultiplayerRoomSettings settings)
         {
             if (Room == null)
-                return;
-
-            var req = new GetBeatmapSetRequest(settings.BeatmapID, BeatmapSetLookupType.BeatmapId);
-            bool reqCompleted = false;
-            Exception? reqException = null;
-            PlaylistItem? playlistItem = null;
-
-            req.Success += res => Task.Run(() =>
-            {
-                try
-                {
-                    var beatmapSet = res.ToBeatmapSet(rulesets);
-
-                    var beatmap = beatmapSet.Beatmaps.Single(b => b.OnlineBeatmapID == settings.BeatmapID);
-                    var ruleset = rulesets.GetRuleset(settings.RulesetID ?? 0);
-                    var mods = settings.Mods.Select(m => m.ToMod(ruleset.CreateInstance()));
-
-                    playlistItem = new PlaylistItem
-                    {
-                        Beatmap = { Value = beatmap },
-                        Ruleset = { Value = ruleset },
-                    };
-
-                    playlistItem.RequiredMods.AddRange(mods);
-                }
-                finally
-                {
-                    reqCompleted = true;
-                }
-            });
-
-            req.Failure += e =>
-            {
-                reqException = e;
-                reqCompleted = true;
-            };
-
-            api.Queue(req);
-
-            while (!reqCompleted)
-                await Task.Delay(100);
-
-            if (reqException != null)
-                throw reqException;
-
-            Debug.Assert(playlistItem != null);
+                return Task.CompletedTask;
 
             Schedule(() =>
             {
                 if (Room == null)
                     return;
 
-                Debug.Assert(apiRoom != null);
-
                 Room.Settings = settings;
-                apiRoom.Name.Value = settings.Name;
-                apiRoom.Playlist.Clear();
-                apiRoom.Playlist.Add(playlistItem);
-
                 InvokeRoomChanged();
             });
+
+            var req = new GetBeatmapSetRequest(settings.BeatmapID, BeatmapSetLookupType.BeatmapId);
+            req.Success += res =>
+            {
+                var beatmapSet = res.ToBeatmapSet(rulesets);
+
+                var beatmap = beatmapSet.Beatmaps.Single(b => b.OnlineBeatmapID == settings.BeatmapID);
+                var ruleset = rulesets.GetRuleset(settings.RulesetID ?? 0);
+                var mods = settings.Mods.Select(m => m.ToMod(ruleset.CreateInstance()));
+
+                PlaylistItem playlistItem = new PlaylistItem
+                {
+                    Beatmap = { Value = beatmap },
+                    Ruleset = { Value = ruleset },
+                };
+
+                playlistItem.RequiredMods.AddRange(mods);
+
+                Schedule(() =>
+                {
+                    if (Room == null || !Room.Settings.Equals(settings))
+                        return;
+
+                    Debug.Assert(apiRoom != null);
+
+                    apiRoom.Playlist.Clear();
+                    apiRoom.Playlist.Add(playlistItem);
+                });
+            };
+
+            api.Queue(req);
+            return Task.CompletedTask;
         }
     }
 }
