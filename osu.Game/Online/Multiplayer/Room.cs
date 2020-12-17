@@ -44,7 +44,7 @@ namespace osu.Game.Online.Multiplayer
             get => Category.Value.ToString().ToLower();
             set
             {
-                if (!Enum.TryParse<RoomCategory>(value, out var enumValue))
+                if (!Enum.TryParse<RoomCategory>(value, true, out var enumValue))
                     enumValue = RoomCategory.Normal;
                 Category.Value = enumValue;
             }
