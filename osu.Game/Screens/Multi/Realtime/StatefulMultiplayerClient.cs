@@ -288,6 +288,7 @@ namespace osu.Game.Screens.Multi.Realtime
 
                 Room.Settings = settings;
 
+                apiRoom.Name.Value = Room.Settings.Name;
                 apiRoom.Playlist.Clear();
 
                 InvokeRoomChanged();
