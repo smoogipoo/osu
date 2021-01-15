@@ -5,6 +5,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>catch the fruit. to the beat.</Description>
   </PropertyGroup>
+
+  <PropertyGroup Label="Nuget">
+    <Title>osu!catch</Title>
+    <PackageId>ppy.osu.Game.Rulesets.Catch</PackageId>
+    <IsPackable>true</IsPackable>
+
+    <OsuGamePackageDir>$(MSBuildThisFileDirectory)../osu.Game/$(Configuration)/Debug</OsuGamePackageDir>
+    <RestoreSources Condition="Exists('$(OsuGamePackageDir)')">$(RestoreSources);$(OsuGamePackageDir)</RestoreSources>
+  </PropertyGroup>
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\osu.Game\osu.Game.csproj" />
   </ItemGroup>
