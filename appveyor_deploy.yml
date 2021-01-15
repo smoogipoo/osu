@@ -18,8 +18,8 @@ build:
   publish_nuget: true
 after_build:
   - ps: dotnet remove osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj reference osu.Game\osu.Game.csproj
-  - ps: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v $(APPVEYOR_REPO_TAG_NAME)
-  - ps: dotnet pack osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj /p:Version=$(APPVEYOR_REPO_TAG_NAME)
+  - ps: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v $Env:APPVEYOR_REPO_TAG_NAME
+  - ps: dotnet pack osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj /p:Version=$Env:APPVEYOR_REPO_TAG_NAME
 deploy:
   - provider: Environment
     name: nuget
