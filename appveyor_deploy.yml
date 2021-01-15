@@ -19,7 +19,7 @@ for:
     matrix:
       only:
         - job_name: osu-game
-    build:
+    build_script:
       - cmd: dotnet pack osu.Game\osu.Game.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
     artifacts:
       - path: '**\*.nupkg'
@@ -27,7 +27,7 @@ for:
     matrix:
       only:
         - job_name: catch-ruleset
-    build:
+    build_script:
       - cmd: dotnet remove osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj reference osu.Game\osu.Game.csproj
       - cmd: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME -s https://ci.appveyor.com/nuget/osu-8r2cd2pjq80b
       - cmd: dotnet pack osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
