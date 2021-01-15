@@ -31,6 +31,8 @@ for:
       parallel: true
       verbosity: minimal
       publish_nuget: true
+    artifacts:
+      - path: '**\*.nupkg'
   -
     matrix:
       only:
