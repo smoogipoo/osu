@@ -41,7 +41,7 @@ for:
       version: $(APPVEYOR_REPO_TAG_NAME)
     before_build:
       - ps: dotnet remove osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj reference osu.Game\osu.Game.csproj
-      - ps: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v $env:APPVEYOR_REPO_TAG_NAME
+      - ps: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v $env:APPVEYOR_REPO_TAG_NAME -s https://ci.appveyor.com/nuget/osu-8r2cd2pjq80b
     build:
       project: osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj # Skipping Xamarin Release that's slow and covered by fastlane
       parallel: true
