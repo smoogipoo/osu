@@ -18,7 +18,7 @@ environment:
       job_depends_on: osu-game
 
 nuget:
-  protect_feed: true
+  project_feed: true
 
 for:
   -
