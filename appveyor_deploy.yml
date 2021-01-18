@@ -17,8 +17,8 @@ environment:
     - job_name: mania-ruleset
       job_depends_on: osu-game
 
-# matrix:
-#   fast_finish: true
+nuget:
+  protect_feed: true
 
 for:
   -
@@ -27,53 +27,41 @@ for:
         - job_name: osu-game
     build_script:
       - cmd: dotnet pack osu.Game\osu.Game.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
-    artifacts:
-      - path: '**\*.nupkg'
-        name: osu-game
   -
     matrix:
       only:
         - job_name: osu-ruleset
     build_script:
       - cmd: dotnet remove osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj reference osu.Game\osu.Game.csproj
-      - cmd: dotnet add osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME% -s https://ci.appveyor.com/nuget/osu-8r2cd2pjq80b
+      - cmd: dotnet add osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME%
       - cmd: dotnet pack osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
-    artifacts:
-      - path: '**\*.nupkg'
-        name: osu-ruleset
   -
     matrix:
       only:
         - job_name: taiko-ruleset
     build_script:
       - cmd: dotnet remove osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj reference osu.Game\osu.Game.csproj
-      - cmd: dotnet add osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME% -s https://ci.appveyor.com/nuget/osu-8r2cd2pjq80b
+      - cmd: dotnet add osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME%
       - cmd: dotnet pack osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
-    artifacts:
-      - path: '**\*.nupkg'
-        name: taiko-ruleset
   -
     matrix:
       only:
         - job_name: catch-ruleset
     build_script:
       - cmd: dotnet remove osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj reference osu.Game\osu.Game.csproj
-      - cmd: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME% -s https://ci.appveyor.com/nuget/osu-8r2cd2pjq80b
+      - cmd: dotnet add osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME%
       - cmd: dotnet pack osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
-    artifacts:
-      - path: '**\*.nupkg'
-        name: catch-ruleset
   -
     matrix:
       only:
         - job_name: mania-ruleset
     build_script:
       - cmd: dotnet remove osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj reference osu.Game\osu.Game.csproj
-      - cmd: dotnet add osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME% -s https://ci.appveyor.com/nuget/osu-8r2cd2pjq80b
+      - cmd: dotnet add osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj package ppy.osu.Game -v %APPVEYOR_REPO_TAG_NAME%
       - cmd: dotnet pack osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
-    artifacts:
-      - path: '**\*.nupkg'
-        name: mania-ruleset
+
+artifacts:
+  - path: '**\*.nupkg'
 
 deploy:
   - provider: Environment
