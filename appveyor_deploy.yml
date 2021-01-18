@@ -29,6 +29,7 @@ for:
       - cmd: dotnet pack osu.Game\osu.Game.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
     artifacts:
       - path: '**\*.nupkg'
+        name: osu-game
   -
     matrix:
       only:
@@ -39,6 +40,7 @@ for:
       - cmd: dotnet pack osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
     artifacts:
       - path: '**\*.nupkg'
+        name: osu-ruleset
   -
     matrix:
       only:
@@ -49,6 +51,7 @@ for:
       - cmd: dotnet pack osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
     artifacts:
       - path: '**\*.nupkg'
+        name: taiko-ruleset
   -
     matrix:
       only:
@@ -59,6 +62,7 @@ for:
       - cmd: dotnet pack osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
     artifacts:
       - path: '**\*.nupkg'
+        name: catch-ruleset
   -
     matrix:
       only:
@@ -69,6 +73,7 @@ for:
       - cmd: dotnet pack osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj /p:Version=%APPVEYOR_REPO_TAG_NAME%
     artifacts:
       - path: '**\*.nupkg'
+        name: mania-ruleset
 
 # deploy:
 #   - provider: Environment
