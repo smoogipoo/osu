@@ -75,6 +75,19 @@ for:
       - path: '**\*.nupkg'
         name: mania-ruleset
 
-# deploy:
-#   - provider: Environment
-#     name: nuget
+deploy:
+  - provider: Environment
+    name: nuget
+    artifact: osu-game
+  - provider: Environment
+    name: nuget
+    artifact: osu-ruleset
+  - provider: Environment
+    name: nuget
+    artifact: taiko-ruleset
+  - provider: Environment
+    name: nuget
+    artifact: catch-ruleset
+  - provider: Environment
+    name: nuget
+    artifact: mania-ruleset
