@@ -17,8 +17,8 @@ environment:
     - job_name: mania-ruleset
       job_depends_on: osu-game
 
-matrix:
-  fast_finish: true
+# matrix:
+#   fast_finish: true
 
 for:
   -
@@ -78,16 +78,4 @@ for:
 deploy:
   - provider: Environment
     name: nuget
-    artifact: osu-game
-  - provider: Environment
-    name: nuget
-    artifact: osu-ruleset
-  - provider: Environment
-    name: nuget
-    artifact: taiko-ruleset
-  - provider: Environment
-    name: nuget
-    artifact: catch-ruleset
-  - provider: Environment
-    name: nuget
-    artifact: mania-ruleset
+    artifact: /.*\.nupkg/
