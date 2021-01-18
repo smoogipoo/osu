@@ -8,7 +8,13 @@ configuration: Release
 environment:
   matrix:
     - job_name: osu-game
+    - job_name: osu-ruleset
+      job_depends_on: osu-game
+    - job_name: taiko-ruleset
+      job_depends_on: osu-game
     - job_name: catch-ruleset
+      job_depends_on: osu-game
+    - job_name: mania-ruleset
       job_depends_on: osu-game
 
 matrix:
