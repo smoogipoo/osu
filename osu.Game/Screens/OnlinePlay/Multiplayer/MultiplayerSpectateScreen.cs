@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Database;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.Play;
+using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {
@@ -45,11 +46,27 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
         private Drawable createInstance(int userId)
         {
-            var stack = new OsuScreenStack { RelativeSizeAxes = Axes.Both };
-            var user = userLookupCache.GetUserAsync(userIds[0]).Result;
+            var stack = new ScalingScreenStack();
+            var user = userLookupCache.GetUserAsync(userId).Result;
             stack.Push(new Spectator(user));
 
             return stack;
+        }
+
+        private class ScalingScreenStack : OsuScreenStack
+        {
+            public ScalingScreenStack()
+            {
+                RelativeSizeAxes = Axes.None;
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                Size = Parent.Parent.DrawSize;
+                Scale = Vector2.Divide(Parent.DrawSize, Size);
+            }
         }
     }
 }
