@@ -10,10 +10,8 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Graphics;
-using osu.Game.Graphics.Backgrounds;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Screens.OnlinePlay.Components;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
@@ -78,8 +76,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             Debug.Assert(Room != null);
 
             int newCountReady = Room.Users.Count(u => u.State == MultiplayerUserState.Ready);
+            int newCountTotal = Room.Users.Count(u => u.State != MultiplayerUserState.Spectating);
 
-            string countText = $"({newCountReady} / {Room.Users.Count} ready)";
+            string countText = $"({newCountReady} / {newCountTotal} ready)";
 
             switch (localUser.State)
             {
@@ -88,6 +87,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                     updateButtonColour(true);
                     break;
 
+                case MultiplayerUserState.Spectating:
                 case MultiplayerUserState.Ready:
                     if (Room?.Host?.Equals(localUser) == true)
                     {
@@ -104,6 +104,13 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             }
 
             button.Enabled.Value = Client.Room?.State == MultiplayerRoomState.Open && !operationInProgress.Value;
+
+            // Special case for enabling the "start match" button while the host is spectating.
+            if (localUser.State == MultiplayerUserState.Spectating)
+            {
+                button.Enabled.Value &= Room?.Host?.Equals(localUser) == true;
+                button.Enabled.Value &= newCountReady > 0;
+            }
 
             if (newCountReady != countReady)
             {
@@ -136,11 +143,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                 button.Triangles.ColourDark = colours.YellowDark;
                 button.Triangles.ColourLight = colours.Yellow;
             }
-        }
-
-        private class ButtonWithTrianglesExposed : ReadyButton
-        {
-            public new Triangles Triangles => base.Triangles;
         }
     }
 }

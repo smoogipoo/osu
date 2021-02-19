@@ -99,6 +99,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
                     showBeatmapAvailability(availability);
                     break;
 
+                case MultiplayerUserState.Spectating:
+                    text.Text = "spectating";
+                    icon.Icon = FontAwesome.Solid.Eye;
+                    icon.Colour = colours.BlueLight;
+                    break;
+
                 case MultiplayerUserState.Ready:
                     text.Text = "ready";
                     icon.Icon = FontAwesome.Solid.CheckCircle;

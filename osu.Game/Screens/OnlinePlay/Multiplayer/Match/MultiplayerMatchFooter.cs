@@ -15,13 +15,21 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
     public class MultiplayerMatchFooter : CompositeDrawable
     {
         public const float HEIGHT = 50;
+        private const float ready_button_width = 600;
+        private const float spectate_button_width = 200;
 
         public Action OnReadyClick
         {
             set => readyButton.OnReadyClick = value;
         }
 
+        public Action OnSpectateClick
+        {
+            set => spectateButton.OnSpectateClick = value;
+        }
+
         private readonly Drawable background;
+        private readonly MultiplayerSpectateButton spectateButton;
         private readonly MultiplayerReadyButton readyButton;
 
         public MultiplayerMatchFooter()
@@ -32,11 +40,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             InternalChildren = new[]
             {
                 background = new Box { RelativeSizeAxes = Axes.Both },
+                spectateButton = new MultiplayerSpectateButton
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(spectate_button_width, 50),
+                    X = -ready_button_width / 2f - spectate_button_width / 2f - 10,
+                },
                 readyButton = new MultiplayerReadyButton
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Size = new Vector2(600, 50),
+                    Size = new Vector2(ready_button_width, 50),
                 }
             };
         }

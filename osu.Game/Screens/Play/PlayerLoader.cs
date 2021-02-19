@@ -251,15 +251,15 @@ namespace osu.Game.Screens.Play
 
             Scheduler.AddDelayed(() =>
             {
-                if (this.IsCurrentScreen())
-                    content.StartTracking(logo, resuming ? 0 : 500, Easing.InOutExpo);
+                // if (this.IsCurrentScreen())
+                //     content.StartTracking(logo, resuming ? 0 : 500, Easing.InOutExpo);
             }, resuming ? 0 : 500);
         }
 
         protected override void LogoExiting(OsuLogo logo)
         {
             base.LogoExiting(logo);
-            content.StopTracking();
+            // content.StopTracking();
         }
 
         #endregion

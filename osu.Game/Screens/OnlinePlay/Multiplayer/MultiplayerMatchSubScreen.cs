@@ -220,7 +220,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                         {
                             new MultiplayerMatchFooter
                             {
-                                OnReadyClick = onReadyClick
+                                OnReadyClick = onReadyClick,
+                                OnSpectateClick = onSpectateClick
                             }
                         }
                     },
@@ -378,7 +379,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             Debug.Assert(readyClickOperation == null);
             readyClickOperation = ongoingOperationTracker.BeginOperation();
 
-            if (client.IsHost && client.LocalUser?.State == MultiplayerUserState.Ready)
+            if (client.IsHost && (client.LocalUser?.State == MultiplayerUserState.Ready || client.LocalUser?.State == MultiplayerUserState.Spectating))
             {
                 client.StartMatch()
                       .ContinueWith(t =>
@@ -405,6 +406,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         }
 
+        private void onSpectateClick()
+        {
+            Debug.Assert(readyClickOperation == null);
+            readyClickOperation = ongoingOperationTracker.BeginOperation();
+
+            client.ToggleSpectate().ContinueWith(t => endOperation());
+
+            void endOperation()
+            {
+                readyClickOperation?.Dispose();
+                readyClickOperation = null;
+            }
+        }
+
         private void onRoomUpdated()
         {
             // user mods may have changed.
@@ -417,7 +432,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
             int[] userIds = client.CurrentMatchPlayingUserIds.ToArray();
 
-            StartPlay(() => new MultiplayerPlayer(SelectedItem.Value, userIds));
+            if (client.LocalUser?.State == MultiplayerUserState.Spectating)
+                EnterScreen(() => new MultiplayerSpectateScreen(SelectedItem.Value, userIds));
+            else
+                StartPlay(() => new MultiplayerPlayer(SelectedItem.Value, userIds));
 
             readyClickOperation?.Dispose();
             readyClickOperation = null;

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -33,7 +32,7 @@ namespace osu.Game.Screens.Play
 
             // This is the only usage game-wide of suspension changes.
             // Assert to ensure we don't accidentally forget this in the future.
-            Debug.Assert(host.AllowScreenSuspension.Value);
+            // Debug.Assert(host.AllowScreenSuspension.Value);
 
             isPaused = gameplayClockContainer.IsPaused.GetBoundCopy();
             isPaused.BindValueChanged(paused => host.AllowScreenSuspension.Value = paused.NewValue, true);

@@ -251,6 +251,29 @@ namespace osu.Game.Online.Multiplayer
             }
         }
 
+        public async Task ToggleSpectate()
+        {
+            var localUser = LocalUser;
+
+            if (localUser == null)
+                return;
+
+            switch (localUser.State)
+            {
+                case MultiplayerUserState.Idle:
+                case MultiplayerUserState.Ready:
+                    await ChangeState(MultiplayerUserState.Spectating);
+                    return;
+
+                case MultiplayerUserState.Spectating:
+                    await ChangeState(MultiplayerUserState.Idle);
+                    return;
+
+                default:
+                    throw new InvalidOperationException($"Cannot toggle spectate when in {localUser.State}");
+            }
+        }
+
         public abstract Task TransferHost(int userId);
 
         public abstract Task ChangeSettings(MultiplayerRoomSettings settings);
