@@ -20,6 +20,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {
     public class MultiplayerSpectateScreen : OsuScreen
     {
+        // Isolates beatmap/ruleset to this screen.
+        public override bool DisallowExternalBeatmapRulesetChanges => true;
         private readonly PlaylistItem playlistItem;
         private readonly int[] userIds;
 
@@ -61,15 +63,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
         private class ScalingScreenStack : OsuScreenStack
         {
-            [Cached]
-            private readonly Bindable<WorkingBeatmap> beatmap = new Bindable<WorkingBeatmap>();
-
-            [Cached]
-            private readonly Bindable<RulesetInfo> ruleset = new Bindable<RulesetInfo>();
-
-            [Cached]
-            private readonly Bindable<IReadOnlyList<Mod>> mods = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
-
             public ScalingScreenStack()
             {
                 RelativeSizeAxes = Axes.None;

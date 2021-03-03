@@ -26,6 +26,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Resolved]
         private OsuGameBase game { get; set; }
 
+        [Resolved]
+        private BeatmapManager beatmapManager { get; set; }
+
         private MultiplayerSpectateScreen spectateScreen;
 
         private readonly List<int> playingUserIds = new List<int>();
@@ -73,11 +76,17 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private void loadSpectateScreen()
         {
-            AddStep("load screen", () => LoadScreen(spectateScreen = new MultiplayerSpectateScreen(new PlaylistItem
+            AddStep("load screen", () =>
             {
-                Beatmap = { Value = importedBeatmap },
-                Ruleset = { Value = importedBeatmap.Ruleset }
-            }, playingUserIds.ToArray())));
+                Beatmap.Value = beatmapManager.GetWorkingBeatmap(importedBeatmap);
+                Ruleset.Value = importedBeatmap.Ruleset;
+
+                LoadScreen(spectateScreen = new MultiplayerSpectateScreen(new PlaylistItem
+                {
+                    Beatmap = { Value = importedBeatmap },
+                    Ruleset = { Value = importedBeatmap.Ruleset }
+                }, playingUserIds.ToArray()));
+            });
 
             AddUntilStep("wait for screen load", () => spectateScreen.LoadState == LoadState.Loaded);
         }
