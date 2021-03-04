@@ -159,7 +159,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 InternalChild = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Child = stack = new OsuScreenStack()
+                    Child = new DrawSizePreservingFillContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Child = stack = new OsuScreenStack()
+                    }
                 };
 
                 stack.Push(new Spectator(user));
@@ -171,9 +175,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
                 var topLeft = Parent.ToLocalSpace(facade.ToScreenSpace(Vector2.Zero));
                 Position = topLeft + facade.DrawSize / 2;
-
-                Size = facade.FullSize;
-                Scale = Vector2.Divide(facade.DrawSize, Size);
+                Size = facade.DrawSize;
             }
         }
     }
