@@ -6,6 +6,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Online;
@@ -15,6 +16,7 @@ using osu.Game.Replays.Legacy;
 using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
 using osu.Game.Tests.Beatmaps.IO;
+using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -65,6 +67,50 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     testSpectatorStreamingClient.EndPlay(id, importedBeatmapId);
                 playingUserIds.Clear();
             });
+        }
+
+        [Test]
+        public void TestMaximiseAndMinimise()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            AddStep("maximise user 55", () =>
+            {
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddUntilStep("user 55 maximised", () => isMaximised(55));
+            AddAssert("user 56 minimised", () => !isMaximised(56));
+
+            AddStep("minimise user 55", () =>
+            {
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddUntilStep("user 55 minimised", () => !isMaximised(55));
+            AddAssert("user 56 minimised", () => !isMaximised(56));
+        }
+
+        [Test]
+        public void TestMaximiseTwoInstancesSimultaneously()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            AddStep("maximise user 55 then 56", () =>
+            {
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.Click(MouseButton.Left);
+
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 56));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddUntilStep("user 56 maximised", () => isMaximised(56));
+            AddAssert("user 55 minimised", () => !isMaximised(55));
         }
 
         [TestCase(1)]
@@ -124,13 +170,22 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
         }
 
-        private void sendFrames(int userId, int count = 10)
+        private void sendFrames(int userId, int count = 10) => sendFrames(new[] { userId }, count);
+
+        private void sendFrames(int[] userIds, int count = 10)
         {
             AddStep("send frames", () =>
             {
-                testSpectatorStreamingClient.SendFrames(userId, nextFrame, count);
+                foreach (int id in userIds)
+                    testSpectatorStreamingClient.SendFrames(id, nextFrame, count);
                 nextFrame += count;
             });
+        }
+
+        private bool isMaximised(int userId)
+        {
+            var instance = spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == userId);
+            return Precision.AlmostEquals(spectateScreen.DrawSize, instance.DrawSize, 100);
         }
 
         public class TestSpectatorStreamingClient : SpectatorStreamingClient
