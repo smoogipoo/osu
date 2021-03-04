@@ -39,18 +39,19 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private BeatmapInfo importedBeatmap;
         private int importedBeatmapId;
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            importedSet = ImportBeatmapTest.LoadOszIntoOsu(game, virtualTrack: true).Result;
+            importedBeatmap = importedSet.Beatmaps.First(b => b.RulesetID == 0);
+            importedBeatmapId = importedBeatmap.OnlineBeatmapID ?? -1;
+        }
+
         public override void SetUpSteps()
         {
             base.SetUpSteps();
 
             AddStep("reset sent frames", () => nextFrame = 0);
-
-            AddStep("import beatmap", () =>
-            {
-                importedSet = ImportBeatmapTest.LoadOszIntoOsu(game, virtualTrack: true).Result;
-                importedBeatmap = importedSet.Beatmaps.First(b => b.RulesetID == 0);
-                importedBeatmapId = importedBeatmap.OnlineBeatmapID ?? -1;
-            });
 
             AddStep("add streaming client", () =>
             {
@@ -66,11 +67,20 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
         }
 
-        [Test]
-        public void Test()
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        [TestCase(9)]
+        [TestCase(11)]
+        [TestCase(12)]
+        [TestCase(15)]
+        [TestCase(16)]
+        [TestCase(32)]
+        public void TestPlayerCount(int playerCount)
         {
-            start(55);
-
+            start(Enumerable.Range(0, playerCount).Select(i => 55 + i).ToArray());
             loadSpectateScreen();
         }
 
@@ -88,15 +98,20 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }, playingUserIds.ToArray()));
             });
 
-            AddUntilStep("wait for screen load", () => spectateScreen.LoadState == LoadState.Loaded);
+            AddUntilStep("wait for screen load", () => spectateScreen.LoadState == LoadState.Loaded && spectateScreen.AllPlayersLoaded);
         }
 
-        private void start(int userId, int? beatmapId = null)
+        private void start(int userId, int? beatmapId = null) => start(new[] { userId }, beatmapId);
+
+        private void start(int[] userIds, int? beatmapId = null)
         {
             AddStep("start play", () =>
             {
-                testSpectatorStreamingClient.StartPlay(userId, beatmapId ?? importedBeatmapId);
-                playingUserIds.Add(userId);
+                foreach (int id in userIds)
+                {
+                    testSpectatorStreamingClient.StartPlay(id, beatmapId ?? importedBeatmapId);
+                    playingUserIds.Add(id);
+                }
             });
         }
 

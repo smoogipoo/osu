@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -22,13 +23,15 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         // Isolates beatmap/ruleset to this screen.
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
+        public bool AllPlayersLoaded => instances.All(p => p.PlayerLoaded);
+
         private readonly PlaylistItem playlistItem;
         private readonly int[] userIds;
 
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
 
-        private readonly List<Drawable> players = new List<Drawable>();
+        private readonly List<PlayerInstance> instances = new List<PlayerInstance>();
 
         private OsuScrollContainer scroll;
         private FillFlowContainer<PlayerFacade> flow;
@@ -57,10 +60,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             for (int i = 0; i < Math.Min(16, userIds.Length); i++)
             {
                 var facade = new PlayerFacade();
-                var player = new PlayerCell(userLookupCache.GetUserAsync(userIds[i]).Result, facade) { Depth = 1 };
+                var player = new PlayerInstance(userLookupCache.GetUserAsync(userIds[i]).Result, facade) { Depth = 1 };
 
                 flow.Add(facade);
-                players.Add(player);
+                instances.Add(player);
 
                 AddInternal(player);
             }
@@ -139,18 +142,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         }
 
-        private class PlayerCell : CompositeDrawable
+        private class PlayerInstance : CompositeDrawable
         {
-            private readonly PlayerFacade facade;
+            public bool PlayerLoaded => stack.CurrentScreen is Player;
 
-            public PlayerCell(User user, PlayerFacade facade)
+            private readonly PlayerFacade facade;
+            private readonly OsuScreenStack stack;
+
+            public PlayerInstance(User user, PlayerFacade facade)
             {
                 this.facade = facade;
 
                 Origin = Anchor.Centre;
                 Masking = true;
 
-                OsuScreenStack stack;
                 InternalChild = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
