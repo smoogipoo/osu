@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -53,10 +54,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 }
             };
 
-            for (int i = 0; i < 128; i++)
+            for (int i = 0; i < Math.Min(16, userIds.Length); i++)
             {
                 var facade = new PlayerFacade();
-                var player = new PlayerCell(userLookupCache.GetUserAsync(userIds[0]).Result, facade) { Depth = 1 };
+                var player = new PlayerCell(userLookupCache.GetUserAsync(userIds[i]).Result, facade) { Depth = 1 };
 
                 flow.Add(facade);
                 players.Add(player);
