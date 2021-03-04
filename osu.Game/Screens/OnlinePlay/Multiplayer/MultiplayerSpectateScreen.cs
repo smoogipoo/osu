@@ -16,7 +16,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {
     public class MultiplayerSpectateScreen : OsuScreen
     {
-        private const float player_spacing = 10;
+        private const float player_spacing = 5;
 
         // Isolates beatmap/ruleset to this screen.
         public override bool DisallowExternalBeatmapRulesetChanges => true;
@@ -111,15 +111,16 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                     break;
             }
 
-            Vector2 totalSpacing = player_spacing * (cellsPerDimension - Vector2.One);
+            // Total spacing between cells
+            Vector2 totalCellSpacing = player_spacing * (cellsPerDimension - Vector2.One);
 
-            Vector2 fullSize = new Vector2(flow.ChildSize.X, scroll.ChildSize.Y) - totalSpacing;
+            Vector2 fullSize = new Vector2(flow.ChildSize.X, scroll.ChildSize.Y) - totalCellSpacing;
             Vector2 cellSize = Vector2.Divide(fullSize, new Vector2(cellsPerDimension.X, cellsPerDimension.Y));
 
             foreach (var facade in flow)
             {
-                facade.Size = cellSize;
                 facade.FullSize = fullSize;
+                facade.Size = cellSize;
             }
         }
 
