@@ -13,8 +13,10 @@ using osu.Game.Online;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
+using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
+using osu.Game.Screens.Play;
 using osu.Game.Tests.Beatmaps.IO;
 using osuTK.Input;
 
@@ -34,8 +36,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private MultiplayerSpectateScreen spectateScreen;
 
         private readonly List<int> playingUserIds = new List<int>();
-
-        private int nextFrame;
+        private readonly Dictionary<int, int> nextFrame = new Dictionary<int, int>();
 
         private BeatmapSetInfo importedSet;
         private BeatmapInfo importedBeatmap;
@@ -53,7 +54,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             base.SetUpSteps();
 
-            AddStep("reset sent frames", () => nextFrame = 0);
+            AddStep("reset sent frames", () => nextFrame.Clear());
 
             AddStep("add streaming client", () =>
             {
@@ -67,6 +68,56 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     testSpectatorStreamingClient.EndPlay(id, importedBeatmapId);
                 playingUserIds.Clear();
             });
+        }
+
+        [Test]
+        public void TestGeneral()
+        {
+            int[] userIds = Enumerable.Range(0, 4).Select(i => 55 + i).ToArray();
+
+            start(userIds);
+            loadSpectateScreen();
+
+            sendFrames(userIds, 1000);
+            AddWaitStep("wait a bit", 20);
+        }
+
+        [Test]
+        public void TestPlayersStartAtDifferentTimes()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            sendFrames(55, 20);
+
+            AddWaitStep("wait a bit", 5);
+            checkPaused(55, true);
+        }
+
+        [Test]
+        public void TestPlayerStopsSendingFrames()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            // Send initial frames for both players.
+            sendFrames(new[] { 55, 56 });
+            checkPaused(55, false);
+            checkPaused(56, false);
+
+            // Eventually they will pause due to running out of frames.
+            checkPaused(55, true);
+            checkPaused(56, true);
+
+            // Send more frames for the first user only. Both should remain paused.
+            sendFrames(55);
+            checkPaused(55, true);
+            checkPaused(56, true);
+
+            // Send more frames for the second user. Both should unpause.
+            sendFrames(56);
+            checkPaused(55, false);
+            checkPaused(56, false);
         }
 
         [Test]
@@ -157,6 +208,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 {
                     testSpectatorStreamingClient.StartPlay(id, beatmapId ?? importedBeatmapId);
                     playingUserIds.Add(id);
+                    nextFrame[id] = 0;
                 }
             });
         }
@@ -167,6 +219,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 testSpectatorStreamingClient.EndPlay(userId, beatmapId ?? importedBeatmapId);
                 playingUserIds.Remove(userId);
+                nextFrame.Remove(userId);
             });
         }
 
@@ -177,16 +230,23 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("send frames", () =>
             {
                 foreach (int id in userIds)
-                    testSpectatorStreamingClient.SendFrames(id, nextFrame, count);
-                nextFrame += count;
+                {
+                    testSpectatorStreamingClient.SendFrames(id, nextFrame[id], count);
+                    nextFrame[id] += count;
+                }
             });
         }
 
         private bool isMaximised(int userId)
-        {
-            var instance = spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == userId);
-            return Precision.AlmostEquals(spectateScreen.DrawSize, instance.DrawSize, 100);
-        }
+            => Precision.AlmostEquals(spectateScreen.DrawSize, getPlayer(userId).DrawSize, 100);
+
+        private void checkPaused(int userId, bool state) =>
+            AddUntilStep($"game is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
+
+        private Player getPlayer(int userId)
+            => spectateScreen
+               .ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == userId)
+               .ChildrenOfType<Player>().Single();
 
         public class TestSpectatorStreamingClient : SpectatorStreamingClient
         {
