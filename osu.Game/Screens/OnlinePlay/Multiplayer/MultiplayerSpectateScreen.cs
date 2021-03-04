@@ -137,7 +137,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         }
 
-        private class PlayerCell : OsuScreenStack
+        private class PlayerCell : CompositeDrawable
         {
             private readonly PlayerFacade facade;
 
@@ -145,12 +145,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             {
                 this.facade = facade;
 
-                RelativeSizeAxes = Axes.None;
                 Origin = Anchor.Centre;
-
                 Masking = true;
 
-                Push(new Spectator(user));
+                OsuScreenStack stack;
+                InternalChild = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = stack = new OsuScreenStack()
+                };
+
+                stack.Push(new Spectator(user));
             }
 
             protected override void Update()
