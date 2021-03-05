@@ -22,7 +22,7 @@ using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneMultiplayerSpectate : ScreenTestScene
+    public class TestSceneMultiplayerSpectator : ScreenTestScene
     {
         [Cached(typeof(SpectatorStreamingClient))]
         private TestSpectatorStreamingClient testSpectatorStreamingClient = new TestSpectatorStreamingClient();
@@ -33,7 +33,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Resolved]
         private BeatmapManager beatmapManager { get; set; }
 
-        private MultiplayerSpectateScreen spectateScreen;
+        private MultiplayerSpectator spectator;
 
         private readonly List<int> playingUserIds = new List<int>();
         private readonly Dictionary<int, int> nextFrame = new Dictionary<int, int>();
@@ -128,7 +128,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("maximise user 55", () =>
             {
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.MoveMouseTo(spectator.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -137,7 +137,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("minimise user 55", () =>
             {
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.MoveMouseTo(spectator.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -153,10 +153,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("maximise user 55 then 56", () =>
             {
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.MoveMouseTo(spectator.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
                 InputManager.Click(MouseButton.Left);
 
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 56));
+                InputManager.MoveMouseTo(spectator.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 56));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -188,14 +188,14 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 Beatmap.Value = beatmapManager.GetWorkingBeatmap(importedBeatmap);
                 Ruleset.Value = importedBeatmap.Ruleset;
 
-                LoadScreen(spectateScreen = new MultiplayerSpectateScreen(new PlaylistItem
+                LoadScreen(spectator = new MultiplayerSpectator(new PlaylistItem
                 {
                     Beatmap = { Value = importedBeatmap },
                     Ruleset = { Value = importedBeatmap.Ruleset }
                 }, playingUserIds.ToArray()));
             });
 
-            AddUntilStep("wait for screen load", () => spectateScreen.LoadState == LoadState.Loaded && spectateScreen.AllPlayersLoaded);
+            AddUntilStep("wait for screen load", () => spectator.LoadState == LoadState.Loaded && spectator.AllPlayersLoaded);
         }
 
         private void start(int userId, int? beatmapId = null) => start(new[] { userId }, beatmapId);
@@ -238,13 +238,13 @@ namespace osu.Game.Tests.Visual.Multiplayer
         }
 
         private bool isMaximised(int userId)
-            => Precision.AlmostEquals(spectateScreen.DrawSize, getPlayer(userId).DrawSize, 100);
+            => Precision.AlmostEquals(spectator.DrawSize, getPlayer(userId).DrawSize, 100);
 
         private void checkPaused(int userId, bool state) =>
             AddUntilStep($"game is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
 
         private Player getPlayer(int userId)
-            => spectateScreen
+            => spectator
                .ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == userId)
                .ChildrenOfType<Player>().Single();
 

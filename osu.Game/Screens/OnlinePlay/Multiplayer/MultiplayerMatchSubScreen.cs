@@ -393,7 +393,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             int[] userIds = client.CurrentMatchPlayingUserIds.ToArray();
 
             if (client.LocalUser?.State == MultiplayerUserState.Spectating)
-                EnterScreen(() => new MultiplayerSpectateScreen(SelectedItem.Value, userIds));
+                EnterScreen(() => new MultiplayerSpectator(SelectedItem.Value, userIds));
             else
                 StartPlay(() => new MultiplayerPlayer(SelectedItem.Value, userIds));
 

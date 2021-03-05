@@ -13,7 +13,7 @@ using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 {
-    public class MultiplayerSpectateScreen : OsuScreen
+    public class MultiplayerSpectator : OsuScreen
     {
         private const float player_spacing = 5;
 
@@ -37,7 +37,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         // A depth value that gets decremented every time a new instance is maximised in order to reduce underlaps.
         private float maximisedInstanceDepth = 1;
 
-        public MultiplayerSpectateScreen(PlaylistItem playlistItem, int[] userIds)
+        public MultiplayerSpectator(PlaylistItem playlistItem, int[] userIds)
         {
             this.playlistItem = playlistItem;
             this.userIds = userIds;
