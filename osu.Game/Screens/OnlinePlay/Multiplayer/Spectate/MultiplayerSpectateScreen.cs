@@ -15,7 +15,7 @@ using osu.Game.Screens.Play;
 using osu.Game.Users;
 using osuTK;
 
-namespace osu.Game.Screens.OnlinePlay.Multiplayer
+namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 {
     public class MultiplayerSpectateScreen : OsuScreen
     {
