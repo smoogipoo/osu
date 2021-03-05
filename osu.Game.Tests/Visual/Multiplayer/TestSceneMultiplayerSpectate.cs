@@ -128,7 +128,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("maximise user 55", () =>
             {
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -137,7 +137,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("minimise user 55", () =>
             {
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -153,10 +153,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("maximise user 55 then 56", () =>
             {
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 55));
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 55));
                 InputManager.Click(MouseButton.Left);
 
-                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == 56));
+                InputManager.MoveMouseTo(spectateScreen.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == 56));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -245,7 +245,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private Player getPlayer(int userId)
             => spectateScreen
-               .ChildrenOfType<MultiplayerSpectateScreen.PlayerInstance>().Single(p => p.User.Id == userId)
+               .ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == userId)
                .ChildrenOfType<Player>().Single();
 
         public class TestSpectatorStreamingClient : SpectatorStreamingClient
