@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
+using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
 using osuTK;
@@ -20,15 +21,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         public bool IsMaximised;
 
         public readonly User User;
+        public readonly Score Score;
         private readonly OsuScreenStack stack;
 
         private PlayerFacade facade;
         private bool isTracking = true;
 
-        public PlayerInstance(User user, PlayerFacade facade)
+        public PlayerInstance(Score score, PlayerFacade facade)
         {
-            User = user;
+            Score = score;
             this.facade = facade;
+
+            User = score.ScoreInfo.User;
 
             Origin = Anchor.Centre;
             Masking = true;
@@ -43,7 +47,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 }
             };
 
-            stack.Push(new Spectator(user));
+            stack.Push(new SpectatorPlayerLoader(score));
         }
 
         protected override void Update()
