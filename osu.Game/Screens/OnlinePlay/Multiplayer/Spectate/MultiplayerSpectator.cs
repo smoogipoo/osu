@@ -235,8 +235,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 var instance = instances[getIndexForUser(userId)];
                 Debug.Assert(instance != null);
 
-                if (instance.Score != null)
-                    score.Replay.HasReceivedAllFrames = true;
+                var score = instance.Score;
+                if (score == null)
+                    return;
+
+                score.Replay.HasReceivedAllFrames = true;
             }
         }
 
@@ -244,14 +247,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
             lock (scoreLock)
             {
-                var score = scores[getIndexForUser(userId)];
+                var instance = instances[getIndexForUser(userId)];
+                Debug.Assert(instance != null);
+
+                var score = instance.Score;
 
                 // this should never happen as the server sends the user's state on watching,
                 // but is here as a safety measure.
                 if (score == null)
                     return;
 
-                var ruleset = rulesets[getIndexForUser(userId)];
+                var ruleset = instance.Ruleset.Value;
+                var beatmap = instance.Beatmap.Value;
 
                 // rulesetInstance should be guaranteed to be in sync with the score via scoreLock.
                 Debug.Assert(ruleset != null && ruleset.RulesetInfo.Equals(score.ScoreInfo.Ruleset));
@@ -259,7 +266,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 foreach (var frame in bundle.Frames)
                 {
                     IConvertibleReplayFrame convertibleFrame = ruleset.CreateConvertibleReplayFrame();
-                    convertibleFrame.FromLegacy(frame, beatmap.Value.Beatmap);
+                    convertibleFrame.FromLegacy(frame, beatmap);
 
                     var convertedFrame = (ReplayFrame)convertibleFrame;
                     convertedFrame.Time = frame.Time;
