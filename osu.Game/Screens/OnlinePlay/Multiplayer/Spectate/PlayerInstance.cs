@@ -20,7 +20,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         public bool PlayerLoaded => stack.CurrentScreen is Player;
         public bool IsMaximised;
 
-        public readonly User User;
+        public User User => Score.ScoreInfo.User;
+
         public readonly Score Score;
         private readonly OsuScreenStack stack;
 
@@ -31,8 +32,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
             Score = score;
             this.facade = facade;
-
-            User = score.ScoreInfo.User;
 
             Origin = Anchor.Centre;
             Masking = true;

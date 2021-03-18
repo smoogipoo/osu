@@ -28,13 +28,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         // Isolates beatmap/ruleset to this screen.
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
-        public bool AllPlayersLoaded => instances?.All(p => p.PlayerLoaded) ?? false;
+        public bool AllPlayersLoaded => instances.All(p => p?.PlayerLoaded == true);
 
         private readonly object scoreLock = new object();
-        private readonly int[] spectatingIds;
-        private readonly Score[] scores;
-        private readonly Ruleset[] rulesets;
 
+        private readonly int[] spectatingIds;
+        private readonly PlayerInstance[] instances;
         private readonly PlaylistItem playlistItem;
 
         [Resolved]
@@ -49,8 +48,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         [Resolved]
         private SpectatorStreamingClient spectatorClient { get; set; }
 
-        private Container<PlayerInstance> instances;
-
+        private Container<PlayerInstance> instanceContainer;
         private Container paddingContainer;
         private FillFlowContainer<PlayerFacade> facades;
         private PlayerFacade maximisedFacade;
@@ -63,8 +61,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             this.playlistItem = playlistItem;
 
             spectatingIds = new int[Math.Min(max_instances, userIds.Length)];
-            scores = new Score[spectatingIds.Length];
-            rulesets = new Ruleset[spectatingIds.Length];
+            instances = new PlayerInstance[spectatingIds.Length];
 
             userIds.AsSpan().Slice(spectatingIds.Length).CopyTo(spectatingIds);
         }
@@ -93,7 +90,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                         maximisedFacade = new PlayerFacade { RelativeSizeAxes = Axes.Both }
                     }
                 },
-                instances = new Container<PlayerInstance> { RelativeSizeAxes = Axes.Both }
+                instanceContainer = new Container<PlayerInstance> { RelativeSizeAxes = Axes.Both }
             };
 
             for (int i = 0; i < spectatingIds.Length; i++)
@@ -180,7 +177,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private void toggleMaximisationState(PlayerInstance target)
         {
             // Iterate through all instances to ensure only one is maximised at any time.
-            foreach (var i in instances)
+            foreach (var i in instanceContainer)
             {
                 if (i == target)
                     i.IsMaximised = !i.IsMaximised;
@@ -193,7 +190,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                     ChangeInternalChildDepth(i, maximisedInstanceDepth -= 0.001f);
                 }
                 else
-                    i.SetFacade(facades[getIndexForUser(i.User.Id)]);
+                    i.SetFacade(facades[getIndexForUser(i.Score.ScoreInfo.User.Id)]);
             }
         }
 
@@ -202,15 +199,14 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             if (state.BeatmapID == null) return;
             if (state.RulesetID == null) return;
 
-            Score score;
-
             lock (scoreLock)
             {
+                int userIndex = getIndexForUser(userId);
                 var userBeatmap = beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == state.BeatmapID);
                 var userRuleset = rulesetStore.GetRuleset(state.RulesetID.Value).CreateInstance();
                 var userMods = state.Mods.Select(m => m.ToMod(userRuleset)).ToArray();
 
-                scores[getIndexForUser(userId)] = score = new Score
+                var score = new Score
                 {
                     ScoreInfo = new ScoreInfo
                     {
@@ -222,25 +218,24 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                     Replay = new Replay { HasReceivedAllFrames = false },
                 };
 
-                rulesets[getIndexForUser(userId)] = userRuleset;
+                instances[userIndex] = new PlayerInstance(score, facades[userIndex])
+                {
+                    Depth = 1,
+                    ToggleMaximisationState = toggleMaximisationState
+                };
+
+                LoadComponentAsync(instances[userIndex], instanceContainer.Add);
             }
-
-            var instance = new PlayerInstance(score, facades[getIndexForUser(userId)])
-            {
-                Depth = 1,
-                ToggleMaximisationState = toggleMaximisationState
-            };
-
-            instances.Add(instance);
         }
 
         private void userFinishedPlaying(int userId, SpectatorState state)
         {
             lock (scoreLock)
             {
-                var score = scores[getIndexForUser(userId)];
+                var instance = instances[getIndexForUser(userId)];
+                Debug.Assert(instance != null);
 
-                if (score != null)
+                if (instance.Score != null)
                     score.Replay.HasReceivedAllFrames = true;
             }
         }
