@@ -3,9 +3,12 @@
 
 using System;
 using JetBrains.Annotations;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
+using osu.Game.Beatmaps;
+using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
@@ -22,9 +25,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
         public User User => Score.ScoreInfo.User;
 
-        public readonly Score Score;
-        private readonly OsuScreenStack stack;
+        public WorkingBeatmap Beatmap { get; private set; }
+        public Ruleset Ruleset { get; private set; }
 
+        public readonly Score Score;
+
+        private OsuScreenStack stack;
         private PlayerFacade facade;
         private bool isTracking = true;
 
@@ -35,8 +41,15 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
             Origin = Anchor.Centre;
             Masking = true;
+        }
 
-            InternalChild = new Container
+        [BackgroundDependencyLoader]
+        private void load(BeatmapManager beatmapManager)
+        {
+            Beatmap = beatmapManager.GetWorkingBeatmap(Score.ScoreInfo.Beatmap, bypassCache: true);
+            Ruleset = Score.ScoreInfo.Ruleset.CreateInstance();
+
+            InternalChild = new GameplayIsolationContainer(Beatmap, Score.ScoreInfo.Ruleset, Score.ScoreInfo.Mods)
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = new DrawSizePreservingFillContainer
@@ -46,7 +59,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 }
             };
 
-            stack.Push(new SpectatorPlayerLoader(score));
+            stack.Push(new SpectatorPlayerLoader(Score));
         }
 
         protected override void Update()

@@ -34,6 +34,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
         private readonly int[] spectatingIds;
         private readonly PlayerInstance[] instances;
+
+        // ReSharper disable once NotAccessedField.Local
         private readonly PlaylistItem playlistItem;
 
         [Resolved]
@@ -199,14 +201,15 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             if (state.BeatmapID == null) return;
             if (state.RulesetID == null) return;
 
+            Score score;
+
             lock (scoreLock)
             {
-                int userIndex = getIndexForUser(userId);
                 var userBeatmap = beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == state.BeatmapID);
                 var userRuleset = rulesetStore.GetRuleset(state.RulesetID.Value).CreateInstance();
                 var userMods = state.Mods.Select(m => m.ToMod(userRuleset)).ToArray();
 
-                var score = new Score
+                score = new Score
                 {
                     ScoreInfo = new ScoreInfo
                     {
@@ -217,15 +220,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                     },
                     Replay = new Replay { HasReceivedAllFrames = false },
                 };
-
-                instances[userIndex] = new PlayerInstance(score, facades[userIndex])
-                {
-                    Depth = 1,
-                    ToggleMaximisationState = toggleMaximisationState
-                };
-
-                LoadComponentAsync(instances[userIndex], instanceContainer.Add);
             }
+
+            int userIndex = getIndexForUser(userId);
+
+            instances[userIndex] = new PlayerInstance(score, facades[userIndex])
+            {
+                Depth = 1,
+                ToggleMaximisationState = toggleMaximisationState
+            };
+
+            LoadComponentAsync(instances[userIndex], instanceContainer.Add);
         }
 
         private void userFinishedPlaying(int userId, SpectatorState state)
@@ -257,8 +262,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 if (score == null)
                     return;
 
-                var ruleset = instance.Ruleset.Value;
-                var beatmap = instance.Beatmap.Value;
+                var ruleset = instance.Ruleset;
+                var beatmap = instance.Beatmap;
 
                 // rulesetInstance should be guaranteed to be in sync with the score via scoreLock.
                 Debug.Assert(ruleset != null && ruleset.RulesetInfo.Equals(score.ScoreInfo.Ruleset));
@@ -266,7 +271,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 foreach (var frame in bundle.Frames)
                 {
                     IConvertibleReplayFrame convertibleFrame = ruleset.CreateConvertibleReplayFrame();
-                    convertibleFrame.FromLegacy(frame, beatmap);
+                    convertibleFrame.FromLegacy(frame, beatmap.Beatmap);
 
                     var convertedFrame = (ReplayFrame)convertibleFrame;
                     convertedFrame.Time = frame.Time;
