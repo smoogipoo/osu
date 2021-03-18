@@ -260,11 +260,11 @@ namespace osu.Game.Online.Multiplayer
             {
                 case MultiplayerUserState.Idle:
                 case MultiplayerUserState.Ready:
-                    await ChangeState(MultiplayerUserState.Spectating);
+                    await ChangeState(MultiplayerUserState.Spectating).ConfigureAwait(false);
                     return;
 
                 case MultiplayerUserState.Spectating:
-                    await ChangeState(MultiplayerUserState.Idle);
+                    await ChangeState(MultiplayerUserState.Idle).ConfigureAwait(false);
                     return;
 
                 default:
