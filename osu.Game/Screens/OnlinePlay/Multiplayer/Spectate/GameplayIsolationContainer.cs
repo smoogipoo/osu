@@ -30,5 +30,14 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
             beatmap.LoadTrack();
         }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
+            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+            dependencies.CacheAs(ruleset.BeginLease(false));
+            dependencies.CacheAs(beatmap.BeginLease(false));
+            dependencies.CacheAs(mods.BeginLease(false));
+            return dependencies;
+        }
     }
 }
