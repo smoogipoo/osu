@@ -241,7 +241,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             => Precision.AlmostEquals(spectator.DrawSize, getPlayer(userId).DrawSize, 100);
 
         private void checkPaused(int userId, bool state) =>
-            AddUntilStep($"game is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
+            AddUntilStep($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
 
         private Player getPlayer(int userId)
             => spectator
