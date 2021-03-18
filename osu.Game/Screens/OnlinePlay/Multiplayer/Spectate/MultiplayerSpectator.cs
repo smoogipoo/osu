@@ -65,7 +65,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             spectatingIds = new int[Math.Min(max_instances, userIds.Length)];
             instances = new PlayerInstance[spectatingIds.Length];
 
-            userIds.AsSpan().Slice(spectatingIds.Length).CopyTo(spectatingIds);
+            userIds.AsSpan().Slice(0, spectatingIds.Length).CopyTo(spectatingIds);
         }
 
         [BackgroundDependencyLoader]
