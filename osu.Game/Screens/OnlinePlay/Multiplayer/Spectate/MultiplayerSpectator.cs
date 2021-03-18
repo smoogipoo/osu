@@ -179,8 +179,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private void toggleMaximisationState(PlayerInstance target)
         {
             // Iterate through all instances to ensure only one is maximised at any time.
-            foreach (var i in instanceContainer)
+            foreach (var i in instances)
             {
+                if (i == null)
+                    continue;
+
                 if (i == target)
                     i.IsMaximised = !i.IsMaximised;
                 else
@@ -189,7 +192,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 if (i.IsMaximised)
                 {
                     i.SetFacade(maximisedFacade);
-                    ChangeInternalChildDepth(i, maximisedInstanceDepth -= 0.001f);
+                    instanceContainer.ChangeChildDepth(i, maximisedInstanceDepth -= 0.001f);
                 }
                 else
                     i.SetFacade(facades[getIndexForUser(i.Score.ScoreInfo.User.Id)]);
