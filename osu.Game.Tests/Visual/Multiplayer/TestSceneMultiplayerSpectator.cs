@@ -83,41 +83,93 @@ namespace osu.Game.Tests.Visual.Multiplayer
         }
 
         [Test]
-        public void TestPlayersStartAtDifferentTimes()
+        public void TestPlayersMustStartSimultaneously()
         {
             start(new[] { 55, 56 });
             loadSpectateScreen();
 
+            // Send frames for one player only, both should remain paused.
             sendFrames(55, 20);
+            checkPausedInstant(55, true);
+            checkPausedInstant(56, true);
 
-            AddWaitStep("wait a bit", 5);
-            checkPaused(55, true);
+            // Send frames for the other player, both should now start playing.
+            sendFrames(56, 20);
+            checkPausedInstant(55, false);
+            checkPausedInstant(56, false);
         }
 
         [Test]
-        public void TestPlayerStopsSendingFrames()
+        public void TestPlayersDoNotStartSimultaneouslyIfBufferingFor15Seconds()
         {
             start(new[] { 55, 56 });
             loadSpectateScreen();
 
-            // Send initial frames for both players.
-            sendFrames(new[] { 55, 56 });
-            checkPaused(55, false);
-            checkPaused(56, false);
+            // Send frames for one player only, both should remain paused.
+            sendFrames(55, 20);
+            checkPausedInstant(55, true);
+            checkPausedInstant(56, true);
 
-            // Eventually they will pause due to running out of frames.
+            // Wait 15 seconds...
+            AddWaitStep("wait 15 seconds", (int)(15000 / TimePerAction));
+
+            // Player 1 should start playing by itself, player 2 should remain paused.
+            checkPausedInstant(55, false);
+            checkPausedInstant(56, true);
+        }
+
+        [Test]
+        public void TestPlayersContinueWhileOthersBuffer()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            // Send initial frames for both players. A few more for player 1.
+            sendFrames(55, 20);
+            sendFrames(56, 10);
+            checkPausedInstant(55, false);
+            checkPausedInstant(56, false);
+
+            // Eventually player 2 will pause, player 1 must remain running.
+            checkPaused(56, true);
+            checkPausedInstant(55, false);
+
+            // Eventually both players will run out of frames and should pause.
             checkPaused(55, true);
+            checkPausedInstant(56, true);
+
+            // Send more frames for the first player only. Player 1 should start playing with player 2 remaining paused.
+            sendFrames(55, 20);
+            checkPausedInstant(56, true);
+            checkPausedInstant(55, false);
+
+            // Send more frames for the second player. Both should be playing
+            sendFrames(56, 20);
+            checkPausedInstant(56, false);
+            checkPausedInstant(55, false);
+        }
+
+        [Test]
+        public void TestPlayersCatchUpAfterFallingBehind()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            // Send initial frames for both players. A few more for player 1.
+            sendFrames(55, 100);
+            sendFrames(56, 10);
+            checkPausedInstant(55, false);
+            checkPausedInstant(56, false);
+
+            // Eventually player 2 will run out of frames and should pause.
             checkPaused(56, true);
 
-            // Send more frames for the first user only. Both should remain paused.
-            sendFrames(55);
-            checkPaused(55, true);
-            checkPaused(56, true);
+            // Send more frames for player 2. It should unpause.
+            sendFrames(56, 100);
+            checkPausedInstant(56, false);
 
-            // Send more frames for the second user. Both should unpause.
-            sendFrames(56);
-            checkPaused(55, false);
-            checkPaused(56, false);
+            // Player 2 should catch up to player 1 after unpausing.
+            AddUntilStep("player 1 time == player 2 time", () => Precision.AlmostEquals(getGameplayTime(55), getGameplayTime(56), 16));
         }
 
         [Test]
@@ -242,6 +294,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private void checkPaused(int userId, bool state) =>
             AddUntilStep($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
+
+        private void checkPausedInstant(int userId, bool state) =>
+            AddAssert($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
+
+        private double getGameplayTime(int userId) => getPlayer(userId).ChildrenOfType<GameplayClockContainer>().Single().GameplayClock.CurrentTime;
 
         private Player getPlayer(int userId)
             => spectator
