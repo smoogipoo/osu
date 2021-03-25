@@ -7,6 +7,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.Rooms;
@@ -16,6 +17,7 @@ using osu.Game.Rulesets;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.Replays.Types;
 using osu.Game.Scoring;
+using osu.Game.Screens.Play;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
@@ -173,6 +175,55 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             {
                 facade.FullSize = fullSize;
                 facade.Size = cellSize;
+            }
+
+            updatePlayTime();
+        }
+
+        private bool gameplayStarted;
+
+        private void updatePlayTime()
+        {
+            if (gameplayStarted)
+            {
+                ensurePlaying(instances.Select(i => i.Beatmap.Track.CurrentTime).Max());
+                return;
+            }
+
+            // Make sure all players are loaded.
+            if (!AllPlayersLoaded)
+            {
+                ensureAllStopped();
+                return;
+            }
+
+            if (!instances.All(i => i.Score.Replay.Frames.Count > 0))
+            {
+                ensureAllStopped();
+                return;
+            }
+
+            gameplayStarted = true;
+        }
+
+        private void ensureAllStopped()
+        {
+            foreach (var inst in instances)
+                inst.ChildrenOfType<GameplayClockContainer>().SingleOrDefault()?.Stop();
+        }
+
+        private void ensurePlaying(double targetTime)
+        {
+            foreach (var inst in instances)
+            {
+                double lastFrameTime = inst.Score.Replay.Frames.Select(f => f.Time).Last();
+                double currentTime = inst.Beatmap.Track.CurrentTime;
+
+                if (lastFrameTime > currentTime + 50)
+                    inst.ChildrenOfType<GameplayClockContainer>().Single().Start();
+
+                if (lastFrameTime > targetTime)
+                    inst.ChildrenOfType<GameplayClockContainer>().Single().Seek(targetTime);
             }
         }
 

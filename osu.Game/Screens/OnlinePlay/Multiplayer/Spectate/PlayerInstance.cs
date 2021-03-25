@@ -20,7 +20,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
     {
         public Action<PlayerInstance> ToggleMaximisationState;
 
-        public bool PlayerLoaded => stack.CurrentScreen is Player;
+        public bool PlayerLoaded => stack?.CurrentScreen is Player;
         public bool IsMaximised;
 
         public User User => Score.ScoreInfo.User;

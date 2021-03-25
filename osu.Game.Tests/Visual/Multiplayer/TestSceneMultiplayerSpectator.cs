@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
@@ -13,7 +15,6 @@ using osu.Game.Online;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
-using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
 using osu.Game.Screens.Play;
@@ -229,8 +230,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [TestCase(32)]
         public void TestPlayerCount(int playerCount)
         {
-            start(Enumerable.Range(0, playerCount).Select(i => 55 + i).ToArray());
+            var userIds = Enumerable.Range(0, playerCount).Select(i => 55 + i).ToArray();
+
+            start(userIds);
             loadSpectateScreen();
+            sendFrames(userIds);
         }
 
         private void loadSpectateScreen()
@@ -293,10 +297,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
             => Precision.AlmostEquals(spectator.DrawSize, getPlayer(userId).DrawSize, 100);
 
         private void checkPaused(int userId, bool state) =>
-            AddUntilStep($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
+            AddUntilStep($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<GameplayClockContainer>().First().IsPaused.Value == state);
 
         private void checkPausedInstant(int userId, bool state) =>
-            AddAssert($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<DrawableRuleset>().First().IsPaused.Value == state);
+            AddAssert($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<GameplayClockContainer>().First().IsPaused.Value == state);
 
         private double getGameplayTime(int userId) => getPlayer(userId).ChildrenOfType<GameplayClockContainer>().Single().GameplayClock.CurrentTime;
 
