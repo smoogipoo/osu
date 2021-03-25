@@ -162,7 +162,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             // Eventually player 2 will run out of frames and should pause.
             checkPaused(56, true);
-            AddWaitStep("wait a few more frames", 5);
+            AddWaitStep("wait a few more frames", 10);
 
             // Send more frames for player 2. It should unpause.
             sendFrames(56, 100);
