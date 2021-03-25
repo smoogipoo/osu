@@ -5,9 +5,12 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.Rooms;
@@ -26,6 +29,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
     {
         private const float player_spacing = 5;
         private const int max_instances = 16;
+
+        private const double min_duration_to_allow_playback = 50;
+
+        private const double max_sync_offset = 2;
 
         // Isolates beatmap/ruleset to this screen.
         public override bool DisallowExternalBeatmapRulesetChanges => true;
@@ -212,6 +219,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 inst.ChildrenOfType<GameplayClockContainer>().SingleOrDefault()?.Stop();
         }
 
+        private readonly BindableDouble catchupFrequencyAdjustment = new BindableDouble(2.0);
+
         private void ensurePlaying(double targetTime)
         {
             foreach (var inst in instances)
@@ -219,11 +228,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 double lastFrameTime = inst.Score.Replay.Frames.Select(f => f.Time).Last();
                 double currentTime = inst.Beatmap.Track.CurrentTime;
 
-                if (lastFrameTime > currentTime + 50)
+                // If we have enough frames to play back, start playback.
+                if (Precision.DefinitelyBigger(lastFrameTime, currentTime, min_duration_to_allow_playback))
+                {
                     inst.ChildrenOfType<GameplayClockContainer>().Single().Start();
 
-                if (lastFrameTime > targetTime)
-                    inst.ChildrenOfType<GameplayClockContainer>().Single().Seek(targetTime);
+                    if (targetTime < lastFrameTime && targetTime > currentTime + 16)
+                        inst.Beatmap.Track.AddAdjustment(AdjustableProperty.Frequency, catchupFrequencyAdjustment);
+                    else
+                        inst.Beatmap.Track.RemoveAdjustment(AdjustableProperty.Frequency, catchupFrequencyAdjustment);
+                }
+                else
+                    inst.Beatmap.Track.RemoveAdjustment(AdjustableProperty.Frequency, catchupFrequencyAdjustment);
             }
         }
 
