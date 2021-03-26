@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
@@ -28,10 +29,13 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         public WorkingBeatmap Beatmap { get; private set; }
         public Ruleset Ruleset { get; private set; }
 
+        public ScoreProcessor ScoreProcessor => player?.ScoreProcessor;
+
         public readonly Score Score;
 
         private OsuScreenStack stack;
         private PlayerFacade facade;
+        private MultiplayerSpectatorPlayer player;
         private bool isTracking = true;
 
         public PlayerInstance(Score score, PlayerFacade facade)
@@ -59,7 +63,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 }
             };
 
-            stack.Push(new SpectatorPlayerLoader(Score));
+            stack.Push(new SpectatorPlayerLoader(Score, () => player = new MultiplayerSpectatorPlayer(Score)));
         }
 
         protected override void Update()
@@ -107,6 +111,16 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
             ToggleMaximisationState(this);
             return true;
+        }
+    }
+
+    public class MultiplayerSpectatorPlayer : SpectatorPlayer
+    {
+        public new ScoreProcessor ScoreProcessor => base.ScoreProcessor;
+
+        public MultiplayerSpectatorPlayer(Score score)
+            : base(score)
+        {
         }
     }
 }

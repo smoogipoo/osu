@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace osu.Game.Screens.Play.HUD
     [LongRunningLoad]
     public class MultiplayerGameplayLeaderboard : GameplayLeaderboard
     {
-        private readonly ScoreProcessor scoreProcessor;
+        private readonly Func<int, ScoreProcessor> getScoreProcessorFunc;
 
         private readonly Dictionary<int, TrackedUserData> userScores = new Dictionary<int, TrackedUserData>();
 
@@ -42,9 +43,14 @@ namespace osu.Game.Screens.Play.HUD
         /// <param name="scoreProcessor">A score processor instance to handle score calculation for scores of users in the match.</param>
         /// <param name="userIds">IDs of all users in this match.</param>
         public MultiplayerGameplayLeaderboard(ScoreProcessor scoreProcessor, int[] userIds)
+            : this(_ => scoreProcessor, userIds)
+        {
+        }
+
+        public MultiplayerGameplayLeaderboard(Func<int, ScoreProcessor> getScoreProcessorFunc, int[] userIds)
         {
             // todo: this will eventually need to be created per user to support different mod combinations.
-            this.scoreProcessor = scoreProcessor;
+            this.getScoreProcessorFunc = getScoreProcessorFunc;
 
             // todo: this will likely be passed in as User instances.
             playingUsers = new BindableList<int>(userIds);
@@ -80,14 +86,14 @@ namespace osu.Game.Screens.Play.HUD
             base.LoadComplete();
 
             // BindableList handles binding in a really bad way (Clear then AddRange) so we need to do this manually..
-            foreach (int userId in playingUsers)
-            {
-                if (!multiplayerClient.CurrentMatchPlayingUserIds.Contains(userId))
-                    usersChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { userId }));
-            }
-
-            playingUsers.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
-            playingUsers.BindCollectionChanged(usersChanged);
+            // foreach (int userId in playingUsers)
+            // {
+            //     if (!multiplayerClient.CurrentMatchPlayingUserIds.Contains(userId))
+            //         usersChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { userId }));
+            // }
+            //
+            // playingUsers.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
+            // playingUsers.BindCollectionChanged(usersChanged);
 
             // this leaderboard should be guaranteed to be completely loaded before the gameplay starts (is a prerequisite in MultiplayerPlayer).
             streamingClient.OnNewFrames += handleIncomingFrames;
@@ -112,8 +118,8 @@ namespace osu.Game.Screens.Play.HUD
 
         private void updateAllScores(ValueChangedEvent<ScoringMode> mode)
         {
-            foreach (var trackedData in userScores.Values)
-                trackedData.UpdateScore(scoreProcessor, mode.NewValue);
+            foreach (var kvp in userScores)
+                kvp.Value.UpdateScore(getScoreProcessorFunc(kvp.Key), mode.NewValue);
         }
 
         private void handleIncomingFrames(int userId, FrameDataBundle bundle)
@@ -121,7 +127,7 @@ namespace osu.Game.Screens.Play.HUD
             if (userScores.TryGetValue(userId, out var trackedData))
             {
                 trackedData.LastHeader = bundle.Header;
-                trackedData.UpdateScore(scoreProcessor, scoringMode.Value);
+                trackedData.UpdateScore(getScoreProcessorFunc(userId), scoringMode.Value);
             }
         }
 

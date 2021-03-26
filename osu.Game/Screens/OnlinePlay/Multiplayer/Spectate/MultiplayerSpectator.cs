@@ -21,6 +21,7 @@ using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.Replays.Types;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
+using osu.Game.Screens.Play.HUD;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
@@ -80,25 +81,46 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         [BackgroundDependencyLoader]
         private void load(UserLookupCache userLookupCache)
         {
+            Container leaderboardContainer;
+
             InternalChildren = new Drawable[]
             {
-                paddingContainer = new Container
+                new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding(player_spacing),
-                    Children = new Drawable[]
+                    ColumnDimensions = new[]
                     {
-                        new Container
+                        new Dimension(GridSizeMode.AutoSize)
+                    },
+                    Content = new[]
+                    {
+                        new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Child = facades = new FillFlowContainer<PlayerFacade>
+                            leaderboardContainer = new Container
                             {
-                                RelativeSizeAxes = Axes.X,
-                                AutoSizeAxes = Axes.Y,
-                                Spacing = new Vector2(player_spacing),
-                            }
-                        },
-                        maximisedFacade = new PlayerFacade { RelativeSizeAxes = Axes.Both }
+                                RelativeSizeAxes = Axes.Y,
+                                AutoSizeAxes = Axes.X,
+                            },
+                            paddingContainer = new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding(player_spacing),
+                                Children = new Drawable[]
+                                {
+                                    new Container
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Child = facades = new FillFlowContainer<PlayerFacade>
+                                        {
+                                            RelativeSizeAxes = Axes.X,
+                                            AutoSizeAxes = Axes.Y,
+                                            Spacing = new Vector2(player_spacing),
+                                        }
+                                    },
+                                    maximisedFacade = new PlayerFacade { RelativeSizeAxes = Axes.Both }
+                                }
+                            },
+                        }
                     }
                 },
                 instanceContainer = new Container<PlayerInstance> { RelativeSizeAxes = Axes.Both }
@@ -111,6 +133,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 facades.Add(facade);
                 facades.SetLayoutPosition(facade, i);
             }
+
+            LoadComponentAsync(new MultiplayerGameplayLeaderboard(userId => instances[getIndexForUser(userId)].ScoreProcessor, spectatingIds)
+            {
+                Expanded = { Value = true }
+            }, leaderboardContainer.Add);
         }
 
         protected override void LoadComplete()
