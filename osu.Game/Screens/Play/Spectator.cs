@@ -46,15 +46,18 @@ namespace osu.Game.Screens.Play
         [Resolved]
         private SpectatorStreamingClient spectatorClient { get; set; }
 
-        private readonly object usersLock = new object();
-        private readonly Dictionary<int, UserState> userStates = new Dictionary<int, UserState>();
+        private readonly object stateLock = new object();
+
+        private readonly Dictionary<int, User> userMap = new Dictionary<int, User>();
+        private readonly Dictionary<int, SpectatorState> spectatorStates = new Dictionary<int, SpectatorState>();
+        private readonly Dictionary<int, GameplayState> gameplayStates = new Dictionary<int, GameplayState>();
 
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
 
         protected AbstractSpectator(params User[] users)
         {
             foreach (var user in users)
-                userStates[user.Id] = new UserState(user);
+                userMap[user.Id] = user;
         }
 
         protected override void LoadComplete()
@@ -65,10 +68,10 @@ namespace osu.Game.Screens.Play
             spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
             spectatorClient.OnNewFrames += userSentFrames;
 
-            lock (usersLock)
+            lock (stateLock)
             {
-                foreach (var (_, state) in userStates)
-                    spectatorClient.WatchUser(state.User.Id);
+                foreach (var (userId, _) in userMap)
+                    spectatorClient.WatchUser(userId);
             }
 
             managerUpdated = Beatmaps.ItemUpdated.GetBoundCopy();
@@ -80,22 +83,14 @@ namespace osu.Game.Screens.Play
             if (!beatmap.NewValue.TryGetTarget(out var beatmapSet))
                 return;
 
-            var usersToStart = new List<int>();
-
-            lock (usersLock)
+            lock (stateLock)
             {
-                foreach (var (_, state) in userStates)
+                foreach (var (userId, state) in spectatorStates)
                 {
-                    lock (state.StateLock)
-                    {
-                        if (beatmapSet.Beatmaps.Any(b => b.OnlineBeatmapID == state.SpectatorState.BeatmapID))
-                            usersToStart.Add(state.User.Id);
-                    }
+                    if (beatmapSet.Beatmaps.Any(b => b.OnlineBeatmapID == state.BeatmapID))
+                        updateGameplayState(userId);
                 }
             }
-
-            foreach (var user in usersToStart)
-                updateGameplayState(user);
         }
 
         private void userBeganPlaying(int userId, SpectatorState state)
@@ -103,26 +98,63 @@ namespace osu.Game.Screens.Play
             if (state.RulesetID == null || state.BeatmapID == null)
                 return;
 
-            if (!tryGetUserState(userId, out var userState))
-                return;
+            lock (stateLock)
+            {
+                if (!userMap.TryGetValue(userId, out var user))
+                    return;
 
-            lock (userState.StateLock)
-                userState.SpectatorState = state;
+                spectatorStates[userId] = state;
+                OnUserStateChanged(user, state);
 
-            OnUserStateChanged(userState);
+                updateGameplayState(userId);
+            }
+        }
 
-            updateGameplayState(userId);
+        private void updateGameplayState(int userId)
+        {
+            lock (stateLock)
+            {
+                var spectatorState = spectatorStates[userId];
+                var user = userMap[userId];
+
+                var resolvedRuleset = Rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == spectatorState.RulesetID)?.CreateInstance();
+                if (resolvedRuleset == null)
+                    return;
+
+                var resolvedBeatmap = Beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == spectatorState.BeatmapID);
+                if (resolvedBeatmap == null)
+                    return;
+
+                var score = new Score
+                {
+                    ScoreInfo = new ScoreInfo
+                    {
+                        Beatmap = resolvedBeatmap,
+                        User = user,
+                        Mods = spectatorState.Mods.Select(m => m.ToMod(resolvedRuleset)).ToArray(),
+                        Ruleset = resolvedRuleset.RulesetInfo,
+                    },
+                    Replay = new Replay { HasReceivedAllFrames = false },
+                };
+
+                // Todo: This is completely wrong.
+                var playableBeatmap = Beatmaps.GetWorkingBeatmap(resolvedBeatmap).Beatmap;
+
+                var gameplayState = new GameplayState(score, resolvedRuleset, playableBeatmap);
+
+                gameplayStates[userId] = gameplayState;
+                OnGameplayStateChanged(user, gameplayState);
+            }
         }
 
         private void userSentFrames(int userId, FrameDataBundle bundle)
         {
-            if (!tryGetUserState(userId, out var userState))
-                return;
-
-            lock (userState.StateLock)
+            lock (stateLock)
             {
-                var gameplayState = userState.GameplayState;
-                if (gameplayState == null)
+                if (!userMap.ContainsKey(userId))
+                    return;
+
+                if (!gameplayStates.TryGetValue(userId, out var gameplayState))
                     return;
 
                 // The ruleset instance should be guaranteed to be in sync with the score via ScoreLock.
@@ -143,64 +175,22 @@ namespace osu.Game.Screens.Play
 
         private void userFinishedPlaying(int userId, SpectatorState state)
         {
-            if (!tryGetUserState(userId, out var userState))
-                return;
-
-            lock (userState.StateLock)
+            lock (stateLock)
             {
-                var gameplayState = userState.GameplayState;
-                if (gameplayState == null)
+                if (!userMap.TryGetValue(userId, out var user))
+                    return;
+
+                if (!gameplayStates.TryGetValue(userId, out var gameplayState))
                     return;
 
                 gameplayState.Score.Replay.HasReceivedAllFrames = true;
-                userState.GameplayState = null;
 
-                OnGameplayStateChanged(userState.User, userState.GameplayState);
+                gameplayStates.Remove(userId);
+                OnGameplayStateChanged(user, null);
             }
         }
 
-        private void updateGameplayState(int userId)
-        {
-            if (!tryGetUserState(userId, out var userState))
-                return;
-
-            lock (userState.StateLock)
-            {
-                var resolvedRuleset = Rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == userState.SpectatorState.RulesetID)?.CreateInstance();
-                if (resolvedRuleset == null)
-                    return;
-
-                var resolvedBeatmap = Beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == userState.SpectatorState.BeatmapID);
-                if (resolvedBeatmap == null)
-                    return;
-
-                var score = new Score
-                {
-                    ScoreInfo = new ScoreInfo
-                    {
-                        Beatmap = resolvedBeatmap,
-                        User = userState.User,
-                        Mods = userState.SpectatorState.Mods.Select(m => m.ToMod(resolvedRuleset)).ToArray(),
-                        Ruleset = resolvedRuleset.RulesetInfo,
-                    },
-                    Replay = new Replay { HasReceivedAllFrames = false },
-                };
-
-                // Todo: This is completely wrong.
-                var playableBeatmap = Beatmaps.GetWorkingBeatmap(resolvedBeatmap).Beatmap;
-
-                userState.GameplayState = new GameplayState(score, resolvedRuleset, playableBeatmap);
-                OnGameplayStateChanged(userState.User, userState.GameplayState);
-            }
-        }
-
-        private bool tryGetUserState(int userId, out UserState state)
-        {
-            lock (usersLock)
-                return userStates.TryGetValue(userId, out state);
-        }
-
-        protected abstract void OnUserStateChanged(UserState userState);
+        protected abstract void OnUserStateChanged(User user, SpectatorState spectatorState);
 
         protected abstract void OnGameplayStateChanged([NotNull] User user, [CanBeNull] GameplayState gameplayState);
 
@@ -214,29 +204,14 @@ namespace osu.Game.Screens.Play
                 spectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
                 spectatorClient.OnNewFrames -= userSentFrames;
 
-                lock (usersLock)
+                lock (stateLock)
                 {
-                    foreach (var (_, state) in userStates)
-                        spectatorClient.StopWatchingUser(state.User.Id);
+                    foreach (var (userId, _) in userMap)
+                        spectatorClient.StopWatchingUser(userId);
                 }
             }
 
             managerUpdated?.UnbindAll();
-        }
-    }
-
-    public class UserState
-    {
-        public readonly object StateLock = new object();
-
-        public readonly User User;
-
-        public SpectatorState SpectatorState;
-        public GameplayState GameplayState;
-
-        public UserState(User user)
-        {
-            User = user;
         }
     }
 
@@ -385,10 +360,10 @@ namespace osu.Game.Screens.Play
                 Schedule(attemptStart);
         });
 
-        protected override void OnUserStateChanged(UserState userState)
+        protected override void OnUserStateChanged(User user, SpectatorState spectatorState)
         {
             clearDisplay();
-            showBeatmapPanel(userState.SpectatorState);
+            showBeatmapPanel(spectatorState);
         }
 
         public override void OnResuming(IScreen last)
