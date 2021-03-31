@@ -137,10 +137,7 @@ namespace osu.Game.Screens.Play
                     Replay = new Replay { HasReceivedAllFrames = false },
                 };
 
-                // Todo: This is completely wrong.
-                var playableBeatmap = Beatmaps.GetWorkingBeatmap(resolvedBeatmap).Beatmap;
-
-                var gameplayState = new GameplayState(score, resolvedRuleset, playableBeatmap);
+                var gameplayState = new GameplayState(score, resolvedRuleset, Beatmaps.GetWorkingBeatmap(resolvedBeatmap));
 
                 gameplayStates[userId] = gameplayState;
                 OnGameplayStateChanged(user, gameplayState);
@@ -163,7 +160,7 @@ namespace osu.Game.Screens.Play
                 foreach (var frame in bundle.Frames)
                 {
                     IConvertibleReplayFrame convertibleFrame = gameplayState.Ruleset.CreateConvertibleReplayFrame();
-                    convertibleFrame.FromLegacy(frame, gameplayState.Beatmap);
+                    convertibleFrame.FromLegacy(frame, gameplayState.Beatmap.Beatmap);
 
                     var convertedFrame = (ReplayFrame)convertibleFrame;
                     convertedFrame.Time = frame.Time;
@@ -219,9 +216,9 @@ namespace osu.Game.Screens.Play
     {
         public readonly Score Score;
         public readonly Ruleset Ruleset;
-        public readonly IBeatmap Beatmap;
+        public readonly WorkingBeatmap Beatmap;
 
-        public GameplayState(Score score, Ruleset ruleset, IBeatmap beatmap)
+        public GameplayState(Score score, Ruleset ruleset, WorkingBeatmap beatmap)
         {
             Score = score;
             Ruleset = ruleset;
@@ -246,7 +243,17 @@ namespace osu.Game.Screens.Play
         private SettingsCheckbox automaticDownload;
         private BeatmapSetInfo onlineBeatmap;
 
-        private GameplayState currentGameplayState;
+        /// <summary>
+        /// The player's immediate online gameplay state.
+        /// This doesn't reflect the gameplay state being watched by the user if <see cref="pendingGameplayState"/> is non-null.
+        /// </summary>
+        private GameplayState immediateGameplayState;
+
+        /// <summary>
+        /// The gameplay state that is pending to be watched, upon this screen becoming current.
+        /// </summary>
+        private GameplayState pendingGameplayState;
+
         private GetBeatmapSetRequest onlineBeatmapRequest;
 
         public Spectator([NotNull] User targetUser)
@@ -335,7 +342,7 @@ namespace osu.Game.Screens.Play
                                 Width = 250,
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Action = attemptStart,
+                                Action = () => attemptStart(immediateGameplayState),
                                 Enabled = { Value = false }
                             }
                         }
@@ -352,39 +359,53 @@ namespace osu.Game.Screens.Play
 
         protected override void OnGameplayStateChanged(User user, GameplayState gameplayState) => Schedule(() =>
         {
-            currentGameplayState = gameplayState;
+            pendingGameplayState = null;
+            immediateGameplayState = gameplayState;
 
             if (gameplayState == null)
                 Schedule(clearDisplay);
             else if (this.IsCurrentScreen())
-                Schedule(attemptStart);
+                Schedule(() => attemptStart(gameplayState));
+            else
+                pendingGameplayState = gameplayState;
+
+            watchButton.Enabled.Value = true;
         });
 
-        protected override void OnUserStateChanged(User user, SpectatorState spectatorState)
+        protected override void OnUserStateChanged(User user, SpectatorState spectatorState) => Schedule(() =>
         {
             clearDisplay();
             showBeatmapPanel(spectatorState);
-        }
+        });
 
         public override void OnResuming(IScreen last)
         {
             base.OnResuming(last);
-            attemptStart();
+
+            if (pendingGameplayState != null)
+            {
+                attemptStart(pendingGameplayState);
+                pendingGameplayState = null;
+            }
         }
 
         private void clearDisplay()
         {
             watchButton.Enabled.Value = false;
+            onlineBeatmapRequest?.Cancel();
             beatmapPanelContainer.Clear();
             previewTrackManager.StopAnyPlaying(this);
         }
 
-        private void attemptStart()
+        private void attemptStart(GameplayState gameplayState)
         {
-            if (currentGameplayState == null)
+            if (gameplayState == null)
                 return;
 
-            this.Push(new SpectatorPlayerLoader(currentGameplayState.Score));
+            Beatmap.Value = gameplayState.Beatmap;
+            Ruleset.Value = gameplayState.Ruleset.RulesetInfo;
+
+            this.Push(new SpectatorPlayerLoader(gameplayState.Score));
         }
 
         private void showBeatmapPanel(SpectatorState state)
