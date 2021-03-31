@@ -23,6 +23,8 @@ namespace osu.Game.Screens.Spectate
 {
     public abstract class SpectatorScreen : OsuScreen
     {
+        protected readonly int[] UserIds;
+
         [Resolved]
         protected BeatmapManager Beatmaps { get; private set; }
 
@@ -36,7 +38,6 @@ namespace osu.Game.Screens.Spectate
         private UserLookupCache userLookupCache { get; set; }
 
         private readonly object stateLock = new object();
-        private readonly int[] userIds;
 
         private readonly Dictionary<int, User> userMap = new Dictionary<int, User>();
         private readonly Dictionary<int, SpectatorState> spectatorStates = new Dictionary<int, SpectatorState>();
@@ -46,7 +47,7 @@ namespace osu.Game.Screens.Spectate
 
         protected SpectatorScreen(params int[] userIds)
         {
-            this.userIds = userIds;
+            UserIds = userIds;
         }
 
         protected override void LoadComplete()
@@ -57,7 +58,7 @@ namespace osu.Game.Screens.Spectate
             spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
             spectatorClient.OnNewFrames += userSentFrames;
 
-            foreach (var id in userIds)
+            foreach (var id in UserIds)
             {
                 userLookupCache.GetUserAsync(id).ContinueWith(u => Schedule(() =>
                 {

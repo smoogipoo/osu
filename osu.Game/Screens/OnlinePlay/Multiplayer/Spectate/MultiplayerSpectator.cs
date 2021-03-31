@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -11,22 +10,17 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
-using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
-using osu.Game.Replays;
-using osu.Game.Rulesets;
-using osu.Game.Rulesets.Replays;
-using osu.Game.Rulesets.Replays.Types;
-using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Screens.Spectate;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 {
-    public class MultiplayerSpectator : OsuScreen
+    public class MultiplayerSpectator : SpectatorScreen
     {
         private const float player_spacing = 5;
         private const int max_instances = 16;
@@ -40,25 +34,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
         public bool AllPlayersLoaded => instances.All(p => p?.PlayerLoaded == true);
 
-        private readonly object scoreLock = new object();
-
-        private readonly int[] spectatingIds;
         private readonly PlayerInstance[] instances;
 
         // ReSharper disable once NotAccessedField.Local
         private readonly PlaylistItem playlistItem;
-
-        [Resolved]
-        private BeatmapManager beatmapManager { get; set; }
-
-        [Resolved]
-        private RulesetStore rulesetStore { get; set; }
-
-        [Resolved]
-        private UserLookupCache userLookupCache { get; set; }
-
-        [Resolved]
-        private SpectatorStreamingClient spectatorClient { get; set; }
 
         private Container<PlayerInstance> instanceContainer;
         private Container paddingContainer;
@@ -69,13 +48,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private float maximisedInstanceDepth = 1;
 
         public MultiplayerSpectator(PlaylistItem playlistItem, int[] userIds)
+            : base(userIds.AsSpan().Slice(0, Math.Min(max_instances, userIds.Length)).ToArray())
         {
             this.playlistItem = playlistItem;
 
-            spectatingIds = new int[Math.Min(max_instances, userIds.Length)];
-            instances = new PlayerInstance[spectatingIds.Length];
-
-            userIds.AsSpan().Slice(0, spectatingIds.Length).CopyTo(spectatingIds);
+            instances = new PlayerInstance[UserIds.Length];
         }
 
         [BackgroundDependencyLoader]
@@ -126,7 +103,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 instanceContainer = new Container<PlayerInstance> { RelativeSizeAxes = Axes.Both }
             };
 
-            for (int i = 0; i < spectatingIds.Length; i++)
+            for (int i = 0; i < UserIds.Length; i++)
             {
                 var facade = new PlayerFacade();
 
@@ -134,23 +111,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 facades.SetLayoutPosition(facade, i);
             }
 
-            LoadComponentAsync(new MultiplayerGameplayLeaderboard(userId => instances[getIndexForUser(userId)].ScoreProcessor, spectatingIds)
+            LoadComponentAsync(new MultiplayerGameplayLeaderboard(userId => instances[getIndexForUser(userId)].ScoreProcessor, UserIds)
             {
                 Expanded = { Value = true }
             }, leaderboardContainer.Add);
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            spectatorClient.OnUserBeganPlaying += userBeganPlaying;
-            spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
-            spectatorClient.OnNewFrames += userSentFrames;
-
-            // Add up to 16 player instances.
-            foreach (var id in spectatingIds)
-                spectatorClient.WatchUser(id);
         }
 
         protected override void Update()
@@ -293,106 +257,39 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             }
         }
 
-        private void userBeganPlaying(int userId, SpectatorState state)
+        protected override void OnUserStateChanged(int userId, SpectatorState spectatorState)
         {
-            if (state.BeatmapID == null) return;
-            if (state.RulesetID == null) return;
+        }
 
-            Score score;
-
-            lock (scoreLock)
-            {
-                var userBeatmap = beatmapManager.QueryBeatmap(b => b.OnlineBeatmapID == state.BeatmapID);
-                var userRuleset = rulesetStore.GetRuleset(state.RulesetID.Value).CreateInstance();
-                var userMods = state.Mods.Select(m => m.ToMod(userRuleset)).ToArray();
-
-                score = new Score
-                {
-                    ScoreInfo = new ScoreInfo
-                    {
-                        User = userLookupCache.GetUserAsync(userId).Result,
-                        Beatmap = userBeatmap,
-                        Ruleset = userRuleset.RulesetInfo,
-                        Mods = userMods,
-                    },
-                    Replay = new Replay { HasReceivedAllFrames = false },
-                };
-            }
-
+        protected override void OnGameplayStateChanged(int userId, GameplayState gameplayState)
+        {
             int userIndex = getIndexForUser(userId);
 
-            instances[userIndex] = new PlayerInstance(score, facades[userIndex])
+            if (gameplayState == null)
             {
-                Depth = 1,
-                ToggleMaximisationState = toggleMaximisationState
-            };
+                var instance = instances[userIndex];
 
-            LoadComponentAsync(instances[userIndex], instanceContainer.Add);
-        }
-
-        private void userFinishedPlaying(int userId, SpectatorState state)
-        {
-            lock (scoreLock)
-            {
-                var instance = instances[getIndexForUser(userId)];
-                Debug.Assert(instance != null);
-
-                var score = instance.Score;
-                if (score == null)
+                if (instance == null)
                     return;
 
-                score.Replay.HasReceivedAllFrames = true;
+                if (instance.IsMaximised)
+                    toggleMaximisationState(instance);
+
+                instanceContainer.Remove(instance);
+                instances[userIndex] = null;
             }
-        }
-
-        private void userSentFrames(int userId, FrameDataBundle bundle)
-        {
-            lock (scoreLock)
+            else
             {
-                var instance = instances[getIndexForUser(userId)];
-                Debug.Assert(instance != null);
-
-                var score = instance.Score;
-
-                // this should never happen as the server sends the user's state on watching,
-                // but is here as a safety measure.
-                if (score == null)
-                    return;
-
-                var ruleset = instance.Ruleset;
-                var beatmap = instance.Beatmap;
-
-                // rulesetInstance should be guaranteed to be in sync with the score via scoreLock.
-                Debug.Assert(ruleset != null && ruleset.RulesetInfo.Equals(score.ScoreInfo.Ruleset));
-
-                foreach (var frame in bundle.Frames)
+                instances[userIndex] = new PlayerInstance(gameplayState.Score, facades[userIndex])
                 {
-                    IConvertibleReplayFrame convertibleFrame = ruleset.CreateConvertibleReplayFrame();
-                    convertibleFrame.FromLegacy(frame, beatmap.Beatmap);
+                    Depth = 1,
+                    ToggleMaximisationState = toggleMaximisationState
+                };
 
-                    var convertedFrame = (ReplayFrame)convertibleFrame;
-                    convertedFrame.Time = frame.Time;
-
-                    score.Replay.Frames.Add(convertedFrame);
-                }
+                LoadComponentAsync(instances[userIndex], instanceContainer.Add);
             }
         }
 
-        private int getIndexForUser(int userId) => Array.IndexOf(spectatingIds, userId);
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            if (spectatorClient != null)
-            {
-                spectatorClient.OnUserBeganPlaying -= userBeganPlaying;
-                spectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
-                spectatorClient.OnNewFrames -= userSentFrames;
-
-                foreach (var id in spectatingIds)
-                    spectatorClient.StopWatchingUser(id);
-            }
-        }
+        private int getIndexForUser(int userId) => Array.IndexOf(UserIds, userId);
     }
 }

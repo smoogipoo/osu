@@ -3,12 +3,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Online;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
@@ -17,6 +20,7 @@ using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
 using osu.Game.Screens.Play;
 using osu.Game.Tests.Beatmaps.IO;
+using osu.Game.Users;
 using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -25,6 +29,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
     {
         [Cached(typeof(SpectatorStreamingClient))]
         private TestSpectatorStreamingClient testSpectatorStreamingClient = new TestSpectatorStreamingClient();
+
+        [Cached(typeof(UserLookupCache))]
+        private UserLookupCache lookupCache = new TestUserLookupCache();
 
         [Resolved]
         private OsuGameBase game { get; set; }
@@ -375,6 +382,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 });
 
                 userSentStateDictionary[userId] = true;
+            }
+        }
+
+        internal class TestUserLookupCache : UserLookupCache
+        {
+            protected override Task<User> ComputeValueAsync(int lookup, CancellationToken token = default)
+            {
+                return Task.FromResult(new User
+                {
+                    Id = lookup,
+                    Username = $"User {lookup}"
+                });
             }
         }
     }
