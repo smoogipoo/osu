@@ -19,7 +19,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Screens.Spectate
 {
-    public abstract class AbstractSpectator : OsuScreen
+    public abstract class SpectatorScreen : OsuScreen
     {
         [Resolved]
         protected BeatmapManager Beatmaps { get; private set; }
@@ -38,7 +38,7 @@ namespace osu.Game.Screens.Spectate
 
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
 
-        protected AbstractSpectator(params User[] users)
+        protected SpectatorScreen(params User[] users)
         {
             foreach (var user in users)
                 userMap[user.Id] = user;

@@ -28,7 +28,7 @@ using osuTK;
 namespace osu.Game.Screens.Play
 {
     [Cached(typeof(IPreviewTrackOwner))]
-    public class Spectator : AbstractSpectator, IPreviewTrackOwner
+    public class SoloSpectator : SpectatorScreen, IPreviewTrackOwner
     {
         [NotNull]
         private readonly User targetUser;
@@ -57,7 +57,7 @@ namespace osu.Game.Screens.Play
 
         private GetBeatmapSetRequest onlineBeatmapRequest;
 
-        public Spectator([NotNull] User targetUser)
+        public SoloSpectator([NotNull] User targetUser)
             : base(targetUser)
         {
             this.targetUser = targetUser;
