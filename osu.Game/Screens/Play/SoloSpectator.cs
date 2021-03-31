@@ -58,7 +58,7 @@ namespace osu.Game.Screens.Play
         private GetBeatmapSetRequest onlineBeatmapRequest;
 
         public SoloSpectator([NotNull] User targetUser)
-            : base(targetUser)
+            : base(targetUser.Id)
         {
             this.targetUser = targetUser;
         }
@@ -158,7 +158,7 @@ namespace osu.Game.Screens.Play
             automaticDownload.Current.BindValueChanged(_ => checkForAutomaticDownload());
         }
 
-        protected override void OnGameplayStateChanged(User user, GameplayState gameplayState) => Schedule(() =>
+        protected override void OnGameplayStateChanged(int userId, GameplayState gameplayState) => Schedule(() =>
         {
             pendingGameplayState = null;
             immediateGameplayState = gameplayState;
@@ -173,7 +173,7 @@ namespace osu.Game.Screens.Play
             watchButton.Enabled.Value = true;
         });
 
-        protected override void OnUserStateChanged(User user, SpectatorState spectatorState) => Schedule(() =>
+        protected override void OnUserStateChanged(int userId, SpectatorState spectatorState) => Schedule(() =>
         {
             clearDisplay();
             showBeatmapPanel(spectatorState);

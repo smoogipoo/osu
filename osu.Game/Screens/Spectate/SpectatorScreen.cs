@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays;
 using osu.Game.Rulesets;
@@ -30,7 +32,11 @@ namespace osu.Game.Screens.Spectate
         [Resolved]
         private SpectatorStreamingClient spectatorClient { get; set; }
 
+        [Resolved]
+        private UserLookupCache userLookupCache { get; set; }
+
         private readonly object stateLock = new object();
+        private readonly int[] userIds;
 
         private readonly Dictionary<int, User> userMap = new Dictionary<int, User>();
         private readonly Dictionary<int, SpectatorState> spectatorStates = new Dictionary<int, SpectatorState>();
@@ -38,10 +44,9 @@ namespace osu.Game.Screens.Spectate
 
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
 
-        protected SpectatorScreen(params User[] users)
+        protected SpectatorScreen(params int[] userIds)
         {
-            foreach (var user in users)
-                userMap[user.Id] = user;
+            this.userIds = userIds;
         }
 
         protected override void LoadComplete()
@@ -52,10 +57,18 @@ namespace osu.Game.Screens.Spectate
             spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
             spectatorClient.OnNewFrames += userSentFrames;
 
-            lock (stateLock)
+            foreach (var id in userIds)
             {
-                foreach (var (userId, _) in userMap)
-                    spectatorClient.WatchUser(userId);
+                userLookupCache.GetUserAsync(id).ContinueWith(u => Schedule(() =>
+                {
+                    if (u.Result == null)
+                        return;
+
+                    lock (stateLock)
+                        userMap[id] = u.Result;
+
+                    spectatorClient.WatchUser(id);
+                }), TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
             managerUpdated = Beatmaps.ItemUpdated.GetBoundCopy();
@@ -84,11 +97,11 @@ namespace osu.Game.Screens.Spectate
 
             lock (stateLock)
             {
-                if (!userMap.TryGetValue(userId, out var user))
+                if (!userMap.ContainsKey(userId))
                     return;
 
                 spectatorStates[userId] = state;
-                OnUserStateChanged(user, state);
+                OnUserStateChanged(userId, state);
 
                 updateGameplayState(userId);
             }
@@ -98,6 +111,8 @@ namespace osu.Game.Screens.Spectate
         {
             lock (stateLock)
             {
+                Debug.Assert(userMap.ContainsKey(userId));
+
                 var spectatorState = spectatorStates[userId];
                 var user = userMap[userId];
 
@@ -124,7 +139,7 @@ namespace osu.Game.Screens.Spectate
                 var gameplayState = new GameplayState(score, resolvedRuleset, Beatmaps.GetWorkingBeatmap(resolvedBeatmap));
 
                 gameplayStates[userId] = gameplayState;
-                OnGameplayStateChanged(user, gameplayState);
+                OnGameplayStateChanged(userId, gameplayState);
             }
         }
 
@@ -158,7 +173,7 @@ namespace osu.Game.Screens.Spectate
         {
             lock (stateLock)
             {
-                if (!userMap.TryGetValue(userId, out var user))
+                if (!userMap.ContainsKey(userId))
                     return;
 
                 if (!gameplayStates.TryGetValue(userId, out var gameplayState))
@@ -167,13 +182,13 @@ namespace osu.Game.Screens.Spectate
                 gameplayState.Score.Replay.HasReceivedAllFrames = true;
 
                 gameplayStates.Remove(userId);
-                OnGameplayStateChanged(user, null);
+                OnGameplayStateChanged(userId, null);
             }
         }
 
-        protected abstract void OnUserStateChanged(User user, SpectatorState spectatorState);
+        protected abstract void OnUserStateChanged(int userId, SpectatorState spectatorState);
 
-        protected abstract void OnGameplayStateChanged([NotNull] User user, [CanBeNull] GameplayState gameplayState);
+        protected abstract void OnGameplayStateChanged(int userId, [CanBeNull] GameplayState gameplayState);
 
         protected override void Dispose(bool isDisposing)
         {
