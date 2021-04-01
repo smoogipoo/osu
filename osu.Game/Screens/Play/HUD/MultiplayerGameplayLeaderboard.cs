@@ -124,11 +124,17 @@ namespace osu.Game.Screens.Play.HUD
 
         private void handleIncomingFrames(int userId, FrameDataBundle bundle)
         {
-            if (userScores.TryGetValue(userId, out var trackedData))
-            {
-                trackedData.LastHeader = bundle.Header;
-                trackedData.UpdateScore(getScoreProcessorFunc(userId), scoringMode.Value);
-            }
+            if (userScores.ContainsKey(userId))
+                OnIncomingFrames(userId, bundle);
+        }
+
+        protected virtual void OnIncomingFrames(int userId, FrameDataBundle bundle) => SetCurrentFrame(userId, bundle.Header);
+
+        protected void SetCurrentFrame(int userId, FrameHeader header)
+        {
+            var trackedScore = userScores[userId];
+            trackedScore.LastHeader = header;
+            trackedScore.UpdateScore(getScoreProcessorFunc(userId), scoringMode.Value);
         }
 
         protected override void Dispose(bool isDisposing)

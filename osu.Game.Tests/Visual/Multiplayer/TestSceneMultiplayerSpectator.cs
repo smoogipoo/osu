@@ -19,6 +19,7 @@ using osu.Game.Replays.Legacy;
 using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
 using osu.Game.Screens.Play;
+using osu.Game.Screens.Play.HUD;
 using osu.Game.Tests.Beatmaps.IO;
 using osu.Game.Users;
 using osuTK.Input;
@@ -74,6 +75,30 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     testSpectatorStreamingClient.EndPlay(id, importedBeatmapId);
                 playingUserIds.Clear();
             });
+        }
+
+        [Test]
+        public void TestLeaderboardTracksCurrentTime()
+        {
+            start(new[] { 55, 56 });
+            loadSpectateScreen();
+
+            sendFrames(55, 1000);
+            sendFrames(56, 5);
+
+            // Wait for the second player to eventually pause.
+            checkPaused(56, true);
+
+            sendFrames(56, 20);
+            sendFrames(56, 1000);
+
+            assertCombo(25);
+            assertCombo(1025);
+
+            void assertCombo(int combo)
+            {
+                AddUntilStep($"player 56 has {combo} combo", () => this.ChildrenOfType<GameplayLeaderboardScore>().Single(s => s.User?.Id == 56).Combo.Value == combo);
+            }
         }
 
         [Test]
@@ -355,7 +380,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     frames.Add(new LegacyReplayFrame(i * 100, RNG.Next(0, 512), RNG.Next(0, 512), buttonState));
                 }
 
-                var bundle = new FrameDataBundle(new ScoreInfo(), frames);
+                var bundle = new FrameDataBundle(new ScoreInfo { Combo = index + count }, frames);
                 ((ISpectatorClient)this).UserSentFrames(userId, bundle);
 
                 if (!userSentStateDictionary[userId])

@@ -14,7 +14,6 @@ using osu.Game.Database;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
 using osu.Game.Screens.Play;
-using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Spectate;
 using osuTK;
 
@@ -112,7 +111,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 facades.SetLayoutPosition(facade, i);
             }
 
-            LoadComponentAsync(new MultiplayerGameplayLeaderboard(userId => instances[getIndexForUser(userId)].ScoreProcessor, UserIds)
+            LoadComponentAsync(new MultiplayerSpectatorLeaderboard(instances, UserIds)
             {
                 Expanded = { Value = true }
             }, leaderboardContainer.Add);
