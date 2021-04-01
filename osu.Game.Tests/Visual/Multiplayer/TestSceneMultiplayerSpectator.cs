@@ -301,7 +301,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         }
 
         private bool isMaximised(int userId)
-            => Precision.AlmostEquals(spectator.DrawSize, getPlayer(userId).DrawSize, 100);
+            => Precision.AlmostEquals(spectator.MaximisedFacade.DrawSize, getInstance(userId).DrawSize, 10);
 
         private void checkPaused(int userId, bool state) =>
             AddUntilStep($"{userId} is {(state ? "paused" : "playing")}", () => getPlayer(userId).ChildrenOfType<GameplayClockContainer>().First().IsPaused.Value == state);
@@ -311,10 +311,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private double getGameplayTime(int userId) => getPlayer(userId).ChildrenOfType<GameplayClockContainer>().Single().GameplayClock.CurrentTime;
 
-        private Player getPlayer(int userId)
-            => spectator
-               .ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == userId)
-               .ChildrenOfType<Player>().Single();
+        private Player getPlayer(int userId) => getInstance(userId).ChildrenOfType<Player>().Single();
+
+        private PlayerInstance getInstance(int userId) => spectator.ChildrenOfType<PlayerInstance>().Single(p => p.User.Id == userId);
 
         public class TestSpectatorStreamingClient : SpectatorStreamingClient
         {

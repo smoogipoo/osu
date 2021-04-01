@@ -34,6 +34,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
         public bool AllPlayersLoaded => instances.All(p => p?.PlayerLoaded == true);
 
+        public PlayerFacade MaximisedFacade { get; private set; }
+
         private readonly PlayerInstance[] instances;
 
         // ReSharper disable once NotAccessedField.Local
@@ -42,7 +44,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private Container<PlayerInstance> instanceContainer;
         private Container paddingContainer;
         private FillFlowContainer<PlayerFacade> facades;
-        private PlayerFacade maximisedFacade;
 
         // A depth value that gets decremented every time a new instance is maximised in order to reduce underlaps.
         private float maximisedInstanceDepth = 1;
@@ -94,7 +95,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                                             Spacing = new Vector2(player_spacing),
                                         }
                                     },
-                                    maximisedFacade = new PlayerFacade { RelativeSizeAxes = Axes.Both }
+                                    MaximisedFacade = new PlayerFacade { RelativeSizeAxes = Axes.Both }
                                 }
                             },
                         }
@@ -249,7 +250,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
                 if (i.IsMaximised)
                 {
-                    i.SetFacade(maximisedFacade);
+                    i.SetFacade(MaximisedFacade);
                     instanceContainer.ChangeChildDepth(i, maximisedInstanceDepth -= 0.001f);
                 }
                 else
