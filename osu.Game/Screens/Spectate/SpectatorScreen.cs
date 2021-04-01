@@ -32,7 +32,7 @@ namespace osu.Game.Screens.Spectate
         protected RulesetStore Rulesets { get; private set; }
 
         [Resolved]
-        private SpectatorStreamingClient spectatorClient { get; set; }
+        protected SpectatorStreamingClient SpectatorClient { get; private set; }
 
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
@@ -54,9 +54,9 @@ namespace osu.Game.Screens.Spectate
         {
             base.LoadComplete();
 
-            spectatorClient.OnUserBeganPlaying += userBeganPlaying;
-            spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
-            spectatorClient.OnNewFrames += userSentFrames;
+            SpectatorClient.OnUserBeganPlaying += userBeganPlaying;
+            SpectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
+            SpectatorClient.OnNewFrames += userSentFrames;
 
             foreach (var id in UserIds)
             {
@@ -68,7 +68,7 @@ namespace osu.Game.Screens.Spectate
                     lock (stateLock)
                         userMap[id] = u.Result;
 
-                    spectatorClient.WatchUser(id);
+                    SpectatorClient.WatchUser(id);
                 }), TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
@@ -195,16 +195,16 @@ namespace osu.Game.Screens.Spectate
         {
             base.Dispose(isDisposing);
 
-            if (spectatorClient != null)
+            if (SpectatorClient != null)
             {
-                spectatorClient.OnUserBeganPlaying -= userBeganPlaying;
-                spectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
-                spectatorClient.OnNewFrames -= userSentFrames;
+                SpectatorClient.OnUserBeganPlaying -= userBeganPlaying;
+                SpectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
+                SpectatorClient.OnNewFrames -= userSentFrames;
 
                 lock (stateLock)
                 {
                     foreach (var (userId, _) in userMap)
-                        spectatorClient.StopWatchingUser(userId);
+                        SpectatorClient.StopWatchingUser(userId);
                 }
             }
 
