@@ -25,7 +25,7 @@ using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
-    public class TestSceneMultiplayerSpectator : ScreenTestScene
+    public class TestSceneMultiplayerSpectator : MultiplayerTestScene
     {
         [Cached(typeof(SpectatorStreamingClient))]
         private TestSpectatorStreamingClient testSpectatorStreamingClient = new TestSpectatorStreamingClient();
@@ -268,6 +268,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 foreach (int id in userIds)
                 {
+                    Client.CurrentMatchPlayingUserIds.Add(id);
                     testSpectatorStreamingClient.StartPlay(id, beatmapId ?? importedBeatmapId);
                     playingUserIds.Add(id);
                     nextFrame[id] = 0;

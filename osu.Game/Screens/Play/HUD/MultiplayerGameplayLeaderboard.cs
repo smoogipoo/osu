@@ -86,14 +86,14 @@ namespace osu.Game.Screens.Play.HUD
             base.LoadComplete();
 
             // BindableList handles binding in a really bad way (Clear then AddRange) so we need to do this manually..
-            // foreach (int userId in playingUsers)
-            // {
-            //     if (!multiplayerClient.CurrentMatchPlayingUserIds.Contains(userId))
-            //         usersChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { userId }));
-            // }
-            //
-            // playingUsers.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
-            // playingUsers.BindCollectionChanged(usersChanged);
+            foreach (int userId in playingUsers)
+            {
+                if (!multiplayerClient.CurrentMatchPlayingUserIds.Contains(userId))
+                    usersChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { userId }));
+            }
+
+            playingUsers.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
+            playingUsers.BindCollectionChanged(usersChanged);
 
             // this leaderboard should be guaranteed to be completely loaded before the gameplay starts (is a prerequisite in MultiplayerPlayer).
             streamingClient.OnNewFrames += handleIncomingFrames;
