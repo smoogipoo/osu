@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
-using osu.Game.Database;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
 using osu.Game.Screens.Play;
@@ -56,7 +55,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         }
 
         [BackgroundDependencyLoader]
-        private void load(UserLookupCache userLookupCache)
+        private void load()
         {
             Container leaderboardContainer;
 
