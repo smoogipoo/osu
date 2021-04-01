@@ -261,24 +261,22 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
         }
 
-        protected override void OnGameplayStateChanged(int userId, GameplayState gameplayState)
+        protected override void OnGameplayStateChanged(int userId, GameplayState gameplayState) => Schedule(() =>
         {
             int userIndex = getIndexForUser(userId);
 
-            if (gameplayState == null)
+            var existingInstance = instances[userIndex];
+
+            if (existingInstance != null)
             {
-                var instance = instances[userIndex];
+                if (existingInstance.IsMaximised)
+                    toggleMaximisationState(existingInstance);
 
-                if (instance == null)
-                    return;
-
-                if (instance.IsMaximised)
-                    toggleMaximisationState(instance);
-
-                instanceContainer.Remove(instance);
+                instanceContainer.Remove(existingInstance);
                 instances[userIndex] = null;
             }
-            else
+
+            if (gameplayState != null)
             {
                 instances[userIndex] = new PlayerInstance(gameplayState.Score, facades[userIndex])
                 {
@@ -286,9 +284,13 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                     ToggleMaximisationState = toggleMaximisationState
                 };
 
-                LoadComponentAsync(instances[userIndex], instanceContainer.Add);
+                LoadComponentAsync(instances[userIndex], d =>
+                {
+                    if (instances[userIndex] == d)
+                        instanceContainer.Add(d);
+                });
             }
-        }
+        });
 
         private int getIndexForUser(int userId) => Array.IndexOf(UserIds, userId);
     }
