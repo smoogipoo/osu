@@ -34,6 +34,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
         public PlayerFacade MaximisedFacade { get; private set; }
 
+        [Resolved]
+        private SpectatorStreamingClient spectatorClient { get; set; }
+
+        private readonly int[] userIds;
         private readonly PlayerInstance[] instances;
 
         // ReSharper disable once NotAccessedField.Local
@@ -47,11 +51,16 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private float maximisedInstanceDepth = 1;
 
         public MultiplayerSpectator(PlaylistItem playlistItem, int[] userIds)
-            : base(userIds.AsSpan().Slice(0, Math.Min(max_instances, userIds.Length)).ToArray())
+            : this(userIds.AsSpan().Slice(0, Math.Min(max_instances, userIds.Length)).ToArray())
         {
             this.playlistItem = playlistItem;
+        }
 
-            instances = new PlayerInstance[UserIds.Length];
+        private MultiplayerSpectator(int[] userIds)
+            : base(userIds)
+        {
+            this.userIds = userIds;
+            instances = new PlayerInstance[userIds.Length];
         }
 
         [BackgroundDependencyLoader]
@@ -102,7 +111,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 instanceContainer = new Container<PlayerInstance> { RelativeSizeAxes = Axes.Both }
             };
 
-            for (int i = 0; i < UserIds.Length; i++)
+            for (int i = 0; i < userIds.Length; i++)
             {
                 var facade = new PlayerFacade();
 
@@ -110,7 +119,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 facades.SetLayoutPosition(facade, i);
             }
 
-            LoadComponentAsync(new MultiplayerSpectatorLeaderboard(instances, UserIds)
+            LoadComponentAsync(new MultiplayerSpectatorLeaderboard(instances, userIds)
             {
                 Expanded = { Value = true }
             }, leaderboardContainer.Add);
@@ -260,43 +269,39 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
         }
 
-        protected override void OnGameplayStateChanged(int userId, GameplayState gameplayState)
+        protected override void StartGameplay(int userId, GameplayState gameplayState) => Schedule(() =>
         {
-            if (gameplayState == null)
+            int userIndex = getIndexForUser(userId);
+
+            var existingInstance = instances[userIndex];
+
+            if (existingInstance != null)
             {
-                SpectatorClient.StopWatchingUser(userId);
-                return;
+                if (existingInstance.IsMaximised)
+                    toggleMaximisationState(existingInstance);
+
+                instanceContainer.Remove(existingInstance);
+                instances[userIndex] = null;
             }
 
-            Schedule(() =>
+            instances[userIndex] = new PlayerInstance(gameplayState.Score, facades[userIndex])
             {
-                int userIndex = getIndexForUser(userId);
+                Depth = 1,
+                ToggleMaximisationState = toggleMaximisationState
+            };
 
-                var existingInstance = instances[userIndex];
-
-                if (existingInstance != null)
-                {
-                    if (existingInstance.IsMaximised)
-                        toggleMaximisationState(existingInstance);
-
-                    instanceContainer.Remove(existingInstance);
-                    instances[userIndex] = null;
-                }
-
-                instances[userIndex] = new PlayerInstance(gameplayState.Score, facades[userIndex])
-                {
-                    Depth = 1,
-                    ToggleMaximisationState = toggleMaximisationState
-                };
-
-                LoadComponentAsync(instances[userIndex], d =>
-                {
-                    if (instances[userIndex] == d)
-                        instanceContainer.Add(d);
-                });
+            LoadComponentAsync(instances[userIndex], d =>
+            {
+                if (instances[userIndex] == d)
+                    instanceContainer.Add(d);
             });
+        });
+
+        protected override void EndGameplay(int userId)
+        {
+            spectatorClient.StopWatchingUser(userId);
         }
 
-        private int getIndexForUser(int userId) => Array.IndexOf(UserIds, userId);
+        private int getIndexForUser(int userId) => Array.IndexOf(userIds, userId);
     }
 }
