@@ -20,6 +20,7 @@ using osu.Game.Online.API.Requests;
 using osu.Game.Online.Spectator;
 using osu.Game.Overlays.BeatmapListing.Panels;
 using osu.Game.Overlays.Settings;
+using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Screens.Spectate;
 using osu.Game.Users;
@@ -38,6 +39,12 @@ namespace osu.Game.Screens.Play
 
         [Resolved]
         private PreviewTrackManager previewTrackManager { get; set; }
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; }
+
+        [Resolved]
+        private BeatmapManager beatmaps { get; set; }
 
         private Container beatmapPanelContainer;
         private TriangleButton watchButton;
@@ -158,25 +165,33 @@ namespace osu.Game.Screens.Play
             automaticDownload.Current.BindValueChanged(_ => checkForAutomaticDownload());
         }
 
-        protected override void OnGameplayStateChanged(int userId, GameplayState gameplayState) => Schedule(() =>
+        protected override void OnUserStateChanged(int userId, SpectatorState spectatorState) => Schedule(() =>
+        {
+            clearDisplay();
+            showBeatmapPanel(spectatorState);
+        });
+
+        protected override void StartGameplay(int userId, GameplayState gameplayState) => Schedule(() =>
         {
             pendingGameplayState = null;
             immediateGameplayState = gameplayState;
 
-            if (gameplayState == null)
-                Schedule(clearDisplay);
-            else if (this.IsCurrentScreen())
-                Schedule(() => attemptStart(gameplayState));
+            if (this.IsCurrentScreen())
+                attemptStart(gameplayState);
             else
                 pendingGameplayState = gameplayState;
 
             watchButton.Enabled.Value = true;
         });
 
-        protected override void OnUserStateChanged(int userId, SpectatorState spectatorState) => Schedule(() =>
+        protected override void EndGameplay(int userId) => Schedule(() =>
         {
-            clearDisplay();
-            showBeatmapPanel(spectatorState);
+            pendingGameplayState = null;
+            immediateGameplayState = null;
+
+            Schedule(clearDisplay);
+
+            watchButton.Enabled.Value = false;
         });
 
         public override void OnResuming(IScreen last)
@@ -216,7 +231,7 @@ namespace osu.Game.Screens.Play
             onlineBeatmapRequest = new GetBeatmapSetRequest(state.BeatmapID.Value, BeatmapSetLookupType.BeatmapId);
             onlineBeatmapRequest.Success += res => Schedule(() =>
             {
-                onlineBeatmap = res.ToBeatmapSet(Rulesets);
+                onlineBeatmap = res.ToBeatmapSet(rulesets);
                 beatmapPanelContainer.Child = new GridBeatmapPanel(onlineBeatmap);
                 checkForAutomaticDownload();
             });

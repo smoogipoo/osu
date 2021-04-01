@@ -21,18 +21,21 @@ using osu.Game.Users;
 
 namespace osu.Game.Screens.Spectate
 {
+    /// <summary>
+    /// A <see cref="OsuScreen"/> which spectates one or more users.
+    /// </summary>
     public abstract class SpectatorScreen : OsuScreen
     {
-        protected readonly int[] UserIds;
+        private readonly int[] userIds;
 
         [Resolved]
-        protected BeatmapManager Beatmaps { get; private set; }
+        private BeatmapManager beatmaps { get; set; }
 
         [Resolved]
-        protected RulesetStore Rulesets { get; private set; }
+        private RulesetStore rulesets { get; set; }
 
         [Resolved]
-        protected SpectatorStreamingClient SpectatorClient { get; private set; }
+        private SpectatorStreamingClient spectatorClient { get; set; }
 
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
@@ -45,20 +48,24 @@ namespace osu.Game.Screens.Spectate
 
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
 
+        /// <summary>
+        /// Creates a new <see cref="SpectatorScreen"/>.
+        /// </summary>
+        /// <param name="userIds">The users to spectate.</param>
         protected SpectatorScreen(params int[] userIds)
         {
-            UserIds = userIds;
+            this.userIds = userIds;
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            SpectatorClient.OnUserBeganPlaying += userBeganPlaying;
-            SpectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
-            SpectatorClient.OnNewFrames += userSentFrames;
+            spectatorClient.OnUserBeganPlaying += userBeganPlaying;
+            spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
+            spectatorClient.OnNewFrames += userSentFrames;
 
-            foreach (var id in UserIds)
+            foreach (var id in userIds)
             {
                 userLookupCache.GetUserAsync(id).ContinueWith(u => Schedule(() =>
                 {
@@ -68,11 +75,11 @@ namespace osu.Game.Screens.Spectate
                     lock (stateLock)
                         userMap[id] = u.Result;
 
-                    SpectatorClient.WatchUser(id);
+                    spectatorClient.WatchUser(id);
                 }), TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
-            managerUpdated = Beatmaps.ItemUpdated.GetBoundCopy();
+            managerUpdated = beatmaps.ItemUpdated.GetBoundCopy();
             managerUpdated.BindValueChanged(beatmapUpdated);
         }
 
@@ -117,11 +124,11 @@ namespace osu.Game.Screens.Spectate
                 var spectatorState = spectatorStates[userId];
                 var user = userMap[userId];
 
-                var resolvedRuleset = Rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == spectatorState.RulesetID)?.CreateInstance();
+                var resolvedRuleset = rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == spectatorState.RulesetID)?.CreateInstance();
                 if (resolvedRuleset == null)
                     return;
 
-                var resolvedBeatmap = Beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == spectatorState.BeatmapID);
+                var resolvedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == spectatorState.BeatmapID);
                 if (resolvedBeatmap == null)
                     return;
 
@@ -137,10 +144,10 @@ namespace osu.Game.Screens.Spectate
                     Replay = new Replay { HasReceivedAllFrames = false },
                 };
 
-                var gameplayState = new GameplayState(score, resolvedRuleset, Beatmaps.GetWorkingBeatmap(resolvedBeatmap));
+                var gameplayState = new GameplayState(score, resolvedRuleset, beatmaps.GetWorkingBeatmap(resolvedBeatmap));
 
                 gameplayStates[userId] = gameplayState;
-                OnGameplayStateChanged(userId, gameplayState);
+                StartGameplay(userId, gameplayState);
             }
         }
 
@@ -183,28 +190,44 @@ namespace osu.Game.Screens.Spectate
                 gameplayState.Score.Replay.HasReceivedAllFrames = true;
 
                 gameplayStates.Remove(userId);
-                OnGameplayStateChanged(userId, null);
+                EndGameplay(userId);
             }
         }
 
-        protected abstract void OnUserStateChanged(int userId, SpectatorState spectatorState);
+        /// <summary>
+        /// Invoked when a spectated user's state has changed.
+        /// </summary>
+        /// <param name="userId">The user whose state has changed.</param>
+        /// <param name="spectatorState">The new state.</param>
+        protected abstract void OnUserStateChanged(int userId, [NotNull] SpectatorState spectatorState);
 
-        protected abstract void OnGameplayStateChanged(int userId, [CanBeNull] GameplayState gameplayState);
+        /// <summary>
+        /// Starts gameplay for a user.
+        /// </summary>
+        /// <param name="userId">The user to start gameplay for.</param>
+        /// <param name="gameplayState">The gameplay state.</param>
+        protected abstract void StartGameplay(int userId, [NotNull] GameplayState gameplayState);
+
+        /// <summary>
+        /// Ends gameplay for a user.
+        /// </summary>
+        /// <param name="userId">The user to end gameplay for.</param>
+        protected abstract void EndGameplay(int userId);
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
 
-            if (SpectatorClient != null)
+            if (spectatorClient != null)
             {
-                SpectatorClient.OnUserBeganPlaying -= userBeganPlaying;
-                SpectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
-                SpectatorClient.OnNewFrames -= userSentFrames;
+                spectatorClient.OnUserBeganPlaying -= userBeganPlaying;
+                spectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
+                spectatorClient.OnNewFrames -= userSentFrames;
 
                 lock (stateLock)
                 {
                     foreach (var (userId, _) in userMap)
-                        SpectatorClient.StopWatchingUser(userId);
+                        spectatorClient.StopWatchingUser(userId);
                 }
             }
 
