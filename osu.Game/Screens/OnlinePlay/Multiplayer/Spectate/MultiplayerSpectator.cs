@@ -269,7 +269,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
         }
 
-        protected override void StartGameplay(int userId, GameplayState gameplayState) => Schedule(() =>
+        protected override void StartGameplay(int userId, GameplayState gameplayState)
         {
             int userIndex = getIndexForUser(userId);
 
@@ -295,7 +295,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 if (instances[userIndex] == d)
                     instanceContainer.Add(d);
             });
-        });
+        }
 
         protected override void EndGameplay(int userId)
         {
