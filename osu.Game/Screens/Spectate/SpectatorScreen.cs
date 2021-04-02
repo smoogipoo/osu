@@ -40,6 +40,7 @@ namespace osu.Game.Screens.Spectate
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
 
+        // A lock is used to synchronise access to spectator/gameplay states, since this class is a screen which may become non-current and stop receiving updates at any point.
         private readonly object stateLock = new object();
 
         private readonly Dictionary<int, User> userMap = new Dictionary<int, User>();
@@ -83,9 +84,9 @@ namespace osu.Game.Screens.Spectate
             managerUpdated.BindValueChanged(beatmapUpdated);
         }
 
-        private void beatmapUpdated(ValueChangedEvent<WeakReference<BeatmapSetInfo>> beatmap)
+        private void beatmapUpdated(ValueChangedEvent<WeakReference<BeatmapSetInfo>> e)
         {
-            if (!beatmap.NewValue.TryGetTarget(out var beatmapSet))
+            if (!e.NewValue.TryGetTarget(out var beatmapSet))
                 return;
 
             lock (stateLock)
@@ -109,7 +110,7 @@ namespace osu.Game.Screens.Spectate
                     return;
 
                 spectatorStates[userId] = state;
-                OnUserStateChanged(userId, state);
+                Schedule(() => OnUserStateChanged(userId, state));
 
                 updateGameplayState(userId);
             }
@@ -147,7 +148,7 @@ namespace osu.Game.Screens.Spectate
                 var gameplayState = new GameplayState(score, resolvedRuleset, beatmaps.GetWorkingBeatmap(resolvedBeatmap));
 
                 gameplayStates[userId] = gameplayState;
-                StartGameplay(userId, gameplayState);
+                Schedule(() => StartGameplay(userId, gameplayState));
             }
         }
 
@@ -190,7 +191,7 @@ namespace osu.Game.Screens.Spectate
                 gameplayState.Score.Replay.HasReceivedAllFrames = true;
 
                 gameplayStates.Remove(userId);
-                EndGameplay(userId);
+                Schedule(() => EndGameplay(userId));
             }
         }
 
