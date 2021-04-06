@@ -6,9 +6,11 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Rulesets.Mania.UI;
+using osu.Game.Screens.Edit;
 
 namespace osu.Game.Rulesets.Mania.Objects.Drawables
 {
@@ -23,6 +25,9 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
         [Resolved(canBeNull: true)]
         private ManiaPlayfield playfield { get; set; }
+
+        [Resolved]
+        private OsuColour colours { get; set; }
 
         protected override float SamplePlaybackPosition
         {
@@ -54,6 +59,8 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
             Direction.BindTo(scrollingInfo.Direction);
             Direction.BindValueChanged(OnDirectionChanged, true);
+
+            Colour = BindableBeatDivisor.GetColourFor(HitObject.SnapDivisor, colours);
         }
 
         private double computedLifetimeStart;

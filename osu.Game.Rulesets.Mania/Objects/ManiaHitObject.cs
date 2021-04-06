@@ -20,6 +20,8 @@ namespace osu.Game.Rulesets.Mania.Objects
             set => ColumnBindable.Value = value;
         }
 
+        public int SnapDivisor;
+
         protected override HitWindows CreateHitWindows() => new ManiaHitWindows();
 
         #region LegacyBeatmapEncoder
