@@ -16,7 +16,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private readonly object framesLock = new object();
 
         public MultiplayerSpectatorLeaderboard(PlayerInstance[] instances, int[] userIds)
-            : base(userId => instances.SingleOrDefault(i => i.User.Id == userId)?.ScoreProcessor, userIds)
+            : base(userId => instances.SingleOrDefault(i => i?.User.Id == userId)?.ScoreProcessor, userIds)
         {
             this.instances = instances;
         }
