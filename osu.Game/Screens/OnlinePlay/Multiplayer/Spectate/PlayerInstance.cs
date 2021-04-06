@@ -63,7 +63,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 }
             };
 
-            stack.Push(new SpectatorPlayerLoader(Score, () => player = new MultiplayerSpectatorPlayer(Score)));
+            stack.Push(new MultiplayerSpectatorPlayerLoader(Score, () => player = new MultiplayerSpectatorPlayer(Score)));
         }
 
         protected override void Update()
