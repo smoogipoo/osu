@@ -24,6 +24,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
     public class ManiaDifficultyCalculator : DifficultyCalculator
     {
         private const double star_scaling_factor = 0.018;
+        private const int hold_note_combo_interval = 100;
 
         private readonly bool isForCurrentRuleset;
         private readonly double originalOverallDifficulty;
@@ -50,7 +51,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
                 // Todo: This int cast is temporary to achieve 1:1 results with osu!stable, and should be removed in the future
                 GreatHitWindow = (int)Math.Ceiling(getHitWindow300(mods) / clockRate),
                 ScoreMultiplier = getScoreMultiplier(beatmap, mods),
-                MaxCombo = beatmap.HitObjects.Sum(h => h is HoldNote ? 2 : 1),
+                MaxCombo = beatmap.HitObjects.Sum(h => 1 + (h is HoldNote hold ? (int)Math.Round(hold.Duration) / hold_note_combo_interval : 0)),
                 Skills = skills
             };
         }
