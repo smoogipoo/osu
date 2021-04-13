@@ -111,7 +111,16 @@ namespace osu.Game.Scoring
         public string ModsJson
         {
             get => JsonConvert.SerializeObject(apiMods);
-            set => apiMods = JsonConvert.DeserializeObject<APIMod[]>(value);
+            set
+            {
+                if (value == null)
+                {
+                    apiMods = null;
+                    return;
+                }
+
+                apiMods = JsonConvert.DeserializeObject<APIMod[]>(value);
+            }
         }
 
         [NotMapped]
