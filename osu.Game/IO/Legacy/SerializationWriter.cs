@@ -224,7 +224,9 @@ namespace osu.Game.IO.Legacy
                             // AssemblyFormat = FormatterAssemblyStyle.Simple,
                             TypeFormat = FormatterTypeStyle.TypesWhenNeeded
                         };
+#pragma warning disable SYSLIB0011
                         b.Serialize(BaseStream, obj);
+#pragma warning restore SYSLIB0011
                         break;
                 } // switch
             } // if obj==null

@@ -15,6 +15,6 @@ namespace osu.Game.Online.API.Requests
             this.beatmap = beatmap;
         }
 
-        protected override string Target => $@"beatmaps/lookup?id={beatmap.OnlineBeatmapID}&checksum={beatmap.MD5Hash}&filename={System.Uri.EscapeUriString(beatmap.Path ?? string.Empty)}";
+        protected override string Target => $@"beatmaps/lookup?id={beatmap.OnlineBeatmapID}&checksum={beatmap.MD5Hash}&filename={System.Uri.EscapeDataString(beatmap.Path ?? string.Empty)}";
     }
 }

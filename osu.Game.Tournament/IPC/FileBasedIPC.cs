@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using osu.Framework.Allocation;
@@ -187,7 +188,7 @@ namespace osu.Game.Tournament.IPC
         private string findStablePath()
         {
             var stableInstallPath = findFromEnvVar() ??
-                                    findFromRegistry() ??
+                                    (OperatingSystem.IsWindows() ? findFromRegistry() : null) ??
                                     findFromLocalAppData() ??
                                     findFromDotFolder();
 
@@ -234,6 +235,7 @@ namespace osu.Game.Tournament.IPC
             return null;
         }
 
+        [SupportedOSPlatform("windows")]
         private string findFromRegistry()
         {
             Logger.Log("Trying to find stable in registry");

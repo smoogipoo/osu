@@ -158,7 +158,7 @@ namespace osu.Game.Utils
                     // A mod with unknown (e.g. enum) generic type.
                     var valueMethod = u.GetType().GetProperty(nameof(IBindable<int>.Value));
                     Debug.Assert(valueMethod != null);
-                    return valueMethod.GetValue(u);
+                    return valueMethod.GetValue(u)!;
 
                 default:
                     // fall back for non-bindable cases.

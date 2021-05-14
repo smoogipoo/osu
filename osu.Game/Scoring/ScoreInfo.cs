@@ -116,6 +116,7 @@ namespace osu.Game.Scoring
         [JsonIgnore]
         [Column("Mods")]
         public string ModsJson
+
         {
             get => JsonConvert.SerializeObject(apiMods);
             set => apiMods = JsonConvert.DeserializeObject<APIMod[]>(value);
@@ -123,11 +124,17 @@ namespace osu.Game.Scoring
 
         [NotMapped]
         [JsonProperty("user")]
-        public User User { get; set; }
+        public User User
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
         [Column("User")]
         public string UserString
+
         {
             get => User?.Username;
             set
@@ -140,6 +147,7 @@ namespace osu.Game.Scoring
         [JsonIgnore]
         [Column("UserID")]
         public int? UserID
+
         {
             get => User?.Id ?? 1;
             set
@@ -150,23 +158,45 @@ namespace osu.Game.Scoring
         }
 
         [JsonIgnore]
-        public int BeatmapInfoID { get; set; }
+        public int BeatmapInfoID
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
-        public virtual BeatmapInfo Beatmap { get; set; }
+        public virtual BeatmapInfo Beatmap
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
-        public long? OnlineScoreID { get; set; }
+        public long? OnlineScoreID
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
-        public DateTimeOffset Date { get; set; }
+        public DateTimeOffset Date
+
+        {
+            get;
+            set;
+        }
 
         [JsonProperty("statistics")]
-        public Dictionary<HitResult, int> Statistics = new Dictionary<HitResult, int>();
+        public Dictionary<HitResult, int> Statistics =
+            new Dictionary<HitResult, int>();
 
         [JsonIgnore]
         [Column("Statistics")]
         public string StatisticsJson
+
         {
             get => JsonConvert.SerializeObject(Statistics);
             set
@@ -183,23 +213,48 @@ namespace osu.Game.Scoring
 
         [NotMapped]
         [JsonIgnore]
-        public List<HitEvent> HitEvents { get; set; }
+        public List<HitEvent> HitEvents
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
-        public List<ScoreFileInfo> Files { get; set; }
+        public List<ScoreFileInfo> Files
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
-        public string Hash { get; set; }
+        public string Hash
+
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
-        public bool DeletePending { get; set; }
+        public bool DeletePending
+
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// The position of this score, starting at 1.
         /// </summary>
         [NotMapped]
         [JsonProperty("position")]
-        public int? Position { get; set; }
+        public int? Position
+
+        {
+            get;
+            set;
+        }
 
         private bool isLegacyScore;
 
@@ -209,6 +264,7 @@ namespace osu.Game.Scoring
         [JsonIgnore]
         [NotMapped]
         public bool IsLegacyScore
+
         {
             get
             {

@@ -50,7 +50,7 @@ namespace osu.Game.Extensions
                         }
                         else if (continuationTask.IsFaulted)
                         {
-                            tcs.TrySetException(continuationTask.Exception);
+                            tcs.TrySetException(continuationTask.Exception ?? new AggregateException());
                         }
                         else
                         {
