@@ -61,7 +61,7 @@ namespace osu.Game.Tests.Visual.Online
         [Test]
         public void TestBasicDisplay()
         {
-            AddStep("Add playing user", () => testSpectatorStreamingClient.PlayingUsers.Add(2));
+            AddStep("Add playing user", () => testSpectatorStreamingClient.PlayingUsers.Add(2, null));
             AddUntilStep("Panel loaded", () => currentlyPlaying.ChildrenOfType<UserGridPanel>()?.FirstOrDefault()?.User.Id == 2);
             AddStep("Remove playing user", () => testSpectatorStreamingClient.PlayingUsers.Remove(2));
             AddUntilStep("Panel no longer present", () => !currentlyPlaying.ChildrenOfType<UserGridPanel>().Any());

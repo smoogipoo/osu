@@ -74,7 +74,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     streamingClient.StartPlay(i, Beatmap.Value.BeatmapInfo.OnlineBeatmapID ?? 0);
 
                 Client.CurrentMatchPlayingUserIds.Clear();
-                Client.CurrentMatchPlayingUserIds.AddRange(streamingClient.PlayingUsers);
+                Client.CurrentMatchPlayingUserIds.AddRange(streamingClient.PlayingUsers.Keys);
 
                 Children = new Drawable[]
                 {
@@ -83,7 +83,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                 scoreProcessor.ApplyBeatmap(playable);
 
-                LoadComponentAsync(leaderboard = new MultiplayerGameplayLeaderboard(scoreProcessor, streamingClient.PlayingUsers.ToArray())
+                LoadComponentAsync(leaderboard = new MultiplayerGameplayLeaderboard(scoreProcessor, Client.CurrentMatchPlayingUserIds.ToArray())
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -120,7 +120,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             public void RandomlyUpdateState()
             {
-                foreach (var userId in PlayingUsers)
+                foreach (var (userId, _) in PlayingUsers)
                 {
                     if (RNG.NextBool())
                         continue;

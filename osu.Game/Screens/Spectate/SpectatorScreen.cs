@@ -96,17 +96,23 @@ namespace osu.Game.Screens.Spectate
             switch (e.Action)
             {
                 case NotifyDictionaryChangedAction.Add:
-                    foreach (var (userId, state) in e.NewItems.AsNonNull())
-                    {
-                        if (state != null)
-                            userBeganPlaying(userId, state);
-                    }
+                    foreach (var (userId, state) in e.NewItems.AsNonNull().Where(i => i.Value != null))
+                        userBeganPlaying(userId, state);
 
                     break;
 
                 case NotifyDictionaryChangedAction.Remove:
                     foreach (var (userId, _) in e.OldItems.AsNonNull())
                         userFinishedPlaying(userId);
+                    break;
+
+                case NotifyDictionaryChangedAction.Replace:
+                    foreach (var (userId, _) in e.OldItems.AsNonNull())
+                        userFinishedPlaying(userId);
+
+                    foreach (var (userId, state) in e.NewItems.AsNonNull().Where(i => i.Value != null))
+                        userBeganPlaying(userId, state);
+
                     break;
             }
         }

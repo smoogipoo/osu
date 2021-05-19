@@ -14,7 +14,7 @@ namespace osu.Game.Tests.Visual.Spectator
 {
     public class TestSpectatorStreamingClient : SpectatorStreamingClient
     {
-        public new BindableList<int> PlayingUsers => (BindableList<int>)base.PlayingUsers;
+        public new BindableDictionary<int, SpectatorState> PlayingUsers => (BindableDictionary<int, SpectatorState>)base.PlayingUsers;
         private readonly ConcurrentDictionary<int, byte> watchingUsers = new ConcurrentDictionary<int, byte>();
 
         private readonly Dictionary<int, int> userBeatmapDictionary = new Dictionary<int, int>();
@@ -66,7 +66,7 @@ namespace osu.Game.Tests.Visual.Spectator
             base.WatchUser(userId);
 
             // When newly watching a user, the server sends the playing state immediately.
-            if (watchingUsers.TryAdd(userId, 0) && PlayingUsers.Contains(userId))
+            if (watchingUsers.TryAdd(userId, 0) && PlayingUsers.ContainsKey(userId))
                 sendState(userId, userBeatmapDictionary[userId]);
         }
 
