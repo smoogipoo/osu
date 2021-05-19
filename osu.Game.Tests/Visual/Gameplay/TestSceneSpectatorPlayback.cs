@@ -3,12 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -45,7 +44,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private Replay replay;
 
-        private readonly IBindableList<int> users = new BindableList<int>();
+        private readonly IBindableDictionary<int, SpectatorState> playingUsers = new BindableDictionary<int, SpectatorState>();
 
         private TestReplayRecorder recorder;
 
@@ -69,29 +68,25 @@ namespace osu.Game.Tests.Visual.Gameplay
         {
             replay = new Replay();
 
-            users.BindTo(streamingClient.PlayingUsers);
-            users.BindCollectionChanged((obj, args) =>
+            playingUsers.BindTo(streamingClient.PlayingUsers);
+            playingUsers.BindCollectionChanged((obj, args) =>
             {
                 switch (args.Action)
                 {
-                    case NotifyCollectionChangedAction.Add:
-                        Debug.Assert(args.NewItems != null);
-
-                        foreach (int user in args.NewItems)
+                    case NotifyDictionaryChangedAction.Add:
+                        foreach (var (userId, _) in args.NewItems.AsNonNull())
                         {
-                            if (user == api.LocalUser.Value.Id)
-                                streamingClient.WatchUser(user);
+                            if (userId == api.LocalUser.Value.Id)
+                                streamingClient.WatchUser(userId);
                         }
 
                         break;
 
-                    case NotifyCollectionChangedAction.Remove:
-                        Debug.Assert(args.OldItems != null);
-
-                        foreach (int user in args.OldItems)
+                    case NotifyDictionaryChangedAction.Remove:
+                        foreach (var (userId, _) in args.OldItems.AsNonNull())
                         {
-                            if (user == api.LocalUser.Value.Id)
-                                streamingClient.StopWatchingUser(user);
+                            if (userId == api.LocalUser.Value.Id)
+                                streamingClient.StopWatchingUser(userId);
                         }
 
                         break;
