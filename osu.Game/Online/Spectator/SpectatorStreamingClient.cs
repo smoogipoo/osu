@@ -41,8 +41,6 @@ namespace osu.Game.Online.Spectator
 
         private readonly List<int> watchingUsers = new List<int>();
 
-        private readonly object userLock = new object();
-
         /// <summary>
         /// All currently playing users. Includes users who are not currently being watched.
         /// </summary>
@@ -106,18 +104,13 @@ namespace osu.Game.Online.Spectator
                 };
 
                 isConnected.BindTo(connector.IsConnected);
-                isConnected.BindValueChanged(connected =>
+                isConnected.BindValueChanged(connected => Schedule(() =>
                 {
                     if (connected.NewValue)
                     {
                         // get all the users that were previously being watched
-                        int[] users;
-
-                        lock (userLock)
-                        {
-                            users = watchingUsers.ToArray();
-                            watchingUsers.Clear();
-                        }
+                        int[] users = watchingUsers.ToArray();
+                        watchingUsers.Clear();
 
                         // resubscribe to watched users.
                         foreach (var userId in users)
@@ -128,17 +121,14 @@ namespace osu.Game.Online.Spectator
                             beginPlaying();
                     }
                     else
-                    {
-                        lock (userLock)
-                            playingUsers.Clear();
-                    }
-                }, true);
+                        playingUsers.Clear();
+                }), true);
             }
         }
 
         Task ISpectatorClient.UserBeganPlaying(int userId, SpectatorState state)
         {
-            lock (userLock)
+            Schedule(() =>
             {
                 // UserBeganPlaying() is called by the server regardless of whether the local user is watching the remote user, and is called a further time when the remote user is watched.
                 // This may be a temporary thing (see: https://github.com/ppy/osu-server-spectator/blob/2273778e02cfdb4a9c6a934f2a46a8459cb5d29c/osu.Server.Spectator/Hubs/SpectatorHub.cs#L28-L29).
@@ -148,26 +138,27 @@ namespace osu.Game.Online.Spectator
                     playingUsers[userId] = state;
                 else
                     playingUsers[userId] = null;
-            }
 
-            OnUserBeganPlaying?.Invoke(userId, state);
+                OnUserBeganPlaying?.Invoke(userId, state);
+            });
 
             return Task.CompletedTask;
         }
 
         Task ISpectatorClient.UserFinishedPlaying(int userId, SpectatorState state)
         {
-            lock (userLock)
+            Schedule(() =>
+            {
                 playingUsers.Remove(userId);
-
-            OnUserFinishedPlaying?.Invoke(userId, state);
+                OnUserFinishedPlaying?.Invoke(userId, state);
+            });
 
             return Task.CompletedTask;
         }
 
         Task ISpectatorClient.UserSentFrames(int userId, FrameDataBundle data)
         {
-            OnNewFrames?.Invoke(userId, data);
+            Schedule(() => OnNewFrames?.Invoke(userId, data));
 
             return Task.CompletedTask;
         }
@@ -218,29 +209,23 @@ namespace osu.Game.Online.Spectator
 
         public virtual void WatchUser(int userId)
         {
-            lock (userLock)
-            {
-                if (watchingUsers.Contains(userId))
-                    return;
+            if (watchingUsers.Contains(userId))
+                return;
 
-                watchingUsers.Add(userId);
+            watchingUsers.Add(userId);
 
-                if (!isConnected.Value)
-                    return;
-            }
+            if (!isConnected.Value)
+                return;
 
             connection.SendAsync(nameof(ISpectatorServer.StartWatchingUser), userId);
         }
 
         public virtual void StopWatchingUser(int userId)
         {
-            lock (userLock)
-            {
-                watchingUsers.Remove(userId);
+            watchingUsers.Remove(userId);
 
-                if (!isConnected.Value)
-                    return;
-            }
+            if (!isConnected.Value)
+                return;
 
             connection.SendAsync(nameof(ISpectatorServer.EndWatchingUser), userId);
         }
