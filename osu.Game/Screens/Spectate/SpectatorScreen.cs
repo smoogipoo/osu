@@ -43,14 +43,8 @@ namespace osu.Game.Screens.Spectate
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
 
-        // A lock is used to synchronise access to spectator/gameplay states, since this class is a screen which may become non-current and stop receiving updates at any point.
-        private readonly object stateLock = new object();
-
-        // All playing users. Note that this is updated on the SignalR thread.
+        // All playing users.
         private readonly IBindableDictionary<int, SpectatorState> allPlayingUsers = new BindableDictionary<int, SpectatorState>();
-
-        // Any user states that have not yet started spectator gameplay due to missing beatmap or ruleset. This exists to ensure thread-safe lookups in stateLock critical sections.
-        private readonly Dictionary<int, SpectatorState> pendingUserStates = new Dictionary<int, SpectatorState>();
 
         // A mapping of user ids to their resolved models.
         private readonly Dictionary<int, User> userMap = new Dictionary<int, User>();
@@ -83,11 +77,8 @@ namespace osu.Game.Screens.Spectate
                 managerUpdated = beatmaps.ItemUpdated.GetBoundCopy();
                 managerUpdated.BindValueChanged(beatmapUpdated);
 
-                lock (stateLock)
-                {
-                    foreach (var (id, _) in userMap)
-                        spectatorClient.WatchUser(id);
-                }
+                foreach (var (id, _) in userMap)
+                    spectatorClient.WatchUser(id);
             }));
         }
 
@@ -123,14 +114,13 @@ namespace osu.Game.Screens.Spectate
 
             foreach (var u in userIds)
             {
-                userLookupTasks.Add(userLookupCache.GetUserAsync(u).ContinueWith(task =>
+                userLookupTasks.Add(userLookupCache.GetUserAsync(u).ContinueWith(task => Schedule(() =>
                 {
                     if (!task.IsCompletedSuccessfully)
                         return;
 
-                    lock (stateLock)
-                        userMap[u] = task.Result;
-                }));
+                    userMap[u] = task.Result;
+                })));
             }
 
             return Task.WhenAll(userLookupTasks);
@@ -141,16 +131,13 @@ namespace osu.Game.Screens.Spectate
             if (!e.NewValue.TryGetTarget(out var beatmapSet))
                 return;
 
-            lock (stateLock)
+            foreach (var (userId, _) in userMap)
             {
-                foreach (var (userId, _) in userMap)
-                {
-                    if (!pendingUserStates.TryGetValue(userId, out var pendingState))
-                        continue;
+                if (!allPlayingUsers.TryGetValue(userId, out var pendingState))
+                    continue;
 
-                    if (beatmapSet.Beatmaps.Any(b => b.OnlineBeatmapID == pendingState.BeatmapID))
-                        updateGameplayState(userId);
-                }
+                if (beatmapSet.Beatmaps.Any(b => b.OnlineBeatmapID == pendingState.BeatmapID))
+                    updateGameplayState(userId);
             }
         }
 
@@ -159,103 +146,82 @@ namespace osu.Game.Screens.Spectate
             if (state.RulesetID == null || state.BeatmapID == null)
                 return;
 
-            lock (stateLock)
-            {
-                if (!userMap.ContainsKey(userId))
-                    return;
+            if (!userMap.ContainsKey(userId))
+                return;
 
-                // Enqueue the user state.
-                pendingUserStates[userId] = state;
+            Schedule(() => OnUserStateChanged(userId, state));
 
-                Schedule(() => OnUserStateChanged(userId, state));
-
-                updateGameplayState(userId);
-            }
+            updateGameplayState(userId);
         }
 
         private void updateGameplayState(int userId)
         {
-            lock (stateLock)
+            Debug.Assert(userMap.ContainsKey(userId));
+
+            var user = userMap[userId];
+            var spectatorState = allPlayingUsers[userId];
+
+            var resolvedRuleset = rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == spectatorState.RulesetID)?.CreateInstance();
+            if (resolvedRuleset == null)
+                return;
+
+            var resolvedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == spectatorState.BeatmapID);
+            if (resolvedBeatmap == null)
+                return;
+
+            var score = new Score
             {
-                Debug.Assert(userMap.ContainsKey(userId));
-
-                var user = userMap[userId];
-                var spectatorState = pendingUserStates[userId];
-
-                var resolvedRuleset = rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == spectatorState.RulesetID)?.CreateInstance();
-                if (resolvedRuleset == null)
-                    return;
-
-                var resolvedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == spectatorState.BeatmapID);
-                if (resolvedBeatmap == null)
-                    return;
-
-                // Consume the user state.
-                pendingUserStates.Remove(userId);
-
-                var score = new Score
+                ScoreInfo = new ScoreInfo
                 {
-                    ScoreInfo = new ScoreInfo
-                    {
-                        Beatmap = resolvedBeatmap,
-                        User = user,
-                        Mods = spectatorState.Mods.Select(m => m.ToMod(resolvedRuleset)).ToArray(),
-                        Ruleset = resolvedRuleset.RulesetInfo,
-                    },
-                    Replay = new Replay { HasReceivedAllFrames = false },
-                };
+                    Beatmap = resolvedBeatmap,
+                    User = user,
+                    Mods = spectatorState.Mods.Select(m => m.ToMod(resolvedRuleset)).ToArray(),
+                    Ruleset = resolvedRuleset.RulesetInfo,
+                },
+                Replay = new Replay { HasReceivedAllFrames = false },
+            };
 
-                var gameplayState = new GameplayState(score, resolvedRuleset, beatmaps.GetWorkingBeatmap(resolvedBeatmap));
+            var gameplayState = new GameplayState(score, resolvedRuleset, beatmaps.GetWorkingBeatmap(resolvedBeatmap));
 
-                gameplayStates[userId] = gameplayState;
-                Schedule(() => StartGameplay(userId, gameplayState));
-            }
+            gameplayStates[userId] = gameplayState;
+            Schedule(() => StartGameplay(userId, gameplayState));
         }
 
         private void userSentFrames(int userId, FrameDataBundle bundle)
         {
-            lock (stateLock)
+            if (!userMap.ContainsKey(userId))
+                return;
+
+            if (!gameplayStates.TryGetValue(userId, out var gameplayState))
+                return;
+
+            // The ruleset instance should be guaranteed to be in sync with the score via ScoreLock.
+            Debug.Assert(gameplayState.Ruleset != null && gameplayState.Ruleset.RulesetInfo.Equals(gameplayState.Score.ScoreInfo.Ruleset));
+
+            foreach (var frame in bundle.Frames)
             {
-                if (!userMap.ContainsKey(userId))
-                    return;
+                IConvertibleReplayFrame convertibleFrame = gameplayState.Ruleset.CreateConvertibleReplayFrame();
+                convertibleFrame.FromLegacy(frame, gameplayState.Beatmap.Beatmap);
 
-                if (!gameplayStates.TryGetValue(userId, out var gameplayState))
-                    return;
+                var convertedFrame = (ReplayFrame)convertibleFrame;
+                convertedFrame.Time = frame.Time;
 
-                // The ruleset instance should be guaranteed to be in sync with the score via ScoreLock.
-                Debug.Assert(gameplayState.Ruleset != null && gameplayState.Ruleset.RulesetInfo.Equals(gameplayState.Score.ScoreInfo.Ruleset));
-
-                foreach (var frame in bundle.Frames)
-                {
-                    IConvertibleReplayFrame convertibleFrame = gameplayState.Ruleset.CreateConvertibleReplayFrame();
-                    convertibleFrame.FromLegacy(frame, gameplayState.Beatmap.Beatmap);
-
-                    var convertedFrame = (ReplayFrame)convertibleFrame;
-                    convertedFrame.Time = frame.Time;
-
-                    gameplayState.Score.Replay.Frames.Add(convertedFrame);
-                }
+                gameplayState.Score.Replay.Frames.Add(convertedFrame);
             }
         }
 
         private void userFinishedPlaying(int userId)
         {
-            lock (stateLock)
-            {
-                if (!userMap.ContainsKey(userId))
-                    return;
+            if (!userMap.ContainsKey(userId))
+                return;
 
-                // Since gameplay has finished, any pending user state can be discarded.
-                pendingUserStates.Remove(userId);
+            if (!gameplayStates.TryGetValue(userId, out var gameplayState))
+                return;
 
-                if (!gameplayStates.TryGetValue(userId, out var gameplayState))
-                    return;
+            gameplayState.Score.Replay.HasReceivedAllFrames = true;
 
-                gameplayState.Score.Replay.HasReceivedAllFrames = true;
-
-                gameplayStates.Remove(userId);
-                Schedule(() => EndGameplay(userId));
-            }
+            gameplayStates.Remove(userId);
+            Schedule(() => EndGameplay(userId));
         }
 
         /// <summary>
@@ -284,15 +250,12 @@ namespace osu.Game.Screens.Spectate
         /// <param name="userId">The user to stop spectating.</param>
         protected void RemoveUser(int userId)
         {
-            lock (stateLock)
-            {
-                userFinishedPlaying(userId);
+            userFinishedPlaying(userId);
 
-                userIds.Remove(userId);
-                userMap.Remove(userId);
+            userIds.Remove(userId);
+            userMap.Remove(userId);
 
-                spectatorClient.StopWatchingUser(userId);
-            }
+            spectatorClient.StopWatchingUser(userId);
         }
 
         protected override void Dispose(bool isDisposing)
@@ -303,11 +266,8 @@ namespace osu.Game.Screens.Spectate
             {
                 spectatorClient.OnNewFrames -= userSentFrames;
 
-                lock (stateLock)
-                {
-                    foreach (var (userId, _) in userMap)
-                        spectatorClient.StopWatchingUser(userId);
-                }
+                foreach (var (userId, _) in userMap)
+                    spectatorClient.StopWatchingUser(userId);
             }
 
             managerUpdated?.UnbindAll();
