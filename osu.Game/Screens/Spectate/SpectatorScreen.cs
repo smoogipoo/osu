@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.Spectator;
@@ -45,7 +46,16 @@ namespace osu.Game.Screens.Spectate
         // A lock is used to synchronise access to spectator/gameplay states, since this class is a screen which may become non-current and stop receiving updates at any point.
         private readonly object stateLock = new object();
 
+        // All playing users. Note that this is updated on the SignalR thread.
+        private readonly IBindableDictionary<int, SpectatorState> allPlayingUsers = new BindableDictionary<int, SpectatorState>();
+
+        // Any user states that have not yet started spectator gameplay due to missing beatmap or ruleset. This exists to ensure thread-safe lookups in stateLock critical sections.
+        private readonly Dictionary<int, SpectatorState> pendingUserStates = new Dictionary<int, SpectatorState>();
+
+        // A mapping of user ids to their resolved models.
         private readonly Dictionary<int, User> userMap = new Dictionary<int, User>();
+
+        // All gameplay states for playing users that have had their spectator gameplay started.
         private readonly Dictionary<int, GameplayState> gameplayStates = new Dictionary<int, GameplayState>();
 
         private IBindable<WeakReference<BeatmapSetInfo>> managerUpdated;
@@ -65,8 +75,9 @@ namespace osu.Game.Screens.Spectate
 
             populateAllUsers().ContinueWith(_ => Schedule(() =>
             {
-                spectatorClient.BindUserBeganPlaying(userBeganPlaying, true);
-                spectatorClient.OnUserFinishedPlaying += userFinishedPlaying;
+                allPlayingUsers.BindTo(spectatorClient.PlayingUsers);
+                allPlayingUsers.BindCollectionChanged(onPlayingUsersChanged, true);
+
                 spectatorClient.OnNewFrames += userSentFrames;
 
                 managerUpdated = beatmaps.ItemUpdated.GetBoundCopy();
@@ -78,6 +89,26 @@ namespace osu.Game.Screens.Spectate
                         spectatorClient.WatchUser(id);
                 }
             }));
+        }
+
+        private void onPlayingUsersChanged(object sender, NotifyDictionaryChangedEventArgs<int, SpectatorState> e)
+        {
+            switch (e.Action)
+            {
+                case NotifyDictionaryChangedAction.Add:
+                    foreach (var (userId, state) in e.NewItems.AsNonNull())
+                    {
+                        if (state != null)
+                            userBeganPlaying(userId, state);
+                    }
+
+                    break;
+
+                case NotifyDictionaryChangedAction.Remove:
+                    foreach (var (userId, _) in e.OldItems.AsNonNull())
+                        userFinishedPlaying(userId);
+                    break;
+            }
         }
 
         private Task populateAllUsers()
@@ -108,10 +139,10 @@ namespace osu.Game.Screens.Spectate
             {
                 foreach (var (userId, _) in userMap)
                 {
-                    if (!spectatorClient.TryGetPlayingUserState(userId, out var userState))
+                    if (!pendingUserStates.TryGetValue(userId, out var pendingState))
                         continue;
 
-                    if (beatmapSet.Beatmaps.Any(b => b.OnlineBeatmapID == userState.BeatmapID))
+                    if (beatmapSet.Beatmaps.Any(b => b.OnlineBeatmapID == pendingState.BeatmapID))
                         updateGameplayState(userId);
                 }
             }
@@ -127,9 +158,8 @@ namespace osu.Game.Screens.Spectate
                 if (!userMap.ContainsKey(userId))
                     return;
 
-                // The user may have stopped playing.
-                if (!spectatorClient.TryGetPlayingUserState(userId, out _))
-                    return;
+                // Enqueue the user state.
+                pendingUserStates[userId] = state;
 
                 Schedule(() => OnUserStateChanged(userId, state));
 
@@ -143,11 +173,8 @@ namespace osu.Game.Screens.Spectate
             {
                 Debug.Assert(userMap.ContainsKey(userId));
 
-                // The user may have stopped playing.
-                if (!spectatorClient.TryGetPlayingUserState(userId, out var spectatorState))
-                    return;
-
                 var user = userMap[userId];
+                var spectatorState = pendingUserStates[userId];
 
                 var resolvedRuleset = rulesets.AvailableRulesets.FirstOrDefault(r => r.ID == spectatorState.RulesetID)?.CreateInstance();
                 if (resolvedRuleset == null)
@@ -156,6 +183,9 @@ namespace osu.Game.Screens.Spectate
                 var resolvedBeatmap = beatmaps.QueryBeatmap(b => b.OnlineBeatmapID == spectatorState.BeatmapID);
                 if (resolvedBeatmap == null)
                     return;
+
+                // Consume the user state.
+                pendingUserStates.Remove(userId);
 
                 var score = new Score
                 {
@@ -202,12 +232,15 @@ namespace osu.Game.Screens.Spectate
             }
         }
 
-        private void userFinishedPlaying(int userId, SpectatorState state)
+        private void userFinishedPlaying(int userId)
         {
             lock (stateLock)
             {
                 if (!userMap.ContainsKey(userId))
                     return;
+
+                // Since gameplay has finished, any pending user state can be discarded.
+                pendingUserStates.Remove(userId);
 
                 if (!gameplayStates.TryGetValue(userId, out var gameplayState))
                     return;
@@ -247,7 +280,7 @@ namespace osu.Game.Screens.Spectate
         {
             lock (stateLock)
             {
-                userFinishedPlaying(userId, null);
+                userFinishedPlaying(userId);
 
                 userIds.Remove(userId);
                 userMap.Remove(userId);
@@ -262,8 +295,6 @@ namespace osu.Game.Screens.Spectate
 
             if (spectatorClient != null)
             {
-                spectatorClient.OnUserBeganPlaying -= userBeganPlaying;
-                spectatorClient.OnUserFinishedPlaying -= userFinishedPlaying;
                 spectatorClient.OnNewFrames -= userSentFrames;
 
                 lock (stateLock)
