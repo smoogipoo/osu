@@ -67,7 +67,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("finish previous gameplay", () =>
             {
                 foreach (var id in playingUserIds)
+                {
+                    Client.RemoveUser(new User { Id = id });
                     spectatorClient.EndPlay(id);
+                }
+
                 playingUserIds.Clear();
             });
         }
@@ -214,6 +218,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             sendFrames(PLAYER_1_ID, 10);
             sendFrames(PLAYER_2_ID, 20);
+            checkPaused(PLAYER_1_ID, false);
+            checkPaused(PLAYER_2_ID, false);
             assertMuted(PLAYER_1_ID, false);
             assertMuted(PLAYER_2_ID, true);
 
@@ -268,6 +274,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("end play", () =>
             {
+                Client.RemoveUser(new User { Id = userId });
+
                 spectatorClient.EndPlay(userId);
                 playingUserIds.Remove(userId);
                 nextFrame.Remove(userId);
