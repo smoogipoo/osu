@@ -62,7 +62,9 @@ namespace osu.Game.Online.Multiplayer
         /// <summary>
         /// The users in the joined <see cref="Room"/> which are participating in the current gameplay loop.
         /// </summary>
-        public readonly BindableList<int> CurrentMatchPlayingUserIds = new BindableList<int>();
+        public IBindableList<int> CurrentMatchPlayingUserIds => currentMatchPlayingUserIds;
+
+        private readonly BindableList<int> currentMatchPlayingUserIds = new BindableList<int>();
 
         public readonly Bindable<PlaylistItem?> CurrentMatchPlayingItem = new Bindable<PlaylistItem?>();
 
@@ -168,7 +170,7 @@ namespace osu.Game.Online.Multiplayer
             {
                 apiRoom = null;
                 Room = null;
-                CurrentMatchPlayingUserIds.Clear();
+                currentMatchPlayingUserIds.Clear();
 
                 RoomUpdated?.Invoke();
             });
@@ -359,7 +361,7 @@ namespace osu.Game.Online.Multiplayer
                     return;
 
                 Room.Users.Remove(user);
-                CurrentMatchPlayingUserIds.Remove(user.UserID);
+                currentMatchPlayingUserIds.Remove(user.UserID);
 
                 RoomUpdated?.Invoke();
             }, false);
@@ -601,16 +603,16 @@ namespace osu.Game.Online.Multiplayer
         /// <param name="state">The new state of the user.</param>
         private void updateUserPlayingState(int userId, MultiplayerUserState state)
         {
-            bool wasPlaying = CurrentMatchPlayingUserIds.Contains(userId);
+            bool wasPlaying = currentMatchPlayingUserIds.Contains(userId);
             bool isPlaying = state >= MultiplayerUserState.WaitingForLoad && state <= MultiplayerUserState.FinishedPlay;
 
             if (isPlaying == wasPlaying)
                 return;
 
             if (isPlaying)
-                CurrentMatchPlayingUserIds.Add(userId);
+                currentMatchPlayingUserIds.Add(userId);
             else
-                CurrentMatchPlayingUserIds.Remove(userId);
+                currentMatchPlayingUserIds.Remove(userId);
         }
 
         private Task scheduleAsync(Action action, CancellationToken cancellationToken = default)

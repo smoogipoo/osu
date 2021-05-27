@@ -13,6 +13,7 @@ using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Online.API;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
 using osu.Game.Rulesets.Osu.Scoring;
@@ -21,6 +22,7 @@ using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Tests.Visual.Online;
 using osu.Game.Tests.Visual.Spectator;
+using osu.Game.Users;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -71,10 +73,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 var playable = Beatmap.Value.GetPlayableBeatmap(Ruleset.Value);
 
                 for (int i = 0; i < users; i++)
-                    spectatorClient.StartPlay(i, Beatmap.Value.BeatmapInfo.OnlineBeatmapID ?? 0);
+                {
+                    Client.AddUser(new User { Id = i });
+                    Client.ChangeUserState(i, MultiplayerUserState.Playing);
 
-                Client.CurrentMatchPlayingUserIds.Clear();
-                Client.CurrentMatchPlayingUserIds.AddRange(spectatorClient.PlayingUsers);
+                    spectatorClient.StartPlay(i, Beatmap.Value.BeatmapInfo.OnlineBeatmapID ?? 0);
+                }
 
                 Children = new Drawable[]
                 {
@@ -103,7 +107,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestUserQuit()
         {
-            AddRepeatStep("mark user quit", () => Client.CurrentMatchPlayingUserIds.RemoveAt(0), users);
+            AddRepeatStep("mark user quit", () => Client.RemoveUser(new User { Id = Client.CurrentMatchPlayingUserIds[0] }), users);
         }
 
         [Test]
