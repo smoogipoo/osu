@@ -205,24 +205,37 @@ namespace osu.Game.Tests.Visual.Multiplayer
             start(new[] { PLAYER_1_ID, PLAYER_2_ID });
             loadSpectateScreen();
 
+            // Both players are muted while gameplay hasn't started.
             assertMuted(PLAYER_1_ID, true);
             assertMuted(PLAYER_2_ID, true);
 
+            // Send some initial frames and wait until they pause again.
+            sendFrames(new[] { PLAYER_1_ID, PLAYER_2_ID }, 5);
+            checkPaused(PLAYER_1_ID, true);
+            checkPaused(PLAYER_2_ID, true);
+
+            // Start both players in sequence, only the first is unmuted.
             sendFrames(PLAYER_1_ID, 10);
-            sendFrames(PLAYER_2_ID, 20);
+            checkPaused(PLAYER_1_ID, false);
+            sendFrames(PLAYER_2_ID, 30);
+            checkPaused(PLAYER_2_ID, false);
             assertMuted(PLAYER_1_ID, false);
             assertMuted(PLAYER_2_ID, true);
 
+            // When the audio source player pauses, a new player becomes the audio source.
             checkPaused(PLAYER_1_ID, true);
             assertMuted(PLAYER_1_ID, true);
             assertMuted(PLAYER_2_ID, false);
 
+            // And the same happens the other way around (the original player can become the audio source again).
             sendFrames(PLAYER_1_ID, 100);
+            checkPaused(PLAYER_1_ID, false);
             waitForCatchup(PLAYER_1_ID);
             checkPaused(PLAYER_2_ID, true);
-            assertMuted(PLAYER_1_ID, false);
             assertMuted(PLAYER_2_ID, true);
+            assertMuted(PLAYER_1_ID, false);
 
+            // And finally, the audio source is not transferred when a player catches up.
             sendFrames(PLAYER_2_ID, 100);
             waitForCatchup(PLAYER_2_ID);
             assertMuted(PLAYER_1_ID, false);
