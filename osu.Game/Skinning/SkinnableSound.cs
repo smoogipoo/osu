@@ -156,14 +156,14 @@ namespace osu.Game.Skinning
             samplesContainer.RemoveAll(s => s.IsInPool);
             samplesContainer.Clear();
 
-            foreach (var s in samples)
-            {
-                var sample = samplePool?.GetPooledSample(s) ?? new PoolableSkinnableSample(s);
-                sample.Looping = Looping;
-                sample.Volume.Value = s.Volume / 100.0;
-
-                samplesContainer.Add(sample);
-            }
+            // foreach (var s in samples)
+            // {
+            //     var sample = samplePool?.GetPooledSample(s) ?? new PoolableSkinnableSample(s);
+            //     sample.Looping = Looping;
+            //     sample.Volume.Value = s.Volume / 100.0;
+            //
+            //     samplesContainer.Add(sample);
+            // }
 
             if (wasPlaying && Looping)
                 Play();
