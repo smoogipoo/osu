@@ -7,6 +7,8 @@ namespace osu.Game.Rulesets.Mania.Tests
 {
     public class TestSceneManiaPlayer : PlayerTestScene
     {
+        protected override bool Autoplay => true;
+
         protected override Ruleset CreatePlayerRuleset() => new ManiaRuleset();
     }
 }
