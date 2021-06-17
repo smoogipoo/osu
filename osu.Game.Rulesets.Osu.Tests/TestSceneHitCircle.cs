@@ -99,7 +99,7 @@ namespace osu.Game.Rulesets.Osu.Tests
 
             protected override void CheckForResult(bool userTriggered, double timeOffset)
             {
-                if (auto && !userTriggered && timeOffset > 0)
+                if (auto && !userTriggered && timeOffset > 0 && CheckHittable?.Invoke(this, Time.Current) != false)
                 {
                     // force success
                     ApplyResult(r => r.Type = HitResult.Great);
