@@ -114,7 +114,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 this.hitOffset = hitOffset;
             }
 
-            public void TriggerJudgement() => UpdateResult(true);
+            public void TriggerJudgement() => Scheduler.Add(() => UpdateResult(true));
 
             protected override void CheckForResult(bool userTriggered, double timeOffset)
             {
