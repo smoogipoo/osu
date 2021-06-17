@@ -37,9 +37,9 @@ namespace osu.Game.Skinning
 
         private readonly GameHost host;
 
-        private readonly IResourceStore<byte[]> legacyDefaultResources;
+        private readonly IResourceStore<byte[]> resources;
 
-        public readonly Bindable<Skin> CurrentSkin = new Bindable<Skin>(new DefaultSkin(null));
+        public readonly Bindable<Skin> CurrentSkin = new Bindable<Skin>();
         public readonly Bindable<SkinInfo> CurrentSkinInfo = new Bindable<SkinInfo>(SkinInfo.Default) { Default = SkinInfo.Default };
 
         public override IEnumerable<string> HandledExtensions => new[] { ".osk" };
@@ -48,15 +48,23 @@ namespace osu.Game.Skinning
 
         protected override string ImportFromStablePath => "Skins";
 
-        public SkinManager(Storage storage, DatabaseContextFactory contextFactory, GameHost host, AudioManager audio, IResourceStore<byte[]> legacyDefaultResources)
+        private readonly Skin defaultLegacySkin;
+
+        private readonly Skin defaultSkin;
+
+        public SkinManager(Storage storage, DatabaseContextFactory contextFactory, GameHost host, IResourceStore<byte[]> resources, AudioManager audio)
             : base(storage, contextFactory, new SkinStore(contextFactory, storage), host)
         {
             this.audio = audio;
             this.host = host;
+            this.resources = resources;
 
-            this.legacyDefaultResources = legacyDefaultResources;
+            defaultLegacySkin = new DefaultLegacySkin(this);
+            defaultSkin = new DefaultSkin(this);
 
             CurrentSkinInfo.ValueChanged += skin => CurrentSkin.Value = GetSkin(skin.NewValue);
+
+            CurrentSkin.Value = defaultSkin;
             CurrentSkin.ValueChanged += skin =>
             {
                 if (skin.NewValue.SkinInfo != CurrentSkinInfo.Value)
@@ -157,7 +165,7 @@ namespace osu.Game.Skinning
         /// </summary>
         /// <param name="skinInfo">The skin to lookup.</param>
         /// <returns>A <see cref="Skin"/> instance correlating to the provided <see cref="SkinInfo"/>.</returns>
-        public Skin GetSkin(SkinInfo skinInfo) => skinInfo.CreateInstance(legacyDefaultResources, this);
+        public Skin GetSkin(SkinInfo skinInfo) => skinInfo.CreateInstance(this);
 
         /// <summary>
         /// Ensure that the current skin is in a state it can accept user modifications.
@@ -210,17 +218,48 @@ namespace osu.Game.Skinning
 
         public event Action SourceChanged;
 
-        public Drawable GetDrawableComponent(ISkinComponent component) => CurrentSkin.Value.GetDrawableComponent(component);
+        public Drawable GetDrawableComponent(ISkinComponent component) => lookupWithFallback(s => s.GetDrawableComponent(component));
 
-        public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => CurrentSkin.Value.GetTexture(componentName, wrapModeS, wrapModeT);
+        public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => lookupWithFallback(s => s.GetTexture(componentName, wrapModeS, wrapModeT));
 
-        public ISample GetSample(ISampleInfo sampleInfo) => CurrentSkin.Value.GetSample(sampleInfo);
+        public ISample GetSample(ISampleInfo sampleInfo) => lookupWithFallback(s => s.GetSample(sampleInfo));
 
-        public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => CurrentSkin.Value.GetConfig<TLookup, TValue>(lookup);
+        public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => lookupWithFallback(s => s.GetConfig<TLookup, TValue>(lookup));
+
+        public ISkin FindProvider(Func<ISkin, bool> lookupFunction)
+        {
+            if (lookupFunction(CurrentSkin.Value))
+                return CurrentSkin.Value;
+
+            if (CurrentSkin.Value is LegacySkin && lookupFunction(defaultLegacySkin))
+                return defaultLegacySkin;
+
+            if (lookupFunction(defaultSkin))
+                return defaultSkin;
+
+            return null;
+        }
+
+        private T lookupWithFallback<T>(Func<ISkin, T> lookupFunction)
+            where T : class
+        {
+            if (lookupFunction(CurrentSkin.Value) is T skinSourced)
+                return skinSourced;
+
+            // TODO: we also want to return a DefaultLegacySkin here if the current *beatmap* is providing any skinned elements.
+            // When attempting to address this, we may want to move the full DefaultLegacySkin fallback logic to within Player itself (to better allow
+            // for beatmap skin visibility).
+            if (CurrentSkin.Value is LegacySkin && lookupFunction(defaultLegacySkin) is T legacySourced)
+                return legacySourced;
+
+            // Finally fall back to the (non-legacy) default.
+            return lookupFunction(defaultSkin);
+        }
 
         #region IResourceStorageProvider
 
         AudioManager IStorageResourceProvider.AudioManager => audio;
+        IResourceStore<byte[]> IStorageResourceProvider.Resources => resources;
         IResourceStore<byte[]> IStorageResourceProvider.Files => Files.Store;
         IResourceStore<TextureUpload> IStorageResourceProvider.CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => host.CreateTextureLoaderStore(underlyingStore);
 

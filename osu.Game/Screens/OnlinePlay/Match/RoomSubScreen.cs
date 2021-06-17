@@ -72,8 +72,8 @@ namespace osu.Game.Screens.OnlinePlay.Match
                     Anchor = Anchor.BottomLeft,
                     Origin = Anchor.BottomLeft,
                     Depth = float.MinValue,
-                    RelativeSizeAxes = Axes.Both,
-                    Height = 0.5f,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Padding = new MarginPadding { Horizontal = HORIZONTAL_OVERFLOW_PADDING },
                     Child = userModsSelectOverlay = new UserModSelectOverlay
                     {
@@ -150,7 +150,11 @@ namespace osu.Game.Screens.OnlinePlay.Match
         protected void StartPlay()
         {
             sampleStart?.Play();
-            ParentScreen?.Push(CreateGameplayScreen());
+
+            // fallback is to allow this class to operate when there is no parent OnlineScreen (testing purposes).
+            var targetScreen = (Screen)ParentScreen ?? this;
+
+            targetScreen.Push(CreateGameplayScreen());
         }
 
         /// <summary>

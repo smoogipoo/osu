@@ -10,7 +10,6 @@ using osu.Framework.Logging;
 using osu.Framework.Screens;
 using osu.Game.Online.API;
 using osu.Game.Online.Rooms;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 
 namespace osu.Game.Screens.Play
@@ -44,9 +43,9 @@ namespace osu.Game.Screens.Play
             // Token request construction should happen post-load to allow derived classes to potentially prepare DI backings that are used to create the request.
             var tcs = new TaskCompletionSource<bool>();
 
-            if (Mods.Value.Any(m => m is ModAutoplay))
+            if (Mods.Value.Any(m => !m.UserPlayable))
             {
-                handleTokenFailure(new InvalidOperationException("Autoplay loaded."));
+                handleTokenFailure(new InvalidOperationException("Non-user playable mod selected."));
                 return false;
             }
 
@@ -116,12 +115,7 @@ namespace osu.Game.Screens.Play
 
             request.Success += s =>
             {
-                // For the time being, online ID responses are not really useful for anything.
-                // In addition, the IDs provided via new (lazer) endpoints are based on a different autoincrement from legacy (stable) scores.
-                //
-                // Until we better define the server-side logic behind this, let's not store the online ID to avoid potential unique constraint
-                // conflicts across various systems (ie. solo and multiplayer).
-                // score.ScoreInfo.OnlineScoreID = s.ID;
+                score.ScoreInfo.OnlineScoreID = s.ID;
                 tcs.SetResult(true);
             };
 

@@ -18,6 +18,8 @@ namespace osu.Game.Skinning
 
         private readonly BindableList<ISkinnableDrawable> components = new BindableList<ISkinnableDrawable>();
 
+        public bool ComponentsLoaded { get; private set; }
+
         public SkinnableTargetContainer(SkinnableTarget target)
         {
             Target = target;
@@ -30,6 +32,7 @@ namespace osu.Game.Skinning
         {
             ClearInternal();
             components.Clear();
+            ComponentsLoaded = false;
 
             content = CurrentSkin.GetDrawableComponent(new SkinnableTargetComponent(Target)) as SkinnableTargetComponentsContainer;
 
@@ -39,14 +42,14 @@ namespace osu.Game.Skinning
                 {
                     AddInternal(wrapper);
                     components.AddRange(wrapper.Children.OfType<ISkinnableDrawable>());
+                    ComponentsLoaded = true;
                 });
             }
+            else
+                ComponentsLoaded = true;
         }
 
-        /// <summary>
-        /// Add a new skinnable component to this target.
-        /// </summary>
-        /// <param name="component">The component to add.</param>
+        /// <inheritdoc cref="ISkinnableTarget"/>
         /// <exception cref="NotSupportedException">Thrown when attempting to add an element to a target which is not supported by the current skin.</exception>
         /// <exception cref="ArgumentException">Thrown if the provided instance is not a <see cref="Drawable"/>.</exception>
         public void Add(ISkinnableDrawable component)
@@ -55,15 +58,30 @@ namespace osu.Game.Skinning
                 throw new NotSupportedException("Attempting to add a new component to a target container which is not supported by the current skin.");
 
             if (!(component is Drawable drawable))
-                throw new ArgumentException($"Provided argument must be of type {nameof(Drawable)}.", nameof(drawable));
+                throw new ArgumentException($"Provided argument must be of type {nameof(Drawable)}.", nameof(component));
 
             content.Add(drawable);
             components.Add(component);
         }
 
-        protected override void SkinChanged(ISkinSource skin, bool allowFallback)
+        /// <inheritdoc cref="ISkinnableTarget"/>
+        /// <exception cref="NotSupportedException">Thrown when attempting to add an element to a target which is not supported by the current skin.</exception>
+        /// <exception cref="ArgumentException">Thrown if the provided instance is not a <see cref="Drawable"/>.</exception>
+        public void Remove(ISkinnableDrawable component)
         {
-            base.SkinChanged(skin, allowFallback);
+            if (content == null)
+                throw new NotSupportedException("Attempting to remove a new component from a target container which is not supported by the current skin.");
+
+            if (!(component is Drawable drawable))
+                throw new ArgumentException($"Provided argument must be of type {nameof(Drawable)}.", nameof(component));
+
+            content.Remove(drawable);
+            components.Remove(component);
+        }
+
+        protected override void SkinChanged(ISkinSource skin)
+        {
+            base.SkinChanged(skin);
 
             Reload();
         }

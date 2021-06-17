@@ -164,7 +164,8 @@ namespace osu.Game.Rulesets.Osu
                     {
                         new OsuModTarget(),
                         new OsuModDifficultyAdjust(),
-                        new OsuModClassic()
+                        new OsuModClassic(),
+                        new OsuModRandom(),
                     };
 
                 case ModType.Automation:
@@ -186,6 +187,7 @@ namespace osu.Game.Rulesets.Osu
                         new MultiMod(new ModWindUp(), new ModWindDown()),
                         new OsuModTraceable(),
                         new OsuModBarrelRoll(),
+                        new OsuModApproachDifferent(),
                     };
 
                 case ModType.System:

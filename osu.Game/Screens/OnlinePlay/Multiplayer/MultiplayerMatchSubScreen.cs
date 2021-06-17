@@ -27,6 +27,7 @@ using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Match;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Participants;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
+using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Users;
 using osuTK;
@@ -42,7 +43,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         public override string ShortTitle => "room";
 
         [Resolved]
-        private StatefulMultiplayerClient client { get; set; }
+        private MultiplayerClient client { get; set; }
 
         [Resolved]
         private OngoingOperationTracker ongoingOperationTracker { get; set; }
@@ -184,7 +185,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                                                                                     {
                                                                                         Anchor = Anchor.CentreLeft,
                                                                                         Origin = Anchor.CentreLeft,
-                                                                                        DisplayUnrankedText = false,
                                                                                         Current = UserMods,
                                                                                         Scale = new Vector2(0.8f),
                                                                                     },
@@ -452,7 +452,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                     return new MultiSpectatorScreen(userIds);
 
                 default:
-                    return new MultiplayerPlayer(SelectedItem.Value, userIds);
+                    return new PlayerLoader(() => new MultiplayerPlayer(SelectedItem.Value, userIds));
             }
         }
 

@@ -8,6 +8,7 @@ using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -78,8 +79,8 @@ namespace osu.Game.Tournament.IPC
                             using (var stream = IPCStorage.GetStream(file_ipc_filename))
                             using (var sr = new StreamReader(stream))
                             {
-                                var beatmapId = int.Parse(sr.ReadLine());
-                                var mods = int.Parse(sr.ReadLine());
+                                var beatmapId = int.Parse(sr.ReadLine().AsNonNull());
+                                var mods = int.Parse(sr.ReadLine().AsNonNull());
 
                                 if (lastBeatmapId != beatmapId)
                                 {
@@ -125,7 +126,7 @@ namespace osu.Game.Tournament.IPC
                             using (var stream = IPCStorage.GetStream(file_ipc_state_filename))
                             using (var sr = new StreamReader(stream))
                             {
-                                State.Value = (TourneyState)Enum.Parse(typeof(TourneyState), sr.ReadLine());
+                                State.Value = (TourneyState)Enum.Parse(typeof(TourneyState), sr.ReadLine().AsNonNull());
                             }
                         }
                         catch (Exception)
