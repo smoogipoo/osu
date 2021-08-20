@@ -87,7 +87,10 @@ namespace osu.Game.Input.Bindings
             new KeyBinding(new[] { InputKey.Shift, InputKey.Tab }, GlobalAction.ToggleInGameInterface),
             new KeyBinding(InputKey.MouseMiddle, GlobalAction.PauseGameplay),
             new KeyBinding(InputKey.Space, GlobalAction.TogglePauseReplay),
+            new KeyBinding(InputKey.Left, GlobalAction.SeekReplayBackward),
+            new KeyBinding(InputKey.Right, GlobalAction.SeekReplayForward),
             new KeyBinding(InputKey.Control, GlobalAction.HoldForHUD),
+            new KeyBinding(InputKey.Tab, GlobalAction.ToggleChatFocus),
         };
 
         public IEnumerable<KeyBinding> SongSelectKeyBindings => new[]
@@ -102,6 +105,9 @@ namespace osu.Game.Input.Bindings
         {
             new KeyBinding(new[] { InputKey.Alt, InputKey.Up }, GlobalAction.IncreaseVolume),
             new KeyBinding(new[] { InputKey.Alt, InputKey.Down }, GlobalAction.DecreaseVolume),
+
+            new KeyBinding(new[] { InputKey.Alt, InputKey.Left }, GlobalAction.PreviousVolumeMeter),
+            new KeyBinding(new[] { InputKey.Alt, InputKey.Right }, GlobalAction.NextVolumeMeter),
 
             new KeyBinding(new[] { InputKey.Control, InputKey.F4 }, GlobalAction.ToggleMute),
 
@@ -263,5 +269,20 @@ namespace osu.Game.Input.Bindings
 
         [Description("Toggle skin editor")]
         ToggleSkinEditor,
+
+        [Description("Previous volume meter")]
+        PreviousVolumeMeter,
+
+        [Description("Next volume meter")]
+        NextVolumeMeter,
+
+        [Description("Seek replay forward")]
+        SeekReplayForward,
+
+        [Description("Seek replay backward")]
+        SeekReplayBackward,
+
+        [Description("Toggle chat focus")]
+        ToggleChatFocus
     }
 }

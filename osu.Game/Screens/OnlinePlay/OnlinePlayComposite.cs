@@ -30,10 +30,13 @@ namespace osu.Game.Screens.OnlinePlay
         protected Bindable<RoomStatus> Status { get; private set; }
 
         [Resolved(typeof(Room))]
-        protected Bindable<GameType> Type { get; private set; }
+        protected Bindable<MatchType> Type { get; private set; }
 
         [Resolved(typeof(Room))]
         protected BindableList<PlaylistItem> Playlist { get; private set; }
+
+        [Resolved(typeof(Room))]
+        protected Bindable<RoomCategory> Category { get; private set; }
 
         [Resolved(typeof(Room))]
         protected BindableList<User> RecentParticipants { get; private set; }
@@ -55,6 +58,9 @@ namespace osu.Game.Screens.OnlinePlay
 
         [Resolved(typeof(Room))]
         protected Bindable<RoomAvailability> Availability { get; private set; }
+
+        [Resolved(typeof(Room), nameof(Room.Password))]
+        public Bindable<string> Password { get; private set; }
 
         [Resolved(typeof(Room))]
         protected Bindable<TimeSpan?> Duration { get; private set; }

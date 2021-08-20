@@ -46,11 +46,21 @@ namespace osu.Game.Screens.Edit
 
         public readonly IBeatmap PlayableBeatmap;
 
+        /// <summary>
+        /// Whether at least one timing control point is present and providing timing information.
+        /// </summary>
+        public IBindable<bool> HasTiming => hasTiming;
+
+        private readonly Bindable<bool> hasTiming = new Bindable<bool>();
+
         [CanBeNull]
-        public readonly ISkin BeatmapSkin;
+        public readonly EditorBeatmapSkin BeatmapSkin;
 
         [Resolved]
         private BindableBeatDivisor beatDivisor { get; set; }
+
+        [Resolved]
+        private EditorClock editorClock { get; set; }
 
         private readonly IBeatmapProcessor beatmapProcessor;
 
@@ -59,7 +69,8 @@ namespace osu.Game.Screens.Edit
         public EditorBeatmap(IBeatmap playableBeatmap, ISkin beatmapSkin = null)
         {
             PlayableBeatmap = playableBeatmap;
-            BeatmapSkin = beatmapSkin;
+            if (beatmapSkin is Skin skin)
+                BeatmapSkin = new EditorBeatmapSkin(skin);
 
             beatmapProcessor = playableBeatmap.BeatmapInfo.Ruleset?.CreateInstance().CreateBeatmapProcessor(PlayableBeatmap);
 
@@ -238,6 +249,8 @@ namespace osu.Game.Screens.Edit
 
             if (batchPendingUpdates.Count > 0)
                 UpdateState();
+
+            hasTiming.Value = !ReferenceEquals(ControlPointInfo.TimingPointAt(editorClock.CurrentTime), TimingControlPoint.DEFAULT);
         }
 
         protected override void UpdateState()

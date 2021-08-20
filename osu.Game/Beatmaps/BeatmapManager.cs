@@ -183,8 +183,13 @@ namespace osu.Game.Beatmaps
                 if (existingOnlineId != null)
                 {
                     Delete(existingOnlineId);
-                    beatmaps.PurgeDeletable(s => s.ID == existingOnlineId.ID);
-                    LogForModel(beatmapSet, $"Found existing beatmap set with same OnlineBeatmapSetID ({beatmapSet.OnlineBeatmapSetID}). It has been purged.");
+
+                    // in order to avoid a unique key constraint, immediately remove the online ID from the previous set.
+                    existingOnlineId.OnlineBeatmapSetID = null;
+                    foreach (var b in existingOnlineId.Beatmaps)
+                        b.OnlineBeatmapID = null;
+
+                    LogForModel(beatmapSet, $"Found existing beatmap set with same OnlineBeatmapSetID ({beatmapSet.OnlineBeatmapSetID}). It has been deleted.");
                 }
             }
         }
@@ -192,8 +197,6 @@ namespace osu.Game.Beatmaps
         private void validateOnlineIds(BeatmapSetInfo beatmapSet)
         {
             var beatmapIds = beatmapSet.Beatmaps.Where(b => b.OnlineBeatmapID.HasValue).Select(b => b.OnlineBeatmapID).ToList();
-
-            LogForModel(beatmapSet, $"Validating online IDs for {beatmapSet.Beatmaps.Count} beatmaps...");
 
             // ensure all IDs are unique
             if (beatmapIds.GroupBy(b => b).Any(g => g.Count() > 1))
@@ -320,6 +323,14 @@ namespace osu.Game.Beatmaps
         /// <param name="query">The query.</param>
         /// <returns>The first result for the provided query, or null if no results were found.</returns>
         public BeatmapSetInfo QueryBeatmapSet(Expression<Func<BeatmapSetInfo, bool>> query) => beatmaps.ConsumableItems.AsNoTracking().FirstOrDefault(query);
+
+        protected override bool CanSkipImport(BeatmapSetInfo existing, BeatmapSetInfo import)
+        {
+            if (!base.CanSkipImport(existing, import))
+                return false;
+
+            return existing.Beatmaps.Any(b => b.OnlineBeatmapID != null);
+        }
 
         protected override bool CanReuseExisting(BeatmapSetInfo existing, BeatmapSetInfo import)
         {
@@ -525,7 +536,7 @@ namespace osu.Game.Beatmaps
             protected override IBeatmap GetBeatmap() => beatmap;
             protected override Texture GetBackground() => null;
             protected override Track GetBeatmapTrack() => null;
-            protected override ISkin GetSkin() => null;
+            protected internal override ISkin GetSkin() => null;
             public override Stream GetStream(string storagePath) => null;
         }
     }

@@ -59,6 +59,8 @@ namespace osu.Game.Screens.OnlinePlay
         [BackgroundDependencyLoader]
         private void load()
         {
+            LeftArea.Padding = new MarginPadding { Top = Header.HEIGHT };
+
             initialBeatmap = Beatmap.Value;
             initialRuleset = Ruleset.Value;
             initialMods = Mods.Value.ToList();
@@ -72,8 +74,8 @@ namespace osu.Game.Screens.OnlinePlay
 
             // At this point, Mods contains both the required and allowed mods. For selection purposes, it should only contain the required mods.
             // Similarly, freeMods is currently empty but should only contain the allowed mods.
-            Mods.Value = selectedItem?.Value?.RequiredMods.Select(m => m.CreateCopy()).ToArray() ?? Array.Empty<Mod>();
-            FreeMods.Value = selectedItem?.Value?.AllowedMods.Select(m => m.CreateCopy()).ToArray() ?? Array.Empty<Mod>();
+            Mods.Value = selectedItem?.Value?.RequiredMods.Select(m => m.DeepClone()).ToArray() ?? Array.Empty<Mod>();
+            FreeMods.Value = selectedItem?.Value?.AllowedMods.Select(m => m.DeepClone()).ToArray() ?? Array.Empty<Mod>();
 
             Mods.BindValueChanged(onModsChanged);
             Ruleset.BindValueChanged(onRulesetChanged);
@@ -108,8 +110,8 @@ namespace osu.Game.Screens.OnlinePlay
                 }
             };
 
-            item.RequiredMods.AddRange(Mods.Value.Select(m => m.CreateCopy()));
-            item.AllowedMods.AddRange(FreeMods.Value.Select(m => m.CreateCopy()));
+            item.RequiredMods.AddRange(Mods.Value.Select(m => m.DeepClone()));
+            item.AllowedMods.AddRange(FreeMods.Value.Select(m => m.DeepClone()));
 
             SelectItem(item);
             return true;

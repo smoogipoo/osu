@@ -38,7 +38,7 @@ namespace osu.Game.Screens.Play
 {
     [Cached]
     [Cached(typeof(ISamplePlaybackDisabler))]
-    public abstract class Player : ScreenWithBeatmapBackground, ISamplePlaybackDisabler
+    public abstract class Player : ScreenWithBeatmapBackground, ISamplePlaybackDisabler, ILocalUserPlayInfo
     {
         /// <summary>
         /// The delay upon completion of the beatmap before displaying the results screen.
@@ -56,7 +56,7 @@ namespace osu.Game.Screens.Play
         protected override OverlayActivation InitialOverlayActivationMode => OverlayActivation.UserTriggered;
 
         // We are managing our own adjustments (see OnEntering/OnExiting).
-        public override bool AllowRateAdjustments => false;
+        public override bool AllowTrackAdjustments => false;
 
         private readonly IBindable<bool> gameActive = new Bindable<bool>(true);
 
@@ -75,7 +75,9 @@ namespace osu.Game.Screens.Play
 
         private readonly Bindable<bool> storyboardReplacesBackground = new Bindable<bool>();
 
-        protected readonly Bindable<bool> LocalUserPlaying = new Bindable<bool>();
+        public IBindable<bool> LocalUserPlaying => localUserPlaying;
+
+        private readonly Bindable<bool> localUserPlaying = new Bindable<bool>();
 
         public int RestartCount;
 
@@ -184,7 +186,7 @@ namespace osu.Game.Screens.Play
         [BackgroundDependencyLoader(true)]
         private void load(AudioManager audio, OsuConfigManager config, OsuGameBase game)
         {
-            Mods.Value = base.Mods.Value.Select(m => m.CreateCopy()).ToArray();
+            Mods.Value = base.Mods.Value.Select(m => m.DeepClone()).ToArray();
 
             if (Beatmap.Value is DummyWorkingBeatmap)
                 return;
@@ -228,29 +230,23 @@ namespace osu.Game.Screens.Play
 
             dependencies.CacheAs(GameplayBeatmap);
 
-            var beatmapSkinProvider = new BeatmapSkinProvidingContainer(Beatmap.Value.Skin);
-
-            // the beatmapSkinProvider is used as the fallback source here to allow the ruleset-specific skin implementation
-            // full access to all skin sources.
-            var rulesetSkinProvider = new SkinProvidingContainer(GameplayRuleset.CreateLegacySkinProvider(beatmapSkinProvider, playableBeatmap));
+            var rulesetSkinProvider = new RulesetSkinProvidingContainer(GameplayRuleset, playableBeatmap, Beatmap.Value.Skin);
 
             // load the skinning hierarchy first.
             // this is intentionally done in two stages to ensure things are in a loaded state before exposing the ruleset to skin sources.
-            GameplayClockContainer.Add(beatmapSkinProvider.WithChild(rulesetSkinProvider));
+            GameplayClockContainer.Add(rulesetSkinProvider);
 
             rulesetSkinProvider.AddRange(new[]
             {
-                // underlay and gameplay should have access the to skinning sources.
+                // underlay and gameplay should have access to the skinning sources.
                 createUnderlayComponents(),
                 createGameplayComponents(Beatmap.Value, playableBeatmap)
             });
 
-            // also give the HUD a ruleset container to allow rulesets to potentially override HUD elements (used to disable combo counters etc.)
-            // we may want to limit this in the future to disallow rulesets from outright replacing elements the user expects to be there.
-            var hudRulesetContainer = new SkinProvidingContainer(GameplayRuleset.CreateLegacySkinProvider(beatmapSkinProvider, playableBeatmap));
-
             // add the overlay components as a separate step as they proxy some elements from the above underlay/gameplay components.
-            GameplayClockContainer.Add(hudRulesetContainer.WithChild(createOverlayComponents(Beatmap.Value)));
+            // also give the overlays the ruleset skin provider to allow rulesets to potentially override HUD elements (used to disable combo counters etc.)
+            // we may want to limit this in the future to disallow rulesets from outright replacing elements the user expects to be there.
+            rulesetSkinProvider.Add(createOverlayComponents(Beatmap.Value));
 
             if (!DrawableRuleset.AllowGameplayOverlays)
             {
@@ -303,11 +299,19 @@ namespace osu.Game.Screens.Play
             ScoreProcessor.HasCompleted.BindValueChanged(scoreCompletionChanged);
             HealthProcessor.Failed += onFail;
 
-            foreach (var mod in Mods.Value.OfType<IApplicableToScoreProcessor>())
-                mod.ApplyToScoreProcessor(ScoreProcessor);
+            // Provide judgement processors to mods after they're loaded so that they're on the gameplay clock,
+            // this is required for mods that apply transforms to these processors.
+            ScoreProcessor.OnLoadComplete += _ =>
+            {
+                foreach (var mod in Mods.Value.OfType<IApplicableToScoreProcessor>())
+                    mod.ApplyToScoreProcessor(ScoreProcessor);
+            };
 
-            foreach (var mod in Mods.Value.OfType<IApplicableToHealthProcessor>())
-                mod.ApplyToHealthProcessor(HealthProcessor);
+            HealthProcessor.OnLoadComplete += _ =>
+            {
+                foreach (var mod in Mods.Value.OfType<IApplicableToHealthProcessor>())
+                    mod.ApplyToHealthProcessor(HealthProcessor);
+            };
 
             IsBreakTime.BindTo(breakTracker.IsBreakTime);
             IsBreakTime.BindValueChanged(onBreakTimeChanged, true);
@@ -440,7 +444,7 @@ namespace osu.Game.Screens.Play
         {
             bool inGameplay = !DrawableRuleset.HasReplayLoaded.Value && !DrawableRuleset.IsPaused.Value && !breakTracker.IsBreakTime.Value;
             OverlayActivationMode.Value = inGameplay ? OverlayActivation.Disabled : OverlayActivation.UserTriggered;
-            LocalUserPlaying.Value = inGameplay;
+            localUserPlaying.Value = inGameplay;
         }
 
         private void updateSampleDisabledState()
@@ -700,9 +704,11 @@ namespace osu.Game.Screens.Play
         /// <returns>The final score.</returns>
         private async Task<ScoreInfo> prepareScoreForResults()
         {
+            var scoreCopy = Score.DeepClone();
+
             try
             {
-                await PrepareScoreForResultsAsync(Score).ConfigureAwait(false);
+                await PrepareScoreForResultsAsync(scoreCopy).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -711,14 +717,14 @@ namespace osu.Game.Screens.Play
 
             try
             {
-                await ImportScore(Score).ConfigureAwait(false);
+                await ImportScore(scoreCopy).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, @"Score import failed!");
             }
 
-            return Score.ScoreInfo;
+            return scoreCopy.ScoreInfo;
         }
 
         /// <summary>
@@ -774,6 +780,7 @@ namespace osu.Game.Screens.Play
                 return false;
 
             HasFailed = true;
+            Score.ScoreInfo.Passed = false;
 
             // There is a chance that we could be in a paused state as the ruleset's internal clock (see FrameStabilityContainer)
             // could process an extra frame after the GameplayClock is stopped.
@@ -956,6 +963,14 @@ namespace osu.Game.Screens.Play
         {
             screenSuspension?.Expire();
 
+            // if arriving here and the results screen preparation task hasn't run, it's safe to say the user has not completed the beatmap.
+            if (prepareScoreForDisplayTask == null)
+            {
+                Score.ScoreInfo.Passed = false;
+                // potentially should be ScoreRank.F instead? this is the best alternative for now.
+                Score.ScoreInfo.Rank = ScoreRank.D;
+            }
+
             // EndPlaying() is typically called from ReplayRecorder.Dispose(). Disposal is currently asynchronous.
             // To resolve test failures, forcefully end playing synchronously when this screen exits.
             // Todo: Replace this with a more permanent solution once osu-framework has a synchronous cleanup method.
@@ -1018,13 +1033,7 @@ namespace osu.Game.Screens.Play
         /// </summary>
         /// <param name="score">The <see cref="Scoring.Score"/> to prepare.</param>
         /// <returns>A task that prepares the provided score. On completion, the score is assumed to be ready for display.</returns>
-        protected virtual Task PrepareScoreForResultsAsync(Score score)
-        {
-            // perform one final population to ensure everything is up-to-date.
-            ScoreProcessor.PopulateScore(score.ScoreInfo);
-
-            return Task.CompletedTask;
-        }
+        protected virtual Task PrepareScoreForResultsAsync(Score score) => Task.CompletedTask;
 
         /// <summary>
         /// Creates the <see cref="ResultsScreen"/> for a <see cref="ScoreInfo"/>.
@@ -1045,5 +1054,7 @@ namespace osu.Game.Screens.Play
         #endregion
 
         IBindable<bool> ISamplePlaybackDisabler.SamplePlaybackDisabled => samplePlaybackDisabled;
+
+        IBindable<bool> ILocalUserPlayInfo.IsPlaying => LocalUserPlaying;
     }
 }
