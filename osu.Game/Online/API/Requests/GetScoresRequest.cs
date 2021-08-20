@@ -61,11 +61,11 @@ namespace osu.Game.Online.API.Requests
         {
             StringBuilder query = new StringBuilder(@"?");
 
-            query.Append($@"type={scope.ToString().ToLowerInvariant()}");
-            query.Append($@"&mode={ruleset.ShortName}");
+            query.AppendFormat($@"type={scope.ToString().ToLowerInvariant()}");
+            query.AppendFormat($@"&mode={ruleset.ShortName}");
 
             foreach (var mod in mods)
-                query.Append($@"&mods[]={mod.Acronym}");
+                query.AppendFormat($@"&mods[]={mod.Acronym}");
 
             return query.ToString();
         }
