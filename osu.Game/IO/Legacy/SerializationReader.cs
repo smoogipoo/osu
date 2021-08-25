@@ -216,7 +216,9 @@ namespace osu.Game.IO.Legacy
                 Debug.Assert(formatter != null, "formatter != null");
 
                 // ReSharper disable once PossibleNullReferenceException
+#pragma warning disable SYSLIB0011
                 return formatter.Deserialize(stream);
+#pragma warning restore SYSLIB0011
             }
 
             #region Nested type: VersionConfigToNamespaceAssemblyObjectBinder

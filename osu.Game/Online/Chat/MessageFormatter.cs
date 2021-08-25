@@ -345,6 +345,6 @@ namespace osu.Game.Online.Chat
 
         public bool Overlaps(Link otherLink) => Index < otherLink.Index + otherLink.Length && otherLink.Index < Index + Length;
 
-        public int CompareTo(Link otherLink) => Index > otherLink.Index ? 1 : -1;
+        public int CompareTo(Link? otherLink) => Index > otherLink?.Index ? 1 : -1;
     }
 }

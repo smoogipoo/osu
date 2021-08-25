@@ -43,8 +43,8 @@ namespace osu.Game.Online.Multiplayer
         [Key(8)]
         public MatchType MatchType { get; set; } = MatchType.HeadToHead;
 
-        public bool Equals(MultiplayerRoomSettings other)
-            => BeatmapID == other.BeatmapID
+        public bool Equals(MultiplayerRoomSettings? other)
+            => BeatmapID == other?.BeatmapID
                && BeatmapChecksum == other.BeatmapChecksum
                && RequiredMods.SequenceEqual(other.RequiredMods)
                && AllowedMods.SequenceEqual(other.AllowedMods)

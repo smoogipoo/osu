@@ -57,6 +57,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 beatmaps.Add(new BeatmapInfo
                 {
                     Ruleset = rulesets.GetRuleset(i % 4),
+                    RulesetID = i % 4, // workaround for efcore 5 compatibility.
                     OnlineBeatmapID = beatmapId,
                     Length = length,
                     BPM = bpm,

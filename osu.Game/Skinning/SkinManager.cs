@@ -184,6 +184,11 @@ namespace osu.Game.Skinning
                 item.Name = $"{item.Name} [{archiveName}]";
         }
 
+        protected override void PreImport(SkinInfo model)
+        {
+            model.Requery(ContextFactory);
+        }
+
         /// <summary>
         /// Retrieve a <see cref="Skin"/> instance for the provided <see cref="SkinInfo"/>
         /// </summary>

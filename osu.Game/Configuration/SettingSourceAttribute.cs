@@ -55,19 +55,19 @@ namespace osu.Game.Configuration
             OrderPosition = orderPosition;
         }
 
-        public int CompareTo(SettingSourceAttribute other)
+        public int CompareTo(SettingSourceAttribute? other)
         {
-            if (OrderPosition == other.OrderPosition)
+            if (OrderPosition == other?.OrderPosition)
                 return 0;
 
             // unordered items come last (are greater than any ordered items).
             if (OrderPosition == null)
                 return 1;
-            if (other.OrderPosition == null)
+            if (other?.OrderPosition == null)
                 return -1;
 
             // ordered items are sorted by the order value.
-            return OrderPosition.Value.CompareTo(other.OrderPosition);
+            return OrderPosition.Value.CompareTo(other?.OrderPosition);
         }
     }
 
@@ -77,7 +77,7 @@ namespace osu.Game.Configuration
         {
             foreach (var (attr, property) in obj.GetOrderedSettingsSourceProperties())
             {
-                object value = property.GetValue(obj);
+                object? value = property.GetValue(obj);
 
                 if (attr.SettingControlType != null)
                 {
@@ -85,7 +85,10 @@ namespace osu.Game.Configuration
                     if (controlType.EnumerateBaseTypes().All(t => !t.IsGenericType || t.GetGenericTypeDefinition() != typeof(SettingsItem<>)))
                         throw new InvalidOperationException($"{nameof(SettingSourceAttribute)} had an unsupported custom control type ({controlType.ReadableName()})");
 
-                    var control = (Drawable)Activator.CreateInstance(controlType);
+                    var control = (Drawable?)Activator.CreateInstance(controlType);
+                    if (control == null)
+                        throw new InvalidOperationException();
+
                     controlType.GetProperty(nameof(SettingsItem<object>.LabelText))?.SetValue(control, attr.Label);
                     controlType.GetProperty(nameof(SettingsItem<object>.TooltipText))?.SetValue(control, attr.Description);
                     controlType.GetProperty(nameof(SettingsItem<object>.Current))?.SetValue(control, value);
@@ -151,7 +154,7 @@ namespace osu.Game.Configuration
 
                     case IBindable bindable:
                         var dropdownType = typeof(ModSettingsEnumDropdown<>).MakeGenericType(bindable.GetType().GetGenericArguments()[0]);
-                        var dropdown = (Drawable)Activator.CreateInstance(dropdownType);
+                        var dropdown = (Drawable)Activator.CreateInstance(dropdownType)!;
 
                         dropdownType.GetProperty(nameof(SettingsDropdown<object>.LabelText))?.SetValue(dropdown, attr.Label);
                         dropdownType.GetProperty(nameof(SettingsDropdown<object>.TooltipText))?.SetValue(dropdown, attr.Description);
