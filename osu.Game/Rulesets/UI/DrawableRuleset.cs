@@ -175,6 +175,7 @@ namespace osu.Game.Rulesets.UI
                     audioContainer = new AudioContainer
                     {
                         RelativeSizeAxes = Axes.Both,
+                        Volume = { Value = 0 },
                         Child = KeyBindingInputManager
                             .WithChild(CreatePlayfieldAdjustmentContainer()
                                 .WithChild(Playfield)
