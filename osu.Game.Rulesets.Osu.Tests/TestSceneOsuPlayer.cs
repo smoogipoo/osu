@@ -10,5 +10,7 @@ namespace osu.Game.Rulesets.Osu.Tests
     public class TestSceneOsuPlayer : PlayerTestScene
     {
         protected override Ruleset CreatePlayerRuleset() => new OsuRuleset();
+
+        protected override bool Autoplay => true;
     }
 }
