@@ -1,0 +1,65 @@
+name: Diffcalc Consistency Checks
+
+jobs:
+  db:
+    name: Setup DB
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Verify MySQL connection from host
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uroot -proot -e "SHOW DATABASES"
+
+
+  diffcalc_master:
+
+  diffcalc_pr:
+    name: Run diffcalc on PR
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout osu
+        uses: actions/checkout@v2
+        with:
+          path: 'osu'
+
+      - name: Checkout osu-difficulty-calculator
+        uses: actions/checkout@v2
+        with:
+          repository: ppy/osu-difficulty-calculator
+          path: 'osu-difficulty-calculator'
+
+      - name: Install .NET 5.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
+
+      - name: Build diffcalc
+        run: |
+          cd osu-difficulty-calculator
+          ./UseLocalOsu.sh
+          dotnet build
+
+      - name: Import data
+        run: |
+          wget https://data.ppy.sh/2021_04_01_performance_osu_random.tar.bz2
+          tar -I lbzip2 -xf 2021_04_01_performance_osu_random.tar.bz2
+
+          cd 2021_04_01_performance_osu_random
+
+          mysql -uroot -proot -e "CREATE DATABASE osu_pr"
+          cat *.sql | mysql -uroot -proot --database=osu_pr
