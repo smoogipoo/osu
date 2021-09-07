@@ -21,10 +21,7 @@ jobs:
     name: Diffcalc
     runs-on: ubuntu-latest
 
-    if: |
-      contains(github.event.comment.html_url, '/pull/') &&
-      contains(github.event.comment.body, '!pp check') &&
-      ${{ github.event.comment.author_association == 'MEMBER' }}
+    if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '!pp check') && ${{ github.event.comment.author_association == 'MEMBER' }}
 
     strategy:
       fail-fast: false
