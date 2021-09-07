@@ -23,7 +23,7 @@ jobs:
     continue-on-error: true
 
     if: |
-      ${{ github.event.issue.pull_request }} &&
+      contains(github.event.comment.html_url, '/pull/') &&
       contains(github.event.comment.body, '!pp check') &&
       ${{ github.event.comment.author_association == 'MEMBER' }}
 
