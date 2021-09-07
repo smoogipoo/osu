@@ -20,10 +20,11 @@ jobs:
   diffcalc:
     name: Diffcalc
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     if: |
-      contains(github.event.comment.html_url, '/pull/') &&
       contains(github.event.comment.body, '!pp check') &&
+      github.event.issue.pull_request &&
       github.event.comment.author_association == 'MEMBER'
 
     strategy:
