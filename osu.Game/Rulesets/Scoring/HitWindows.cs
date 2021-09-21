@@ -222,5 +222,8 @@ namespace osu.Game.Rulesets.Scoring
             Average = average;
             Max = max;
         }
+
+        public static DifficultyRange operator *(DifficultyRange range, double multiple)
+            => new DifficultyRange(range.Result, range.Min * multiple, range.Average * multiple, range.Max * multiple);
     }
 }
