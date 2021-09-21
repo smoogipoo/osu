@@ -80,7 +80,7 @@ jobs:
           # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
           # FIXME: Suppress warnings from templates project
           dotnet codefilesanity | while read -r line; do
-            echo "::warning::$line"
+            echo "::error::$line"
           done
 
       # Temporarily disabled due to test failures, but it won't work anyway until the tool is upgraded.
