@@ -30,7 +30,9 @@ namespace osu.Game.Rulesets.Mania.UI
 
         public const float HIT_TARGET_POSITION = 110;
 
-        public IReadOnlyList<Column> Columns => columnFlow.Content;
+        public IReadOnlyList<Column> Columns => columns;
+
+        private readonly List<Column> columns = new List<Column>();
         private readonly ColumnFlow<Column> columnFlow;
 
         private readonly JudgementContainer<DrawableManiaJudgement> judgements;
@@ -45,7 +47,16 @@ namespace osu.Game.Rulesets.Mania.UI
             { ColumnType.Special, new Color4(0, 48, 63, 255) }
         };
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Columns.Any(c => c.ReceivePositionalInputAt(screenSpacePos));
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        {
+            foreach (var c in columns)
+            {
+                if (c.ReceivePositionalInputAt(screenSpacePos))
+                    return true;
+            }
+
+            return false;
+        }
 
         private readonly int firstColumnIndex;
 
@@ -128,7 +139,10 @@ namespace osu.Game.Rulesets.Mania.UI
                 };
 
                 topLevelContainer.Add(column.TopLevelContainer.CreateProxy());
+
+                columns.Add(column);
                 columnFlow.SetContentForColumn(i, column);
+
                 AddNested(column);
             }
         }
