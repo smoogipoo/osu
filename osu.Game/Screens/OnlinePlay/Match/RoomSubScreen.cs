@@ -29,6 +29,8 @@ namespace osu.Game.Screens.OnlinePlay.Match
         [Cached(typeof(IBindable<PlaylistItem>))]
         protected readonly Bindable<PlaylistItem> SelectedItem = new Bindable<PlaylistItem>();
 
+        public override bool? AllowTrackAdjustments => true;
+
         protected override BackgroundScreen CreateBackground() => new RoomBackgroundScreen(Room.Playlist.FirstOrDefault())
         {
             SelectedItem = { BindTarget = SelectedItem }
@@ -428,10 +430,6 @@ namespace osu.Game.Screens.OnlinePlay.Match
         /// </summary>
         /// <param name="room">The room to change the settings of.</param>
         protected abstract RoomSettingsOverlay CreateRoomSettingsOverlay(Room room);
-
-        private class UserModSelectOverlay : LocalPlayerModSelectOverlay
-        {
-        }
 
         public class UserModSelectButton : PurpleTriangleButton
         {

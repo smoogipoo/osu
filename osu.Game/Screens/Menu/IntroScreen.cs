@@ -101,8 +101,12 @@ namespace osu.Game.Screens.Menu
                     // if we detect that the theme track or beatmap is unavailable this is either first startup or things are in a bad state.
                     // this could happen if a user has nuked their files store. for now, reimport to repair this.
                     var import = beatmaps.Import(new ZipArchiveReader(game.Resources.GetStream($"Tracks/{BeatmapFile}"), BeatmapFile)).Result;
-                    import.Protected = true;
-                    beatmaps.Update(import);
+
+                    import.PerformWrite(b =>
+                    {
+                        b.Protected = true;
+                        beatmaps.Update(b);
+                    });
 
                     loadThemedIntro();
                 }
@@ -115,7 +119,9 @@ namespace osu.Game.Screens.Menu
                 if (setInfo == null)
                     return false;
 
-                return (initialBeatmap = beatmaps.GetWorkingBeatmap(setInfo.Beatmaps[0])) != null;
+                initialBeatmap = beatmaps.GetWorkingBeatmap(setInfo.Beatmaps[0]);
+
+                return UsingThemedIntro = initialBeatmap != null;
             }
         }
 
@@ -165,7 +171,7 @@ namespace osu.Game.Screens.Menu
 
         protected override BackgroundScreen CreateBackground() => new BackgroundScreenBlack();
 
-        protected void StartTrack()
+        protected virtual void StartTrack()
         {
             // Only start the current track if it is the menu music. A beatmap's track is started when entering the Main Menu.
             if (UsingThemedIntro)
@@ -184,7 +190,6 @@ namespace osu.Game.Screens.Menu
             {
                 beatmap.Value = initialBeatmap;
                 Track = initialBeatmap.Track;
-                UsingThemedIntro = !initialBeatmap.Track.IsDummyDevice;
 
                 // ensure the track starts at maximum volume
                 musicController.CurrentTrack.FinishTransforms();

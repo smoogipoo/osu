@@ -8,6 +8,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Game.Graphics;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Screens.Play;
@@ -25,12 +26,15 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
         // We are managing our own adjustments. For now, this happens inside the Player instances themselves.
-        public override bool AllowTrackAdjustments => false;
+        public override bool? AllowTrackAdjustments => false;
 
         /// <summary>
         /// Whether all spectating players have finished loading.
         /// </summary>
         public bool AllPlayersLoaded => instances.All(p => p?.PlayerLoaded == true);
+
+        [Resolved]
+        private OsuColour colours { get; set; }
 
         [Resolved]
         private SpectatorClient spectatorClient { get; set; }
@@ -209,12 +213,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         {
         }
 
-        protected override void StartGameplay(int userId, GameplayState gameplayState)
-            => instances.Single(i => i.UserId == userId).LoadScore(gameplayState.Score);
+        protected override void StartGameplay(int userId, SpectatorGameplayState spectatorGameplayState)
+            => instances.Single(i => i.UserId == userId).LoadScore(spectatorGameplayState.Score);
 
         protected override void EndGameplay(int userId)
         {
             RemoveUser(userId);
+
+            var instance = instances.Single(i => i.UserId == userId);
+
+            instance.FadeColour(colours.Gray4, 400, Easing.OutQuint);
+            syncManager.RemovePlayerClock(instance.GameplayClock);
             leaderboard.RemoveClock(userId);
         }
 
