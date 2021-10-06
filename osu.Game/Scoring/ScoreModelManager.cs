@@ -56,6 +56,12 @@ namespace osu.Game.Scoring
             }
         }
 
+        protected override void PreImport(ScoreInfo model)
+        {
+            base.PreImport(model);
+            model.Requery(ContextFactory);
+        }
+
         public Score GetScore(ScoreInfo score) => new LegacyDatabasedScore(score, rulesets, beatmaps(), Files.Store);
 
         public List<ScoreInfo> GetAllUsableScores() => ModelStore.ConsumableItems.Where(s => !s.DeletePending).ToList();

@@ -29,7 +29,7 @@ namespace osu.Game.Database
                     break;
 
                 case ScoreInfo scoreInfo:
-                    requeryFiles(scoreInfo.Beatmap.BeatmapSet.Files, contextFactory);
+                    requeryFiles(scoreInfo.BeatmapInfo.BeatmapSet.Files, contextFactory);
                     requeryFiles(scoreInfo.Files, contextFactory);
                     break;
 
