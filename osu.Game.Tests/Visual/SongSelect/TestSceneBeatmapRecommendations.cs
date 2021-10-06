@@ -193,7 +193,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                 }).ToList()
             };
 
-            return Game.BeatmapManager.Import(beatmapSet).Result;
+            return Game.BeatmapManager.Import(beatmapSet).Result.Value;
         }
 
         private bool ensureAllBeatmapSetsImported(IEnumerable<BeatmapSetInfo> beatmapSets) => beatmapSets.All(set => set != null);
