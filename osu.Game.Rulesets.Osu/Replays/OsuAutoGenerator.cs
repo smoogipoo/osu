@@ -373,13 +373,62 @@ namespace osu.Game.Rulesets.Osu.Replays
                     break;
 
                 case Slider slider:
-                    for (double j = GetFrameDelay(slider.StartTime); j < slider.Duration; j += GetFrameDelay(slider.StartTime + j))
+                    slider.LazyTravelTime = slider.NestedHitObjects[^1].StartTime - slider.StartTime;
+
+                    double endTimeMin = slider.LazyTravelTime / slider.SpanDuration;
+                    if (endTimeMin % 2 >= 1)
+                        endTimeMin = 1 - endTimeMin % 1;
+                    else
+                        endTimeMin %= 1;
+
+                    // Represents the position -36ms from the end of the last slider, at which the last tick resides. See: SliderEventType.LegacyLastTick.
+                    // A player only needs to keep tracking the slider end until this position to receive full score for the slider.
+                    Vector2 trueEndPosition = slider.StackedPosition + slider.Path.PositionAt(endTimeMin);
+
+                    // As the slider is traversed, this position is updated to represent the minimal cursor movement required to maintain tracking.
+                    Vector2 currCursorPosition = slider.StackedPosition;
+
+                    // Assume a uniform circle size.
+                    double scalingFactor = 50 / slider.Radius;
+
+                    for (int i = 1; i < slider.NestedHitObjects.Count; i++)
                     {
-                        Vector2 pos = slider.StackedPositionAt(j / slider.Duration);
-                        AddFrameToReplay(new OsuReplayFrame(h.StartTime + j, new Vector2(pos.X, pos.Y), action));
+                        var currMovementObj = (OsuHitObject)slider.NestedHitObjects[i];
+
+                        Vector2 currMovement = Vector2.Subtract(currMovementObj.StackedPosition, currCursorPosition);
+                        double currMovementLength = scalingFactor * currMovement.Length;
+
+                        // Amount of movement required so that the cursor position needs to be updated.
+                        double requiredMovement = 50 * 1.65f;
+
+                        if (i == slider.NestedHitObjects.Count - 1)
+                        {
+                            // The end of a slider has two possible positions:
+                            // 1. The true end position (trueEndPosition), -36ms from the end of the slider.
+                            // 2. The visual end position, at the tail's stacked position.
+                            Vector2 trueMovement = Vector2.Subtract(trueEndPosition, currCursorPosition);
+
+                            if (trueMovement.Length < currMovement.Length)
+                                currMovement = trueMovement;
+
+                            currMovementLength = scalingFactor * currMovement.Length;
+                        }
+                        else if (currMovementObj is SliderRepeat)
+                        {
+                            // For a slider repeat, assume a tighter movement threshold to better assess repeat sliders.
+                            requiredMovement = 50;
+                        }
+
+                        if (currMovementLength > requiredMovement)
+                        {
+                            // this finds the positional delta from the required radius and the current position, and updates the currCursorPosition accordingly, as well as rewarding distance.
+                            currCursorPosition = Vector2.Add(currCursorPosition, Vector2.Multiply(currMovement, (float)((currMovementLength - requiredMovement) / currMovementLength)));
+                            AddFrameToReplay(new OsuReplayFrame(currMovementObj.StartTime, currCursorPosition, action));
+                        }
                     }
 
-                    AddFrameToReplay(new OsuReplayFrame(slider.EndTime, new Vector2(slider.StackedEndPosition.X, slider.StackedEndPosition.Y), action));
+                    AddFrameToReplay(new OsuReplayFrame(slider.EndTime, currCursorPosition, action));
+
                     break;
             }
 
