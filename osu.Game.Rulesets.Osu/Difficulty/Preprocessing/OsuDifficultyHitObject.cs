@@ -137,9 +137,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
             else
                 endTimeMin %= 1;
 
-            slider.LazyEndPosition = slider.StackedPosition + slider.Path.PositionAt(endTimeMin); // temporary lazy end position until a real result can be derived.
-            var currCursorPosition = slider.StackedPosition;
-            double scalingFactor = normalized_radius / slider.Radius; // lazySliderDistance is coded to be sensitive to scaling, this makes the maths easier with the thresholds being used.
+            // Represents the position -36ms from the end of the last slider, at which the last tick resides. See: SliderEventType.LegacyLastTick.
+            // A player only needs to keep tracking the slider end until this position to receive full score for the slider.
+            Vector2 trueEndPosition = slider.StackedPosition + slider.Path.PositionAt(endTimeMin);
+
+            // As the slider is traversed, this position is updated to represent the minimal cursor movement required to maintain tracking.
+            Vector2 currCursorPosition = slider.StackedPosition;
+
+            // Assume a uniform circle size.
+            double scalingFactor = normalized_radius / slider.Radius;
 
             for (int i = 1; i < slider.NestedHitObjects.Count; i++)
             {
@@ -153,14 +159,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
 
                 if (i == slider.NestedHitObjects.Count - 1)
                 {
-                    // The end of a slider has special aim rules due to the relaxed time constraint on position.
-                    // There is both a lazy end position as well as the actual end slider position. We assume the player takes the simpler movement.
-                    // For sliders that are circular, the lazy end position may actually be farther away than the sliders true end.
-                    // This code is designed to prevent buffing situations where lazy end is actually a less efficient movement.
-                    Vector2 lazyMovement = Vector2.Subtract((Vector2)slider.LazyEndPosition, currCursorPosition);
+                    // The end of a slider has two possible positions:
+                    // 1. The true end position (trueEndPosition), -36ms from the end of the slider.
+                    // 2. The visual end position, at the tail's stacked position.
+                    // Only use the simplest movement of these two.
+                    Vector2 trueMovement = Vector2.Subtract(trueEndPosition, currCursorPosition);
 
-                    if (lazyMovement.Length < currMovement.Length)
-                        currMovement = lazyMovement;
+                    if (trueMovement.Length < currMovement.Length)
+                        currMovement = trueMovement;
 
                     currMovementLength = scalingFactor * currMovement.Length;
                 }
