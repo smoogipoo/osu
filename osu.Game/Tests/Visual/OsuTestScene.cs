@@ -20,6 +20,7 @@ using osu.Framework.Timing;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
@@ -173,6 +174,66 @@ namespace osu.Game.Tests.Visual
         protected virtual Ruleset CreateRuleset() => null;
 
         protected virtual IBeatmap CreateBeatmap(RulesetInfo ruleset) => new TestBeatmap(ruleset);
+
+        /// <summary>
+        /// Returns a sample API Beatmap with BeatmapSet populated.
+        /// </summary>
+        /// <param name="ruleset">The ruleset to create the sample model using. osu! ruleset will be used if not specified.</param>
+        protected APIBeatmap CreateAPIBeatmap(RulesetInfo ruleset = null)
+        {
+            var beatmapSet = CreateAPIBeatmapSet(ruleset ?? Ruleset.Value);
+
+            // Avoid circular reference.
+            var beatmap = beatmapSet.Beatmaps.First();
+            beatmapSet.Beatmaps = Array.Empty<APIBeatmap>();
+
+            // Populate the set as that's generally what we expect from the API.
+            beatmap.BeatmapSet = beatmapSet;
+
+            return beatmap;
+        }
+
+        /// <summary>
+        /// Returns a sample API BeatmapSet with beatmaps populated.
+        /// </summary>
+        /// <param name="ruleset">The ruleset to create the sample model using. osu! ruleset will be used if not specified.</param>
+        protected APIBeatmapSet CreateAPIBeatmapSet(RulesetInfo ruleset = null)
+        {
+            var beatmap = CreateBeatmap(ruleset ?? Ruleset.Value).BeatmapInfo;
+
+            return new APIBeatmapSet
+            {
+                OnlineID = beatmap.BeatmapSet.OnlineID,
+                Status = BeatmapSetOnlineStatus.Ranked,
+                Covers = new BeatmapSetOnlineCovers
+                {
+                    Cover = "https://assets.ppy.sh/beatmaps/163112/covers/cover.jpg",
+                    Card = "https://assets.ppy.sh/beatmaps/163112/covers/card.jpg",
+                    List = "https://assets.ppy.sh/beatmaps/163112/covers/list.jpg"
+                },
+                Title = beatmap.BeatmapSet.Metadata.Title,
+                TitleUnicode = beatmap.BeatmapSet.Metadata.TitleUnicode,
+                Artist = beatmap.BeatmapSet.Metadata.Artist,
+                ArtistUnicode = beatmap.BeatmapSet.Metadata.ArtistUnicode,
+                Author = beatmap.BeatmapSet.Metadata.Author,
+                Source = beatmap.BeatmapSet.Metadata.Source,
+                Tags = beatmap.BeatmapSet.Metadata.Tags,
+                Beatmaps = new[]
+                {
+                    new APIBeatmap
+                    {
+                        OnlineID = beatmap.OnlineID,
+                        OnlineBeatmapSetID = beatmap.BeatmapSet.OnlineID,
+                        Status = beatmap.Status,
+                        Checksum = beatmap.MD5Hash,
+                        AuthorID = beatmap.Metadata.Author.OnlineID,
+                        RulesetID = beatmap.RulesetID,
+                        StarRating = beatmap.StarDifficulty,
+                        DifficultyName = beatmap.Version,
+                    }
+                }
+            };
+        }
 
         protected WorkingBeatmap CreateWorkingBeatmap(RulesetInfo ruleset) =>
             CreateWorkingBeatmap(CreateBeatmap(ruleset));

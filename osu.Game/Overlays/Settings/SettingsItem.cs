@@ -14,6 +14,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.Containers;
+using osuTK;
 
 namespace osu.Game.Overlays.Settings
 {
@@ -34,6 +35,7 @@ namespace osu.Game.Overlays.Settings
         private OsuTextFlowContainer warningText;
 
         public bool ShowsDefaultIndicator = true;
+        private readonly Container defaultValueIndicatorContainer;
 
         public LocalisableString TooltipText { get; set; }
 
@@ -54,6 +56,7 @@ namespace osu.Game.Overlays.Settings
                 }
 
                 labelText.Text = value;
+                updateLayout();
             }
         }
 
@@ -65,7 +68,7 @@ namespace osu.Game.Overlays.Settings
         {
             set
             {
-                bool hasValue = !string.IsNullOrWhiteSpace(value.ToString());
+                bool hasValue = value != default;
 
                 if (warningText == null)
                 {
@@ -77,7 +80,7 @@ namespace osu.Game.Overlays.Settings
                 }
 
                 warningText.Alpha = hasValue ? 1 : 0;
-                warningText.Text = value.ToString(); // TODO: Remove ToString() call after TextFlowContainer supports localisation (see https://github.com/ppy/osu-framework/issues/4636).
+                warningText.Text = value ?? default;
             }
         }
 
@@ -108,16 +111,23 @@ namespace osu.Game.Overlays.Settings
 
             InternalChildren = new Drawable[]
             {
-                FlowContent = new FillFlowContainer
+                defaultValueIndicatorContainer = new Container
+                {
+                    Width = SettingsPanel.CONTENT_MARGINS,
+                },
+                new Container
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Padding = new MarginPadding { Left = SettingsPanel.CONTENT_MARGINS },
-                    Children = new[]
+                    Child = FlowContent = new FillFlowContainer
                     {
-                        Control = CreateControl(),
-                    },
-                },
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Spacing = new Vector2(0, 10),
+                        Child = Control = CreateControl(),
+                    }
+                }
             };
 
             // IMPORTANT: all bindable logic is in constructor intentionally to support "CreateSettingsControls" being used in a context it is
@@ -135,11 +145,23 @@ namespace osu.Game.Overlays.Settings
             // intentionally done before LoadComplete to avoid overhead.
             if (ShowsDefaultIndicator)
             {
-                AddInternal(new RestoreDefaultValueButton<T>
+                defaultValueIndicatorContainer.Add(new RestoreDefaultValueButton<T>
                 {
                     Current = controlWithCurrent.Current,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre
                 });
+                updateLayout();
             }
+        }
+
+        private void updateLayout()
+        {
+            bool hasLabel = labelText != null && !string.IsNullOrEmpty(labelText.Text.ToString());
+
+            // if the settings item is providing a label, the default value indicator should be centred vertically to the left of the label.
+            // otherwise, it should be centred vertically to the left of the main control of the settings item.
+            defaultValueIndicatorContainer.Height = hasLabel ? labelText.DrawHeight : Control.DrawHeight;
         }
 
         private void updateDisabled()

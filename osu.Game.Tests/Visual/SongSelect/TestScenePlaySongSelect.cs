@@ -18,6 +18,7 @@ using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
@@ -29,7 +30,6 @@ using osu.Game.Screens.Play;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Carousel;
 using osu.Game.Screens.Select.Filter;
-using osu.Game.Users;
 using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.SongSelect
@@ -141,6 +141,8 @@ namespace osu.Game.Tests.Visual.SongSelect
             WorkingBeatmap selected = null;
 
             AddStep("store selected beatmap", () => selected = Beatmap.Value);
+
+            AddUntilStep("wait for beatmaps to load", () => songSelect.Carousel.ChildrenOfType<DrawableCarouselBeatmap>().Any());
 
             AddStep("select next and enter", () =>
             {
@@ -599,10 +601,10 @@ namespace osu.Game.Tests.Visual.SongSelect
             });
 
             FilterableDifficultyIcon difficultyIcon = null;
-            AddStep("Find an icon", () =>
+            AddUntilStep("Find an icon", () =>
             {
-                difficultyIcon = set.ChildrenOfType<FilterableDifficultyIcon>()
-                                    .First(icon => getDifficultyIconIndex(set, icon) != getCurrentBeatmapIndex());
+                return (difficultyIcon = set.ChildrenOfType<FilterableDifficultyIcon>()
+                                            .FirstOrDefault(icon => getDifficultyIconIndex(set, icon) != getCurrentBeatmapIndex())) != null;
             });
 
             AddStep("Click on a difficulty", () =>
@@ -714,10 +716,11 @@ namespace osu.Game.Tests.Visual.SongSelect
             });
 
             FilterableDifficultyIcon difficultyIcon = null;
-            AddStep("Find an icon for different ruleset", () =>
+            AddUntilStep("Find an icon for different ruleset", () =>
             {
                 difficultyIcon = set.ChildrenOfType<FilterableDifficultyIcon>()
-                                    .First(icon => icon.Item.BeatmapInfo.Ruleset.ID == 3);
+                                    .FirstOrDefault(icon => icon.Item.BeatmapInfo.Ruleset.ID == 3);
+                return difficultyIcon != null;
             });
 
             AddAssert("Check ruleset is osu!", () => Ruleset.Value.ID == 0);
@@ -764,10 +767,10 @@ namespace osu.Game.Tests.Visual.SongSelect
             });
 
             FilterableGroupedDifficultyIcon groupIcon = null;
-            AddStep("Find group icon for different ruleset", () =>
+            AddUntilStep("Find group icon for different ruleset", () =>
             {
-                groupIcon = set.ChildrenOfType<FilterableGroupedDifficultyIcon>()
-                               .First(icon => icon.Items.First().BeatmapInfo.Ruleset.ID == 3);
+                return (groupIcon = set.ChildrenOfType<FilterableGroupedDifficultyIcon>()
+                                       .FirstOrDefault(icon => icon.Items.First().BeatmapInfo.Ruleset.ID == 3)) != null;
             });
 
             AddAssert("Check ruleset is osu!", () => Ruleset.Value.ID == 0);
@@ -804,7 +807,7 @@ namespace osu.Game.Tests.Visual.SongSelect
 
                 songSelect.PresentScore(new ScoreInfo
                 {
-                    User = new User { Username = "woo" },
+                    User = new APIUser { Username = "woo" },
                     BeatmapInfo = getPresentBeatmap(),
                     Ruleset = getPresentBeatmap().Ruleset
                 });
@@ -836,7 +839,7 @@ namespace osu.Game.Tests.Visual.SongSelect
 
                 songSelect.PresentScore(new ScoreInfo
                 {
-                    User = new User { Username = "woo" },
+                    User = new APIUser { Username = "woo" },
                     BeatmapInfo = getPresentBeatmap(),
                     Ruleset = getPresentBeatmap().Ruleset
                 });

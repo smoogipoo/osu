@@ -35,7 +35,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
             Assert.AreEqual("Soleily", meta.Artist);
             Assert.AreEqual("Soleily", meta.ArtistUnicode);
             Assert.AreEqual("03. Renatus - Soleily 192kbps.mp3", meta.AudioFile);
-            Assert.AreEqual("Gamu", meta.AuthorString);
+            Assert.AreEqual("Gamu", meta.Author.Username);
             Assert.AreEqual("machinetop_background.jpg", meta.BackgroundFile);
             Assert.AreEqual(164471, meta.PreviewTime);
             Assert.AreEqual(string.Empty, meta.Source);
@@ -84,7 +84,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
         public void TestDecodeDifficulty()
         {
             var beatmap = decodeAsJson(normal);
-            var difficulty = beatmap.BeatmapInfo.BaseDifficulty;
+            var difficulty = beatmap.Difficulty;
             Assert.AreEqual(6.5f, difficulty.DrainRate);
             Assert.AreEqual(4, difficulty.CircleSize);
             Assert.AreEqual(8, difficulty.OverallDifficulty);
@@ -102,7 +102,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
             processor.PreProcess();
             foreach (var o in converted.HitObjects)
-                o.ApplyDefaults(converted.ControlPointInfo, converted.BeatmapInfo.BaseDifficulty);
+                o.ApplyDefaults(converted.ControlPointInfo, converted.Difficulty);
             processor.PostProcess();
 
             var beatmap = converted.Serialize().Deserialize<Beatmap>();

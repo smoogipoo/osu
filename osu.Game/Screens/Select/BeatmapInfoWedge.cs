@@ -188,8 +188,8 @@ namespace osu.Game.Screens.Select
 
                 RelativeSizeAxes = Axes.Both;
 
-                titleBinding = localisation.GetLocalisedString(new RomanisableString(metadata.TitleUnicode, metadata.Title));
-                artistBinding = localisation.GetLocalisedString(new RomanisableString(metadata.ArtistUnicode, metadata.Artist));
+                titleBinding = localisation.GetLocalisedBindableString(new RomanisableString(metadata.TitleUnicode, metadata.Title));
+                artistBinding = localisation.GetLocalisedBindableString(new RomanisableString(metadata.ArtistUnicode, metadata.Artist));
 
                 const float top_height = 0.7f;
 
@@ -257,6 +257,7 @@ namespace osu.Game.Screens.Select
                             },
                             StatusPill = new BeatmapSetOnlineStatusPill
                             {
+                                AutoSizeAxes = Axes.Both,
                                 Anchor = Anchor.TopRight,
                                 Origin = Anchor.TopRight,
                                 Shear = -wedged_container_shear,
@@ -427,7 +428,7 @@ namespace osu.Game.Screens.Select
 
             private Drawable getMapper(BeatmapMetadata metadata)
             {
-                if (metadata.Author == null)
+                if (string.IsNullOrEmpty(metadata.Author.Username))
                     return Empty();
 
                 return new LinkFlowContainer(s =>

@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using osu.Framework.Audio.Track;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
@@ -32,19 +31,17 @@ namespace osu.Game.Beatmaps
     /// Handles ef-core storage of beatmaps.
     /// </summary>
     [ExcludeFromDynamicCompile]
-    public class BeatmapModelManager : ArchiveModelManager<BeatmapSetInfo, BeatmapSetFileInfo>
+    public class BeatmapModelManager : ArchiveModelManager<BeatmapSetInfo, BeatmapSetFileInfo>, IBeatmapModelManager
     {
         /// <summary>
         /// Fired when a single difficulty has been hidden.
         /// </summary>
-        public IBindable<WeakReference<BeatmapInfo>> BeatmapHidden => beatmapHidden;
-
-        private readonly Bindable<WeakReference<BeatmapInfo>> beatmapHidden = new Bindable<WeakReference<BeatmapInfo>>();
+        public event Action<BeatmapInfo> BeatmapHidden;
 
         /// <summary>
         /// Fired when a single difficulty has been restored.
         /// </summary>
-        public IBindable<WeakReference<BeatmapInfo>> BeatmapRestored => beatmapRestored;
+        public event Action<BeatmapInfo> BeatmapRestored;
 
         /// <summary>
         /// An online lookup queue component which handles populating online beatmap metadata.
@@ -54,9 +51,7 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// The game working beatmap cache, used to invalidate entries on changes.
         /// </summary>
-        public WorkingBeatmapCache WorkingBeatmapCache { private get; set; }
-
-        private readonly Bindable<WeakReference<BeatmapInfo>> beatmapRestored = new Bindable<WeakReference<BeatmapInfo>>();
+        public IWorkingBeatmapCache WorkingBeatmapCache { private get; set; }
 
         public override IEnumerable<string> HandledExtensions => new[] { ".osz" };
 
@@ -75,8 +70,8 @@ namespace osu.Game.Beatmaps
             this.rulesets = rulesets;
 
             beatmaps = (BeatmapStore)ModelStore;
-            beatmaps.BeatmapHidden += b => beatmapHidden.Value = new WeakReference<BeatmapInfo>(b);
-            beatmaps.BeatmapRestored += b => beatmapRestored.Value = new WeakReference<BeatmapInfo>(b);
+            beatmaps.BeatmapHidden += b => BeatmapHidden?.Invoke(b);
+            beatmaps.BeatmapRestored += b => BeatmapRestored?.Invoke(b);
             beatmaps.ItemRemoved += b => WorkingBeatmapCache?.Invalidate(b);
             beatmaps.ItemUpdated += obj => WorkingBeatmapCache?.Invalidate(obj);
         }
@@ -125,15 +120,15 @@ namespace osu.Game.Beatmaps
             // check if a set already exists with the same online id, delete if it does.
             if (beatmapSet.OnlineBeatmapSetID != null)
             {
-                var existingOnlineId = beatmaps.ConsumableItems.FirstOrDefault(b => b.OnlineBeatmapSetID == beatmapSet.OnlineBeatmapSetID);
+                var existingSetWithSameOnlineID = beatmaps.ConsumableItems.FirstOrDefault(b => b.OnlineBeatmapSetID == beatmapSet.OnlineBeatmapSetID);
 
-                if (existingOnlineId != null)
+                if (existingSetWithSameOnlineID != null)
                 {
-                    Delete(existingOnlineId);
+                    Delete(existingSetWithSameOnlineID);
 
                     // in order to avoid a unique key constraint, immediately remove the online ID from the previous set.
-                    existingOnlineId.OnlineBeatmapSetID = null;
-                    foreach (var b in existingOnlineId.Beatmaps)
+                    existingSetWithSameOnlineID.OnlineBeatmapSetID = null;
+                    foreach (var b in existingSetWithSameOnlineID.Beatmaps)
                         b.OnlineBeatmapID = null;
 
                     LogForModel(beatmapSet, $"Found existing beatmap set with same OnlineBeatmapSetID ({beatmapSet.OnlineBeatmapSetID}). It has been deleted.");
@@ -194,6 +189,17 @@ namespace osu.Game.Beatmaps
         {
             var setInfo = beatmapInfo.BeatmapSet;
 
+            // Difficulty settings must be copied first due to the clone in `Beatmap<>.BeatmapInfo_Set`.
+            // This should hopefully be temporary, assuming said clone is eventually removed.
+
+            // Warning: The directionality here is important. Changes have to be copied *from* beatmapContent (which comes from editor and is being saved)
+            // *to* the beatmapInfo (which is a database model and needs to receive values without the taiko slider velocity multiplier for correct operation).
+            // CopyTo() will undo such adjustments, while CopyFrom() will not.
+            beatmapContent.Difficulty.CopyTo(beatmapInfo.BaseDifficulty);
+
+            // All changes to metadata are made in the provided beatmapInfo, so this should be copied to the `IBeatmap` before encoding.
+            beatmapContent.BeatmapInfo = beatmapInfo;
+
             using (var stream = new MemoryStream())
             {
                 using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
@@ -204,13 +210,15 @@ namespace osu.Game.Beatmaps
                 using (ContextFactory.GetForWrite())
                 {
                     beatmapInfo = setInfo.Beatmaps.Single(b => b.ID == beatmapInfo.ID);
+
                     var metadata = beatmapInfo.Metadata ?? setInfo.Metadata;
 
                     // grab the original file (or create a new one if not found).
                     var fileInfo = setInfo.Files.SingleOrDefault(f => string.Equals(f.Filename, beatmapInfo.Path, StringComparison.OrdinalIgnoreCase)) ?? new BeatmapSetFileInfo();
 
                     // metadata may have changed; update the path with the standard format.
-                    beatmapInfo.Path = $"{metadata.Artist} - {metadata.Title} ({metadata.Author}) [{beatmapInfo.Version}].osu";
+                    beatmapInfo.Path = GetValidFilename($"{metadata.Artist} - {metadata.Title} ({metadata.Author}) [{beatmapInfo.Version}].osu");
+
                     beatmapInfo.MD5Hash = stream.ComputeMD5Hash();
 
                     // update existing or populate new file's filename.

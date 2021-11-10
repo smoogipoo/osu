@@ -15,6 +15,7 @@ using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Carousel;
 using osu.Game.Screens.Select.Filter;
@@ -399,7 +400,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             loadBeatmaps();
 
             AddStep("Sort by author", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Author }, false));
-            AddAssert("Check zzzzz is at bottom", () => carousel.BeatmapSets.Last().Metadata.AuthorString == "zzzzz");
+            AddAssert("Check zzzzz is at bottom", () => carousel.BeatmapSets.Last().Metadata.Author.Username == "zzzzz");
             AddStep("Sort by artist", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Artist }, false));
             AddAssert($"Check #{set_count} is at bottom", () => carousel.BeatmapSets.Last().Metadata.Title.EndsWith($"#{set_count}!", StringComparison.Ordinal));
         }
@@ -684,6 +685,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                     set.Beatmaps.Add(new BeatmapInfo
                     {
                         Version = $"Stars: {i}",
+                        Ruleset = new OsuRuleset().RulesetInfo,
                         StarDifficulty = i,
                     });
                 }
@@ -868,6 +870,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                     OnlineBeatmapID = id++ * 10,
                     Version = version,
                     StarDifficulty = diff,
+                    Ruleset = new OsuRuleset().RulesetInfo,
                     BaseDifficulty = new BeatmapDifficulty
                     {
                         OverallDifficulty = diff,

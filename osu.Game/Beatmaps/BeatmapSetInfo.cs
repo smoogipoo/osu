@@ -12,7 +12,7 @@ using osu.Game.Database;
 namespace osu.Game.Beatmaps
 {
     [ExcludeFromDynamicCompile]
-    public class BeatmapSetInfo : IHasPrimaryKey, IHasFiles<BeatmapSetFileInfo>, ISoftDelete, IEquatable<BeatmapSetInfo>
+    public class BeatmapSetInfo : IHasPrimaryKey, IHasFiles<BeatmapSetFileInfo>, ISoftDelete, IEquatable<BeatmapSetInfo>, IBeatmapSetInfo
     {
         public int ID { get; set; }
 
@@ -26,20 +26,14 @@ namespace osu.Game.Beatmaps
 
         public DateTimeOffset DateAdded { get; set; }
 
-        public BeatmapSetOnlineStatus Status { get; set; } = BeatmapSetOnlineStatus.None;
-
         public BeatmapMetadata Metadata { get; set; }
 
         public List<BeatmapInfo> Beatmaps { get; set; }
 
+        public BeatmapSetOnlineStatus Status { get; set; } = BeatmapSetOnlineStatus.None;
+
         [NotNull]
         public List<BeatmapSetFileInfo> Files { get; set; } = new List<BeatmapSetFileInfo>();
-
-        [NotMapped]
-        public BeatmapSetOnlineInfo OnlineInfo { get; set; }
-
-        [NotMapped]
-        public BeatmapSetMetrics Metrics { get; set; }
 
         /// <summary>
         /// The maximum star difficulty of all beatmaps in this set.
@@ -60,8 +54,6 @@ namespace osu.Game.Beatmaps
         public bool DeletePending { get; set; }
 
         public string Hash { get; set; }
-
-        public string StoryboardFile => Files.Find(f => f.Filename.EndsWith(".osb", StringComparison.OrdinalIgnoreCase))?.Filename;
 
         /// <summary>
         /// Returns the storage path for the file in this beatmapset with the given filename, if any exists, otherwise null.
@@ -90,5 +82,19 @@ namespace osu.Game.Beatmaps
 
             return ReferenceEquals(this, other);
         }
+
+        #region Implementation of IHasOnlineID
+
+        public int OnlineID => OnlineBeatmapSetID ?? -1;
+
+        #endregion
+
+        #region Implementation of IBeatmapSetInfo
+
+        IBeatmapMetadataInfo IBeatmapSetInfo.Metadata => Metadata;
+        IEnumerable<IBeatmapInfo> IBeatmapSetInfo.Beatmaps => Beatmaps;
+        IEnumerable<INamedFileUsage> IBeatmapSetInfo.Files => Files;
+
+        #endregion
     }
 }

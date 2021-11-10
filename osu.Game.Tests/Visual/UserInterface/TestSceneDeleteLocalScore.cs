@@ -15,13 +15,13 @@ using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.Select.Leaderboards;
 using osu.Game.Tests.Resources;
-using osu.Game.Users;
 using osuTK;
 using osuTK.Input;
 
@@ -64,7 +64,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                                 ID = 1,
                                 Title = "TestSong",
                                 Artist = "TestArtist",
-                                Author = new User
+                                Author = new APIUser
                                 {
                                     Username = "TestAuthor"
                                 },
@@ -98,7 +98,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     TotalScore = RNG.Next(1, 1000000),
                     MaxCombo = RNG.Next(1, 1000),
                     Rank = ScoreRank.XH,
-                    User = new User { Username = "TestUser" },
+                    User = new APIUser { Username = "TestUser" },
                 };
 
                 importedScores.Add(scoreManager.Import(score).Result.Value);
@@ -162,6 +162,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
+            AddUntilStep("wait for fetch", () => leaderboard.Scores != null);
             AddUntilStep("score removed from leaderboard", () => leaderboard.Scores.All(s => s.OnlineScoreID != scoreBeingDeleted.OnlineScoreID));
         }
 
@@ -169,6 +170,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         public void TestDeleteViaDatabase()
         {
             AddStep("delete top score", () => scoreManager.Delete(importedScores[0]));
+            AddUntilStep("wait for fetch", () => leaderboard.Scores != null);
             AddUntilStep("score removed from leaderboard", () => leaderboard.Scores.All(s => s.OnlineScoreID != importedScores[0].OnlineScoreID));
         }
     }

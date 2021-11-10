@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -16,11 +18,12 @@ using osu.Framework.Testing;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Overlays;
+using osu.Game.Overlays.Chat;
 using osu.Game.Overlays.Chat.Selection;
 using osu.Game.Overlays.Chat.Tabs;
-using osu.Game.Users;
 using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Online
@@ -41,13 +44,16 @@ namespace osu.Game.Tests.Visual.Online
         private Channel channel2 => channels[1];
         private Channel channel3 => channels[2];
 
+        [CanBeNull]
+        private Func<Channel, List<Message>> onGetMessages;
+
         [Resolved]
         private GameHost host { get; set; }
 
         public TestSceneChatOverlay()
         {
             channels = Enumerable.Range(1, 10)
-                                 .Select(index => new Channel(new User())
+                                 .Select(index => new Channel(new APIUser())
                                  {
                                      Name = $"Channel no. {index}",
                                      Topic = index == 3 ? null : $"We talk about the number {index} here",
@@ -79,6 +85,8 @@ namespace osu.Game.Tests.Visual.Online
         {
             AddStep("register request handling", () =>
             {
+                onGetMessages = null;
+
                 ((DummyAPIAccess)API).HandleRequest = req =>
                 {
                     switch (req)
@@ -90,7 +98,7 @@ namespace osu.Game.Tests.Visual.Online
                         case GetUserRequest getUser:
                             if (getUser.Lookup.Equals("some body", StringComparison.OrdinalIgnoreCase))
                             {
-                                getUser.TriggerSuccess(new User
+                                getUser.TriggerSuccess(new APIUser
                                 {
                                     Username = "some body",
                                     Id = 1,
@@ -98,9 +106,15 @@ namespace osu.Game.Tests.Visual.Online
                             }
                             else
                             {
-                                getUser.TriggerFailure(new Exception());
+                                getUser.TriggerFailure(new WebException());
                             }
 
+                            return true;
+
+                        case GetMessagesRequest getMessages:
+                            var messages = onGetMessages?.Invoke(getMessages.Channel);
+                            if (messages != null)
+                                getMessages.TriggerSuccess(messages);
                             return true;
                     }
 
@@ -122,14 +136,37 @@ namespace osu.Game.Tests.Visual.Online
         }
 
         [Test]
-        public void TestSelectingChannelClosesSelector()
+        public void TestChannelSelection()
         {
             AddAssert("Selector is visible", () => chatOverlay.SelectionOverlayState == Visibility.Visible);
+            AddStep("Setup get message response", () => onGetMessages = channel =>
+            {
+                if (channel == channel1)
+                {
+                    return new List<Message>
+                    {
+                        new Message(1)
+                        {
+                            ChannelId = channel1.Id,
+                            Content = "hello from channel 1!",
+                            Sender = new APIUser
+                            {
+                                Id = 2,
+                                Username = "test_user"
+                            }
+                        }
+                    };
+                }
+
+                return null;
+            });
 
             AddStep("Join channel 1", () => channelManager.JoinChannel(channel1));
             AddStep("Switch to channel 1", () => clickDrawable(chatOverlay.TabMap[channel1]));
 
             AddAssert("Current channel is channel 1", () => currentChannel == channel1);
+            AddUntilStep("Loading spinner hidden", () => chatOverlay.ChildrenOfType<LoadingSpinner>().All(spinner => !spinner.IsPresent));
+            AddAssert("Channel message shown", () => chatOverlay.ChildrenOfType<ChatLine>().Count() == 1);
             AddAssert("Channel selector was closed", () => chatOverlay.SelectionOverlayState == Visibility.Hidden);
         }
 
@@ -153,8 +190,8 @@ namespace osu.Game.Tests.Visual.Online
 
             for (int zeroBasedIndex = 0; zeroBasedIndex < 10; ++zeroBasedIndex)
             {
-                var oneBasedIndex = zeroBasedIndex + 1;
-                var targetNumberKey = oneBasedIndex % 10;
+                int oneBasedIndex = zeroBasedIndex + 1;
+                int targetNumberKey = oneBasedIndex % 10;
                 var targetChannel = channels[zeroBasedIndex];
                 AddStep($"Press Alt+{targetNumberKey}", () => pressChannelHotkey(targetNumberKey));
                 AddAssert($"Channel #{oneBasedIndex} is selected", () => currentChannel == targetChannel);

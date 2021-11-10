@@ -7,8 +7,8 @@ using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.IO.Serialization.Converters;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms.RoomStatuses;
-using osu.Game.Users;
 using osu.Game.Utils;
 
 namespace osu.Game.Online.Rooms
@@ -25,7 +25,7 @@ namespace osu.Game.Online.Rooms
 
         [Cached]
         [JsonProperty("host")]
-        public readonly Bindable<User> Host = new Bindable<User>();
+        public readonly Bindable<APIUser> Host = new Bindable<APIUser>();
 
         [Cached]
         [JsonProperty("playlist")]
@@ -86,7 +86,7 @@ namespace osu.Game.Online.Rooms
 
         [Cached]
         [JsonProperty("recent_participants")]
-        public readonly BindableList<User> RecentParticipants = new BindableList<User>();
+        public readonly BindableList<APIUser> RecentParticipants = new BindableList<APIUser>();
 
         [Cached]
         [JsonProperty("participant_count")]
@@ -129,12 +129,6 @@ namespace osu.Game.Online.Rooms
             get => MaxAttempts.Value;
             set => MaxAttempts.Value = value;
         }
-
-        /// <summary>
-        /// The position of this <see cref="Room"/> in the list. This is not read from or written to the API.
-        /// </summary>
-        [JsonIgnore]
-        public readonly Bindable<long> Position = new Bindable<long>(-1); // Todo: This does not need to exist.
 
         public Room()
         {
@@ -192,8 +186,6 @@ namespace osu.Game.Online.Rooms
                 RecentParticipants.Clear();
                 RecentParticipants.AddRange(other.RecentParticipants);
             }
-
-            Position.Value = other.Position.Value;
         }
 
         public void RemoveExpiredPlaylistItems()

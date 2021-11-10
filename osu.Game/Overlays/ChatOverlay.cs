@@ -285,7 +285,7 @@ namespace osu.Game.Overlays
                         return;
 
                     // check once more to ensure the channel hasn't since been removed from the loaded channels list (may have been left by some automated means).
-                    if (loadedChannels.Contains(loaded))
+                    if (!loadedChannels.Contains(loaded))
                         return;
 
                     loading.Hide();
@@ -479,7 +479,7 @@ namespace osu.Game.Overlays
 
         private void postMessage(TextBox textbox, bool newText)
         {
-            var text = textbox.Text.Trim();
+            string text = textbox.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(text))
                 return;

@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.BeatmapListing;
 using osuTK;
@@ -109,25 +110,19 @@ namespace osu.Game.Tests.Visual.UserInterface
             base.Dispose(isDisposing);
         }
 
-        private static readonly BeatmapSetInfo beatmap_set = new BeatmapSetInfo
+        private static readonly APIBeatmapSet beatmap_set = new APIBeatmapSet
         {
-            OnlineInfo = new BeatmapSetOnlineInfo
+            Covers = new BeatmapSetOnlineCovers
             {
-                Covers = new BeatmapSetOnlineCovers
-                {
-                    Cover = "https://assets.ppy.sh/beatmaps/1094296/covers/cover@2x.jpg?1581416305"
-                }
+                Cover = "https://assets.ppy.sh/beatmaps/1094296/covers/cover@2x.jpg?1581416305"
             }
         };
 
-        private static readonly BeatmapSetInfo no_cover_beatmap_set = new BeatmapSetInfo
+        private static readonly APIBeatmapSet no_cover_beatmap_set = new APIBeatmapSet
         {
-            OnlineInfo = new BeatmapSetOnlineInfo
+            Covers = new BeatmapSetOnlineCovers
             {
-                Covers = new BeatmapSetOnlineCovers
-                {
-                    Cover = string.Empty
-                }
+                Cover = string.Empty
             }
         };
     }

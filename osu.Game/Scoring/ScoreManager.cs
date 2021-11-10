@@ -25,7 +25,7 @@ using osu.Game.Rulesets.Scoring;
 
 namespace osu.Game.Scoring
 {
-    public class ScoreManager : IModelManager<ScoreInfo>, IModelFileManager<ScoreInfo, ScoreFileInfo>, IModelDownloader<ScoreInfo>, ICanAcceptFiles, IPostImports<ScoreInfo>
+    public class ScoreManager : IModelManager<ScoreInfo>, IModelImporter<ScoreInfo>, IModelFileManager<ScoreInfo, ScoreFileInfo>, IModelDownloader<IScoreInfo>
     {
         private readonly Scheduler scheduler;
         private readonly Func<BeatmapDifficultyCache> difficulties;
@@ -72,9 +72,12 @@ namespace osu.Game.Scoring
                 }
             }
 
-            // We're calling .Result, but this should not be a blocking call due to the above GetDifficultyAsync() calls.
-            return scores.OrderByDescending(s => GetTotalScoreAsync(s, cancellationToken: cancellationToken).Result)
-                         .ThenBy(s => s.OnlineScoreID)
+            long[] totalScores = await Task.WhenAll(scores.Select(s => GetTotalScoreAsync(s, cancellationToken: cancellationToken))).ConfigureAwait(false);
+
+            return scores.Select((score, index) => (score, totalScore: totalScores[index]))
+                         .OrderByDescending(g => g.totalScore)
+                         .ThenBy(g => g.score.OnlineScoreID)
+                         .Select(g => g.score)
                          .ToArray();
         }
 
@@ -243,9 +246,17 @@ namespace osu.Game.Scoring
 
         #region Implementation of IModelManager<ScoreInfo>
 
-        public IBindable<WeakReference<ScoreInfo>> ItemUpdated => scoreModelManager.ItemUpdated;
+        public event Action<ScoreInfo> ItemUpdated
+        {
+            add => scoreModelManager.ItemUpdated += value;
+            remove => scoreModelManager.ItemUpdated -= value;
+        }
 
-        public IBindable<WeakReference<ScoreInfo>> ItemRemoved => scoreModelManager.ItemRemoved;
+        public event Action<ScoreInfo> ItemRemoved
+        {
+            add => scoreModelManager.ItemRemoved += value;
+            remove => scoreModelManager.ItemRemoved -= value;
+        }
 
         public Task ImportFromStableAsync(StableStorage stableStorage)
         {
@@ -345,18 +356,24 @@ namespace osu.Game.Scoring
 
         #endregion
 
-        #region Implementation of IModelDownloader<ScoreInfo>
+        #region Implementation of IModelDownloader<IScoreInfo>
 
-        public IBindable<WeakReference<ArchiveDownloadRequest<ScoreInfo>>> DownloadBegan => scoreModelDownloader.DownloadBegan;
-
-        public IBindable<WeakReference<ArchiveDownloadRequest<ScoreInfo>>> DownloadFailed => scoreModelDownloader.DownloadFailed;
-
-        public bool Download(ScoreInfo model, bool minimiseDownloadSize)
+        public event Action<ArchiveDownloadRequest<IScoreInfo>> DownloadBegan
         {
-            return scoreModelDownloader.Download(model, minimiseDownloadSize);
+            add => scoreModelDownloader.DownloadBegan += value;
+            remove => scoreModelDownloader.DownloadBegan -= value;
         }
 
-        public ArchiveDownloadRequest<ScoreInfo> GetExistingDownload(ScoreInfo model)
+        public event Action<ArchiveDownloadRequest<IScoreInfo>> DownloadFailed
+        {
+            add => scoreModelDownloader.DownloadFailed += value;
+            remove => scoreModelDownloader.DownloadFailed -= value;
+        }
+
+        public bool Download(IScoreInfo model, bool minimiseDownloadSize) =>
+            scoreModelDownloader.Download(model, minimiseDownloadSize);
+
+        public ArchiveDownloadRequest<IScoreInfo> GetExistingDownload(IScoreInfo model)
         {
             return scoreModelDownloader.GetExistingDownload(model);
         }

@@ -17,12 +17,12 @@ using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.IO;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Scoring;
 using osu.Game.Tests.Resources;
 using osu.Game.Tests.Scores.IO;
-using osu.Game.Users;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
@@ -82,7 +82,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var tempPath = TestResources.GetTestBeatmapForImport();
+                    string tempPath = TestResources.GetTestBeatmapForImport();
 
                     var manager = osu.Dependencies.Get<BeatmapManager>();
 
@@ -144,7 +144,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     Directory.CreateDirectory(extractedFolder);
@@ -196,7 +196,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     Directory.CreateDirectory(extractedFolder);
@@ -251,7 +251,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     Directory.CreateDirectory(extractedFolder);
@@ -302,7 +302,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     Directory.CreateDirectory(extractedFolder);
@@ -408,8 +408,8 @@ namespace osu.Game.Tests.Beatmaps.IO
                     var manager = osu.Dependencies.Get<BeatmapManager>();
 
                     // ReSharper disable once AccessToModifiedClosure
-                    manager.ItemUpdated.BindValueChanged(_ => Interlocked.Increment(ref itemAddRemoveFireCount));
-                    manager.ItemRemoved.BindValueChanged(_ => Interlocked.Increment(ref itemAddRemoveFireCount));
+                    manager.ItemUpdated += _ => Interlocked.Increment(ref itemAddRemoveFireCount);
+                    manager.ItemRemoved += _ => Interlocked.Increment(ref itemAddRemoveFireCount);
 
                     var imported = await LoadOszIntoOsu(osu);
 
@@ -424,7 +424,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                     checkBeatmapCount(osu, 12);
                     checkSingleReferencedFileCount(osu, 18);
 
-                    var brokenTempFilename = TestResources.GetTestBeatmapForImport();
+                    string brokenTempFilename = TestResources.GetTestBeatmapForImport();
 
                     MemoryStream brokenOsu = new MemoryStream();
                     MemoryStream brokenOsz = new MemoryStream(await File.ReadAllBytesAsync(brokenTempFilename));
@@ -594,7 +594,7 @@ namespace osu.Game.Tests.Beatmaps.IO
 
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     var importer = new ArchiveImportIPCChannel(client);
                     if (!importer.ImportAsync(temp).Wait(10000))
@@ -619,7 +619,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 try
                 {
                     var osu = LoadOsuIntoHost(host);
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
                     using (File.OpenRead(temp))
                         await osu.Dependencies.Get<BeatmapManager>().Import(temp);
                     ensureLoaded(osu);
@@ -642,7 +642,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     Directory.CreateDirectory(extractedFolder);
@@ -684,7 +684,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     string subfolder = Path.Combine(extractedFolder, "subfolder");
@@ -729,7 +729,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 {
                     var osu = LoadOsuIntoHost(host);
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
 
                     string extractedFolder = $"{temp}_extracted";
                     string dataFolder = Path.Combine(extractedFolder, "actual_data");
@@ -784,7 +784,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                     var osu = LoadOsuIntoHost(host);
                     var manager = osu.Dependencies.Get<BeatmapManager>();
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
                     await osu.Dependencies.Get<BeatmapManager>().Import(temp);
 
                     // Update via the beatmap, not the beatmap info, to ensure correct linking
@@ -814,7 +814,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                     var osu = LoadOsuIntoHost(host);
                     var manager = osu.Dependencies.Get<BeatmapManager>();
 
-                    var temp = TestResources.GetTestBeatmapForImport();
+                    string temp = TestResources.GetTestBeatmapForImport();
                     await osu.Dependencies.Get<BeatmapManager>().Import(temp);
 
                     BeatmapSetInfo setToUpdate = manager.GetAllUsableBeatmapSets()[0];
@@ -846,6 +846,42 @@ namespace osu.Game.Tests.Beatmaps.IO
             }
         }
 
+        // TODO: needs to be pulled across to realm implementation when this file is nuked.
+        [Test]
+        public void TestSaveRemovesInvalidCharactersFromPath()
+        {
+            // unfortunately for the time being we need to reference osu.Framework.Desktop for a game host here.
+            using (HeadlessGameHost host = new CleanRunHeadlessGameHost(nameof(ImportBeatmapTest)))
+            {
+                try
+                {
+                    var osu = LoadOsuIntoHost(host);
+
+                    var manager = osu.Dependencies.Get<BeatmapManager>();
+
+                    var working = manager.CreateNew(new OsuRuleset().RulesetInfo, APIUser.SYSTEM_USER);
+
+                    var beatmap = working.Beatmap;
+
+                    beatmap.BeatmapInfo.Version = "difficulty";
+                    beatmap.BeatmapInfo.Metadata = new BeatmapMetadata
+                    {
+                        Artist = "Artist/With\\Slashes",
+                        Title = "Title",
+                        AuthorString = "mapper",
+                    };
+
+                    manager.Save(beatmap.BeatmapInfo, working.Beatmap);
+
+                    Assert.AreEqual("Artist_With_Slashes - Title (mapper) [difficulty].osu", beatmap.BeatmapInfo.Path);
+                }
+                finally
+                {
+                    host.Exit();
+                }
+            }
+        }
+
         [Test]
         public void TestCreateNewEmptyBeatmap()
         {
@@ -856,7 +892,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                     var osu = LoadOsuIntoHost(host);
                     var manager = osu.Dependencies.Get<BeatmapManager>();
 
-                    var working = manager.CreateNew(new OsuRuleset().RulesetInfo, User.SYSTEM_USER);
+                    var working = manager.CreateNew(new OsuRuleset().RulesetInfo, APIUser.SYSTEM_USER);
 
                     manager.Save(working.BeatmapInfo, working.Beatmap);
 
@@ -883,7 +919,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                     var osu = LoadOsuIntoHost(host);
                     var manager = osu.Dependencies.Get<BeatmapManager>();
 
-                    var working = manager.CreateNew(new OsuRuleset().RulesetInfo, User.SYSTEM_USER);
+                    var working = manager.CreateNew(new OsuRuleset().RulesetInfo, APIUser.SYSTEM_USER);
 
                     ((Beatmap)working.Beatmap).HitObjects.Add(new HitCircle { StartTime = 5000 });
 
@@ -905,11 +941,11 @@ namespace osu.Game.Tests.Beatmaps.IO
 
         public static async Task<BeatmapSetInfo> LoadQuickOszIntoOsu(OsuGameBase osu)
         {
-            var temp = TestResources.GetQuickTestBeatmapForImport();
+            string temp = TestResources.GetQuickTestBeatmapForImport();
 
             var manager = osu.Dependencies.Get<BeatmapManager>();
 
-            var importedSet = await manager.Import(new ImportTask(temp));
+            var importedSet = await manager.Import(new ImportTask(temp)).ConfigureAwait(false);
 
             ensureLoaded(osu);
 
@@ -920,11 +956,11 @@ namespace osu.Game.Tests.Beatmaps.IO
 
         public static async Task<BeatmapSetInfo> LoadOszIntoOsu(OsuGameBase osu, string path = null, bool virtualTrack = false)
         {
-            var temp = path ?? TestResources.GetTestBeatmapForImport(virtualTrack);
+            string temp = path ?? TestResources.GetTestBeatmapForImport(virtualTrack);
 
             var manager = osu.Dependencies.Get<BeatmapManager>();
 
-            var importedSet = await manager.Import(new ImportTask(temp));
+            var importedSet = await manager.Import(new ImportTask(temp)).ConfigureAwait(false);
 
             ensureLoaded(osu);
 

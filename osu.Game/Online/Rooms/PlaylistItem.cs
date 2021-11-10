@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 
@@ -30,7 +31,7 @@ namespace osu.Game.Online.Rooms
         public bool Expired { get; set; }
 
         [JsonIgnore]
-        public readonly Bindable<BeatmapInfo> Beatmap = new Bindable<BeatmapInfo>();
+        public readonly Bindable<IBeatmapInfo> Beatmap = new Bindable<IBeatmapInfo>();
 
         [JsonIgnore]
         public readonly Bindable<RulesetInfo> Ruleset = new Bindable<RulesetInfo>();
@@ -42,7 +43,7 @@ namespace osu.Game.Online.Rooms
         public readonly BindableList<Mod> RequiredMods = new BindableList<Mod>();
 
         [JsonProperty("beatmap")]
-        private APIPlaylistBeatmap apiBeatmap { get; set; }
+        private APIBeatmap apiBeatmap { get; set; }
 
         private APIMod[] allowedModsBacking;
 
@@ -64,13 +65,13 @@ namespace osu.Game.Online.Rooms
 
         public PlaylistItem()
         {
-            Beatmap.BindValueChanged(beatmap => BeatmapID = beatmap.NewValue?.OnlineBeatmapID ?? 0);
+            Beatmap.BindValueChanged(beatmap => BeatmapID = beatmap.NewValue?.OnlineID ?? -1);
             Ruleset.BindValueChanged(ruleset => RulesetID = ruleset.NewValue?.ID ?? 0);
         }
 
-        public void MapObjects(BeatmapManager beatmaps, RulesetStore rulesets)
+        public void MapObjects(RulesetStore rulesets)
         {
-            Beatmap.Value ??= apiBeatmap.ToBeatmapInfo(rulesets);
+            Beatmap.Value ??= apiBeatmap;
             Ruleset.Value ??= rulesets.GetRuleset(RulesetID);
 
             Ruleset rulesetInstance = Ruleset.Value.CreateInstance();
