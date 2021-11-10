@@ -79,7 +79,7 @@ namespace osu.Game.Beatmaps
 
         public string BackgroundFile { get; set; } = string.Empty;
 
-        public bool Equals(BeatmapMetadata other) => ((IBeatmapMetadataInfo)this).Equals(other);
+        public bool Equals(BeatmapMetadata? other) => ((IBeatmapMetadataInfo)this).Equals(other);
 
         public override string ToString() => this.GetDisplayTitle();
 
