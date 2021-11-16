@@ -33,7 +33,7 @@ namespace osu.Game.Online
 
             object? instance = Activator.CreateInstance(resolvedType);
 
-            jsonSerializer.Populate(obj["$value"]!.CreateReader(), instance);
+            jsonSerializer.Populate(obj["$value"]!.CreateReader(), instance!);
 
             return instance;
         }
