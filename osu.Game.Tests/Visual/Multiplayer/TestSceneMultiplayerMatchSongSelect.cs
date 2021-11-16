@@ -58,7 +58,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 {
                     Ruleset = rulesets.GetRuleset(i % 4),
                     RulesetID = i % 4, // workaround for efcore 5 compatibility.
-                    OnlineBeatmapID = beatmapId,
+                    OnlineID = beatmapId,
                     Length = length,
                     BPM = bpm,
                     BaseDifficulty = new BeatmapDifficulty()
@@ -67,7 +67,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             manager.Import(new BeatmapSetInfo
             {
-                OnlineBeatmapSetID = 10,
+                OnlineID = 10,
                 Hash = Guid.NewGuid().ToString().ComputeMD5Hash(),
                 Metadata = new BeatmapMetadata
                 {
