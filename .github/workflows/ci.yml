@@ -32,6 +32,9 @@ jobs:
          sudo apt-get update && \
          sudo apt-get -y install libavformat-dev
 
+      - name: Install registry
+        run: reg import localdumps-full.reg
+
       - name: Compile
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
 
@@ -46,4 +49,6 @@ jobs:
         if: ${{ always() }}
         with:
           name: osu-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
-          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
+          path: |
+            ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
+            %LOCALAPPDATA%/CrashDumps/**/*
