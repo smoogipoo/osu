@@ -44,7 +44,7 @@ jobs:
 
       - name: Copy crashdump
         if: ${{ always() }}
-        run: Copy-Item -Path "%LOCALAPPDATA%\CrashDumps" -Destination "${{github.workspace}}\TestResults" -Recurse
+        run: try { Copy-Item -Path "$env:LOCALAPPDATA\CrashDumps" -Destination "${{github.workspace}}\TestResults" -Recurse } catch { }
         shell: pwsh
 
       # Attempt to upload results even if test fails.
