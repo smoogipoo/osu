@@ -11,8 +11,6 @@ jobs:
        fail-fast: false
        matrix:
           os:
-            - { prettyname: Windows, fullname: windows-latest }
-            - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
           threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 60
@@ -38,8 +36,7 @@ jobs:
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
-        shell: pwsh
+        run: run-tests.sh $pwd/*.Tests/bin/Debug/*/*.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
 
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
