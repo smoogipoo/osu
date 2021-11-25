@@ -31,6 +31,11 @@ namespace osu.Game.Online.Rooms
         public bool Expired { get; set; }
 
         [JsonIgnore]
+        public IBindable<bool> Valid => valid;
+
+        private readonly Bindable<bool> valid = new BindableBool(true);
+
+        [JsonIgnore]
         public readonly Bindable<IBeatmapInfo> Beatmap = new Bindable<IBeatmapInfo>();
 
         [JsonIgnore]
@@ -69,6 +74,8 @@ namespace osu.Game.Online.Rooms
             Ruleset.BindValueChanged(ruleset => RulesetID = ruleset.NewValue?.OnlineID ?? 0);
         }
 
+        public void MarkInvalid() => valid.Value = false;
+
         public void MapObjects(RulesetStore rulesets)
         {
             Beatmap.Value ??= apiBeatmap;
@@ -96,6 +103,12 @@ namespace osu.Game.Online.Rooms
         public bool ShouldSerializeID() => false;
         public bool ShouldSerializeapiBeatmap() => false;
 
-        public bool Equals(PlaylistItem other) => ID == other?.ID && BeatmapID == other.BeatmapID && RulesetID == other.RulesetID;
+        public bool Equals(PlaylistItem other)
+            => ID == other?.ID
+               && BeatmapID == other.BeatmapID
+               && RulesetID == other.RulesetID
+               && Expired == other.Expired
+               && allowedMods.SequenceEqual(other.allowedMods)
+               && requiredMods.SequenceEqual(other.requiredMods);
     }
 }

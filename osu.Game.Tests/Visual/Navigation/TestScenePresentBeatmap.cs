@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
+using osu.Game.Extensions;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Osu;
@@ -109,7 +109,7 @@ namespace osu.Game.Tests.Visual.Navigation
                     Hash = Guid.NewGuid().ToString(),
                     OnlineID = i,
                     Metadata = metadata,
-                    Beatmaps = new List<BeatmapInfo>
+                    Beatmaps =
                     {
                         new BeatmapInfo
                         {
@@ -139,8 +139,8 @@ namespace osu.Game.Tests.Visual.Navigation
             AddStep("present beatmap", () => Game.PresentBeatmap(getImport()));
 
             AddUntilStep("wait for song select", () => Game.ScreenStack.CurrentScreen is Screens.Select.SongSelect);
-            AddUntilStep("correct beatmap displayed", () => Game.Beatmap.Value.BeatmapSetInfo.ID == getImport().ID);
-            AddAssert("correct ruleset selected", () => Game.Ruleset.Value.ID == getImport().Beatmaps.First().Ruleset.ID);
+            AddUntilStep("correct beatmap displayed", () => Game.Beatmap.Value.BeatmapSetInfo.MatchesOnlineID(getImport()));
+            AddAssert("correct ruleset selected", () => Game.Ruleset.Value.Equals(getImport().Beatmaps.First().Ruleset));
         }
 
         private void presentSecondDifficultyAndConfirm(Func<BeatmapSetInfo> getImport, int importedID)
@@ -150,7 +150,7 @@ namespace osu.Game.Tests.Visual.Navigation
 
             AddUntilStep("wait for song select", () => Game.ScreenStack.CurrentScreen is Screens.Select.SongSelect);
             AddUntilStep("correct beatmap displayed", () => Game.Beatmap.Value.BeatmapInfo.OnlineID == importedID * 2048);
-            AddAssert("correct ruleset selected", () => Game.Ruleset.Value.ID == getImport().Beatmaps.First().Ruleset.ID);
+            AddAssert("correct ruleset selected", () => Game.Ruleset.Value.Equals(getImport().Beatmaps.First().Ruleset));
         }
     }
 }

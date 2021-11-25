@@ -16,6 +16,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Extensions;
 using osu.Game.IO;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Notifications;
@@ -363,15 +364,15 @@ namespace osu.Game.Tests.Beatmaps.IO
                     var files = osu.Dependencies.Get<FileStore>();
 
                     long originalLength;
-                    using (var stream = files.Storage.GetStream(firstFile.FileInfo.StoragePath))
+                    using (var stream = files.Storage.GetStream(firstFile.FileInfo.GetStoragePath()))
                         originalLength = stream.Length;
 
-                    using (var stream = files.Storage.GetStream(firstFile.FileInfo.StoragePath, FileAccess.Write, FileMode.Create))
+                    using (var stream = files.Storage.GetStream(firstFile.FileInfo.GetStoragePath(), FileAccess.Write, FileMode.Create))
                         stream.WriteByte(0);
 
                     var importedSecondTime = await LoadOszIntoOsu(osu);
 
-                    using (var stream = files.Storage.GetStream(firstFile.FileInfo.StoragePath))
+                    using (var stream = files.Storage.GetStream(firstFile.FileInfo.GetStoragePath()))
                         Assert.AreEqual(stream.Length, originalLength, "Corruption was not fixed on second import");
 
                     // check the newly "imported" beatmap is actually just the restored previous import. since it matches hash.
@@ -583,7 +584,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                     {
                         OnlineID = 1,
                         Metadata = metadata,
-                        Beatmaps = new List<BeatmapInfo>
+                        Beatmaps =
                         {
                             new BeatmapInfo
                             {
@@ -595,7 +596,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                             {
                                 OnlineID = 2,
                                 Metadata = metadata,
-                                Status = BeatmapSetOnlineStatus.Loved,
+                                Status = BeatmapOnlineStatus.Loved,
                                 BaseDifficulty = difficulty
                             }
                         }

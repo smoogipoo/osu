@@ -51,6 +51,7 @@ namespace osu.Game.Online.Multiplayer
         public bool Equals(MultiplayerRoomUser? other)
         {
             if (ReferenceEquals(this, other)) return true;
+            if (other == null) return false;
 
             return UserID == other?.UserID;
         }
