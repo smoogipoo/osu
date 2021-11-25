@@ -38,6 +38,13 @@ jobs:
       - name: Test
         run: ${{github.workspace}}/run-tests.sh ${{github.workspace}}/*.Tests/bin/Debug/*/*.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
 
+      - name: Upload Dump
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: deadlock
+          path: deadlock.tar.bz2
+
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
       - name: Upload Test Results
