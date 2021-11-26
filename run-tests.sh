@@ -4,34 +4,39 @@ DEADLOCK_MINUTES=35
 
 dotnet tool install -g dotnet-dump
 
+get_dotnet()
+{
+    ps axf \
+    | grep 'dotnet exec' \
+    | grep 'testhost' \
+    | grep -v grep \
+    | tail -1
+}
+
 while true; do
     dotnet test $@ &
-
-    echo "Waiting for dotnet-test"
-    sleep 30
-
-    PID=$(ps axf | grep 'dotnet exec' | grep 'testhost' | grep -v grep | awk '{print $1}')
-    echo "dotnet-test PID: $PID"
 
     for i in $(seq 1 $DEADLOCK_MINUTES); do
         echo "Waiting 1 minute for deadlock"
         sleep 60
-        if ! ps -p $PID > /dev/null; then
+
+        if [[ -z $(get_dotnet) ]]; then
             echo "Process exited, restarting..."
             continue 2
         fi
     done
 
-    if ps -p $PID > /dev/null; then
-        echo "Deadlocked, dumping..."
-        dotnet dump collect -p $PID -o deadlock.dmp
+    PID=$(get_dotnet | awk '{print $1}')
+    echo "dotnet-test PID: $PID"
 
-        echo "Compressing dump..."
-        tar -cjSf deadlock.tar.bz2 deadlock.dmp
+    echo "Deadlocked, dumping..."
+    dotnet dump collect -p $PID -o deadlock.dmp
 
-        echo "Killing process..."
-        kill $PID
+    echo "Compressing dump..."
+    tar -cjSf deadlock.tar.bz2 deadlock.dmp
 
-        exit 1
-    fi
+    echo "Killing process..."
+    kill $PID
+
+    exit 1
 done
