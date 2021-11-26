@@ -10,7 +10,7 @@ while true; do
     echo "Waiting for dotnet-test"
     sleep 30
 
-    PID=$(ps axf | grep 'dotnet exec' | grep 'Tournament.Tests.dll' | grep -v grep | awk '{print $1}')
+    PID=$(ps axf | grep 'dotnet exec' | grep 'testhost' | grep -v grep | awk '{print $1}')
     echo "dotnet-test PID: $PID"
 
     for i in $(seq 1 $DEADLOCK_MINUTES); do
