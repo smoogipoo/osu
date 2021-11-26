@@ -16,6 +16,9 @@
       <Pack>True</Pack>
       <PackagePath>icon.png</PackagePath>
     </None>
+    <None Include="bass.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="AutoMapper" Version="10.1.1" />
