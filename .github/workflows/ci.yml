@@ -31,6 +31,11 @@ jobs:
          sudo apt-get update && \
          sudo apt-get -y install libavformat-dev
 
+      - name: Install gdb
+        run: |
+          sudo apt-get update && \
+          sudo apt-get -y install gdb
+
       - name: Compile
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
 
