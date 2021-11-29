@@ -34,7 +34,7 @@ while true; do
     mv core.$PID deadlock.dmp
 
     echo "Compressing dump..."
-    tar -cjSf deadlock.tar.bz2 deadlock.dmp
+    tar -cjSf deadlock.tar.bz2 *
 
     echo "Killing process..."
     kill $PID
