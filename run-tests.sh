@@ -30,7 +30,7 @@ while true; do
     echo "dotnet-test PID: $PID"
 
     echo "Deadlocked, dumping..."
-    sudo gcore $PID
+    sudo gcore -a $PID
     mv core.$PID deadlock.dmp
 
     echo "Compressing dump..."
