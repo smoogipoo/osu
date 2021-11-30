@@ -3,6 +3,7 @@
 DEADLOCK_MINUTES=35
 
 dotnet tool install -g dotnet-dump
+dotnet tool install -g dotnet-trace
 
 get_dotnet()
 {
@@ -30,11 +31,10 @@ while true; do
     echo "dotnet-test PID: $PID"
 
     echo "Deadlocked, dumping..."
-    sudo gcore -a $PID
-    mv core.$PID deadlock.dmp
+    dotnet trace collect -p $PID --duration 00:00:00:20
 
     echo "Compressing dump..."
-    tar -cjSf deadlock.tar.bz2 *
+    tar -cjSf deadlock.tar.bz2 trace.nettrace
 
     echo "Killing process..."
     kill $PID
