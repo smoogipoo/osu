@@ -52,6 +52,11 @@ namespace osu.Game.Screens.OnlinePlay
         public Action<PlaylistItem> RequestResults;
 
         /// <summary>
+        /// Invoked when this item requests to be edited.
+        /// </summary>
+        public Action<PlaylistItem> RequestEdit;
+
+        /// <summary>
         /// The currently-selected item, used to show a border around this item.
         /// May be updated by this item if <see cref="AllowSelection"/> is <c>true</c>.
         /// </summary>
@@ -60,6 +65,7 @@ namespace osu.Game.Screens.OnlinePlay
         public readonly PlaylistItem Item;
 
         public Drawable RemoveButton { get; private set; }
+        public Drawable EditButton { get; private set; }
 
         private readonly DelayedLoadWrapper onScreenLoader = new DelayedLoadWrapper(Empty) { RelativeSizeAxes = Axes.Both };
         private readonly IBindable<bool> valid = new Bindable<bool>();
@@ -211,6 +217,23 @@ namespace osu.Game.Screens.OnlinePlay
 
                 if (showResultsButton != null)
                     showResultsButton.Alpha = value ? 1 : 0;
+            }
+        }
+
+        private bool allowEditing;
+
+        /// <summary>
+        /// Whether this item can be edited.
+        /// </summary>
+        public bool AllowEditing
+        {
+            get => allowEditing;
+            set
+            {
+                allowEditing = value;
+
+                if (EditButton != null)
+                    EditButton.Alpha = value ? 1 : 0;
             }
         }
 
@@ -417,6 +440,13 @@ namespace osu.Game.Screens.OnlinePlay
                 TooltipText = "View results"
             },
             Item.Beatmap.Value == null ? Empty() : new PlaylistDownloadButton(Item),
+            EditButton = new GrayButton(FontAwesome.Solid.Edit)
+            {
+                Size = new Vector2(30, 30),
+                Alpha = AllowEditing ? 1 : 0,
+                Action = () => RequestEdit?.Invoke(Item),
+                TooltipText = "Edit"
+            },
             RemoveButton = new GrayButton(FontAwesome.Solid.MinusSquare)
             {
                 Size = new Vector2(30, 30),
