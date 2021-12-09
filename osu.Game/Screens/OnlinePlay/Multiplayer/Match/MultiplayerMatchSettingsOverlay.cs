@@ -70,7 +70,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             public void SelectBeatmap()
             {
                 if (matchSubScreen.IsCurrentScreen())
-                    matchSubScreen.Push(new MultiplayerMatchSongSelect(matchSubScreen.Room, true));
+                    matchSubScreen.Push(new MultiplayerMatchSongSelect(matchSubScreen.Room));
             }
 
             [Resolved]

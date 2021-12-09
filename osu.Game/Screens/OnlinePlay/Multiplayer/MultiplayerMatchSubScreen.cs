@@ -10,6 +10,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Screens;
 using osu.Framework.Threading;
 using osu.Game.Beatmaps;
@@ -42,6 +43,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         public override string Title { get; }
 
         public override string ShortTitle => "room";
+
+        public Button AddItemButton { get; private set; }
 
         [Resolved]
         private MultiplayerClient client { get; set; }
@@ -131,19 +134,21 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                                 new Drawable[] { new OverlinedHeader("Beatmap") },
                                 new Drawable[]
                                 {
-                                    new AddOrEditPlaylistButtons
+                                    AddItemButton = new PurpleTriangleButton
                                     {
                                         RelativeSizeAxes = Axes.X,
-                                        AddBeatmap = () => OpenSongSelection(true),
-                                        EditBeatmap = () => OpenSongSelection(false)
-                                    }
+                                        Height = 40,
+                                        Text = "Add item",
+                                        Action = () => OpenSongSelection(null)
+                                    },
                                 },
                                 null,
                                 new Drawable[]
                                 {
                                     new MultiplayerPlaylist
                                     {
-                                        RelativeSizeAxes = Axes.Both
+                                        RelativeSizeAxes = Axes.Both,
+                                        RequestEdit = OpenSongSelection
                                     }
                                 },
                                 new[]
@@ -216,12 +221,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         };
 
-        internal void OpenSongSelection(bool createNewItem)
+        internal void OpenSongSelection(PlaylistItem itemToEdit)
         {
             if (!this.IsCurrentScreen())
                 return;
 
-            this.Push(new MultiplayerMatchSongSelect(Room, createNewItem));
+            this.Push(new MultiplayerMatchSongSelect(Room, itemToEdit));
         }
 
         protected override Drawable CreateFooter() => new MultiplayerMatchFooter
@@ -381,6 +386,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 return;
             }
 
+            AddItemButton.Alpha = client.IsHost || Room.QueueMode.Value != QueueMode.HostOnly ? 1 : 0;
+
             Scheduler.AddOnce(UpdateMods);
         }
 
@@ -444,7 +451,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 return;
             }
 
-            this.Push(new MultiplayerMatchSongSelect(Room, false, beatmap, ruleset));
+            this.Push(new MultiplayerMatchSongSelect(Room, SelectedItem.Value, beatmap, ruleset));
         }
 
         protected override void Dispose(bool isDisposing)

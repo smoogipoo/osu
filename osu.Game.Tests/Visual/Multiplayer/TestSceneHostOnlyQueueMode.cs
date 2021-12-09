@@ -7,8 +7,8 @@ using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Screens.OnlinePlay;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
-using osu.Game.Screens.OnlinePlay.Multiplayer.Match;
 using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -87,7 +87,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("click edit button", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<AddOrEditPlaylistButtons>().Single().EditButton);
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableRoomPlaylistItem>().First().EditButton);
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -104,7 +104,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("click add button", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<AddOrEditPlaylistButtons>().Single().AddButton);
+                InputManager.MoveMouseTo(this.ChildrenOfType<MultiplayerMatchSubScreen>().Single().AddItemButton);
                 InputManager.Click(MouseButton.Left);
             });
 
