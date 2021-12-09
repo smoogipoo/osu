@@ -87,7 +87,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("click edit button", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableRoomPlaylistItem>().First().EditButton);
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableRoomPlaylistItem.PlaylistEditButton>().First());
                 InputManager.Click(MouseButton.Left);
             });
 

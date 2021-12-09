@@ -64,9 +64,6 @@ namespace osu.Game.Screens.OnlinePlay
 
         public readonly PlaylistItem Item;
 
-        public Drawable RemoveButton { get; private set; }
-        public Drawable EditButton { get; private set; }
-
         private readonly DelayedLoadWrapper onScreenLoader = new DelayedLoadWrapper(Empty) { RelativeSizeAxes = Axes.Both };
         private readonly IBindable<bool> valid = new Bindable<bool>();
         private readonly Bindable<IBeatmapInfo> beatmap = new Bindable<IBeatmapInfo>();
@@ -82,6 +79,8 @@ namespace osu.Game.Screens.OnlinePlay
         private FillFlowContainer buttonsFlow;
         private UpdateableAvatar ownerAvatar;
         private Drawable showResultsButton;
+        private Drawable editButton;
+        private Drawable removeButton;
         private PanelBackground panelBackground;
         private FillFlowContainer mainFillFlow;
 
@@ -198,8 +197,8 @@ namespace osu.Game.Screens.OnlinePlay
             {
                 allowDeletion = value;
 
-                if (RemoveButton != null)
-                    RemoveButton.Alpha = value ? 1 : 0;
+                if (removeButton != null)
+                    removeButton.Alpha = value ? 1 : 0;
             }
         }
 
@@ -232,8 +231,8 @@ namespace osu.Game.Screens.OnlinePlay
             {
                 allowEditing = value;
 
-                if (EditButton != null)
-                    EditButton.Alpha = value ? 1 : 0;
+                if (editButton != null)
+                    editButton.Alpha = value ? 1 : 0;
             }
         }
 
@@ -440,14 +439,14 @@ namespace osu.Game.Screens.OnlinePlay
                 TooltipText = "View results"
             },
             Item.Beatmap.Value == null ? Empty() : new PlaylistDownloadButton(Item),
-            EditButton = new GrayButton(FontAwesome.Solid.Edit)
+            editButton = new PlaylistEditButton
             {
                 Size = new Vector2(30, 30),
                 Alpha = AllowEditing ? 1 : 0,
                 Action = () => RequestEdit?.Invoke(Item),
                 TooltipText = "Edit"
             },
-            RemoveButton = new GrayButton(FontAwesome.Solid.MinusSquare)
+            removeButton = new PlaylistRemoveButton
             {
                 Size = new Vector2(30, 30),
                 Alpha = AllowDeletion ? 1 : 0,
@@ -461,6 +460,22 @@ namespace osu.Game.Screens.OnlinePlay
             if (AllowSelection && valid.Value)
                 SelectedItem.Value = Model;
             return true;
+        }
+
+        public class PlaylistEditButton : GrayButton
+        {
+            public PlaylistEditButton()
+                : base(FontAwesome.Solid.Edit)
+            {
+            }
+        }
+
+        public class PlaylistRemoveButton : GrayButton
+        {
+            public PlaylistRemoveButton()
+                : base(FontAwesome.Solid.MinusSquare)
+            {
+            }
         }
 
         private sealed class PlaylistDownloadButton : BeatmapDownloadButton
