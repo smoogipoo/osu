@@ -14,7 +14,6 @@ using osu.Framework.Screens;
 using osu.Framework.Threading;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
-using osu.Game.Graphics.UserInterface;
 using osu.Game.Online;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
@@ -43,8 +42,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         public override string Title { get; }
 
         public override string ShortTitle => "room";
-
-        public OsuButton AddOrEditPlaylistButton { get; private set; }
 
         [Resolved]
         private MultiplayerClient client { get; set; }
@@ -134,13 +131,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                                 new Drawable[] { new OverlinedHeader("Beatmap") },
                                 new Drawable[]
                                 {
-                                    AddOrEditPlaylistButton = new PurpleTriangleButton
+                                    new AddOrEditPlaylistButtons
                                     {
                                         RelativeSizeAxes = Axes.X,
-                                        Height = 40,
-                                        Action = SelectBeatmap,
-                                        Alpha = 0
-                                    },
+                                    }
                                 },
                                 null,
                                 new Drawable[]
@@ -383,24 +377,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             {
                 handleRoomLost();
                 return;
-            }
-
-            switch (client.Room.Settings.QueueMode)
-            {
-                case QueueMode.HostOnly:
-                    AddOrEditPlaylistButton.Text = "Edit beatmap";
-                    AddOrEditPlaylistButton.Alpha = client.IsHost ? 1 : 0;
-                    break;
-
-                case QueueMode.AllPlayers:
-                case QueueMode.AllPlayersRoundRobin:
-                    AddOrEditPlaylistButton.Text = "Add beatmap";
-                    AddOrEditPlaylistButton.Alpha = 1;
-                    break;
-
-                default:
-                    AddOrEditPlaylistButton.Alpha = 0;
-                    break;
             }
 
             Scheduler.AddOnce(UpdateMods);

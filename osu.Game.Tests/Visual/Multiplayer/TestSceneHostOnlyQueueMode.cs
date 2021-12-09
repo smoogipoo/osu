@@ -8,6 +8,7 @@ using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
+using osu.Game.Screens.OnlinePlay.Multiplayer.Match;
 using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -78,7 +79,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("click edit button", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<MultiplayerMatchSubScreen>().Single().AddOrEditPlaylistButton);
+                InputManager.MoveMouseTo(this.ChildrenOfType<AddOrEditPlaylistButtons>().Single().EditButton);
                 InputManager.Click(MouseButton.Left);
             });
 
