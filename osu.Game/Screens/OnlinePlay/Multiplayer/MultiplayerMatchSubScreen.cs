@@ -134,6 +134,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                                     new AddOrEditPlaylistButtons
                                     {
                                         RelativeSizeAxes = Axes.X,
+                                        AddBeatmap = () => OpenSongSelection(true),
+                                        EditBeatmap = () => OpenSongSelection(false)
                                     }
                                 },
                                 null,
@@ -214,12 +216,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         };
 
-        internal void SelectBeatmap()
+        internal void OpenSongSelection(bool createNewItem)
         {
             if (!this.IsCurrentScreen())
                 return;
 
-            this.Push(new MultiplayerMatchSongSelect(Room));
+            this.Push(new MultiplayerMatchSongSelect(Room, createNewItem));
         }
 
         protected override Drawable CreateFooter() => new MultiplayerMatchFooter
@@ -442,7 +444,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 return;
             }
 
-            this.Push(new MultiplayerMatchSongSelect(Room, beatmap, ruleset));
+            this.Push(new MultiplayerMatchSongSelect(Room, false, beatmap, ruleset));
         }
 
         protected override void Dispose(bool isDisposing)
