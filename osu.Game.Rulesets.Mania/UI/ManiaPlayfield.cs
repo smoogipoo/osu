@@ -27,6 +27,9 @@ namespace osu.Game.Rulesets.Mania.UI
 
         public ManiaPlayfield(List<StageDefinition> stageDefinitions)
         {
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
+
             if (stageDefinitions == null)
                 throw new ArgumentNullException(nameof(stageDefinitions));
 
