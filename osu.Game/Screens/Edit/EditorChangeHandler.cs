@@ -4,11 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Game.Beatmaps.Formats;
+using osu.Game.IO.Serialization;
 using osu.Game.Rulesets.Objects;
 
 namespace osu.Game.Screens.Edit
@@ -23,8 +22,8 @@ namespace osu.Game.Screens.Edit
 
         public event Action OnStateChange;
 
-        private readonly LegacyEditorBeatmapPatcher patcher;
-        private readonly List<byte[]> savedStates = new List<byte[]>();
+        private readonly JsonBeatmapPatcher patcher;
+        private readonly List<string> savedStates = new List<string>();
 
         private int currentState = -1;
 
@@ -35,7 +34,7 @@ namespace osu.Game.Screens.Edit
         {
             get
             {
-                using (var stream = new MemoryStream(savedStates[currentState]))
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(savedStates[currentState])))
                     return stream.ComputeSHA2Hash();
             }
         }
@@ -57,7 +56,7 @@ namespace osu.Game.Screens.Edit
             editorBeatmap.TransactionEnded += EndChange;
             editorBeatmap.SaveStateTriggered += SaveState;
 
-            patcher = new LegacyEditorBeatmapPatcher(editorBeatmap);
+            patcher = new JsonBeatmapPatcher(editorBeatmap);
 
             // Initial state.
             SaveState();
@@ -68,29 +67,23 @@ namespace osu.Game.Screens.Edit
             if (isRestoring)
                 return;
 
-            using (var stream = new MemoryStream())
-            {
-                using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
-                    new LegacyBeatmapEncoder(editorBeatmap, editorBeatmap.BeatmapSkin).Encode(sw);
+            string newState = editorBeatmap.PlayableBeatmap.Serialize();
 
-                byte[] newState = stream.ToArray();
+            // if the previous state is binary equal we don't need to push a new one, unless this is the initial state.
+            if (savedStates.Count > 0 && newState.Equals(savedStates[currentState], StringComparison.Ordinal)) return;
 
-                // if the previous state is binary equal we don't need to push a new one, unless this is the initial state.
-                if (savedStates.Count > 0 && newState.SequenceEqual(savedStates[currentState])) return;
+            if (currentState < savedStates.Count - 1)
+                savedStates.RemoveRange(currentState + 1, savedStates.Count - currentState - 1);
 
-                if (currentState < savedStates.Count - 1)
-                    savedStates.RemoveRange(currentState + 1, savedStates.Count - currentState - 1);
+            if (savedStates.Count > MAX_SAVED_STATES)
+                savedStates.RemoveAt(0);
 
-                if (savedStates.Count > MAX_SAVED_STATES)
-                    savedStates.RemoveAt(0);
+            savedStates.Add(newState);
 
-                savedStates.Add(newState);
+            currentState = savedStates.Count - 1;
 
-                currentState = savedStates.Count - 1;
-
-                OnStateChange?.Invoke();
-                updateBindables();
-            }
+            OnStateChange?.Invoke();
+            updateBindables();
         }
 
         /// <summary>
