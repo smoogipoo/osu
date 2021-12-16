@@ -230,8 +230,12 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
                 currentObject.HyperDashTarget = null;
                 currentObject.DistanceToHyperDash = 0;
 
+                // osu-stable truncates time values, which matters for hyperdash generation.
+                int currentStartTime = (int)Math.Round(currentObject.StartTime);
+                int nextStartTime = (int)Math.Round(nextObject.StartTime);
+
                 int thisDirection = nextObject.EffectiveX > currentObject.EffectiveX ? 1 : -1;
-                double timeToNext = nextObject.StartTime - currentObject.StartTime - 1000f / 60f / 4; // 1/4th of a frame of grace time, taken from osu-stable
+                double timeToNext = nextStartTime - currentStartTime - 1000f / 60f / 4; // 1/4th of a frame of grace time, taken from osu-stable
                 double distanceToNext = Math.Abs(nextObject.EffectiveX - currentObject.EffectiveX) - (lastDirection == thisDirection ? lastExcess : halfCatcherWidth);
                 float distanceToHyper = (float)(timeToNext * Catcher.BASE_DASH_SPEED - distanceToNext);
 
