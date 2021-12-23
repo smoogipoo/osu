@@ -32,6 +32,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 case MultiplayerUserState.WaitingForLoad:
                 case MultiplayerUserState.Loaded:
                 case MultiplayerUserState.Playing:
+                case MultiplayerUserState.FinishedPlay:
+                case MultiplayerUserState.Results:
                     client.AbortGameplay();
                     break;
 
