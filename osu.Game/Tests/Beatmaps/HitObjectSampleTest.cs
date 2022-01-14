@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -14,7 +15,9 @@ using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Formats;
+using osu.Game.Database;
 using osu.Game.IO;
+using osu.Game.Models;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Screens.Ranking;
@@ -87,23 +90,15 @@ namespace osu.Game.Tests.Beatmaps
         {
             AddStep("setup skins", () =>
             {
-                userSkinInfo.Files = new List<SkinFileInfo>
-                {
-                    new SkinFileInfo
-                    {
-                        Filename = userFile,
-                        FileInfo = new IO.FileInfo { Hash = userFile }
-                    }
-                };
+                userSkinInfo.Files.Clear();
+                userSkinInfo.Files.Add(new RealmNamedFileUsage(new RealmFile { Hash = userFile }, userFile));
 
-                beatmapInfo.BeatmapSet.Files = new List<BeatmapSetFileInfo>
+                beatmapInfo.BeatmapSet.Files.Clear();
+                beatmapInfo.BeatmapSet.Files.Add(new BeatmapSetFileInfo
                 {
-                    new BeatmapSetFileInfo
-                    {
-                        Filename = beatmapFile,
-                        FileInfo = new IO.FileInfo { Hash = beatmapFile }
-                    }
-                };
+                    Filename = beatmapFile,
+                    FileInfo = new IO.FileInfo { Hash = beatmapFile }
+                });
 
                 // Need to refresh the cached skin source to refresh the skin resource store.
                 dependencies.SkinSource = new SkinProvidingContainer(Skin = new LegacySkin(userSkinInfo, this));
@@ -125,6 +120,7 @@ namespace osu.Game.Tests.Beatmaps
         public IResourceStore<byte[]> Files => userSkinResourceStore;
         public new IResourceStore<byte[]> Resources => base.Resources;
         public IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => null;
+        RealmContextFactory IStorageResourceProvider.RealmContextFactory => null;
 
         #endregion
 
@@ -171,7 +167,7 @@ namespace osu.Game.Tests.Beatmaps
                 return Array.Empty<byte>();
             }
 
-            public Task<byte[]> GetAsync(string name)
+            public Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
             {
                 markLookup(name);
                 return Task.FromResult(Array.Empty<byte>());

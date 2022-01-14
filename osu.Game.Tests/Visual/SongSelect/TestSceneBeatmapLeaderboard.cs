@@ -6,6 +6,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
@@ -42,7 +43,7 @@ namespace osu.Game.Tests.Visual.SongSelect
 
             dependencies.Cache(rulesetStore = new RulesetStore(ContextFactory));
             dependencies.Cache(beatmapManager = new BeatmapManager(LocalStorage, ContextFactory, rulesetStore, null, dependencies.Get<AudioManager>(), Resources, dependencies.Get<GameHost>(), Beatmap.Default));
-            dependencies.Cache(scoreManager = new ScoreManager(rulesetStore, () => beatmapManager, LocalStorage, null, ContextFactory, Scheduler));
+            dependencies.Cache(scoreManager = new ScoreManager(rulesetStore, () => beatmapManager, LocalStorage, ContextFactory, Scheduler));
 
             return dependencies;
         }
@@ -74,7 +75,7 @@ namespace osu.Game.Tests.Visual.SongSelect
 
             AddStep(@"Set beatmap", () =>
             {
-                beatmapManager.Import(TestResources.GetQuickTestBeatmapForImport()).Wait();
+                beatmapManager.Import(TestResources.GetQuickTestBeatmapForImport()).WaitSafely();
                 beatmapInfo = beatmapManager.GetAllUsableBeatmapSets().First().Beatmaps.First();
 
                 leaderboard.BeatmapInfo = beatmapInfo;
@@ -175,7 +176,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             AddStep(@"Load new scores via manager", () =>
             {
                 foreach (var score in generateSampleScores(beatmapInfo()))
-                    scoreManager.Import(score).Wait();
+                    scoreManager.Import(score).WaitSafely();
             });
         }
 

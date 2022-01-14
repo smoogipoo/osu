@@ -84,7 +84,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 beatmapSetInfo.Beatmaps.Add(beatmap);
             }
 
-            manager.Import(beatmapSetInfo).Wait();
+            manager.Import(beatmapSetInfo).WaitSafely();
         }
 
         public override void SetUpSteps()
@@ -99,7 +99,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
 
             AddStep("create song select", () => LoadScreen(songSelect = new TestMultiplayerMatchSongSelect(SelectedRoom.Value)));
-            AddUntilStep("wait for present", () => songSelect.IsCurrentScreen());
+            AddUntilStep("wait for present", () => songSelect.IsCurrentScreen() && songSelect.BeatmapSetsLoaded);
         }
 
         [Test]
@@ -145,7 +145,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("set mods", () => SelectedMods.Value = new[] { new TaikoModDoubleTime() });
 
             AddStep("confirm selection", () => songSelect.FinaliseSelection());
-            AddStep("exit song select", () => songSelect.Exit());
+
+            AddUntilStep("song select exited", () => !songSelect.IsCurrentScreen());
 
             AddAssert("beatmap not changed", () => Beatmap.Value.BeatmapInfo.Equals(selectedBeatmap));
             AddAssert("ruleset not changed", () => Ruleset.Value.Equals(new TaikoRuleset().RulesetInfo));
@@ -179,7 +180,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             public new BeatmapCarousel Carousel => base.Carousel;
 
             public TestMultiplayerMatchSongSelect(Room room, WorkingBeatmap beatmap = null, RulesetInfo ruleset = null)
-                : base(room, beatmap, ruleset)
+                : base(room, null, beatmap, ruleset)
             {
             }
         }

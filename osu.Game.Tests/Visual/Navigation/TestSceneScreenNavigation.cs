@@ -4,6 +4,7 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
@@ -66,9 +67,11 @@ namespace osu.Game.Tests.Visual.Navigation
         {
             Player player = null;
 
-            PushAndConfirm(() => new TestPlaySongSelect());
+            Screens.Select.SongSelect songSelect = null;
+            PushAndConfirm(() => songSelect = new TestPlaySongSelect());
+            AddUntilStep("wait for song select", () => songSelect.BeatmapSetsLoaded);
 
-            AddStep("import beatmap", () => ImportBeatmapTest.LoadQuickOszIntoOsu(Game).Wait());
+            AddStep("import beatmap", () => ImportBeatmapTest.LoadQuickOszIntoOsu(Game).WaitSafely());
 
             AddUntilStep("wait for selected", () => !Game.Beatmap.IsDefault);
 
@@ -98,9 +101,11 @@ namespace osu.Game.Tests.Visual.Navigation
 
             IWorkingBeatmap beatmap() => Game.Beatmap.Value;
 
-            PushAndConfirm(() => new TestPlaySongSelect());
+            Screens.Select.SongSelect songSelect = null;
+            PushAndConfirm(() => songSelect = new TestPlaySongSelect());
+            AddUntilStep("wait for song select", () => songSelect.BeatmapSetsLoaded);
 
-            AddStep("import beatmap", () => ImportBeatmapTest.LoadQuickOszIntoOsu(Game).Wait());
+            AddStep("import beatmap", () => ImportBeatmapTest.LoadQuickOszIntoOsu(Game).WaitSafely());
 
             AddUntilStep("wait for selected", () => !Game.Beatmap.IsDefault);
 
@@ -130,9 +135,11 @@ namespace osu.Game.Tests.Visual.Navigation
 
             IWorkingBeatmap beatmap() => Game.Beatmap.Value;
 
-            PushAndConfirm(() => new TestPlaySongSelect());
+            Screens.Select.SongSelect songSelect = null;
+            PushAndConfirm(() => songSelect = new TestPlaySongSelect());
+            AddUntilStep("wait for song select", () => songSelect.BeatmapSetsLoaded);
 
-            AddStep("import beatmap", () => ImportBeatmapTest.LoadOszIntoOsu(Game, virtualTrack: true).Wait());
+            AddStep("import beatmap", () => ImportBeatmapTest.LoadOszIntoOsu(Game, virtualTrack: true).WaitSafely());
 
             AddUntilStep("wait for selected", () => !Game.Beatmap.IsDefault);
 
@@ -151,12 +158,12 @@ namespace osu.Game.Tests.Visual.Navigation
             AddUntilStep("wait for fail", () => player.HasFailed);
 
             AddUntilStep("wait for track stop", () => !Game.MusicController.IsPlaying);
-            AddAssert("Ensure time before preview point", () => Game.MusicController.CurrentTrack.CurrentTime < beatmap().Metadata.PreviewTime);
+            AddAssert("Ensure time before preview point", () => Game.MusicController.CurrentTrack.CurrentTime < beatmap().BeatmapInfo.Metadata.PreviewTime);
 
             pushEscape();
 
             AddUntilStep("wait for track playing", () => Game.MusicController.IsPlaying);
-            AddAssert("Ensure time wasn't reset to preview point", () => Game.MusicController.CurrentTrack.CurrentTime < beatmap().Metadata.PreviewTime);
+            AddAssert("Ensure time wasn't reset to preview point", () => Game.MusicController.CurrentTrack.CurrentTime < beatmap().BeatmapInfo.Metadata.PreviewTime);
         }
 
         [Test]
@@ -244,8 +251,9 @@ namespace osu.Game.Tests.Visual.Navigation
         [Test]
         public void TestModSelectInput()
         {
-            TestPlaySongSelect songSelect = null;
+            AddUntilStep("Wait for toolbar to load", () => Game.Toolbar.IsLoaded);
 
+            TestPlaySongSelect songSelect = null;
             PushAndConfirm(() => songSelect = new TestPlaySongSelect());
 
             AddStep("Show mods overlay", () => songSelect.ModSelectOverlay.Show());
@@ -265,8 +273,9 @@ namespace osu.Game.Tests.Visual.Navigation
         [Test]
         public void TestBeatmapOptionsInput()
         {
-            TestPlaySongSelect songSelect = null;
+            AddUntilStep("Wait for toolbar to load", () => Game.Toolbar.IsLoaded);
 
+            TestPlaySongSelect songSelect = null;
             PushAndConfirm(() => songSelect = new TestPlaySongSelect());
 
             AddStep("Show options overlay", () => songSelect.BeatmapOptionsOverlay.Show());
@@ -286,6 +295,8 @@ namespace osu.Game.Tests.Visual.Navigation
         [Test]
         public void TestSettingsViaHotkeyFromMainMenu()
         {
+            AddUntilStep("Wait for toolbar to load", () => Game.Toolbar.IsLoaded);
+
             AddAssert("toolbar not displayed", () => Game.Toolbar.State.Value == Visibility.Hidden);
 
             AddStep("press settings hotkey", () =>
@@ -301,9 +312,10 @@ namespace osu.Game.Tests.Visual.Navigation
         [Test]
         public void TestToolbarHiddenByUser()
         {
-            AddStep("Enter menu", () => InputManager.Key(Key.Enter));
-
             AddUntilStep("Wait for toolbar to load", () => Game.Toolbar.IsLoaded);
+
+            AddStep("Enter menu", () => InputManager.Key(Key.Enter));
+            AddUntilStep("Toolbar is visible", () => Game.Toolbar.State.Value == Visibility.Visible);
 
             AddStep("Hide toolbar", () =>
             {
@@ -330,12 +342,12 @@ namespace osu.Game.Tests.Visual.Navigation
         [Test]
         public void TestPushMatchSubScreenAndPressBackButtonImmediately()
         {
-            TestMultiplayerScreenStack multiplayerScreenStack = null;
+            TestMultiplayerComponents multiplayerComponents = null;
 
-            PushAndConfirm(() => multiplayerScreenStack = new TestMultiplayerScreenStack());
+            PushAndConfirm(() => multiplayerComponents = new TestMultiplayerComponents());
 
-            AddUntilStep("wait for lounge", () => multiplayerScreenStack.ChildrenOfType<LoungeSubScreen>().SingleOrDefault()?.IsLoaded == true);
-            AddStep("open room", () => multiplayerScreenStack.ChildrenOfType<LoungeSubScreen>().Single().Open());
+            AddUntilStep("wait for lounge", () => multiplayerComponents.ChildrenOfType<LoungeSubScreen>().SingleOrDefault()?.IsLoaded == true);
+            AddStep("open room", () => multiplayerComponents.ChildrenOfType<LoungeSubScreen>().Single().Open());
             AddStep("press back button", () => Game.ChildrenOfType<BackButton>().First().Action());
             AddWaitStep("wait two frames", 2);
         }
