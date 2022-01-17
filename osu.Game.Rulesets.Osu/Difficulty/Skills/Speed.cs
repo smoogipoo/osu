@@ -156,8 +156,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             if (strainTime < min_speed_bonus)
                 speedBonus = 1 + 0.75 * Math.Pow((min_speed_bonus - strainTime) / speed_balancing_factor, 2);
 
-            double travelDistance = osuPrevObj?.TravelDistance ?? 0;
-            double distance = Math.Min(single_spacing_threshold, travelDistance + osuCurrObj.MinimumJumpDistance);
+            double distance = Math.Min(single_spacing_threshold, osuCurrObj.TravelDistance + osuCurrObj.MovementDistance);
 
             return (speedBonus + speedBonus * Math.Pow(distance / single_spacing_threshold, 3.5)) / strainTime;
         }
