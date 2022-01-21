@@ -63,10 +63,9 @@ namespace osu.Game.Tests.Online
             Realm.Write(r => r.RemoveAll<BeatmapSetInfo>());
             Realm.Write(r => r.RemoveAll<BeatmapInfo>());
 
-            selectedItem.Value = new PlaylistItem
+            selectedItem.Value = new PlaylistItem(testBeatmapInfo)
             {
-                Beatmap = { Value = testBeatmapInfo },
-                Ruleset = { Value = testBeatmapInfo.Ruleset },
+                RulesetID = testBeatmapInfo.Ruleset.OnlineID
             };
 
             Child = availabilityTracker = new OnlinePlayBeatmapAvailabilityTracker

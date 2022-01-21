@@ -10,6 +10,7 @@ using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
+using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
@@ -69,10 +70,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add playlist item", () =>
             {
-                SelectedRoom.Value.Playlist.Add(new PlaylistItem
+                SelectedRoom.Value.Playlist.Add(new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo)
                 {
-                    Beatmap = { Value = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo },
-                    Ruleset = { Value = new OsuRuleset().RulesetInfo },
+                    RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });
             });
 
@@ -86,11 +86,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add playlist item", () =>
             {
-                SelectedRoom.Value.Playlist.Add(new PlaylistItem
+                SelectedRoom.Value.Playlist.Add(new PlaylistItem(new TestBeatmap(new TaikoRuleset().RulesetInfo).BeatmapInfo)
                 {
-                    Beatmap = { Value = new TestBeatmap(new TaikoRuleset().RulesetInfo).BeatmapInfo },
-                    Ruleset = { Value = new TaikoRuleset().RulesetInfo },
-                    AllowedMods = { new TaikoModSwap() }
+                    RulesetID = new TaikoRuleset().RulesetInfo.OnlineID,
+                    AllowedMods = new[] { new APIMod(new TaikoModSwap()) }
                 });
             });
 
@@ -109,10 +108,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("set playlist", () =>
             {
-                SelectedRoom.Value.Playlist.Add(new PlaylistItem
+                SelectedRoom.Value.Playlist.Add(new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo)
                 {
-                    Beatmap = { Value = new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo },
-                    Ruleset = { Value = new OsuRuleset().RulesetInfo },
+                    RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });
             });
 
@@ -124,10 +122,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("set playlist", () =>
             {
-                SelectedRoom.Value.Playlist.Add(new PlaylistItem
+                SelectedRoom.Value.Playlist.Add(new PlaylistItem(beatmaps.GetWorkingBeatmap(importedSet.Beatmaps.First()).BeatmapInfo)
                 {
-                    Beatmap = { Value = beatmaps.GetWorkingBeatmap(importedSet.Beatmaps.First()).BeatmapInfo },
-                    Ruleset = { Value = new OsuRuleset().RulesetInfo },
+                    RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });
             });
 

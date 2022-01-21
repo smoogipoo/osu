@@ -58,9 +58,10 @@ namespace osu.Game.Online.Rooms
 
                 downloadTracker?.RemoveAndDisposeImmediately();
 
-                Debug.Assert(item.NewValue.Beatmap.Value.BeatmapSet != null);
+                // Todo: This is wrong... Right?
+                Debug.Assert(item.NewValue.Beatmap.BeatmapSet != null);
 
-                downloadTracker = new BeatmapDownloadTracker(item.NewValue.Beatmap.Value.BeatmapSet);
+                downloadTracker = new BeatmapDownloadTracker(item.NewValue.Beatmap.BeatmapSet);
 
                 AddInternal(downloadTracker);
 
@@ -125,8 +126,8 @@ namespace osu.Game.Online.Rooms
 
         private IQueryable<BeatmapInfo> filteredBeatmaps()
         {
-            int onlineId = SelectedItem.Value.Beatmap.Value.OnlineID;
-            string checksum = SelectedItem.Value.Beatmap.Value.MD5Hash;
+            int onlineId = SelectedItem.Value.Beatmap.OnlineID;
+            string checksum = SelectedItem.Value.Beatmap.MD5Hash;
 
             return realm.Realm
                         .All<BeatmapInfo>()

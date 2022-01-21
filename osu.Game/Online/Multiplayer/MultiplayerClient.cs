@@ -727,30 +727,17 @@ namespace osu.Game.Online.Multiplayer
             RoomUpdated?.Invoke();
         }
 
-        private PlaylistItem createPlaylistItem(MultiplayerPlaylistItem item)
+        private PlaylistItem createPlaylistItem(MultiplayerPlaylistItem item) => new PlaylistItem(new APIBeatmap { OnlineID = item.BeatmapID })
         {
-            var ruleset = Rulesets.GetRuleset(item.RulesetID);
-
-            Debug.Assert(ruleset != null);
-
-            var rulesetInstance = ruleset.CreateInstance();
-
-            var playlistItem = new PlaylistItem
-            {
-                ID = item.ID,
-                BeatmapID = item.BeatmapID,
-                OwnerID = item.OwnerID,
-                Ruleset = { Value = ruleset },
-                Expired = item.Expired,
-                PlaylistOrder = item.PlaylistOrder,
-                PlayedAt = item.PlayedAt
-            };
-
-            playlistItem.RequiredMods.AddRange(item.RequiredMods.Select(m => m.ToMod(rulesetInstance)));
-            playlistItem.AllowedMods.AddRange(item.AllowedMods.Select(m => m.ToMod(rulesetInstance)));
-
-            return playlistItem;
-        }
+            ID = item.ID,
+            OwnerID = item.OwnerID,
+            RulesetID = item.RulesetID,
+            Expired = item.Expired,
+            PlaylistOrder = item.PlaylistOrder,
+            PlayedAt = item.PlayedAt,
+            AllowedMods = item.AllowedMods.ToArray(),
+            RequiredMods = item.RequiredMods.ToArray()
+        };
 
         /// <summary>
         /// Retrieves a <see cref="APIBeatmap"/> from an online source.

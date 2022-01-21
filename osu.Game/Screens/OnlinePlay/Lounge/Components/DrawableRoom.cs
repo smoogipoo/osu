@@ -395,12 +395,12 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
                     return;
                 }
 
-                if (item.NewValue?.Beatmap.Value != null)
+                if (item.NewValue?.Beatmap != null)
                 {
                     statusText.Text = "Currently playing ";
-                    beatmapText.AddLink(item.NewValue.Beatmap.Value.GetDisplayTitleRomanisable(),
+                    beatmapText.AddLink(item.NewValue.Beatmap.GetDisplayTitleRomanisable(),
                         LinkAction.OpenBeatmap,
-                        item.NewValue.Beatmap.Value.OnlineID.ToString(),
+                        item.NewValue.Beatmap.OnlineID.ToString(),
                         creationParameters: s =>
                         {
                             s.Truncate = true;

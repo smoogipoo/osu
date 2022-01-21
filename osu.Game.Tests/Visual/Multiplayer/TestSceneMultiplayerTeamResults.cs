@@ -26,10 +26,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 var beatmapInfo = CreateBeatmap(rulesetInfo).BeatmapInfo;
                 var score = TestResources.CreateTestScoreInfo(beatmapInfo);
 
-                PlaylistItem playlistItem = new PlaylistItem
-                {
-                    BeatmapID = beatmapInfo.OnlineID,
-                };
+                PlaylistItem playlistItem = new PlaylistItem(beatmapInfo);
 
                 SortedDictionary<int, BindableInt> teamScores = new SortedDictionary<int, BindableInt>
                 {

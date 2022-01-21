@@ -410,7 +410,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public override Task<APIBeatmap> GetAPIBeatmap(int beatmapId, CancellationToken cancellationToken = default)
         {
             IBeatmapInfo? beatmap = roomManager.ServerSideRooms.SelectMany(r => r.Playlist)
-                                               .FirstOrDefault(p => p.BeatmapID == beatmapId)?.Beatmap.Value
+                                               .FirstOrDefault(p => p.Beatmap.OnlineID == beatmapId)?.Beatmap
                                     ?? beatmaps.QueryBeatmap(b => b.OnlineID == beatmapId);
 
             if (beatmap == null)

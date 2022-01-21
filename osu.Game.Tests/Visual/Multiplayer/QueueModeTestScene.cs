@@ -75,10 +75,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 QueueMode = { Value = Mode },
                 Playlist =
                 {
-                    new PlaylistItem
+                    new PlaylistItem(InitialBeatmap)
                     {
-                        Beatmap = { Value = InitialBeatmap },
-                        Ruleset = { Value = new OsuRuleset().RulesetInfo },
+                        RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                     }
                 }
             }));

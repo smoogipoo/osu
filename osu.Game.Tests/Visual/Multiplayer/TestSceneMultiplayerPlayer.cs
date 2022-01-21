@@ -28,10 +28,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("initialise gameplay", () =>
             {
-                Stack.Push(player = new MultiplayerPlayer(Client.APIRoom, new PlaylistItem
+                Stack.Push(player = new MultiplayerPlayer(Client.APIRoom, new PlaylistItem(Beatmap.Value.BeatmapInfo)
                 {
-                    Beatmap = { Value = Beatmap.Value.BeatmapInfo },
-                    Ruleset = { Value = Beatmap.Value.BeatmapInfo.Ruleset }
+                    RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 }, Client.Room?.Users.ToArray()));
             });
 
