@@ -4,14 +4,17 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Online.API.Requests.Responses;
 using Realms;
 
 namespace osu.Game.Online.Rooms
@@ -31,6 +34,9 @@ namespace osu.Game.Online.Rooms
 
         [Resolved]
         private RealmAccess realm { get; set; } = null!;
+
+        [Resolved]
+        private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
 
         /// <summary>
         /// The availability state of the currently selected playlist item.
@@ -58,35 +64,45 @@ namespace osu.Game.Online.Rooms
 
                 downloadTracker?.RemoveAndDisposeImmediately();
 
-                // Todo: This is wrong... Right?
-                Debug.Assert(item.NewValue.Beatmap.BeatmapSet != null);
-
-                downloadTracker = new BeatmapDownloadTracker(item.NewValue.Beatmap.BeatmapSet);
-
-                AddInternal(downloadTracker);
-
-                downloadTracker.State.BindValueChanged(_ => Scheduler.AddOnce(updateAvailability), true);
-                downloadTracker.Progress.BindValueChanged(_ =>
+                beatmapLookupCache.GetBeatmapAsync(item.NewValue.Beatmap.OnlineID).ContinueWith(task => Schedule(() =>
                 {
-                    if (downloadTracker.State.Value != DownloadState.Downloading)
-                        return;
+                    var beatmap = task.GetResultSafely();
 
-                    // incoming progress changes are going to be at a very high rate.
-                    // we don't want to flood the network with this, so rate limit how often we send progress updates.
-                    if (progressUpdate?.Completed != false)
-                        progressUpdate = Scheduler.AddDelayed(updateAvailability, progressUpdate == null ? 0 : 500);
-                }, true);
-
-                // handles changes to hash that didn't occur from the import process (ie. a user editing the beatmap in the editor, somehow).
-                realmSubscription?.Dispose();
-                realmSubscription = realm.RegisterForNotifications(r => filteredBeatmaps(), (items, changes, ___) =>
-                {
-                    if (changes == null)
-                        return;
-
-                    Scheduler.AddOnce(updateAvailability);
-                });
+                    if (SelectedItem.Value?.Beatmap.OnlineID == beatmap.OnlineID)
+                        beginTracking(beatmap);
+                }), TaskContinuationOptions.OnlyOnRanToCompletion);
             }, true);
+        }
+
+        private void beginTracking(APIBeatmap beatmapInfo)
+        {
+            Debug.Assert(beatmapInfo.BeatmapSet != null);
+
+            downloadTracker = new BeatmapDownloadTracker(beatmapInfo.BeatmapSet);
+
+            AddInternal(downloadTracker);
+
+            downloadTracker.State.BindValueChanged(_ => Scheduler.AddOnce(updateAvailability), true);
+            downloadTracker.Progress.BindValueChanged(_ =>
+            {
+                if (downloadTracker.State.Value != DownloadState.Downloading)
+                    return;
+
+                // incoming progress changes are going to be at a very high rate.
+                // we don't want to flood the network with this, so rate limit how often we send progress updates.
+                if (progressUpdate?.Completed != false)
+                    progressUpdate = Scheduler.AddDelayed(updateAvailability, progressUpdate == null ? 0 : 500);
+            }, true);
+
+            // handles changes to hash that didn't occur from the import process (ie. a user editing the beatmap in the editor, somehow).
+            realmSubscription?.Dispose();
+            realmSubscription = realm.RegisterForNotifications(r => filteredBeatmaps(), (items, changes, ___) =>
+            {
+                if (changes == null)
+                    return;
+
+                Scheduler.AddOnce(updateAvailability);
+            });
         }
 
         private void updateAvailability()
