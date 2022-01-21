@@ -22,9 +22,6 @@ namespace osu.Game.Online.Rooms
         [JsonProperty("owner_id")]
         public int OwnerID { get; set; }
 
-        [JsonProperty("beatmap")]
-        public IBeatmapInfo Beatmap { get; set; } = null!;
-
         [JsonProperty("ruleset_id")]
         public int RulesetID { get; set; }
 
@@ -46,17 +43,33 @@ namespace osu.Game.Online.Rooms
         [JsonProperty("required_mods")]
         public APIMod[] RequiredMods { get; set; } = Array.Empty<APIMod>();
 
+        /// <summary>
+        /// Used for deserialising _from_ the API.
+        /// </summary>
+        [JsonProperty("beatmap")]
+        private APIBeatmap apiBeatmap
+        {
+            get => new APIBeatmap { OnlineID = onlineBeatmapId };
+            set => Beatmap = value;
+        }
+
+        /// <summary>
+        /// Used for serialising _to_ the API.
+        /// </summary>
+        [JsonProperty("beatmap_id")]
+        private int onlineBeatmapId
+        {
+            get => Beatmap.OnlineID;
+            set => apiBeatmap = new APIBeatmap { OnlineID = value };
+        }
+
+        [JsonIgnore]
+        public IBeatmapInfo Beatmap { get; set; } = null!;
+
         [JsonIgnore]
         public IBindable<bool> Valid => valid;
 
         private readonly Bindable<bool> valid = new BindableBool(true);
-
-        [JsonProperty("beatmap_id")]
-        private int beatmapId
-        {
-            get => Beatmap.OnlineID;
-            set => Beatmap = new APIBeatmap { OnlineID = value };
-        }
 
         [JsonConstructor]
         private PlaylistItem()
