@@ -43,6 +43,8 @@ namespace osu.Game.Screens.Play
 
         public bool HasFailed { get; set; }
 
+        public bool HasQuit { get; set; }
+
         /// <summary>
         /// A bindable tracking the last judgement result applied to any hit object.
         /// </summary>
