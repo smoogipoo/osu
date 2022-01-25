@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -51,7 +50,7 @@ namespace osu.Game.Tests.Visual.Spectator
         /// <param name="userId">The user to end play for.</param>
         public void EndPlay(int userId)
         {
-            if (!PlayingUsers.Contains(userId))
+            if (!PlayingUserStates.ContainsKey(userId))
                 return;
 
             ((ISpectatorClient)this).UserFinishedPlaying(userId, new SpectatorState
@@ -117,7 +116,7 @@ namespace osu.Game.Tests.Visual.Spectator
         protected override Task WatchUserInternal(int userId)
         {
             // When newly watching a user, the server sends the playing state immediately.
-            if (PlayingUsers.Contains(userId))
+            if (PlayingUserStates.ContainsKey(userId))
                 sendPlayingState(userId);
 
             return Task.CompletedTask;
