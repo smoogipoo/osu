@@ -67,14 +67,7 @@ namespace osu.Game.Screens.Play
         /// </summary>
         protected virtual bool PauseOnFocusLost => true;
 
-        /// <summary>
-        /// Whether gameplay has completed without the user having failed.
-        /// </summary>
-        public bool GameplayPassed { get; private set; }
-
         public Action RestartRequested;
-
-        public bool HasFailed { get; private set; }
 
         private Bindable<bool> mouseWheelDisabled;
 
@@ -554,7 +547,7 @@ namespace osu.Game.Screens.Play
             if (showDialogFirst && !pauseOrFailDialogVisible)
             {
                 // if the fail animation is currently in progress, accelerate it (it will show the pause dialog on completion).
-                if (ValidForResume && HasFailed)
+                if (ValidForResume && GameplayState.HasFailed)
                 {
                     failAnimationLayer.FinishTransforms(true);
                     return;
@@ -673,7 +666,7 @@ namespace osu.Game.Screens.Play
                 resultsDisplayDelegate?.Cancel();
                 resultsDisplayDelegate = null;
 
-                GameplayPassed = false;
+                GameplayState.HasPassed = false;
                 ValidForResume = true;
                 skipOutroOverlay.Hide();
                 return;
@@ -683,7 +676,7 @@ namespace osu.Game.Screens.Play
             if (HealthProcessor.HasFailed)
                 return;
 
-            GameplayPassed = true;
+            GameplayState.HasPassed = true;
 
             // Setting this early in the process means that even if something were to go wrong in the order of events following, there
             // is no chance that a user could return to the (already completed) Player instance from a child screen.
@@ -799,7 +792,7 @@ namespace osu.Game.Screens.Play
             if (!CheckModsAllowFailure())
                 return false;
 
-            HasFailed = true;
+            GameplayState.HasFailed = true;
             Score.ScoreInfo.Passed = false;
 
             // There is a chance that we could be in a paused state as the ruleset's internal clock (see FrameStabilityContainer)
@@ -854,13 +847,13 @@ namespace osu.Game.Screens.Play
             // replays cannot be paused and exit immediately
             && !DrawableRuleset.HasReplayLoaded.Value
             // cannot pause if we are already in a fail state
-            && !HasFailed;
+            && !GameplayState.HasFailed;
 
         private bool canResume =>
             // cannot resume from a non-paused state
             GameplayClockContainer.IsPaused.Value
             // cannot resume if we are already in a fail state
-            && !HasFailed
+            && !GameplayState.HasFailed
             // already resuming
             && !IsResuming;
 
