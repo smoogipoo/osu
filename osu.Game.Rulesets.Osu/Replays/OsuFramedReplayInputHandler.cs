@@ -25,6 +25,8 @@ namespace osu.Game.Rulesets.Osu.Replays
 
             inputs.Add(new MousePositionAbsoluteInput { Position = GamefieldToScreenSpace(position) });
             inputs.Add(new ReplayState<OsuAction> { PressedActions = CurrentFrame?.Actions ?? new List<OsuAction>() });
+
+            base.CollectPendingInputs(inputs);
         }
     }
 }

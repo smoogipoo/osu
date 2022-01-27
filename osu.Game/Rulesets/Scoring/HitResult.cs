@@ -176,6 +176,11 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// An array of all scorable <see cref="HitResult"/>s.
         /// </summary>
+        public static readonly HitResult[] ALL_TYPES = ((HitResult[])Enum.GetValues(typeof(HitResult))).ToArray();
+
+        /// <summary>
+        /// An array of all scorable <see cref="HitResult"/>s.
+        /// </summary>
         public static readonly HitResult[] SCORABLE_TYPES = ((HitResult[])Enum.GetValues(typeof(HitResult))).Where(r => r.IsScorable()).ToArray();
 
         /// <summary>

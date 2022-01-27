@@ -16,6 +16,7 @@ using osu.Game.Configuration;
 using osu.Game.Input;
 using osu.Game.Input.Bindings;
 using osu.Game.Input.Handlers;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play;
 using static osu.Game.Input.Handlers.ReplayInputHandler;
 
@@ -24,6 +25,9 @@ namespace osu.Game.Rulesets.UI
     public abstract class RulesetInputManager<T> : PassThroughInputManager, ICanAttachKeyCounter, IHasReplayHandler, IHasRecordingHandler
         where T : struct
     {
+        [Resolved(CanBeNull = true)]
+        private ScoreProcessor scoreProcessor { get; set; }
+
         private ReplayRecorder recorder;
 
         public ReplayRecorder Recorder
@@ -66,17 +70,28 @@ namespace osu.Game.Rulesets.UI
 
         public override void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
-            if (inputStateChange is ReplayStateChangeEvent<T> replayStateChanged)
+            switch (inputStateChange)
             {
-                foreach (var action in replayStateChanged.ReleasedActions)
-                    KeyBindingContainer.TriggerReleased(action);
+                case ReplayStateChangeEvent<T> stateChangeEvent:
+                    foreach (var action in stateChangeEvent.ReleasedActions)
+                        KeyBindingContainer.TriggerReleased(action);
 
-                foreach (var action in replayStateChanged.PressedActions)
-                    KeyBindingContainer.TriggerPressed(action);
-            }
-            else
-            {
-                base.HandleInputStateChange(inputStateChange);
+                    foreach (var action in stateChangeEvent.PressedActions)
+                        KeyBindingContainer.TriggerPressed(action);
+                    break;
+
+                case ReplayStatisticsStateChangeEvent statisticsStateChangeEvent:
+                    if (scoreProcessor != null)
+                    {
+                        scoreProcessor.Apply(statisticsStateChangeEvent.Header.MaxCombo, statisticsStateChangeEvent.Header.Statistics);
+                        // Logger.Log("Applied statistics event");
+                    }
+
+                    break;
+
+                default:
+                    base.HandleInputStateChange(inputStateChange);
+                    break;
             }
         }
 

@@ -9,6 +9,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Platform;
+using osu.Game.Online.Spectator;
 using osu.Game.Rulesets.UI;
 using osuTK;
 
@@ -77,6 +78,27 @@ namespace osu.Game.Input.Handlers
             {
                 ReleasedActions = releasedActions;
                 PressedActions = pressedActions;
+            }
+        }
+
+        public class ReplayStatisticsState : IInput
+        {
+            public FrameHeader Header;
+
+            public void Apply(InputState state, IInputStateChangeHandler handler)
+            {
+                handler.HandleInputStateChange(new ReplayStatisticsStateChangeEvent(state, this, Header));
+            }
+        }
+
+        public class ReplayStatisticsStateChangeEvent : InputStateChangeEvent
+        {
+            public readonly FrameHeader Header;
+
+            public ReplayStatisticsStateChangeEvent(InputState state, IInput input, FrameHeader header)
+                : base(state, input)
+            {
+                Header = header;
             }
         }
     }

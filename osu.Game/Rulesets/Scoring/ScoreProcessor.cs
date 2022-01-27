@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Utils;
+using osu.Game.Extensions;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
@@ -126,7 +127,10 @@ namespace osu.Game.Rulesets.Scoring
                 return;
 
             if (!result.Type.IsScorable())
+            {
+                scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) + 1;
                 return;
+            }
 
             if (result.Type.AffectsCombo())
             {
@@ -176,7 +180,10 @@ namespace osu.Game.Rulesets.Scoring
                 return;
 
             if (!result.Type.IsScorable())
+            {
+                scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) - 1;
                 return;
+            }
 
             double scoreIncrease = result.Type.IsHit() ? result.Judgement.NumericResultFor(result) : 0;
 
@@ -346,10 +353,56 @@ namespace osu.Game.Rulesets.Scoring
             score.Accuracy = Accuracy.Value;
             score.Rank = Rank.Value;
 
-            foreach (var result in HitResultExtensions.SCORABLE_TYPES)
+            foreach (var result in HitResultExtensions.ALL_TYPES)
                 score.Statistics[result] = GetStatistic(result);
 
             score.HitEvents = hitEvents;
+        }
+
+        public void Apply(int maxCombo, Dictionary<HitResult, int> statistics)
+        {
+            baseScore = 0;
+            rollingMaxBaseScore = 0;
+            JudgedHits = 0;
+            HighestCombo.Value = maxCombo;
+
+            foreach ((HitResult result, int count) in statistics)
+            {
+                JudgedHits += count;
+
+                if (!result.IsScorable() || result.IsBonus())
+                    continue;
+
+                HitResult maxResult;
+
+                switch (result)
+                {
+                    case HitResult.LargeTickHit:
+                    case HitResult.LargeTickMiss:
+                        maxResult = HitResult.LargeTickHit;
+                        break;
+
+                    case HitResult.SmallTickHit:
+                    case HitResult.SmallTickMiss:
+                        maxResult = HitResult.SmallTickHit;
+                        break;
+
+                    default:
+                        maxResult = HitResult.Great;
+                        break;
+                }
+
+                for (int i = 0; i < count; i++)
+                {
+                    baseScore += Judgement.ToNumericResult(result);
+                    rollingMaxBaseScore += Judgement.ToNumericResult(maxResult);
+                }
+            }
+
+            scoreResultCounts.Clear();
+            scoreResultCounts.AddRange(statistics);
+
+            updateScore();
         }
     }
 

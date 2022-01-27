@@ -31,7 +31,7 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// The total number of judged <see cref="HitObject"/>s at the current point in time.
         /// </summary>
-        public int JudgedHits { get; private set; }
+        public int JudgedHits { get; protected set; }
 
         private JudgementResult lastAppliedResult;
 
