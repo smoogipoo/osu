@@ -2,6 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using MessagePack;
+using osu.Game.Online.Spectator;
+
+#nullable enable
 
 namespace osu.Game.Rulesets.Replays
 {
@@ -10,6 +13,9 @@ namespace osu.Game.Rulesets.Replays
     {
         [Key(0)]
         public double Time;
+
+        [IgnoreMember]
+        public FrameHeader? Header;
 
         public ReplayFrame()
         {

@@ -129,6 +129,8 @@ namespace osu.Game.Online.Spectator
 
         Task ISpectatorClient.UserSentFrames(int userId, FrameDataBundle data)
         {
+            data.Frames[^1].Header = data.Header;
+
             Schedule(() => OnNewFrames?.Invoke(userId, data));
 
             return Task.CompletedTask;
