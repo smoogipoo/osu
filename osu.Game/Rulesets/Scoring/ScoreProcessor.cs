@@ -348,7 +348,9 @@ namespace osu.Game.Rulesets.Scoring
             score.HitEvents = hitEvents;
         }
 
-        public void ResetFromReplayFrame(ReplayFrame frame)
+        private HitResult? maxNormalResult;
+
+        public void ResetFromReplayFrame(Ruleset ruleset, ReplayFrame frame)
         {
             if (frame.Header == null)
                 return;
@@ -366,6 +368,8 @@ namespace osu.Game.Rulesets.Scoring
                 if (!result.IsScorable() || result.IsBonus())
                     continue;
 
+                // The maximum result of this judgement if it wasn't a miss.
+                // E.g. For a GOOD judgement, the max result is either GREAT/PERFECT depending on which one the ruleset uses (osu!: GREAT, osu!mania: PERFECT).
                 HitResult maxResult;
 
                 switch (result)
@@ -381,7 +385,7 @@ namespace osu.Game.Rulesets.Scoring
                         break;
 
                     default:
-                        maxResult = HitResult.Great;
+                        maxResult = maxNormalResult ??= ruleset.GetHitResults().OrderByDescending(kvp => Judgement.ToNumericResult(kvp.result)).First().result;
                         break;
                 }
 

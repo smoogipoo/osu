@@ -25,6 +25,8 @@ namespace osu.Game.Rulesets.UI
     public abstract class RulesetInputManager<T> : PassThroughInputManager, ICanAttachKeyCounter, IHasReplayHandler, IHasRecordingHandler
         where T : struct
     {
+        private readonly Ruleset ruleset;
+
         [Resolved(CanBeNull = true)]
         private ScoreProcessor scoreProcessor { get; set; }
 
@@ -55,6 +57,8 @@ namespace osu.Game.Rulesets.UI
 
         protected RulesetInputManager(RulesetInfo ruleset, int variant, SimultaneousBindingMode unique)
         {
+            this.ruleset = ruleset.CreateInstance();
+
             InternalChild = KeyBindingContainer =
                 CreateKeyBindingContainer(ruleset, variant, unique)
                     .WithChild(content = new Container { RelativeSizeAxes = Axes.Both });
@@ -83,7 +87,7 @@ namespace osu.Game.Rulesets.UI
                 case ReplayStatisticsFrameEvent statisticsStateChangeEvent:
                     if (scoreProcessor != null)
                     {
-                        scoreProcessor.ResetFromReplayFrame(statisticsStateChangeEvent.Frame);
+                        scoreProcessor.ResetFromReplayFrame(ruleset, statisticsStateChangeEvent.Frame);
                         // Logger.Log("Applied statistics event");
                     }
 
