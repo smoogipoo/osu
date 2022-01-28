@@ -81,6 +81,14 @@ namespace osu.Game.Screens.Play
                 NonFrameStableSeek(score.Replay.Frames[0].Time);
         }
 
+        protected override void OnGameplayComplete()
+        {
+            base.OnGameplayComplete();
+
+            ScoreProcessor.ResetFromReplayFrame(DrawableRuleset.Ruleset, score.Replay.Frames[^1]);
+            ScoreProcessor.PopulateScore(score.ScoreInfo);
+        }
+
         protected override Score CreateScore(IBeatmap beatmap) => score;
 
         protected override ResultsScreen CreateResults(ScoreInfo score)

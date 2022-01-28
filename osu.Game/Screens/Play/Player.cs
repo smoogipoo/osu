@@ -692,6 +692,8 @@ namespace osu.Game.Screens.Play
             // Ensure we are not writing to the replay any more, as we are about to consume and store the score.
             DrawableRuleset.SetRecordTarget(null);
 
+            OnGameplayComplete();
+
             if (!Configuration.ShowResults)
                 return;
 
@@ -708,6 +710,10 @@ namespace osu.Game.Screens.Play
             }
 
             progressToResults(true);
+        }
+
+        protected virtual void OnGameplayComplete()
+        {
         }
 
         /// <summary>
