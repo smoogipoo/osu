@@ -181,7 +181,7 @@ namespace osu.Game.Rulesets.Replays
             base.CollectPendingInputs(inputs);
 
             if (CurrentFrame?.Header != null)
-                inputs.Add(new ReplayStatisticsState { Header = CurrentFrame.Header });
+                inputs.Add(new ReplayStatisticsFrame { Header = CurrentFrame });
         }
     }
 }

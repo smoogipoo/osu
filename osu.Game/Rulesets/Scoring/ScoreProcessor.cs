@@ -11,6 +11,7 @@ using osu.Game.Extensions;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Replays;
 using osu.Game.Scoring;
 
 namespace osu.Game.Rulesets.Scoring
@@ -330,12 +331,6 @@ namespace osu.Game.Rulesets.Scoring
             HighestCombo.Value = 0;
         }
 
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            hitEvents.Clear();
-        }
-
         /// <summary>
         /// Retrieve a score populated with data for the current play this processor is responsible for.
         /// </summary>
@@ -353,17 +348,21 @@ namespace osu.Game.Rulesets.Scoring
             score.HitEvents = hitEvents;
         }
 
-        public void Apply(int maxCombo, Dictionary<HitResult, int> statistics)
+        public void ResetFromReplayFrame(ReplayFrame frame)
         {
+            if (frame.Header == null)
+                return;
+
             baseScore = 0;
             rollingMaxBaseScore = 0;
             JudgedHits = 0;
-            HighestCombo.Value = maxCombo;
+            HighestCombo.Value = frame.Header.MaxCombo;
 
-            foreach ((HitResult result, int count) in statistics)
+            foreach ((HitResult result, int count) in frame.Header.Statistics)
             {
                 JudgedHits += count;
 
+                // Bonus scores are counted separately directly from the statistics dictionary later on.
                 if (!result.IsScorable() || result.IsBonus())
                     continue;
 
@@ -394,9 +393,15 @@ namespace osu.Game.Rulesets.Scoring
             }
 
             scoreResultCounts.Clear();
-            scoreResultCounts.AddRange(statistics);
+            scoreResultCounts.AddRange(frame.Header.Statistics);
 
             updateScore();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            hitEvents.Clear();
         }
     }
 

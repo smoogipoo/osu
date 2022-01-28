@@ -80,10 +80,10 @@ namespace osu.Game.Rulesets.UI
                         KeyBindingContainer.TriggerPressed(action);
                     break;
 
-                case ReplayStatisticsStateChangeEvent statisticsStateChangeEvent:
+                case ReplayStatisticsFrameEvent statisticsStateChangeEvent:
                     if (scoreProcessor != null)
                     {
-                        scoreProcessor.Apply(statisticsStateChangeEvent.Header.MaxCombo, statisticsStateChangeEvent.Header.Statistics);
+                        scoreProcessor.ResetFromReplayFrame(statisticsStateChangeEvent.Frame);
                         // Logger.Log("Applied statistics event");
                     }
 
