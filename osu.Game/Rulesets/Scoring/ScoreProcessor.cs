@@ -126,11 +126,10 @@ namespace osu.Game.Rulesets.Scoring
             if (result.FailedAtJudgement)
                 return;
 
+            scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) + 1;
+
             if (!result.Type.IsScorable())
-            {
-                scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) + 1;
                 return;
-            }
 
             if (result.Type.AffectsCombo())
             {
@@ -155,8 +154,6 @@ namespace osu.Game.Rulesets.Scoring
                 rollingMaxBaseScore += result.Judgement.MaxNumericResult;
             }
 
-            scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) + 1;
-
             hitEvents.Add(CreateHitEvent(result));
             lastHitObject = result.HitObject;
 
@@ -179,11 +176,10 @@ namespace osu.Game.Rulesets.Scoring
             if (result.FailedAtJudgement)
                 return;
 
+            scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) - 1;
+
             if (!result.Type.IsScorable())
-            {
-                scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) - 1;
                 return;
-            }
 
             double scoreIncrease = result.Type.IsHit() ? result.Judgement.NumericResultFor(result) : 0;
 
@@ -192,8 +188,6 @@ namespace osu.Game.Rulesets.Scoring
                 baseScore -= scoreIncrease;
                 rollingMaxBaseScore -= result.Judgement.MaxNumericResult;
             }
-
-            scoreResultCounts[result.Type] = scoreResultCounts.GetValueOrDefault(result.Type) - 1;
 
             Debug.Assert(hitEvents.Count > 0);
             lastHitObject = hitEvents[^1].LastHitObject;
