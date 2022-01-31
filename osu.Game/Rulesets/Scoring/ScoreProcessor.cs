@@ -350,20 +350,19 @@ namespace osu.Game.Rulesets.Scoring
 
         private HitResult? maxNormalResult;
 
-        public void ResetFromReplayFrame(Ruleset ruleset, ReplayFrame frame)
+        public override void ResetFromReplayFrame(Ruleset ruleset, ReplayFrame frame)
         {
+            base.ResetFromReplayFrame(ruleset, frame);
+
             if (frame.Header == null)
                 return;
 
             baseScore = 0;
             rollingMaxBaseScore = 0;
-            JudgedHits = 0;
             HighestCombo.Value = frame.Header.MaxCombo;
 
             foreach ((HitResult result, int count) in frame.Header.Statistics)
             {
-                JudgedHits += count;
-
                 // Bonus scores are counted separately directly from the statistics dictionary later on.
                 if (!result.IsScorable() || result.IsBonus())
                     continue;
