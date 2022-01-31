@@ -169,8 +169,8 @@ namespace osu.Game.Online.Spectator
                 if (!IsPlaying)
                     return;
 
-                // Force flushing the pending frames before ending play.
-                purgePendingFrames(true);
+                if (pendingFrames.Count > 0)
+                    purgePendingFrames(true);
 
                 IsPlaying = false;
                 currentBeatmap = null;
@@ -246,6 +246,9 @@ namespace osu.Game.Online.Spectator
         private void purgePendingFrames(bool force = false)
         {
             if (lastSend?.IsCompleted == false && !force)
+                return;
+
+            if (pendingFrames.Count == 0)
                 return;
 
             var frames = pendingFrames.ToArray();

@@ -133,6 +133,8 @@ namespace osu.Game.Database
                         r.RemoveAll<ScoreInfo>();
                     });
 
+                    ef.Migrate();
+
                     migrateSettings(ef);
                     migrateSkins(ef);
                     migrateBeatmaps(ef);
@@ -232,6 +234,7 @@ namespace osu.Game.Database
 
                 var transaction = r.BeginWrite();
                 int written = 0;
+                int missing = 0;
 
                 try
                 {
@@ -260,6 +263,12 @@ namespace osu.Game.Database
                         {
                             var ruleset = r.Find<RulesetInfo>(beatmap.RulesetInfo.ShortName);
                             var metadata = getBestMetadata(beatmap.Metadata, beatmapSet.Metadata);
+
+                            if (ruleset == null)
+                            {
+                                log($"Skipping {++missing} beatmaps with missing ruleset");
+                                continue;
+                            }
 
                             var realmBeatmap = new BeatmapInfo(ruleset, new BeatmapDifficulty(beatmap.BaseDifficulty), metadata)
                             {
@@ -367,12 +376,12 @@ namespace osu.Game.Database
                             log($"Migrated {written}/{count} scores...");
                         }
 
-                        var beatmap = r.All<BeatmapInfo>().First(b => b.Hash == score.BeatmapInfo.Hash);
+                        var beatmap = r.All<BeatmapInfo>().FirstOrDefault(b => b.Hash == score.BeatmapInfo.Hash);
                         var ruleset = r.Find<RulesetInfo>(score.Ruleset.ShortName);
 
-                        if (ruleset == null)
+                        if (beatmap == null || ruleset == null)
                         {
-                            log($"Skipping {++missing} scores with missing ruleset");
+                            log($"Skipping {++missing} scores with missing ruleset or beatmap");
                             continue;
                         }
 

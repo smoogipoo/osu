@@ -286,6 +286,9 @@ namespace osu.Game.Screens.Select
 
             root.RemoveChild(existingSet);
             itemsCache.Invalidate();
+
+            if (!Scroll.UserScrolling)
+                ScrollToSelected(true);
         });
 
         public void UpdateBeatmapSet(BeatmapSetInfo beatmapSet) => Schedule(() =>
@@ -311,13 +314,10 @@ namespace osu.Game.Screens.Select
 
             itemsCache.Invalidate();
 
-            Schedule(() =>
-            {
-                if (!Scroll.UserScrolling)
-                    ScrollToSelected(true);
+            if (!Scroll.UserScrolling)
+                ScrollToSelected(true);
 
-                BeatmapSetsChanged?.Invoke();
-            });
+            BeatmapSetsChanged?.Invoke();
         });
 
         /// <summary>
@@ -894,10 +894,8 @@ namespace osu.Game.Screens.Select
             // child items (difficulties) are still visible.
             item.Header.X = offsetX(dist, visibleHalfHeight) - (parent?.X ?? 0);
 
-            // We are applying a multiplicative alpha (which is internally done by nesting an
-            // additional container and setting that container's alpha) such that we can
-            // layer alpha transformations on top.
-            item.SetMultiplicativeAlpha(Math.Clamp(1.75f - 1.5f * dist, 0, 1));
+            // We are applying alpha to the header here such that we can layer alpha transformations on top.
+            item.Header.Alpha = Math.Clamp(1.75f - 1.5f * dist, 0, 1);
         }
 
         private enum PendingScrollOperation
