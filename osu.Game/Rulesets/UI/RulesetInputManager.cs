@@ -39,7 +39,7 @@ namespace osu.Game.Rulesets.UI
                 if (value != null && recorder != null)
                     throw new InvalidOperationException("Cannot attach more than one recorder");
 
-                recorder?.RemoveAndDisposeImmediately();
+                recorder?.Expire();
                 recorder = value;
 
                 if (recorder != null)
