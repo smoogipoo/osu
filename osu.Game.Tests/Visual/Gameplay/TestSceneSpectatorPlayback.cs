@@ -3,12 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -47,8 +44,6 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private Replay replay;
 
-        private readonly IBindableList<int> users = new BindableList<int>();
-
         private TestReplayRecorder recorder;
 
         private ManualClock manualClock;
@@ -77,35 +72,6 @@ namespace osu.Game.Tests.Visual.Gameplay
                 manualClock = new ManualClock();
 
                 spectatorClient.OnNewFrames += onNewFrames;
-
-                users.BindTo(spectatorClient.PlayingUsers);
-                users.BindCollectionChanged((obj, args) =>
-                {
-                    switch (args.Action)
-                    {
-                        case NotifyCollectionChangedAction.Add:
-                            Debug.Assert(args.NewItems != null);
-
-                            foreach (int user in args.NewItems)
-                            {
-                                if (user == api.LocalUser.Value.Id)
-                                    spectatorClient.WatchUser(user);
-                            }
-
-                            break;
-
-                        case NotifyCollectionChangedAction.Remove:
-                            Debug.Assert(args.OldItems != null);
-
-                            foreach (int user in args.OldItems)
-                            {
-                                if (user == api.LocalUser.Value.Id)
-                                    spectatorClient.StopWatchingUser(user);
-                            }
-
-                            break;
-                    }
-                }, true);
 
                 Children = new Drawable[]
                 {
