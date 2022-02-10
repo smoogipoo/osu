@@ -450,7 +450,7 @@ namespace osu.Game.Screens.OnlinePlay
                 Alpha = AllowShowingResults ? 1 : 0,
                 TooltipText = "View results"
             },
-            beatmap == null ? Empty() : new PlaylistDownloadButton(Item),
+            beatmap == null ? Empty() : new PlaylistDownloadButton(beatmap),
             editButton = new PlaylistEditButton
             {
                 Size = new Vector2(30, 30),
@@ -492,7 +492,7 @@ namespace osu.Game.Screens.OnlinePlay
 
         private sealed class PlaylistDownloadButton : BeatmapDownloadButton
         {
-            private readonly PlaylistItem playlistItem;
+            private readonly IBeatmapInfo beatmap;
 
             [Resolved]
             private BeatmapManager beatmapManager { get; set; }
@@ -502,10 +502,10 @@ namespace osu.Game.Screens.OnlinePlay
 
             private const float width = 50;
 
-            public PlaylistDownloadButton(PlaylistItem playlistItem)
-                : base(playlistItem.Beatmap.BeatmapSet)
+            public PlaylistDownloadButton(IBeatmapInfo beatmap)
+                : base(beatmap.BeatmapSet)
             {
-                this.playlistItem = playlistItem;
+                this.beatmap = beatmap;
 
                 Size = new Vector2(width, 30);
                 Alpha = 0;
@@ -525,7 +525,7 @@ namespace osu.Game.Screens.OnlinePlay
                 {
                     case DownloadState.LocallyAvailable:
                         // Perform a local query of the beatmap by beatmap checksum, and reset the state if not matching.
-                        if (beatmapManager.QueryBeatmap(b => b.MD5Hash == playlistItem.Beatmap.MD5Hash) == null)
+                        if (beatmapManager.QueryBeatmap(b => b.MD5Hash == beatmap.MD5Hash) == null)
                             State.Value = DownloadState.NotDownloaded;
                         else
                         {
