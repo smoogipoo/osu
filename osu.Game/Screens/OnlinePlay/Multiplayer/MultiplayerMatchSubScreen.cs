@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -398,28 +397,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         private void updateCurrentItem()
         {
             Debug.Assert(client.Room != null);
-
-            var expectedSelectedItem = Room.Playlist.SingleOrDefault(i => i.ID == client.Room.Settings.PlaylistItemId);
-            if (expectedSelectedItem == null)
-                return;
-
-            // There's no reason to renew the selected item if its content hasn't changed.
-            if (SelectedItem.Value?.Equals(expectedSelectedItem) == true)
-                return;
-
-            // Clear the selected item while the lookup is performed, so components like the ready button can enter their disabled states.
-            SelectedItem.Value = null;
-
-            Task.Run(async () =>
-            {
-                var beatmap = await client.GetAPIBeatmap(expectedSelectedItem.Beatmap.OnlineID).ConfigureAwait(false);
-
-                Schedule(() =>
-                {
-                    if (Room.Playlist.SingleOrDefault(i => i.ID == client.Room?.Settings.PlaylistItemId)?.Equals(expectedSelectedItem) == true)
-                        SelectedItem.Value = expectedSelectedItem.With(beatmap);
-                });
-            });
+            SelectedItem.Value = Room.Playlist.SingleOrDefault(i => i.ID == client.Room.Settings.PlaylistItemId);
         }
 
         private void handleRoomLost() => Schedule(() =>
