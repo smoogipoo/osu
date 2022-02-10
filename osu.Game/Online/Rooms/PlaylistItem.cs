@@ -14,6 +14,7 @@ using osu.Game.Online.API.Requests.Responses;
 
 namespace osu.Game.Online.Rooms
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class PlaylistItem : IEquatable<PlaylistItem>
     {
         [JsonProperty("id")]
@@ -46,10 +47,10 @@ namespace osu.Game.Online.Rooms
         /// <summary>
         /// Used for deserialising _from_ the API.
         /// </summary>
-        [JsonProperty("beatmap")]
+        [JsonProperty("beatmap", NullValueHandling = NullValueHandling.Ignore)]
         private APIBeatmap apiBeatmap
         {
-            get => new APIBeatmap { OnlineID = onlineBeatmapId };
+            get => (APIBeatmap)Beatmap; // Getter is used internally by JSON.NET during deserialisation.
             set => Beatmap = value;
         }
 
@@ -57,11 +58,7 @@ namespace osu.Game.Online.Rooms
         /// Used for serialising _to_ the API.
         /// </summary>
         [JsonProperty("beatmap_id")]
-        private int onlineBeatmapId
-        {
-            get => Beatmap.OnlineID;
-            set => apiBeatmap = new APIBeatmap { OnlineID = value };
-        }
+        private int onlineBeatmapId => Beatmap.OnlineID;
 
         [JsonIgnore]
         public IBeatmapInfo Beatmap { get; set; } = null!;
