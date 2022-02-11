@@ -414,7 +414,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                                     ?? beatmaps.QueryBeatmap(b => b.OnlineID == beatmapId);
 
             if (beatmap == null)
-                throw new InvalidOperationException("Beatmap not found.");
+                return Task.FromResult<APIBeatmap>(null!);
 
             return Task.FromResult(new APIBeatmap
             {

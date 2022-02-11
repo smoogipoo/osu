@@ -103,6 +103,9 @@ namespace osu.Game.Screens.OnlinePlay
         [Resolved]
         private BeatmapLookupCache beatmapLookupCache { get; set; }
 
+        [Resolved]
+        private BeatmapManager beatmapManager { get; set; }
+
         protected override bool ShouldBeConsideredForInput(Drawable child) => AllowReordering || AllowDeletion || !AllowSelection || SelectedItem.Value == Model;
 
         public DrawableRoomPlaylistItem(PlaylistItem item)
@@ -168,8 +171,8 @@ namespace osu.Game.Screens.OnlinePlay
                             // This call can eventually go away (and use the else case below).
                             // Currently required only due to the method being overridden to provide special behaviour in tests.
                             beatmap = await multiplayerClient.GetAPIBeatmap(Item.Beatmap.OnlineID).ConfigureAwait(false);
-                        else
-                            beatmap = await beatmapLookupCache.GetBeatmapAsync(Item.Beatmap.OnlineID).ConfigureAwait(false);
+
+                        beatmap ??= await beatmapLookupCache.GetBeatmapAsync(Item.Beatmap.OnlineID).ConfigureAwait(false);
 
                         Scheduler.AddOnce(refresh);
                     }
@@ -441,31 +444,36 @@ namespace osu.Game.Screens.OnlinePlay
             };
         }
 
-        private IEnumerable<Drawable> createButtons() => new[]
+        private IEnumerable<Drawable> createButtons()
         {
-            showResultsButton = new GrayButton(FontAwesome.Solid.ChartPie)
+            return new[]
             {
-                Size = new Vector2(30, 30),
-                Action = () => RequestResults?.Invoke(Item),
-                Alpha = AllowShowingResults ? 1 : 0,
-                TooltipText = "View results"
-            },
-            beatmap == null ? Empty() : new PlaylistDownloadButton(beatmap),
-            editButton = new PlaylistEditButton
-            {
-                Size = new Vector2(30, 30),
-                Alpha = AllowEditing ? 1 : 0,
-                Action = () => RequestEdit?.Invoke(Item),
-                TooltipText = "Edit"
-            },
-            removeButton = new PlaylistRemoveButton
-            {
-                Size = new Vector2(30, 30),
-                Alpha = AllowDeletion ? 1 : 0,
-                Action = () => RequestDeletion?.Invoke(Item),
-                TooltipText = "Remove from playlist"
-            },
-        };
+                showResultsButton = new GrayButton(FontAwesome.Solid.ChartPie)
+                {
+                    Size = new Vector2(30, 30),
+                    Action = () => RequestResults?.Invoke(Item),
+                    Alpha = AllowShowingResults ? 1 : 0,
+                    TooltipText = "View results"
+                },
+                beatmapIsAvailable() ? Empty() : new PlaylistDownloadButton(beatmap),
+                editButton = new PlaylistEditButton
+                {
+                    Size = new Vector2(30, 30),
+                    Alpha = AllowEditing ? 1 : 0,
+                    Action = () => RequestEdit?.Invoke(Item),
+                    TooltipText = "Edit"
+                },
+                removeButton = new PlaylistRemoveButton
+                {
+                    Size = new Vector2(30, 30),
+                    Alpha = AllowDeletion ? 1 : 0,
+                    Action = () => RequestDeletion?.Invoke(Item),
+                    TooltipText = "Remove from playlist"
+                },
+            };
+
+            bool beatmapIsAvailable() => beatmap == null || beatmapManager.IsAvailableLocally(new BeatmapSetInfo { OnlineID = beatmap.OnlineID });
+        }
 
         protected override bool OnClick(ClickEvent e)
         {
