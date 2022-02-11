@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using osu.Framework.Extensions;
@@ -40,6 +41,62 @@ namespace osu.Game.Tests.Beatmaps
 
             BeatmapInfo.BeatmapSet.Beatmaps.Add(BeatmapInfo);
             BeatmapInfo.BeatmapSet.OnlineID = Interlocked.Increment(ref onlineSetID);
+        }
+
+        public static APIBeatmap CreateAPIBeatmap(IBeatmapInfo original)
+        {
+            var beatmapSet = CreateAPIBeatmapSet(original);
+
+            // Avoid circular reference.
+            var beatmap = beatmapSet.Beatmaps.First();
+            beatmapSet.Beatmaps = Array.Empty<APIBeatmap>();
+
+            // Populate the set as that's generally what we expect from the API.
+            beatmap.BeatmapSet = beatmapSet;
+
+            return beatmap;
+        }
+
+        public static APIBeatmapSet CreateAPIBeatmapSet(IBeatmapInfo original)
+        {
+            Debug.Assert(original.BeatmapSet != null);
+
+            return new APIBeatmapSet
+            {
+                OnlineID = original.BeatmapSet.OnlineID,
+                Status = BeatmapOnlineStatus.Ranked,
+                Covers = new BeatmapSetOnlineCovers
+                {
+                    Cover = "https://assets.ppy.sh/beatmaps/163112/covers/cover.jpg",
+                    Card = "https://assets.ppy.sh/beatmaps/163112/covers/card.jpg",
+                    List = "https://assets.ppy.sh/beatmaps/163112/covers/list.jpg"
+                },
+                Title = original.Metadata.Title,
+                TitleUnicode = original.Metadata.TitleUnicode,
+                Artist = original.Metadata.Artist,
+                ArtistUnicode = original.Metadata.ArtistUnicode,
+                Author = new APIUser
+                {
+                    Username = original.Metadata.Author.Username,
+                    Id = original.Metadata.Author.OnlineID
+                },
+                Source = original.Metadata.Source,
+                Tags = original.Metadata.Tags,
+                Beatmaps = new[]
+                {
+                    new APIBeatmap
+                    {
+                        OnlineID = original.OnlineID,
+                        OnlineBeatmapSetID = original.BeatmapSet.OnlineID,
+                        Status = ((BeatmapInfo)original).Status,
+                        Checksum = original.MD5Hash,
+                        AuthorID = original.Metadata.Author.OnlineID,
+                        RulesetID = original.Ruleset.OnlineID,
+                        StarRating = original.StarRating,
+                        DifficultyName = original.DifficultyName,
+                    }
+                }
+            };
         }
 
         protected virtual Beatmap CreateBeatmap() => createTestBeatmap();

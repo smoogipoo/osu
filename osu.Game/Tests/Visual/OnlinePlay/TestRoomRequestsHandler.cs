@@ -4,12 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Game.Beatmaps;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Components;
+using osu.Game.Tests.Beatmaps;
 
 namespace osu.Game.Tests.Visual.OnlinePlay
 {
@@ -127,6 +131,27 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                         User = localUser,
                         Statistics = new Dictionary<HitResult, int>()
                     });
+                    return true;
+
+                case GetBeatmapsRequest getBeatmapsRequest:
+                    BeatmapManager beatmapManager = (BeatmapManager)game.Dependencies.Get(typeof(BeatmapManager));
+
+                    var result = new List<APIBeatmap>();
+
+                    foreach (int id in getBeatmapsRequest.BeatmapIds)
+                    {
+                        var baseBeatmap = beatmapManager.QueryBeatmap(b => b.OnlineID == id);
+
+                        if (baseBeatmap == null)
+                        {
+                            baseBeatmap = new TestBeatmap(new RulesetInfo { OnlineID = 0 }).BeatmapInfo;
+                            baseBeatmap.OnlineID = id;
+                        }
+
+                        result.Add(TestBeatmap.CreateAPIBeatmap(baseBeatmap));
+                    }
+
+                    getBeatmapsRequest.TriggerSuccess(new GetBeatmapsResponse { Beatmaps = result });
                     return true;
             }
 
