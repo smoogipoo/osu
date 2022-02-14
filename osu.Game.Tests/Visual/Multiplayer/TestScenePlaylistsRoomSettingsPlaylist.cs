@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
-using osu.Game.Database;
 using osu.Game.Graphics.Containers;
 using osu.Game.Models;
 using osu.Game.Online.API;
@@ -28,9 +27,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
     public class TestScenePlaylistsRoomSettingsPlaylist : OsuManualInputManagerTestScene
     {
         private TestPlaylist playlist;
-
-        [Cached(typeof(UserLookupCache))]
-        private readonly TestUserLookupCache userLookupCache = new TestUserLookupCache();
 
         [Test]
         public void TestItemRemovedOnDeletion()
