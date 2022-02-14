@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.Rooms;
@@ -32,9 +33,6 @@ namespace osu.Game.Tests.Visual.OnlinePlay
         protected OnlinePlayTestSceneDependencies OnlinePlayDependencies => dependencies?.OnlinePlayDependencies;
 
         protected override Container<Drawable> Content => content;
-
-        [Resolved]
-        private OsuGameBase game { get; set; }
 
         private readonly Container content;
         private readonly Container drawableDependenciesContainer;
@@ -64,7 +62,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
             drawableDependenciesContainer.AddRange(OnlinePlayDependencies.DrawableComponents);
 
             var handler = OnlinePlayDependencies.RequestsHandler;
-            ((DummyAPIAccess)API).HandleRequest = request => handler.HandleRequest(request, API.LocalUser.Value, game);
+            ((DummyAPIAccess)API).HandleRequest = request => handler.HandleRequest(request, API.LocalUser.Value, dependencies.Get<BeatmapManager>());
         });
 
         /// <summary>

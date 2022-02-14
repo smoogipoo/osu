@@ -167,10 +167,10 @@ namespace osu.Game.Screens.OnlinePlay
                             Schedule(() => ownerAvatar.User = foundUser);
                         }
 
-                        if (multiplayerClient != null)
-                            // This call can eventually go away (and use the else case below).
-                            // Currently required only due to the method being overridden to provide special behaviour in tests.
-                            beatmap = await multiplayerClient.GetAPIBeatmap(Item.Beatmap.OnlineID).ConfigureAwait(false);
+                        // if (multiplayerClient != null)
+                        //     // This call can eventually go away (and use the else case below).
+                        //     // Currently required only due to the method being overridden to provide special behaviour in tests.
+                        //     beatmap = await multiplayerClient.GetAPIBeatmap(Item.Beatmap.OnlineID).ConfigureAwait(false);
 
                         beatmap ??= await beatmapLookupCache.GetBeatmapAsync(Item.Beatmap.OnlineID).ConfigureAwait(false);
 

@@ -37,9 +37,9 @@ namespace osu.Game.Tests.Visual.OnlinePlay
         /// </summary>
         /// <param name="request">The API request to handle.</param>
         /// <param name="localUser">The local user to store in responses where required.</param>
-        /// <param name="game">The game base for cases where actual online requests need to be sent.</param>
+        /// <param name="beatmapManager">The beatmap manager to attempt to retrieve beatmaps from, prior to returning dummy beatmaps.</param>
         /// <returns>Whether the request was successfully handled.</returns>
-        public bool HandleRequest(APIRequest request, APIUser localUser, OsuGameBase game)
+        public bool HandleRequest(APIRequest request, APIUser localUser, BeatmapManager beatmapManager)
         {
             switch (request)
             {
@@ -134,8 +134,6 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                     return true;
 
                 case GetBeatmapsRequest getBeatmapsRequest:
-                    BeatmapManager beatmapManager = (BeatmapManager)game.Dependencies.Get(typeof(BeatmapManager));
-
                     var result = new List<APIBeatmap>();
 
                     foreach (int id in getBeatmapsRequest.BeatmapIds)

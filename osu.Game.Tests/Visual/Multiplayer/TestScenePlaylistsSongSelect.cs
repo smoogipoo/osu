@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -93,15 +94,20 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("create new item", () => songSelect.BeatmapDetails.CreateNewItem());
             AddStep("create new item", () => songSelect.BeatmapDetails.CreateNewItem());
+
+            var itemsBeforeArrange = new List<PlaylistItem>();
             AddStep("rearrange", () =>
             {
                 var item = SelectedRoom.Value.Playlist[0];
                 SelectedRoom.Value.Playlist.RemoveAt(0);
                 SelectedRoom.Value.Playlist.Add(item);
+
+                itemsBeforeArrange.Clear();
+                itemsBeforeArrange.AddRange(SelectedRoom.Value.Playlist);
             });
 
             AddStep("create new item", () => songSelect.BeatmapDetails.CreateNewItem());
-            AddAssert("new item has id 2", () => SelectedRoom.Value.Playlist.Last().ID == 2);
+            AddAssert("new item is at end", () => itemsBeforeArrange.All(i => !ReferenceEquals(i, SelectedRoom.Value.Playlist.Last())));
         }
 
         /// <summary>
