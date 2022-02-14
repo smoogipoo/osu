@@ -43,6 +43,9 @@ namespace osu.Game.Tests.Visual
         [Cached(typeof(UserLookupCache))]
         private readonly UserLookupCache userLookupCache = new TestUserLookupCache();
 
+        [Cached]
+        private readonly BeatmapLookupCache beatmapLookupCache = new BeatmapLookupCache();
+
         private readonly OsuScreenStack screenStack;
         private readonly TestMultiplayer multiplayerScreen;
 
@@ -54,6 +57,7 @@ namespace osu.Game.Tests.Visual
             {
                 Client = new TestMultiplayerClient(RoomManager),
                 userLookupCache,
+                beatmapLookupCache,
                 screenStack = new OsuScreenStack
                 {
                     Name = nameof(TestMultiplayerComponents),
