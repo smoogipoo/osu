@@ -740,14 +740,6 @@ namespace osu.Game.Online.Multiplayer
         };
 
         /// <summary>
-        /// Retrieves a <see cref="APIBeatmap"/> from an online source.
-        /// </summary>
-        /// <param name="beatmapId">The beatmap ID.</param>
-        /// <param name="cancellationToken">A token to cancel the request.</param>
-        /// <returns>The <see cref="APIBeatmap"/> retrieval task.</returns>
-        public abstract Task<APIBeatmap> GetAPIBeatmap(int beatmapId, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// For the provided user ID, update whether the user is included in <see cref="CurrentMatchPlayingUserIds"/>.
         /// </summary>
         /// <param name="userId">The user's ID.</param>
