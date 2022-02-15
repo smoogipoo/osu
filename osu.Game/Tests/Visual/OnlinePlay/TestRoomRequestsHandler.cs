@@ -144,6 +144,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                         {
                             baseBeatmap = new TestBeatmap(new RulesetInfo { OnlineID = 0 }).BeatmapInfo;
                             baseBeatmap.OnlineID = id;
+                            baseBeatmap.BeatmapSet!.OnlineID = id;
                         }
 
                         result.Add(TestBeatmap.CreateAPIBeatmap(baseBeatmap));
