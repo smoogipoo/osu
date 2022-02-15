@@ -735,8 +735,8 @@ namespace osu.Game.Online.Multiplayer
             Expired = item.Expired,
             PlaylistOrder = item.PlaylistOrder,
             PlayedAt = item.PlayedAt,
-            AllowedMods = item.AllowedMods.ToArray(),
-            RequiredMods = item.RequiredMods.ToArray()
+            RequiredMods = item.RequiredMods.ToArray(),
+            AllowedMods = item.AllowedMods.ToArray()
         };
 
         /// <summary>

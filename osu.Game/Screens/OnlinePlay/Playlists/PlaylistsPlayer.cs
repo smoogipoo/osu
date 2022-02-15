@@ -3,11 +3,13 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Screens;
 using osu.Game.Extensions;
+using osu.Game.Online.API;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
@@ -38,9 +40,9 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
             if (ruleset.Value.OnlineID != PlaylistItem.RulesetID)
                 throw new InvalidOperationException("Current Ruleset does not match PlaylistItem's Ruleset");
 
-            // Todo:
-            // if (!PlaylistItem.RequiredMods.All(m => Mods.Value.Any(m.Equals)))
-            //     throw new InvalidOperationException("Current Mods do not match PlaylistItem's RequiredMods");
+            var localMods = Mods.Value.Select(m => new APIMod(m)).ToArray();
+            if (!PlaylistItem.RequiredMods.All(m => localMods.Any(m.Equals)))
+                throw new InvalidOperationException("Current Mods do not match PlaylistItem's RequiredMods");
         }
 
         public override bool OnExiting(IScreen next)
