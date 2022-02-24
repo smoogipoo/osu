@@ -159,20 +159,32 @@ namespace osu.Game.Utils
         /// Used in <see cref="APIMod"/> for serialization and equality comparison purposes.
         /// </summary>
         /// <param name="setting">The mod setting.</param>
-        public static object GetSettingUnderlyingValue(object setting)
+        public static object? GetSettingUnderlyingValue(object setting)
         {
             switch (setting)
             {
                 case Bindable<double> d:
                     return d.Value;
 
+                case Bindable<double?> d:
+                    return d.Value;
+
                 case Bindable<int> i:
+                    return i.Value;
+
+                case Bindable<int?> i:
                     return i.Value;
 
                 case Bindable<float> f:
                     return f.Value;
 
+                case Bindable<float?> f:
+                    return f.Value;
+
                 case Bindable<bool> b:
+                    return b.Value;
+
+                case Bindable<bool?> b:
                     return b.Value;
 
                 case IBindable u:
