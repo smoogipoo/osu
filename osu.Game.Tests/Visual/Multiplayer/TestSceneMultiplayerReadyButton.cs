@@ -10,6 +10,7 @@ using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
@@ -59,32 +60,33 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 RulesetID = Beatmap.Value.BeatmapInfo.Ruleset.OnlineID
             };
 
-            if (button != null)
-                Remove(button);
-
-            Add(button = new MultiplayerReadyButton
+            Child = new PopoverContainer
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Size = new Vector2(200, 50),
-                OnReadyClick = () =>
+                RelativeSizeAxes = Axes.Both,
+                Child = button = new MultiplayerReadyButton
                 {
-                    readyClickOperation = OngoingOperationTracker.BeginOperation();
-
-                    Task.Run(async () =>
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200, 50),
+                    OnReadyClick = _ =>
                     {
-                        if (MultiplayerClient.IsHost && MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready)
+                        readyClickOperation = OngoingOperationTracker.BeginOperation();
+
+                        Task.Run(async () =>
                         {
-                            await MultiplayerClient.StartMatch();
-                            return;
-                        }
+                            if (MultiplayerClient.IsHost && MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready)
+                            {
+                                await MultiplayerClient.StartMatch();
+                                return;
+                            }
 
-                        await MultiplayerClient.ToggleReady();
+                            await MultiplayerClient.ToggleReady();
 
-                        readyClickOperation.Dispose();
-                    });
+                            readyClickOperation.Dispose();
+                        });
+                    }
                 }
-            });
+            };
         });
 
         [Test]

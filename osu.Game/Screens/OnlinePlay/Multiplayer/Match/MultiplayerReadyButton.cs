@@ -3,26 +3,33 @@
 
 using System;
 using System.Linq;
+using Humanizer;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
+using osu.Game.Graphics.UserInterface;
+using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.OnlinePlay.Components;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 {
     public class MultiplayerReadyButton : MultiplayerRoomComposite
     {
-        public Action OnReadyClick
-        {
-            set => button.Action = value;
-        }
+        public Action<TimeSpan?> OnReadyClick;
 
         [Resolved]
         private OsuColour colours { get; set; }
@@ -36,7 +43,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private Sample sampleReadyAll;
         private Sample sampleUnready;
 
-        private readonly ButtonWithTrianglesExposed button;
+        private readonly ButtonWithTrianglesExposed mainButton;
+        private readonly CountdownButton countdownButton;
 
         private int countReady;
 
@@ -44,11 +52,36 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
         public MultiplayerReadyButton()
         {
-            InternalChild = button = new ButtonWithTrianglesExposed
+            InternalChild = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Size = Vector2.One,
-                Enabled = { Value = true },
+                ColumnDimensions = new[]
+                {
+                    new Dimension(),
+                    new Dimension(GridSizeMode.AutoSize)
+                },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        mainButton = new ButtonWithTrianglesExposed
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = Vector2.One,
+                            Enabled = { Value = true },
+                            Action = () => OnReadyClick?.Invoke(null)
+                        },
+                        countdownButton = new CountdownButton
+                        {
+                            RelativeSizeAxes = Axes.Y,
+                            Size = new Vector2(40, 1),
+                            Icon = FontAwesome.Solid.CaretDown,
+                            IconScale = new Vector2(0.6f),
+                            Alpha = 0,
+                            Action = t => OnReadyClick?.Invoke(t)
+                        }
+                    }
+                }
             };
         }
 
@@ -87,22 +120,26 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             switch (localUser?.State)
             {
                 default:
-                    button.Text = "Ready";
+                    countdownButton.Alpha = 0;
+                    mainButton.Text = "Ready";
                     updateButtonColour(true);
                     break;
 
                 case MultiplayerUserState.Spectating:
                 case MultiplayerUserState.Ready:
+
                     string countText = $"({newCountReady} / {newCountTotal} ready)";
 
                     if (Room?.Host?.Equals(localUser) == true)
                     {
-                        button.Text = $"Start match {countText}";
+                        countdownButton.Alpha = 1;
+                        mainButton.Text = $"Start match {countText}";
                         updateButtonColour(true);
                     }
                     else
                     {
-                        button.Text = $"Waiting for host... {countText}";
+                        countdownButton.Alpha = 0;
+                        mainButton.Text = $"Waiting for host... {countText}";
                         updateButtonColour(false);
                     }
 
@@ -119,7 +156,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             if (localUser?.State == MultiplayerUserState.Spectating)
                 enableButton &= Room?.Host?.Equals(localUser) == true && newCountReady > 0;
 
-            button.Enabled.Value = enableButton;
+            mainButton.Enabled.Value = enableButton;
+            countdownButton.Enabled.Value = enableButton;
 
             if (newCountReady == countReady)
                 return;
@@ -147,21 +185,83 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         {
             if (green)
             {
-                button.BackgroundColour = colours.Green;
-                button.Triangles.ColourDark = colours.Green;
-                button.Triangles.ColourLight = colours.GreenLight;
+                countdownButton.BackgroundColour = colours.Green;
+                mainButton.BackgroundColour = colours.Green;
+                mainButton.Triangles.ColourDark = colours.Green;
+                mainButton.Triangles.ColourLight = colours.GreenLight;
             }
             else
             {
-                button.BackgroundColour = colours.YellowDark;
-                button.Triangles.ColourDark = colours.YellowDark;
-                button.Triangles.ColourLight = colours.Yellow;
+                countdownButton.BackgroundColour = colours.YellowDark;
+                mainButton.BackgroundColour = colours.YellowDark;
+                mainButton.Triangles.ColourDark = colours.YellowDark;
+                mainButton.Triangles.ColourLight = colours.Yellow;
             }
         }
 
         private class ButtonWithTrianglesExposed : ReadyButton
         {
             public new Triangles Triangles => base.Triangles;
+        }
+
+        private class CountdownButton : IconButton, IHasPopover
+        {
+            public new Action<TimeSpan> Action;
+
+            public Color4 BackgroundColour
+            {
+                get => background.Colour;
+                set => background.Colour = value;
+            }
+
+            private readonly Drawable background;
+
+            public CountdownButton()
+            {
+                Add(background = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Depth = float.MaxValue
+                });
+
+                base.Action = this.ShowPopover;
+            }
+
+            private static readonly TimeSpan[] available_delays =
+            {
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(30),
+                TimeSpan.FromMinutes(1),
+                TimeSpan.FromMinutes(2)
+            };
+
+            public Popover GetPopover()
+            {
+                var flow = new FillFlowContainer
+                {
+                    Width = 200,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical,
+                    Spacing = new Vector2(2),
+                };
+
+                foreach (var duration in available_delays)
+                {
+                    flow.Add(new OsuButton
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Text = $"Start match in {duration.Humanize()}",
+                        BackgroundColour = BackgroundColour,
+                        Action = () =>
+                        {
+                            Action(duration);
+                            this.HidePopover();
+                        }
+                    });
+                }
+
+                return new OsuPopover { Child = flow };
+            }
         }
     }
 }

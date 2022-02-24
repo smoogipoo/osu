@@ -12,7 +12,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private const float ready_button_width = 600;
         private const float spectate_button_width = 200;
 
-        public Action OnReadyClick
+        public Action<TimeSpan?> OnReadyClick
         {
             set => readyButton.OnReadyClick = value;
         }

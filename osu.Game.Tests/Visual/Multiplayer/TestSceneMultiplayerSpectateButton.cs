@@ -87,7 +87,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Size = new Vector2(200, 50),
-                        OnReadyClick = () =>
+                        OnReadyClick = _ =>
                         {
                             readyClickOperation = OngoingOperationTracker.BeginOperation();
 

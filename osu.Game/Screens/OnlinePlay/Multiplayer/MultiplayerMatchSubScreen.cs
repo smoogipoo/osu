@@ -17,6 +17,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Online;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
@@ -332,25 +333,28 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         }
 
-        private void onReadyClick()
+        private void onReadyClick(TimeSpan? delay)
         {
             Debug.Assert(readyClickOperation == null);
             readyClickOperation = ongoingOperationTracker.BeginOperation();
 
             if (client.IsHost && (client.LocalUser?.State == MultiplayerUserState.Ready || client.LocalUser?.State == MultiplayerUserState.Spectating))
             {
-                client.StartMatch()
-                      .ContinueWith(t =>
-                      {
-                          // accessing Exception here silences any potential errors from the antecedent task
-                          if (t.Exception != null)
-                          {
-                              // gameplay was not started due to an exception; unblock button.
-                              endOperation();
-                          }
+                var startTask = delay != null
+                    ? client.SendMatchRequest(new MatchStartCountdownRequest { Delay = delay.Value })
+                    : client.StartMatch();
 
-                          // gameplay is starting, the button will be unblocked on load requested.
-                      });
+                startTask.ContinueWith(t =>
+                {
+                    // accessing Exception here silences any potential errors from the antecedent task
+                    if (t.Exception != null)
+                    {
+                        // gameplay was not started due to an exception; unblock button.
+                        endOperation();
+                    }
+
+                    // gameplay is starting, the button will be unblocked on load requested.
+                });
                 return;
             }
 
