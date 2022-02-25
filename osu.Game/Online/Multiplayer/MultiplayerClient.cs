@@ -53,6 +53,11 @@ namespace osu.Game.Online.Multiplayer
         public event Action<MultiplayerPlaylistItem>? ItemAdded;
 
         /// <summary>
+        /// Invoked when a new event is received.
+        /// </summary>
+        public event Action<MatchServerEvent>? NewEvent;
+
+        /// <summary>
         /// Invoked when a playlist item is removed from the playlist. The provided <c>long</c> is the playlist's item ID.
         /// </summary>
         public event Action<long>? ItemRemoved;
@@ -534,7 +539,7 @@ namespace osu.Game.Online.Multiplayer
 
         public Task MatchEvent(MatchServerEvent e)
         {
-            // not used by any match types just yet.
+            NewEvent?.Invoke(e);
             return Task.CompletedTask;
         }
 

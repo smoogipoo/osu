@@ -16,6 +16,7 @@ namespace osu.Game.Online.Multiplayer
     // IMPORTANT: Add rules to SignalRUnionWorkaroundResolver for new derived types.
     [Union(0, typeof(ChangeTeamRequest))]
     [Union(1, typeof(MatchStartCountdownRequest))]
+    [Union(2, typeof(EndCountdownRequest))]
     public abstract class MatchUserRequest
     {
     }
