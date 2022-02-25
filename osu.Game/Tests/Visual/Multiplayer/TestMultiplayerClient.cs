@@ -7,12 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Mods;
@@ -46,6 +48,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private MultiplayerPlaylistItem? currentItem => Room?.Playlist[currentIndex];
         private int currentIndex;
         private long lastPlaylistItemId;
+
+        private CancellationTokenSource? countdownFinishSource;
+        private CancellationTokenSource? countdownAbortSource;
 
         public TestMultiplayerClient(TestMultiplayerRoomManager roomManager)
         {
@@ -282,6 +287,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Task.CompletedTask;
         }
 
+        public void FinishCountDown()
+        {
+            countdownFinishSource?.Cancel();
+        }
+
         public override async Task SendMatchRequest(MatchUserRequest request)
         {
             Debug.Assert(Room != null);
@@ -289,6 +299,29 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             switch (request)
             {
+                case MatchStartCountdownRequest matchCountdownRequest:
+                    countdownFinishSource = new CancellationTokenSource();
+                    countdownAbortSource = new CancellationTokenSource();
+
+#pragma warning disable CS4014
+                    Task.Run(async () =>
+#pragma warning restore CS4014
+                    {
+                        try
+                        {
+                            await Task.Delay(matchCountdownRequest.Delay, countdownFinishSource.Token).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                        }
+
+                        if (countdownAbortSource.IsCancellationRequested)
+                            return;
+
+                        Schedule(() => StartMatch());
+                    }, countdownAbortSource.Token);
+                    break;
+
                 case ChangeTeamRequest changeTeam:
 
                     TeamVersusRoomState roomState = (TeamVersusRoomState)Room.MatchState!;

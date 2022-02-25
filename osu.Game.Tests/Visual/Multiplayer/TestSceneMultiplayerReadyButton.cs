@@ -18,11 +18,13 @@ using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Match;
 using osu.Game.Tests.Resources;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -68,7 +70,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(200, 50),
-                    OnReadyClick = _ =>
+                    OnReadyClick = delay =>
                     {
                         readyClickOperation = OngoingOperationTracker.BeginOperation();
 
@@ -76,7 +78,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         {
                             if (MultiplayerClient.IsHost && MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready)
                             {
-                                await MultiplayerClient.StartMatch();
+                                if (delay == null)
+                                    await MultiplayerClient.StartMatch();
+                                else
+                                    await MultiplayerClient.SendMatchRequest(new MatchStartCountdownRequest { Delay = delay.Value });
                                 return;
                             }
 
@@ -88,6 +93,26 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }
             };
         });
+
+        [Test]
+        public void TestStartWithCountDown()
+        {
+            ClickButtonWhenEnabled<MultiplayerReadyButton>();
+            AddUntilStep("countdown button shown", () => this.ChildrenOfType<MultiplayerReadyButton.CountdownButton>().SingleOrDefault()?.IsPresent == true);
+            ClickButtonWhenEnabled<MultiplayerReadyButton.CountdownButton>();
+            AddStep("click the first countdown button", () =>
+            {
+                var popoverButton = this.ChildrenOfType<MultiplayerReadyButton.CountdownButton.PopoverButton>().First();
+                InputManager.MoveMouseTo(popoverButton);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("ready button disabled", () => !button.ChildrenOfType<OsuButton>().Single().Enabled.Value);
+            AddStep("transitioned to gameplay", () => readyClickOperation.Dispose());
+
+            AddStep("finish countdown", () => MultiplayerClient.FinishCountDown());
+            AddUntilStep("match started", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.WaitingForLoad);
+        }
 
         [Test]
         public void TestDeletedBeatmapDisableReady()
