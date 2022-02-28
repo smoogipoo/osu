@@ -37,11 +37,16 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private Sample sampleReadyAll;
         private Sample sampleUnready;
 
+        private readonly BindableBool buttonsEnabled = new BindableBool();
         private readonly CountdownButton countdownButton;
+
+        [Resolved]
+        private OngoingOperationTracker ongoingOperationTracker { get; set; }
 
         private int countReady;
         private bool isCountingDown;
         private ScheduledDelegate readySampleDelegate;
+        private IBindable<bool> operationInProgress;
 
         public MultiplayerReadyButton()
         {
@@ -61,18 +66,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                         {
                             RelativeSizeAxes = Axes.Both,
                             Size = Vector2.One,
-                            Enabled = { Value = true },
                             Action = () => OnReadyClick?.Invoke(null),
-                            CancelCountdown = () => OnCancelCountdown?.Invoke()
+                            CancelCountdown = () => OnCancelCountdown?.Invoke(),
+                            Enabled = { BindTarget = buttonsEnabled },
                         },
                         countdownButton = new CountdownButton
                         {
                             RelativeSizeAxes = Axes.Y,
                             Size = new Vector2(40, 1),
-                            Icon = FontAwesome.Solid.CaretDown,
-                            IconScale = new Vector2(0.6f),
                             Alpha = 0,
-                            Action = t => OnReadyClick?.Invoke(t)
+                            Action = t => OnReadyClick?.Invoke(t),
+                            Enabled = { BindTarget = buttonsEnabled }
                         }
                     }
                 }
@@ -82,6 +86,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
+            operationInProgress = ongoingOperationTracker.InProgress.GetBoundCopy();
+            operationInProgress.BindValueChanged(_ => updateState());
+
             sampleReady = audio.Samples.Get(@"Multiplayer/player-ready");
             sampleReadyAll = audio.Samples.Get(@"Multiplayer/player-ready-all");
             sampleUnready = audio.Samples.Get(@"Multiplayer/player-unready");
@@ -142,6 +149,16 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                 }
             }
 
+            buttonsEnabled.Value =
+                Room?.State == MultiplayerRoomState.Open
+                // TODO: && CurrentPlaylistItem.Value?.ID == Room.Settings.PlaylistItemId
+                && !Room.Playlist.Single(i => i.ID == Room.Settings.PlaylistItemId).Expired
+                && !operationInProgress.Value;
+
+            // When the local user is the host and spectating the match, the "start match" state should be enabled if any users are ready.
+            if (localUser?.State == MultiplayerUserState.Spectating)
+                buttonsEnabled.Value &= Room?.Host?.Equals(localUser) == true && newCountReady > 0;
+
             if (newCountReady == countReady)
                 return;
 
@@ -175,7 +192,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             }
         }
 
-        private class ReadyButton : Components.ReadyButton
+        public class ReadyButton : Components.ReadyButton
         {
             public new Triangles Triangles => base.Triangles;
 
@@ -188,13 +205,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             [Resolved]
             private OsuColour colours { get; set; }
 
-            [Resolved]
-            private OngoingOperationTracker ongoingOperationTracker { get; set; }
-
             [CanBeNull]
             private MultiplayerRoom room => multiplayerClient.Room;
 
-            private IBindable<bool> operationInProgress;
             private MatchStartCountdownEvent currentCountdown;
 
             public ReadyButton()
@@ -211,8 +224,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             [BackgroundDependencyLoader]
             private void load()
             {
-                operationInProgress = ongoingOperationTracker.InProgress.GetBoundCopy();
-                operationInProgress.BindValueChanged(_ => onRoomUpdated());
             }
 
             protected override void LoadComplete()
@@ -250,23 +261,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
             private void onRoomUpdated()
             {
-                var localUser = multiplayerClient.LocalUser;
-                int newCountReady = room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
-
                 updateButtonText();
                 updateButtonColour();
-
-                bool enableButton =
-                    room?.State == MultiplayerRoomState.Open
-                    // TODO: && CurrentPlaylistItem.Value?.ID == Room.Settings.PlaylistItemId
-                    && !room.Playlist.Single(i => i.ID == room.Settings.PlaylistItemId).Expired
-                    && !operationInProgress.Value;
-
-                // When the local user is the host and spectating the match, the "start match" state should be enabled if any users are ready.
-                if (localUser?.State == MultiplayerUserState.Spectating)
-                    enableButton &= room?.Host?.Equals(localUser) == true && newCountReady > 0;
-
-                Enabled.Value = enableButton;
             }
 
             private void updateButtonText()
@@ -281,9 +277,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
                 if (currentCountdown != null)
                 {
-                    Text = localUser?.State == MultiplayerUserState.Ready
-                        ? $"{countdownText} {countText}"
-                        : $"Ready ({countdownText.ToLowerInvariant()})";
+                    switch (localUser?.State)
+                    {
+                        default:
+                            Text = $"Ready ({countdownText.ToLowerInvariant()})";
+                            break;
+
+                        case MultiplayerUserState.Spectating:
+                        case MultiplayerUserState.Ready:
+                            Text = $"{countdownText} {countText}";
+                            break;
+                    }
 
                     return;
                 }
@@ -310,10 +314,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
                 if (currentCountdown != null)
                 {
-                    if (localUser?.State == MultiplayerUserState.Ready)
-                        setYellow();
-                    else
-                        setGreen();
+                    switch (localUser?.State)
+                    {
+                        default:
+                            setGreen();
+                            break;
+
+                        case MultiplayerUserState.Spectating:
+                        case MultiplayerUserState.Ready:
+                            setYellow();
+                            break;
+                    }
 
                     return;
                 }
@@ -374,6 +385,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
             public CountdownButton()
             {
+                Icon = FontAwesome.Solid.CaretDown;
+                IconScale = new Vector2(0.6f);
+
                 Add(background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
