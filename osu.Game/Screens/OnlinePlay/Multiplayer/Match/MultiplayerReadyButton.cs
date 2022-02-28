@@ -37,7 +37,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private readonly CountdownButton countdownButton;
 
         private int countReady;
-
         private ScheduledDelegate readySampleDelegate;
 
         public MultiplayerReadyButton()
@@ -234,6 +233,14 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
         public class CountdownButton : IconButton, IHasPopover
         {
+            private static readonly TimeSpan[] available_delays =
+            {
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(30),
+                TimeSpan.FromMinutes(1),
+                TimeSpan.FromMinutes(2)
+            };
+
             public new Action<TimeSpan> Action;
 
             private readonly Drawable background;
@@ -254,14 +261,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             {
                 background.Colour = colours.Green;
             }
-
-            private static readonly TimeSpan[] available_delays =
-            {
-                TimeSpan.FromSeconds(10),
-                TimeSpan.FromSeconds(30),
-                TimeSpan.FromMinutes(1),
-                TimeSpan.FromMinutes(2)
-            };
 
             public Popover GetPopover()
             {

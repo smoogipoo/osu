@@ -27,6 +27,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             Client.ItemAdded += invokeItemAdded;
             Client.ItemRemoved += invokeItemRemoved;
             Client.ItemChanged += invokeItemChanged;
+            Client.NewEvent += invokeNewEvent;
 
             OnRoomUpdated();
         }
@@ -38,6 +39,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         private void invokeItemAdded(MultiplayerPlaylistItem item) => Schedule(() => PlaylistItemAdded(item));
         private void invokeItemRemoved(long item) => Schedule(() => PlaylistItemRemoved(item));
         private void invokeItemChanged(MultiplayerPlaylistItem item) => Schedule(() => PlaylistItemChanged(item));
+        private void invokeNewEvent(MatchServerEvent e) => Scheduler.Add(() => NewEvent(e));
 
         /// <summary>
         /// Invoked when a user has joined the room.
@@ -84,6 +86,14 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         /// </summary>
         /// <param name="item">The new playlist item, with an existing item's ID.</param>
         protected virtual void PlaylistItemChanged(MultiplayerPlaylistItem item)
+        {
+        }
+
+        /// <summary>
+        /// Invoked when a new event arrives from the server.
+        /// </summary>
+        /// <param name="e">The event.</param>
+        protected virtual void NewEvent(MatchServerEvent e)
         {
         }
 
