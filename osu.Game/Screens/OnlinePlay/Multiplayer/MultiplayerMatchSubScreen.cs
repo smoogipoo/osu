@@ -347,6 +347,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
                 startTask.ContinueWith(t =>
                 {
+                    if (delay != null)
+                    {
+                        endOperation();
+                        return;
+                    }
+
                     // accessing Exception here silences any potential errors from the antecedent task
                     if (t.Exception != null)
                     {
