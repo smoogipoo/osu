@@ -318,8 +318,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         if (countdownAbortSource.IsCancellationRequested)
                             return;
 
-                        Schedule(() => StartMatch());
+                        Schedule(() => StartMatch().WaitSafely());
                     }, countdownAbortSource.Token);
+
+                    await MatchEvent(new MatchStartCountdownEvent { EndTime = DateTimeOffset.Now + matchCountdownRequest.Delay });
+                    break;
+
+                case EndCountdownRequest _:
+                    if (Room.State != MultiplayerRoomState.Open)
+                        return;
+
+                    countdownAbortSource?.Cancel();
+                    await MatchEvent(new EndCountdownEvent());
                     break;
 
                 case ChangeTeamRequest changeTeam:
@@ -340,15 +350,17 @@ namespace osu.Game.Tests.Visual.Multiplayer
             }
         }
 
-        public override Task StartMatch()
+        public override async Task StartMatch()
         {
             Debug.Assert(Room != null);
+
+            await MatchEvent(new EndCountdownEvent());
 
             ChangeRoomState(MultiplayerRoomState.WaitingForLoad);
             foreach (var user in Room.Users.Where(u => u.State == MultiplayerUserState.Ready))
                 ChangeUserState(user.UserID, MultiplayerUserState.WaitingForLoad);
 
-            return ((IMultiplayerClient)this).LoadRequested();
+            await ((IMultiplayerClient)this).LoadRequested();
         }
 
         public override Task AbortGameplay()

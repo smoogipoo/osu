@@ -22,6 +22,7 @@ using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.Countdown;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
@@ -29,6 +30,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
     public class MultiplayerReadyButton : MultiplayerRoomComposite
     {
         public Action<TimeSpan?> OnReadyClick;
+        public Action OnCancelCountdown;
 
         private Sample sampleReady;
         private Sample sampleReadyAll;
@@ -37,6 +39,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private readonly CountdownButton countdownButton;
 
         private int countReady;
+        private bool isCountingDown;
         private ScheduledDelegate readySampleDelegate;
 
         public MultiplayerReadyButton()
@@ -58,7 +61,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                             RelativeSizeAxes = Axes.Both,
                             Size = Vector2.One,
                             Enabled = { Value = true },
-                            Action = () => OnReadyClick?.Invoke(null)
+                            Action = () => OnReadyClick?.Invoke(null),
+                            CancelCountdown = () => OnCancelCountdown?.Invoke()
                         },
                         countdownButton = new CountdownButton
                         {
@@ -92,6 +96,23 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         protected override void OnRoomUpdated()
         {
             base.OnRoomUpdated();
+            updateState();
+        }
+
+        protected override void NewEvent(MatchServerEvent e)
+        {
+            base.NewEvent(e);
+
+            switch (e)
+            {
+                case MatchStartCountdownEvent _:
+                    isCountingDown = true;
+                    break;
+
+                case EndCountdownEvent _:
+                    isCountingDown = false;
+                    break;
+            }
 
             updateState();
         }
@@ -103,16 +124,21 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             int newCountReady = Room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
             int newCountTotal = Room?.Users.Count(u => u.State != MultiplayerUserState.Spectating) ?? 0;
 
-            switch (localUser?.State)
+            if (isCountingDown)
+                countdownButton.Alpha = 0;
+            else
             {
-                default:
-                    countdownButton.Alpha = 0;
-                    break;
+                switch (localUser?.State)
+                {
+                    default:
+                        countdownButton.Alpha = 0;
+                        break;
 
-                case MultiplayerUserState.Spectating:
-                case MultiplayerUserState.Ready:
-                    countdownButton.Alpha = Room?.Host?.Equals(localUser) == true ? 1 : 0;
-                    break;
+                    case MultiplayerUserState.Spectating:
+                    case MultiplayerUserState.Ready:
+                        countdownButton.Alpha = Room?.Host?.Equals(localUser) == true ? 1 : 0;
+                        break;
+                }
             }
 
             if (newCountReady == countReady)
@@ -141,6 +167,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         {
             public new Triangles Triangles => base.Triangles;
 
+            public new Action Action;
+            public Action CancelCountdown;
+
             [Resolved]
             private MultiplayerClient multiplayerClient { get; set; }
 
@@ -154,6 +183,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             private MultiplayerRoom room => multiplayerClient.Room;
 
             private IBindable<bool> operationInProgress;
+            private MatchStartCountdownEvent currentCountdown;
+
+            public ReadyButton()
+            {
+                base.Action = () =>
+                {
+                    if (currentCountdown != null)
+                        CancelCountdown?.Invoke();
+                    else
+                        Action?.Invoke();
+                };
+            }
 
             [BackgroundDependencyLoader]
             private void load()
@@ -166,7 +207,32 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             {
                 base.LoadComplete();
 
-                multiplayerClient.RoomUpdated += onRoomUpdated;
+                multiplayerClient.RoomUpdated += () => Scheduler.Add(onRoomUpdated);
+                multiplayerClient.NewEvent += e => Scheduler.Add(onNewEvent, e);
+                onRoomUpdated();
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                if (currentCountdown != null)
+                    onRoomUpdated();
+            }
+
+            private void onNewEvent(MatchServerEvent e)
+            {
+                switch (e)
+                {
+                    case MatchStartCountdownEvent startCountdownEvent:
+                        currentCountdown = startCountdownEvent;
+                        break;
+
+                    case EndCountdownEvent _:
+                        currentCountdown = null;
+                        break;
+                }
+
                 onRoomUpdated();
             }
 
@@ -177,36 +243,46 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                 int newCountReady = room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
                 int newCountTotal = room?.Users.Count(u => u.State != MultiplayerUserState.Spectating) ?? 0;
 
-                switch (localUser?.State)
+                if (currentCountdown != null)
                 {
-                    default:
-                        Text = "Ready";
-                        BackgroundColour = colours.Green;
-                        Triangles.ColourDark = colours.Green;
-                        Triangles.ColourLight = colours.GreenLight;
-                        break;
-
-                    case MultiplayerUserState.Spectating:
-                    case MultiplayerUserState.Ready:
-
-                        string countText = $"({newCountReady} / {newCountTotal} ready)";
-
-                        if (room?.Host?.Equals(localUser) == true)
-                        {
-                            Text = $"Start match {countText}";
+                    Text = $"Starting in {currentCountdown.EndTime - DateTimeOffset.Now:mm\\:ss}";
+                    BackgroundColour = colours.YellowDark;
+                    Triangles.ColourDark = colours.YellowDark;
+                    Triangles.ColourLight = colours.Yellow;
+                }
+                else
+                {
+                    switch (localUser?.State)
+                    {
+                        default:
+                            Text = "Ready";
                             BackgroundColour = colours.Green;
                             Triangles.ColourDark = colours.Green;
                             Triangles.ColourLight = colours.GreenLight;
-                        }
-                        else
-                        {
-                            Text = $"Waiting for host... {countText}";
-                            BackgroundColour = colours.YellowDark;
-                            Triangles.ColourDark = colours.YellowDark;
-                            Triangles.ColourLight = colours.Yellow;
-                        }
+                            break;
 
-                        break;
+                        case MultiplayerUserState.Spectating:
+                        case MultiplayerUserState.Ready:
+
+                            string countText = $"({newCountReady} / {newCountTotal} ready)";
+
+                            if (room?.Host?.Equals(localUser) == true)
+                            {
+                                Text = $"Start match {countText}";
+                                BackgroundColour = colours.Green;
+                                Triangles.ColourDark = colours.Green;
+                                Triangles.ColourLight = colours.GreenLight;
+                            }
+                            else
+                            {
+                                Text = $"Waiting for host... {countText}";
+                                BackgroundColour = colours.YellowDark;
+                                Triangles.ColourDark = colours.YellowDark;
+                                Triangles.ColourLight = colours.Yellow;
+                            }
+
+                            break;
+                    }
                 }
 
                 bool enableButton =

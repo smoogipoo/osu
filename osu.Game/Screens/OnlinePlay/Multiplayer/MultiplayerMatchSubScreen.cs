@@ -234,6 +234,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         protected override Drawable CreateFooter() => new MultiplayerMatchFooter
         {
             OnReadyClick = onReadyClick,
+            OnCancelCountdown = onCancelCountdown,
             OnSpectateClick = onSpectateClick
         };
 
@@ -360,6 +361,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
             client.ToggleReady()
                   .ContinueWith(t => endOperation());
+
+            void endOperation()
+            {
+                readyClickOperation?.Dispose();
+                readyClickOperation = null;
+            }
+        }
+
+        private void onCancelCountdown()
+        {
+            Debug.Assert(readyClickOperation == null);
+            readyClickOperation = ongoingOperationTracker.BeginOperation();
+
+            client.SendMatchRequest(new EndCountdownRequest()).ContinueWith(t => endOperation());
 
             void endOperation()
             {

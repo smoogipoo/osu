@@ -17,6 +17,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             set => readyButton.OnReadyClick = value;
         }
 
+        public Action OnCancelCountdown
+        {
+            set => readyButton.OnCancelCountdown = value;
+        }
+
         public Action OnSpectateClick
         {
             set => spectateButton.OnSpectateClick = value;

@@ -82,11 +82,20 @@ namespace osu.Game.Tests.Visual.Multiplayer
                                     await MultiplayerClient.StartMatch();
                                 else
                                     await MultiplayerClient.SendMatchRequest(new MatchStartCountdownRequest { Delay = delay.Value });
-                                return;
                             }
+                            else
+                                await MultiplayerClient.ToggleReady();
 
-                            await MultiplayerClient.ToggleReady();
+                            readyClickOperation.Dispose();
+                        });
+                    },
+                    OnCancelCountdown = () =>
+                    {
+                        readyClickOperation = OngoingOperationTracker.BeginOperation();
 
+                        Task.Run(async () =>
+                        {
+                            await MultiplayerClient.SendMatchRequest(new EndCountdownRequest());
                             readyClickOperation.Dispose();
                         });
                     }
@@ -107,11 +116,27 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("ready button disabled", () => !button.ChildrenOfType<OsuButton>().Single().Enabled.Value);
-            AddStep("transitioned to gameplay", () => readyClickOperation.Dispose());
-
             AddStep("finish countdown", () => MultiplayerClient.FinishCountDown());
             AddUntilStep("match started", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.WaitingForLoad);
+        }
+
+        [Test]
+        public void TestStartWithCountDownCancellation()
+        {
+            ClickButtonWhenEnabled<MultiplayerReadyButton>();
+            AddUntilStep("countdown button shown", () => this.ChildrenOfType<MultiplayerReadyButton.CountdownButton>().SingleOrDefault()?.IsPresent == true);
+            ClickButtonWhenEnabled<MultiplayerReadyButton.CountdownButton>();
+            AddStep("click the first countdown button", () =>
+            {
+                var popoverButton = this.ChildrenOfType<MultiplayerReadyButton.CountdownButton.PopoverButton>().First();
+                InputManager.MoveMouseTo(popoverButton);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            ClickButtonWhenEnabled<MultiplayerReadyButton>();
+
+            AddStep("finish countdown", () => MultiplayerClient.FinishCountDown());
+            AddUntilStep("match not started", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready);
         }
 
         [Test]
