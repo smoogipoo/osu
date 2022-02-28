@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Localisation;
 using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
@@ -27,7 +28,7 @@ using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 {
-    public class MultiplayerReadyButton : MultiplayerRoomComposite
+    public class MultiplayerReadyButton : MultiplayerRoomComposite, IHasTooltip
     {
         public Action<TimeSpan?> OnReadyClick;
         public Action OnCancelCountdown;
@@ -161,6 +162,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
                 countReady = newCountReady;
             });
+        }
+
+        public LocalisableString TooltipText
+        {
+            get
+            {
+                if (isCountingDown)
+                    return "Cancel countdown";
+
+                return default;
+            }
         }
 
         private class ReadyButton : Components.ReadyButton
