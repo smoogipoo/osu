@@ -201,7 +201,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             {
                 base.Action = () =>
                 {
-                    if (currentCountdown != null)
+                    if (currentCountdown != null && room?.Host?.Equals(multiplayerClient.LocalUser) == true)
                         CancelCountdown?.Invoke();
                     else
                         Action?.Invoke();
@@ -251,51 +251,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             private void onRoomUpdated()
             {
                 var localUser = multiplayerClient.LocalUser;
-
                 int newCountReady = room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
-                int newCountTotal = room?.Users.Count(u => u.State != MultiplayerUserState.Spectating) ?? 0;
 
-                if (currentCountdown != null)
-                {
-                    Text = $"Starting in {currentCountdown.EndTime - DateTimeOffset.Now:mm\\:ss}";
-                    BackgroundColour = colours.YellowDark;
-                    Triangles.ColourDark = colours.YellowDark;
-                    Triangles.ColourLight = colours.Yellow;
-                }
-                else
-                {
-                    switch (localUser?.State)
-                    {
-                        default:
-                            Text = "Ready";
-                            BackgroundColour = colours.Green;
-                            Triangles.ColourDark = colours.Green;
-                            Triangles.ColourLight = colours.GreenLight;
-                            break;
-
-                        case MultiplayerUserState.Spectating:
-                        case MultiplayerUserState.Ready:
-
-                            string countText = $"({newCountReady} / {newCountTotal} ready)";
-
-                            if (room?.Host?.Equals(localUser) == true)
-                            {
-                                Text = $"Start match {countText}";
-                                BackgroundColour = colours.Green;
-                                Triangles.ColourDark = colours.Green;
-                                Triangles.ColourLight = colours.GreenLight;
-                            }
-                            else
-                            {
-                                Text = $"Waiting for host... {countText}";
-                                BackgroundColour = colours.YellowDark;
-                                Triangles.ColourDark = colours.YellowDark;
-                                Triangles.ColourLight = colours.Yellow;
-                            }
-
-                            break;
-                    }
-                }
+                updateButtonText();
+                updateButtonColour();
 
                 bool enableButton =
                     room?.State == MultiplayerRoomState.Open
@@ -308,6 +267,86 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                     enableButton &= room?.Host?.Equals(localUser) == true && newCountReady > 0;
 
                 Enabled.Value = enableButton;
+            }
+
+            private void updateButtonText()
+            {
+                var localUser = multiplayerClient.LocalUser;
+
+                int countReady = room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
+                int countTotal = room?.Users.Count(u => u.State != MultiplayerUserState.Spectating) ?? 0;
+
+                string countdownText = currentCountdown == null ? string.Empty : $"Starting in {currentCountdown.EndTime - DateTimeOffset.Now:mm\\:ss}";
+                string countText = $"({countReady} / {countTotal} ready)";
+
+                if (currentCountdown != null)
+                {
+                    Text = localUser?.State == MultiplayerUserState.Ready
+                        ? $"{countdownText} {countText}"
+                        : $"Ready ({countdownText.ToLowerInvariant()})";
+
+                    return;
+                }
+
+                switch (localUser?.State)
+                {
+                    default:
+                        Text = "Ready";
+                        break;
+
+                    case MultiplayerUserState.Spectating:
+                    case MultiplayerUserState.Ready:
+                        Text = room?.Host?.Equals(localUser) == true
+                            ? $"Start match {countText}"
+                            : $"Waiting for host... {countText}";
+
+                        break;
+                }
+            }
+
+            private void updateButtonColour()
+            {
+                var localUser = multiplayerClient.LocalUser;
+
+                if (currentCountdown != null)
+                {
+                    if (localUser?.State == MultiplayerUserState.Ready)
+                        setYellow();
+                    else
+                        setGreen();
+
+                    return;
+                }
+
+                switch (localUser?.State)
+                {
+                    default:
+                        setGreen();
+                        break;
+
+                    case MultiplayerUserState.Spectating:
+                    case MultiplayerUserState.Ready:
+                        if (room?.Host?.Equals(localUser) == true)
+                            setGreen();
+                        else
+                            setYellow();
+
+                        break;
+                }
+
+                void setYellow()
+                {
+                    BackgroundColour = colours.YellowDark;
+                    Triangles.ColourDark = colours.YellowDark;
+                    Triangles.ColourLight = colours.Yellow;
+                }
+
+                void setGreen()
+                {
+                    BackgroundColour = colours.Green;
+                    Triangles.ColourDark = colours.Green;
+                    Triangles.ColourLight = colours.GreenLight;
+                }
             }
 
             protected override void Dispose(bool isDisposing)
