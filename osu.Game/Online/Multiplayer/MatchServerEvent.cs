@@ -13,8 +13,7 @@ namespace osu.Game.Online.Multiplayer
     [Serializable]
     [MessagePackObject]
     // IMPORTANT: Add rules to SignalRUnionWorkaroundResolver for new derived types.
-    [Union(0, typeof(MatchStartCountdownEvent))]
-    [Union(1, typeof(EndCountdownEvent))]
+    [Union(0, typeof(CountdownChangedEvent))]
     public abstract class MatchServerEvent
     {
     }

@@ -6,10 +6,10 @@ using MessagePack;
 namespace osu.Game.Online.Multiplayer.Countdown
 {
     /// <summary>
-    /// Request to end the current countdown.
+    /// Request to stop the current countdown.
     /// </summary>
     [MessagePackObject]
-    public class EndCountdownRequest : MatchUserRequest
+    public class StopCountdownRequest : MatchUserRequest
     {
     }
 }

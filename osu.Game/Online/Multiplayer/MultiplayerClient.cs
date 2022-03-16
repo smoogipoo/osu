@@ -16,6 +16,7 @@ using osu.Framework.Logging;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Rooms.RoomStatuses;
 using osu.Game.Rulesets;
@@ -539,7 +540,25 @@ namespace osu.Game.Online.Multiplayer
 
         public Task MatchEvent(MatchServerEvent e)
         {
-            NewEvent?.Invoke(e);
+            if (Room == null)
+                return Task.CompletedTask;
+
+            Scheduler.Add(() =>
+            {
+                if (Room == null)
+                    return;
+
+                switch (e)
+                {
+                    case CountdownChangedEvent countdownChangedEvent:
+                        Room.Countdown = countdownChangedEvent.Countdown;
+                        break;
+                }
+
+                NewEvent?.Invoke(e);
+                RoomUpdated?.Invoke();
+            }, false);
+
             return Task.CompletedTask;
         }
 

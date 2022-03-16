@@ -44,7 +44,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private OngoingOperationTracker ongoingOperationTracker { get; set; }
 
         private int countReady;
-        private bool isCountingDown;
         private ScheduledDelegate readySampleDelegate;
         private IBindable<bool> operationInProgress;
 
@@ -110,29 +109,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         protected override void NewEvent(MatchServerEvent e)
         {
             base.NewEvent(e);
-
-            switch (e)
-            {
-                case MatchStartCountdownEvent _:
-                    isCountingDown = true;
-                    break;
-
-                case EndCountdownEvent _:
-                    isCountingDown = false;
-                    break;
-            }
-
             updateState();
         }
 
         private void updateState()
         {
+            if (Room == null)
+                return;
+
             var localUser = Client.LocalUser;
 
-            int newCountReady = Room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
-            int newCountTotal = Room?.Users.Count(u => u.State != MultiplayerUserState.Spectating) ?? 0;
+            int newCountReady = Room.Users.Count(u => u.State == MultiplayerUserState.Ready);
+            int newCountTotal = Room.Users.Count(u => u.State != MultiplayerUserState.Spectating);
 
-            if (isCountingDown)
+            if (Room.Countdown != null)
                 countdownButton.Alpha = 0;
             else
             {
@@ -144,20 +134,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
                     case MultiplayerUserState.Spectating:
                     case MultiplayerUserState.Ready:
-                        countdownButton.Alpha = Room?.Host?.Equals(localUser) == true ? 1 : 0;
+                        countdownButton.Alpha = Room.Host?.Equals(localUser) == true ? 1 : 0;
                         break;
                 }
             }
 
             buttonsEnabled.Value =
-                Room?.State == MultiplayerRoomState.Open
+                Room.State == MultiplayerRoomState.Open
                 // TODO: && CurrentPlaylistItem.Value?.ID == Room.Settings.PlaylistItemId
                 && !Room.Playlist.Single(i => i.ID == Room.Settings.PlaylistItemId).Expired
                 && !operationInProgress.Value;
 
             // When the local user is the host and spectating the match, the "start match" state should be enabled if any users are ready.
             if (localUser?.State == MultiplayerUserState.Spectating)
-                buttonsEnabled.Value &= Room?.Host?.Equals(localUser) == true && newCountReady > 0;
+                buttonsEnabled.Value &= Room.Host?.Equals(localUser) == true && newCountReady > 0;
 
             if (newCountReady == countReady)
                 return;
@@ -185,7 +175,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         {
             get
             {
-                if (isCountingDown)
+                if (Room?.Countdown != null)
                     return "Cancel countdown";
 
                 return default;
@@ -208,13 +198,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             [CanBeNull]
             private MultiplayerRoom room => multiplayerClient.Room;
 
-            private MatchStartCountdownEvent currentCountdown;
-
             public ReadyButton()
             {
                 base.Action = () =>
                 {
-                    if (currentCountdown != null && room?.Host?.Equals(multiplayerClient.LocalUser) == true)
+                    if (room?.Countdown != null && room.Host?.Equals(multiplayerClient.LocalUser) == true)
                         CancelCountdown?.Invoke();
                     else
                         Action?.Invoke();
@@ -239,24 +227,14 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             {
                 base.Update();
 
-                if (currentCountdown != null)
+                if (room?.Countdown != null)
                     onRoomUpdated();
             }
 
             private void onNewEvent(MatchServerEvent e)
             {
-                switch (e)
-                {
-                    case MatchStartCountdownEvent startCountdownEvent:
-                        currentCountdown = startCountdownEvent;
-                        break;
-
-                    case EndCountdownEvent _:
-                        currentCountdown = null;
-                        break;
-                }
-
-                onRoomUpdated();
+                if (e is CountdownChangedEvent)
+                    onRoomUpdated();
             }
 
             private void onRoomUpdated()
@@ -267,15 +245,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
             private void updateButtonText()
             {
+                if (room == null)
+                    return;
+
                 var localUser = multiplayerClient.LocalUser;
 
-                int countReady = room?.Users.Count(u => u.State == MultiplayerUserState.Ready) ?? 0;
-                int countTotal = room?.Users.Count(u => u.State != MultiplayerUserState.Spectating) ?? 0;
+                int countReady = room.Users.Count(u => u.State == MultiplayerUserState.Ready);
+                int countTotal = room.Users.Count(u => u.State != MultiplayerUserState.Spectating);
 
-                string countdownText = currentCountdown == null ? string.Empty : $"Starting in {currentCountdown.EndTime - DateTimeOffset.Now:mm\\:ss}";
+                string countdownText = room.Countdown == null ? string.Empty : $"Starting in {room.Countdown.EndTime - DateTimeOffset.Now:mm\\:ss}";
                 string countText = $"({countReady} / {countTotal} ready)";
 
-                if (currentCountdown != null)
+                if (room.Countdown != null)
                 {
                     switch (localUser?.State)
                     {
@@ -300,7 +281,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
                     case MultiplayerUserState.Spectating:
                     case MultiplayerUserState.Ready:
-                        Text = room?.Host?.Equals(localUser) == true
+                        Text = room.Host?.Equals(localUser) == true
                             ? $"Start match {countText}"
                             : $"Waiting for host... {countText}";
 
@@ -310,9 +291,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
             private void updateButtonColour()
             {
+                if (room == null)
+                    return;
+
                 var localUser = multiplayerClient.LocalUser;
 
-                if (currentCountdown != null)
+                if (room.Countdown != null)
                 {
                     switch (localUser?.State)
                     {

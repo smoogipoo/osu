@@ -95,7 +95,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                         Task.Run(async () =>
                         {
-                            await MultiplayerClient.SendMatchRequest(new EndCountdownRequest());
+                            await MultiplayerClient.SendMatchRequest(new StopCountdownRequest());
                             readyClickOperation.Dispose();
                         });
                     }

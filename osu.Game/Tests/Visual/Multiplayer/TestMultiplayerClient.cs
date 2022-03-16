@@ -310,6 +310,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     var finishSource = countdownFinishSource = new CancellationTokenSource();
                     var abortSource = countdownAbortSource = new CancellationTokenSource();
 
+                    var countdown = Room.Countdown = new MatchStartCountdown { EndTime = DateTimeOffset.Now + matchCountdownRequest.Delay };
+                    await MatchEvent(new CountdownChangedEvent { Countdown = Room.Countdown });
+
 #pragma warning disable CS4014
                     Task.Run(async () =>
 #pragma warning restore CS4014
@@ -324,7 +327,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                         Schedule(() =>
                         {
-                            MatchEvent(new EndCountdownEvent());
+                            if (Room.Countdown != countdown)
+                                return;
+
+                            Room.Countdown = null;
+                            MatchEvent(new CountdownChangedEvent { Countdown = Room.Countdown });
 
                             if (abortSource.IsCancellationRequested)
                                 return;
@@ -333,15 +340,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         });
                     }, abortSource.Token);
 
-                    await MatchEvent(new MatchStartCountdownEvent { EndTime = DateTimeOffset.Now + matchCountdownRequest.Delay });
                     break;
 
-                case EndCountdownRequest _:
+                case StopCountdownRequest _:
                     if (Room.State != MultiplayerRoomState.Open)
                         return;
 
                     countdownAbortSource?.Cancel();
-                    await MatchEvent(new EndCountdownEvent());
+
+                    Room.Countdown = null;
+                    await MatchEvent(new CountdownChangedEvent { Countdown = Room.Countdown });
                     break;
 
                 case ChangeTeamRequest changeTeam:

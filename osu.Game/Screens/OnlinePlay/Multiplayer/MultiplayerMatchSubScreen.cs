@@ -380,7 +380,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             Debug.Assert(readyClickOperation == null);
             readyClickOperation = ongoingOperationTracker.BeginOperation();
 
-            client.SendMatchRequest(new EndCountdownRequest()).ContinueWith(t => endOperation());
+            client.SendMatchRequest(new StopCountdownRequest()).ContinueWith(t => endOperation());
 
             void endOperation()
             {

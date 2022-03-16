@@ -20,11 +20,11 @@ namespace osu.Game.Online
         {
             (typeof(ChangeTeamRequest), typeof(MatchUserRequest)),
             (typeof(MatchStartCountdownRequest), typeof(MatchUserRequest)),
-            (typeof(MatchStartCountdownEvent), typeof(MatchServerEvent)),
-            (typeof(EndCountdownRequest), typeof(MatchUserRequest)),
-            (typeof(EndCountdownEvent), typeof(MatchServerEvent)),
+            (typeof(StopCountdownRequest), typeof(MatchUserRequest)),
+            (typeof(CountdownChangedEvent), typeof(MatchServerEvent)),
             (typeof(TeamVersusRoomState), typeof(MatchRoomState)),
             (typeof(TeamVersusUserState), typeof(MatchUserState)),
+            (typeof(MatchStartCountdown), typeof(MultiplayerCountdown))
         };
     }
 }
