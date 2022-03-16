@@ -205,7 +205,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             {
                 base.Action = () =>
                 {
-                    if (room?.Countdown != null && room.Host?.Equals(multiplayerClient.LocalUser) == true)
+                    if (room?.Countdown != null && multiplayerClient.LocalUser?.State == MultiplayerUserState.Ready && room.Host?.Equals(multiplayerClient.LocalUser) == true)
                         CancelCountdown?.Invoke();
                     else
                         Action?.Invoke();

@@ -217,6 +217,26 @@ namespace osu.Game.Tests.Visual.Multiplayer
         }
 
         [Test]
+        public void TestBecomeHostDuringCountdownAndReady()
+        {
+            AddStep("add second user as host", () =>
+            {
+                MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                MultiplayerClient.TransferHost(2);
+            });
+
+            AddStep("start countdown", () => MultiplayerClient.SendMatchRequest(new MatchStartCountdownRequest { Delay = TimeSpan.FromMinutes(1) }));
+            AddUntilStep("countdown started", () => MultiplayerClient.Room?.Countdown != null);
+
+            AddStep("transfer host to local user", () => MultiplayerClient.TransferHost(API.LocalUser.Value.OnlineID));
+            AddUntilStep("local user is host", () => MultiplayerClient.Room?.Host?.Equals(MultiplayerClient.LocalUser) == true);
+
+            ClickButtonWhenEnabled<MultiplayerReadyButton>();
+            AddUntilStep("local user became ready", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready);
+            AddAssert("countdown still active", () => MultiplayerClient.Room?.Countdown != null);
+        }
+
+        [Test]
         public void TestDeletedBeatmapDisableReady()
         {
             OsuButton readyButton = null;
