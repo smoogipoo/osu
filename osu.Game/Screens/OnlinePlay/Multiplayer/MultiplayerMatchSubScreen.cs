@@ -1,11 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -17,7 +15,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Online;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
@@ -47,13 +44,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         [Resolved]
         private MultiplayerClient client { get; set; }
 
-        [Resolved]
-        private OngoingOperationTracker ongoingOperationTracker { get; set; }
-
         private readonly IBindable<bool> isConnected = new Bindable<bool>();
-
-        [CanBeNull]
-        private IDisposable readyClickOperation;
 
         private AddItemButton addItemButton;
 
@@ -231,12 +222,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             this.Push(new MultiplayerMatchSongSelect(Room, itemToEdit));
         }
 
-        protected override Drawable CreateFooter() => new MultiplayerMatchFooter
-        {
-            OnReadyClick = onReadyClick,
-            OnCancelCountdown = onCancelCountdown,
-            OnSpectateClick = onSpectateClick
-        };
+        protected override Drawable CreateFooter() => new MultiplayerMatchFooter();
 
         protected override RoomSettingsOverlay CreateRoomSettingsOverlay(Room room) => new MultiplayerMatchSettingsOverlay(room);
 
@@ -334,75 +320,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             }
         }
 
-        private void onReadyClick(TimeSpan? delay)
-        {
-            Debug.Assert(readyClickOperation == null);
-            readyClickOperation = ongoingOperationTracker.BeginOperation();
-
-            if (client.IsHost && (client.LocalUser?.State == MultiplayerUserState.Ready || client.LocalUser?.State == MultiplayerUserState.Spectating))
-            {
-                var startTask = delay != null
-                    ? client.SendMatchRequest(new MatchStartCountdownRequest { Delay = delay.Value })
-                    : client.StartMatch();
-
-                startTask.ContinueWith(t =>
-                {
-                    if (delay != null)
-                    {
-                        endOperation();
-                        return;
-                    }
-
-                    // accessing Exception here silences any potential errors from the antecedent task
-                    if (t.Exception != null)
-                    {
-                        // gameplay was not started due to an exception; unblock button.
-                        endOperation();
-                    }
-
-                    // gameplay is starting, the button will be unblocked on load requested.
-                });
-                return;
-            }
-
-            client.ToggleReady()
-                  .ContinueWith(t => endOperation());
-
-            void endOperation()
-            {
-                readyClickOperation?.Dispose();
-                readyClickOperation = null;
-            }
-        }
-
-        private void onCancelCountdown()
-        {
-            Debug.Assert(readyClickOperation == null);
-            readyClickOperation = ongoingOperationTracker.BeginOperation();
-
-            client.SendMatchRequest(new StopCountdownRequest()).ContinueWith(t => endOperation());
-
-            void endOperation()
-            {
-                readyClickOperation?.Dispose();
-                readyClickOperation = null;
-            }
-        }
-
-        private void onSpectateClick()
-        {
-            Debug.Assert(readyClickOperation == null);
-            readyClickOperation = ongoingOperationTracker.BeginOperation();
-
-            client.ToggleSpectate().ContinueWith(t => endOperation());
-
-            void endOperation()
-            {
-                readyClickOperation?.Dispose();
-                readyClickOperation = null;
-            }
-        }
-
         private void onRoomUpdated()
         {
             // may happen if the client is kicked or otherwise removed from the room.
@@ -458,9 +375,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 return;
 
             StartPlay();
-
-            readyClickOperation?.Dispose();
-            readyClickOperation = null;
         }
 
         protected override Screen CreateGameplayScreen()

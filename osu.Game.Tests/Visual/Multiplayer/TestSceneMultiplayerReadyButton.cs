@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -38,8 +37,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private BeatmapManager beatmaps;
         private RulesetStore rulesets;
 
-        private IDisposable readyClickOperation;
-
         [BackgroundDependencyLoader]
         private void load(GameHost host, AudioManager audio)
         {
@@ -70,35 +67,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(200, 50),
-                    OnReadyClick = delay =>
-                    {
-                        readyClickOperation = OngoingOperationTracker.BeginOperation();
-
-                        Task.Run(async () =>
-                        {
-                            if (MultiplayerClient.IsHost && MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready)
-                            {
-                                if (delay == null)
-                                    await MultiplayerClient.StartMatch();
-                                else
-                                    await MultiplayerClient.SendMatchRequest(new MatchStartCountdownRequest { Delay = delay.Value });
-                            }
-                            else
-                                await MultiplayerClient.ToggleReady();
-
-                            readyClickOperation.Dispose();
-                        });
-                    },
-                    OnCancelCountdown = () =>
-                    {
-                        readyClickOperation = OngoingOperationTracker.BeginOperation();
-
-                        Task.Run(async () =>
-                        {
-                            await MultiplayerClient.SendMatchRequest(new StopCountdownRequest());
-                            readyClickOperation.Dispose();
-                        });
-                    }
                 }
             };
         });
@@ -356,9 +324,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddUntilStep("user is ready", () => MultiplayerClient.Room?.Users[0].State == MultiplayerUserState.Ready);
             ClickButtonWhenEnabled<MultiplayerReadyButton>();
             AddUntilStep("user waiting for load", () => MultiplayerClient.Room?.Users[0].State == MultiplayerUserState.WaitingForLoad);
-
-            AddAssert("ready button disabled", () => !button.ChildrenOfType<OsuButton>().Single().Enabled.Value);
-            AddStep("transitioned to gameplay", () => readyClickOperation.Dispose());
 
             AddStep("finish gameplay", () =>
             {
