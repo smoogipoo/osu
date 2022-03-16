@@ -115,7 +115,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         private void updateState()
         {
             if (Room == null)
+            {
+                buttonsEnabled.Value = false;
                 return;
+            }
 
             var localUser = Client.LocalUser;
 
@@ -246,7 +249,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             private void updateButtonText()
             {
                 if (room == null)
+                {
+                    Text = "Ready";
                     return;
+                }
 
                 var localUser = multiplayerClient.LocalUser;
 
@@ -292,7 +298,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             private void updateButtonColour()
             {
                 if (room == null)
+                {
+                    setGreen();
                     return;
+                }
 
                 var localUser = multiplayerClient.LocalUser;
 
