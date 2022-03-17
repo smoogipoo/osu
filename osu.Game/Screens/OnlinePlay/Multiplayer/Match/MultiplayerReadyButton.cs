@@ -209,7 +209,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
             buttonsEnabled.Value =
                 Room.State == MultiplayerRoomState.Open
-                // TODO: && CurrentPlaylistItem.Value?.ID == Room.Settings.PlaylistItemId
+                && CurrentPlaylistItem.Value?.ID == Room.Settings.PlaylistItemId
                 && !Room.Playlist.Single(i => i.ID == Room.Settings.PlaylistItemId).Expired
                 && !operationInProgress.Value;
 
