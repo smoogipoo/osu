@@ -49,9 +49,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private int currentIndex;
         private long lastPlaylistItemId;
 
-        private CancellationTokenSource? countdownFinishSource;
-        private CancellationTokenSource? countdownStopSource;
-
         public TestMultiplayerClient(TestMultiplayerRoomManager roomManager)
         {
             this.roomManager = roomManager;
@@ -122,16 +119,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             ((IMultiplayerClient)this).UserStateChanged(userId, newState);
 
-            if (newState == MultiplayerUserState.Spectating)
-            {
-                countdownStopSource?.Cancel();
-                countdownFinishSource?.Cancel();
-            }
-
             Schedule(() =>
             {
                 switch (Room.State)
                 {
+                    case MultiplayerRoomState.Open:
+                        // If there are no remaining ready users, finish any existing countdown.
+                        // Todo: When we have an "automatic start" mode, this should also start a new countdown if any users _are_ ready.
+                        // Todo: This doesn't yet support non-match-start countdowns.
+                        if (Room.Users.All(u => u.State != MultiplayerUserState.Ready))
+                            countdownStopSource?.Cancel();
+                        break;
+
                     case MultiplayerRoomState.WaitingForLoad:
                         if (Room.Users.All(u => u.State != MultiplayerUserState.WaitingForLoad))
                         {
@@ -294,12 +293,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Task.CompletedTask;
         }
 
-        public void FinishCountDown()
-        {
-            countdownFinishSource?.Cancel();
-        }
-
+        private CancellationTokenSource? countdownFinishSource;
+        private CancellationTokenSource? countdownStopSource;
         private Task countdownTask = Task.CompletedTask;
+
+        public void FinishCountDown() => countdownFinishSource?.Cancel();
 
         public override async Task SendMatchRequest(MatchUserRequest request)
         {
@@ -345,6 +343,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         catch (OperationCanceledException)
                         {
                         }
+
+                        await Task.Delay(1000).ConfigureAwait(false);
 
                         Schedule(() =>
                         {

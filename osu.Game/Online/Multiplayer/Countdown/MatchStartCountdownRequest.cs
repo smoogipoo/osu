@@ -14,6 +14,9 @@ namespace osu.Game.Online.Multiplayer.Countdown
     [MessagePackObject]
     public class MatchStartCountdownRequest : MatchUserRequest
     {
+        /// <summary>
+        /// How long the countdown should last.
+        /// </summary>
         [Key(0)]
         public TimeSpan Delay { get; set; }
     }

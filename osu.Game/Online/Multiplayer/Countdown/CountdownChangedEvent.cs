@@ -7,9 +7,15 @@ using MessagePack;
 
 namespace osu.Game.Online.Multiplayer.Countdown
 {
+    /// <summary>
+    /// Indicates a change to the <see cref="MultiplayerRoom"/>'s countdown.
+    /// </summary>
     [MessagePackObject]
     public class CountdownChangedEvent : MatchServerEvent
     {
+        /// <summary>
+        /// The new countdown.
+        /// </summary>
         [Key(0)]
         public MultiplayerCountdown? Countdown { get; set; }
     }
