@@ -243,7 +243,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         {
             get
             {
-                if (Room?.Countdown != null)
+                if (Room?.Countdown != null && Client.IsHost && Client.LocalUser?.State == MultiplayerUserState.Ready)
                     return "Cancel countdown";
 
                 return default;
