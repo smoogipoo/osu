@@ -55,6 +55,12 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             Activity.Value = new UserActivity.InLobby(room);
         }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            AddInternal(new MultiplayerRoomSounds());
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
