@@ -5,6 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
+using osu.Framework.Screens;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 
@@ -12,6 +13,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {
     public class MultiplayerRoomSounds : MultiplayerRoomComposite
     {
+        [Resolved]
+        private MultiplayerMatchSubScreen screen { get; set; }
+
         private Sample hostChangedSample;
         private Sample userJoinedSample;
         private Sample userLeftSample;
@@ -37,21 +41,24 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
         {
             base.UserJoined(user);
 
-            userJoinedSample?.Play();
+            if (screen.IsCurrentScreen())
+                userJoinedSample?.Play();
         }
 
         protected override void UserLeft(MultiplayerRoomUser user)
         {
             base.UserLeft(user);
 
-            userLeftSample?.Play();
+            if (screen.IsCurrentScreen())
+                userLeftSample?.Play();
         }
 
         protected override void UserKicked(MultiplayerRoomUser user)
         {
             base.UserKicked(user);
 
-            userKickedSample?.Play();
+            if (screen.IsCurrentScreen())
+                userKickedSample?.Play();
         }
 
         private void hostChanged(ValueChangedEvent<APIUser> value)
@@ -59,7 +66,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             // only play sound when the host changes from an already-existing host.
             if (value.OldValue == null) return;
 
-            hostChangedSample?.Play();
+            if (screen.IsCurrentScreen())
+                hostChangedSample?.Play();
         }
     }
 }

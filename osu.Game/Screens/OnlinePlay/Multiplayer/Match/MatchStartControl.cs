@@ -11,6 +11,7 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Screens;
 using osu.Framework.Threading;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.Countdown;
@@ -25,6 +26,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
         [CanBeNull]
         private IDisposable clickOperation;
+
+        [Resolved(CanBeNull = true)]
+        private MultiplayerMatchSubScreen screen { get; set; }
 
         private Sample sampleReady;
         private Sample sampleReadyAll;
@@ -205,16 +209,17 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             readySampleDelegate?.Cancel();
             readySampleDelegate = Schedule(() =>
             {
-                if (newCountReady > countReady)
+                if (screen?.IsCurrentScreen() != false)
                 {
-                    if (newCountReady == newCountTotal)
-                        sampleReadyAll?.Play();
-                    else
-                        sampleReady?.Play();
-                }
-                else if (newCountReady < countReady)
-                {
-                    sampleUnready?.Play();
+                    if (newCountReady > countReady)
+                    {
+                        if (newCountReady == newCountTotal)
+                            sampleReadyAll?.Play();
+                        else
+                            sampleReady?.Play();
+                    }
+                    else if (newCountReady < countReady)
+                        sampleUnready?.Play();
                 }
 
                 countReady = newCountReady;
