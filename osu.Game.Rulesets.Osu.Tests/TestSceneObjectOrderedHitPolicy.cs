@@ -372,6 +372,45 @@ namespace osu.Game.Rulesets.Osu.Tests
             addJudgementAssert(hitObjects[1], HitResult.Great);
         }
 
+        [Test]
+        public void TestStackedSliders()
+        {
+            const double time_slider = 1200;
+            Vector2 positionSlider = new Vector2(80);
+
+            var hitObjects = new List<OsuHitObject>
+            {
+                new TestSlider
+                {
+                    StartTime = time_slider,
+                    Position = new Vector2(80),
+                    Path = new SliderPath(PathType.Linear, new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(25, 0),
+                    })
+                },
+                new TestSlider
+                {
+                    StartTime = time_slider + 10,
+                    Position = new Vector2(80),
+                    Path = new SliderPath(PathType.Linear, new[]
+                    {
+                        Vector2.Zero,
+                        new Vector2(25, 0),
+                    })
+                },
+            };
+
+            performTest(hitObjects, new List<ReplayFrame>
+            {
+                new OsuReplayFrame { Time = time_slider, Position = positionSlider, Actions = { OsuAction.LeftButton, OsuAction.RightButton } },
+            });
+
+            AddAssert("first slider head hit", () => judgementResults.Where(r => r.HitObject is SliderHeadCircle).ElementAt(0).IsHit);
+            AddAssert("second slider head hit", () => !judgementResults.Where(r => r.HitObject is SliderHeadCircle).ElementAt(1).IsHit);
+        }
+
         private void addJudgementAssert(OsuHitObject hitObject, HitResult result)
         {
             AddAssert($"({hitObject.GetType().ReadableName()} @ {hitObject.StartTime}) judgement is {result}",

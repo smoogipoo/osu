@@ -1,8 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -20,35 +19,53 @@ namespace osu.Game.Rulesets.Osu.UI
     {
         public IHitObjectContainer HitObjectContainer { get; set; }
 
-        public bool IsHittable(DrawableHitObject hitObject, double time) => enumerateHitObjectsUpTo(hitObject.HitObject.StartTime).All(obj => obj.AllJudged);
-
-        public void HandleHit(DrawableHitObject hitObject)
+        public bool IsHittable(DrawableHitObject hitObject, double time)
         {
-        }
+            if (hitObject.HitObject.StartTime == 213200)
+            {
+            }
 
-        private IEnumerable<DrawableHitObject> enumerateHitObjectsUpTo(double targetTime)
-        {
             foreach (var obj in HitObjectContainer.AliveObjects)
             {
-                if (obj.HitObject.StartTime >= targetTime)
-                    yield break;
+                DrawableSlider slider = obj as DrawableSlider;
+                DrawableHitObject target = slider?.HeadCircle ?? obj;
 
-                switch (obj)
+                if (target == hitObject)
+                    return true;
+
+                switch (target)
                 {
                     case DrawableSpinner _:
+                        // Spinners don't prevent future hitobjects from being hittable.
                         continue;
 
-                    case DrawableSlider slider:
-                        yield return slider.HeadCircle;
+                    case DrawableSliderHead head:
+                        Debug.Assert(slider != null);
+
+                        // Sliders prevent the future hitobjects from being hittable until the hittable range for the head has passed, regardless of whether the head has been judged.
+                        if ((time <= head.HitObject.StartTime || head.HitObject.HitWindows.CanBeHit(time - head.HitObject.StartTime))
+                            // UNLESS the slider has been fully judged.
+                            && !slider.AllJudged)
+                        {
+                            return false;
+                        }
 
                         break;
 
                     default:
-                        yield return obj;
+                        // All other objects prevent future hitobjects from being hittable unless they're judged.
+                        if (!target.AllJudged)
+                            return false;
 
                         break;
                 }
             }
+
+            return false;
+        }
+
+        public void HandleHit(DrawableHitObject hitObject)
+        {
         }
     }
 }
