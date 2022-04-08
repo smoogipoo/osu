@@ -133,6 +133,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                     failAndBail();
                 }
             }), true);
+
+            // Todo: failAndBail will do nothing here.
+            client.ChangeState(MultiplayerUserState.Loaded).ContinueWith(task => failAndBail(task.Exception?.Message ?? "Server error"), TaskContinuationOptions.NotOnRanToCompletion);
         }
 
         protected override void LoadComplete()
@@ -144,10 +147,19 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
         protected override void StartGameplay()
         {
-            // block base call, but let the server know we are ready to start.
-            loadingDisplay.Show();
+            switch (client.LocalUser?.State)
+            {
+                case MultiplayerUserState.Idle:
+                    Logger.Log("Gameplay aborted", LoggingTarget.Runtime, LogLevel.Important);
+                    PerformExit(false);
+                    break;
 
-            client.ChangeState(MultiplayerUserState.Loaded).ContinueWith(task => failAndBail(task.Exception?.Message ?? "Server error"), TaskContinuationOptions.NotOnRanToCompletion);
+                case MultiplayerUserState.Loaded:
+                    // block base call, but let the server know we are ready to start.
+                    loadingDisplay.Show();
+                    client.ChangeState(MultiplayerUserState.ReadyToStart).ContinueWith(task => failAndBail(task.Exception?.Message ?? "Server error"), TaskContinuationOptions.NotOnRanToCompletion);
+                    break;
+            }
         }
 
         private void failAndBail(string message = null)
