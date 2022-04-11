@@ -13,7 +13,6 @@ using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
@@ -100,19 +99,19 @@ namespace osu.Game.Tests.Visual.Multiplayer
             addItemStep();
             addItemStep();
 
-            AddStep("finish current item", () => MultiplayerClient.FinishCurrentItem().WaitSafely());
+            AddStep("finish current item", () => MultiplayerServer.FinishCurrentItem().WaitSafely());
 
             assertItemInHistoryListStep(1, 0);
             assertItemInQueueListStep(2, 0);
             assertItemInQueueListStep(3, 1);
 
-            AddStep("finish current item", () => MultiplayerClient.FinishCurrentItem().WaitSafely());
+            AddStep("finish current item", () => MultiplayerServer.FinishCurrentItem().WaitSafely());
 
             assertItemInHistoryListStep(2, 0);
             assertItemInHistoryListStep(1, 1);
             assertItemInQueueListStep(3, 0);
 
-            AddStep("finish current item", () => MultiplayerClient.FinishCurrentItem().WaitSafely());
+            AddStep("finish current item", () => MultiplayerServer.FinishCurrentItem().WaitSafely());
 
             assertItemInHistoryListStep(3, 0);
             assertItemInHistoryListStep(2, 1);
@@ -123,7 +122,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public void TestListsClearedWhenRoomLeft()
         {
             addItemStep();
-            AddStep("finish current item", () => MultiplayerClient.FinishCurrentItem().WaitSafely());
+            AddStep("finish current item", () => MultiplayerServer.FinishCurrentItem().WaitSafely());
 
             AddStep("leave room", () => RoomManager.PartRoom());
             AddUntilStep("wait for room part", () => !RoomJoined);
@@ -143,7 +142,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             addItemStep();
             assertQueueTabCount(3);
 
-            AddStep("finish current item", () => MultiplayerClient.FinishCurrentItem().WaitSafely());
+            AddStep("finish current item", () => MultiplayerServer.FinishCurrentItem().WaitSafely());
             assertQueueTabCount(2);
 
             AddStep("leave room", () => RoomManager.PartRoom());
@@ -200,7 +199,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("get drawable items", () => drawableItems = this.ChildrenOfType<DrawableRoomPlaylistItem>().ToArray());
 
             // Add 1 item for another user.
-            AddStep("join second user", () => MultiplayerClient.AddUser(new APIUser { Id = 10 }));
+            AddStep("join second user", () => MultiplayerServer.AddUser(10));
             addItemStep(userId: 10);
 
             // New item inserted towards the top of the list.
@@ -213,7 +212,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         /// </summary>
         private void addItemStep(bool expired = false, int? userId = null) => AddStep("add item", () =>
         {
-            MultiplayerClient.AddUserPlaylistItem(userId ?? API.LocalUser.Value.OnlineID, new MultiplayerPlaylistItem(new PlaylistItem(importedBeatmap)
+            MultiplayerServer.AddUserPlaylistItem(userId ?? API.LocalUser.Value.OnlineID, new MultiplayerPlaylistItem(new PlaylistItem(importedBeatmap)
             {
                 Expired = expired,
                 PlayedAt = DateTimeOffset.Now

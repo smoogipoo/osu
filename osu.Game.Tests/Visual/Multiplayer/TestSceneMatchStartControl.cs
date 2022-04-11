@@ -16,7 +16,6 @@ using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterface;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Rooms;
@@ -85,7 +84,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("finish countdown", () => MultiplayerClient.SkipToEndOfCountdown());
+            AddStep("finish countdown", () => MultiplayerServer.SkipToEndOfCountdown());
             AddUntilStep("match started", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.WaitingForLoad);
         }
 
@@ -110,7 +109,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("finish countdown", () => MultiplayerClient.SkipToEndOfCountdown());
+            AddStep("finish countdown", () => MultiplayerServer.SkipToEndOfCountdown());
             AddUntilStep("match not started", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.Ready);
         }
 
@@ -119,7 +118,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add second user as host", () =>
             {
-                MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                MultiplayerServer.AddUser(2);
                 MultiplayerClient.TransferHost(2);
             });
 
@@ -135,16 +134,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestCountdownWhileSpectating()
         {
-            AddStep("set spectating", () => MultiplayerClient.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
+            AddStep("set spectating", () => MultiplayerServer.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
             AddUntilStep("local user is spectating", () => MultiplayerClient.LocalUser?.State == MultiplayerUserState.Spectating);
 
             AddAssert("countdown button is visible", () => this.ChildrenOfType<MultiplayerCountdownButton>().Single().IsPresent);
             AddAssert("countdown button enabled", () => this.ChildrenOfType<MultiplayerCountdownButton>().Single().Enabled.Value);
 
-            AddStep("add second user", () => MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" }));
+            AddStep("add second user", () => MultiplayerServer.AddUser(2));
             AddAssert("countdown button enabled", () => this.ChildrenOfType<MultiplayerCountdownButton>().Single().Enabled.Value);
 
-            AddStep("set second user ready", () => MultiplayerClient.ChangeUserState(2, MultiplayerUserState.Ready));
+            AddStep("set second user ready", () => MultiplayerServer.ChangeUserState(2, MultiplayerUserState.Ready));
             AddAssert("countdown button enabled", () => this.ChildrenOfType<MultiplayerCountdownButton>().Single().Enabled.Value);
         }
 
@@ -153,7 +152,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add second user as host", () =>
             {
-                MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                MultiplayerServer.AddUser(2);
                 MultiplayerClient.TransferHost(2);
             });
 
@@ -215,7 +214,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add second user as host", () =>
             {
-                MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                MultiplayerServer.AddUser(2);
                 MultiplayerClient.TransferHost(2);
             });
 
@@ -235,7 +234,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 MultiplayerClient.TransferHost(MultiplayerClient.Room?.Users[0].UserID ?? 0);
 
                 if (!allReady)
-                    MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                    MultiplayerServer.AddUser(2);
             });
 
             ClickButtonWhenEnabled<MultiplayerReadyButton>();
@@ -249,7 +248,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add host", () =>
             {
-                MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                MultiplayerServer.AddUser(2);
                 MultiplayerClient.TransferHost(2);
             });
 
@@ -265,7 +264,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("setup", () =>
             {
                 MultiplayerClient.TransferHost(MultiplayerClient.Room?.Users[0].UserID ?? 0);
-                MultiplayerClient.AddUser(new APIUser { Id = 2, Username = "Another user" });
+                MultiplayerServer.AddUser(2);
             });
 
             ClickButtonWhenEnabled<MultiplayerReadyButton>();
@@ -287,7 +286,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 MultiplayerClient.TransferHost(MultiplayerClient.Room?.Users[0].UserID ?? 0);
                 for (int i = 0; i < users; i++)
-                    MultiplayerClient.AddUser(new APIUser { Id = i, Username = "Another user" });
+                    MultiplayerServer.AddUser(i);
             });
 
             if (!isHost)
@@ -297,14 +296,14 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddRepeatStep("change user ready state", () =>
             {
-                MultiplayerClient.ChangeUserState(RNG.Next(0, users), RNG.NextBool() ? MultiplayerUserState.Ready : MultiplayerUserState.Idle);
+                MultiplayerServer.ChangeUserState(RNG.Next(0, users), RNG.NextBool() ? MultiplayerUserState.Ready : MultiplayerUserState.Idle);
             }, 20);
 
             AddRepeatStep("ready all users", () =>
             {
                 var nextUnready = MultiplayerClient.Room?.Users.FirstOrDefault(c => c.State == MultiplayerUserState.Idle);
                 if (nextUnready != null)
-                    MultiplayerClient.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Ready);
+                    MultiplayerServer.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Ready);
             }, users);
         }
 
@@ -316,8 +315,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("finish gameplay", () =>
             {
-                MultiplayerClient.ChangeUserState(MultiplayerClient.Room?.Users[0].UserID ?? 0, MultiplayerUserState.Loaded);
-                MultiplayerClient.ChangeUserState(MultiplayerClient.Room?.Users[0].UserID ?? 0, MultiplayerUserState.FinishedPlay);
+                MultiplayerServer.ChangeUserState(MultiplayerClient.Room?.Users[0].UserID ?? 0, MultiplayerUserState.Loaded);
+                MultiplayerServer.ChangeUserState(MultiplayerClient.Room?.Users[0].UserID ?? 0, MultiplayerUserState.FinishedPlay);
             });
 
             AddUntilStep("ready button enabled", () => control.ChildrenOfType<OsuButton>().Single().Enabled.Value);

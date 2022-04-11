@@ -3,7 +3,6 @@
 
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -25,14 +24,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add user", () =>
             {
-                MultiplayerClient.AddUser(new APIUser
-                {
-                    Id = 2,
-                    Statistics = { GlobalRank = 1234 }
-                });
+                MultiplayerServer.AddUser(2);
 
                 // Remove the local user so only the one above is displayed.
-                MultiplayerClient.RemoveUser(API.LocalUser.Value);
+                MultiplayerServer.RemoveUser(API.LocalUser.Value.Id);
             });
         }
 
@@ -41,26 +36,14 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add users", () =>
             {
-                MultiplayerClient.AddUser(new APIUser
-                {
-                    Id = 2,
-                    Statistics = { GlobalRank = 1234 }
-                });
+                MultiplayerServer.AddUser(2);
 
-                MultiplayerClient.AddUser(new APIUser
-                {
-                    Id = 3,
-                    Statistics = { GlobalRank = 3333 }
-                });
+                MultiplayerServer.AddUser(3);
 
-                MultiplayerClient.AddUser(new APIUser
-                {
-                    Id = 4,
-                    Statistics = { GlobalRank = 4321 }
-                });
+                MultiplayerServer.AddUser(4);
 
                 // Remove the local user so only the ones above are displayed.
-                MultiplayerClient.RemoveUser(API.LocalUser.Value);
+                MultiplayerServer.RemoveUser(API.LocalUser.Value.Id);
             });
         }
 
@@ -75,20 +58,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add users", () =>
             {
-                MultiplayerClient.AddUser(new APIUser
-                {
-                    Id = 2,
-                    Statistics = { GlobalRank = min }
-                });
+                MultiplayerServer.AddUser(2);
 
-                MultiplayerClient.AddUser(new APIUser
-                {
-                    Id = 3,
-                    Statistics = { GlobalRank = max }
-                });
+                MultiplayerServer.AddUser(3);
 
                 // Remove the local user so only the ones above are displayed.
-                MultiplayerClient.RemoveUser(API.LocalUser.Value);
+                MultiplayerServer.RemoveUser(API.LocalUser.Value.Id);
             });
         }
     }

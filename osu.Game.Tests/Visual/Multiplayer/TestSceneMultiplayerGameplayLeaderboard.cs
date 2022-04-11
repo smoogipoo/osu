@@ -7,12 +7,10 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Online.API;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
@@ -59,7 +57,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 foreach (int user in users)
                 {
                     SpectatorClient.SendStartPlay(user, Beatmap.Value.BeatmapInfo.OnlineID);
-                    multiplayerUsers.Add(OnlinePlayDependencies.MultiplayerClient.AddUser(new APIUser { Id = user }, true));
+                    // Todo:
+                    // multiplayerUsers.Add(OnlinePlayDependencies.MultiplayerServer.AddUser(user, true));
                 }
 
                 Children = new Drawable[]
@@ -91,7 +90,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public void TestUserQuit()
         {
             foreach (int user in users)
-                AddStep($"mark user {user} quit", () => MultiplayerClient.RemoveUser(UserLookupCache.GetUserAsync(user).GetResultSafely().AsNonNull()));
+                AddStep($"mark user {user} quit", () => MultiplayerServer.RemoveUser(user));
         }
 
         [Test]
@@ -102,11 +101,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("change to standardised", () => config.SetValue(OsuSetting.ScoreDisplayMode, ScoringMode.Standardised));
         }
 
-        protected override OnlinePlayTestSceneDependencies CreateOnlinePlayDependencies() => new TestDependencies();
+        protected override OnlinePlayTestSceneDependencies CreateOnlinePlayDependencies() => new TestDependencies(API);
 
         protected class TestDependencies : MultiplayerTestSceneDependencies
         {
             protected override TestSpectatorClient CreateSpectatorClient() => new TestMultiplayerSpectatorClient();
+
+            public TestDependencies(IAPIProvider api)
+                : base(api)
+            {
+            }
         }
 
         public class TestMultiplayerSpectatorClient : TestSpectatorClient

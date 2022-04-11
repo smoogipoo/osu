@@ -41,6 +41,8 @@ namespace osu.Game.Tests.Visual
         [Cached(typeof(MultiplayerClient))]
         public readonly TestMultiplayerClient MultiplayerClient;
 
+        public TestMultiplayerServer MultiplayerServer { get; private set; }
+
         [Cached(typeof(UserLookupCache))]
         private readonly UserLookupCache userLookupCache = new TestUserLookupCache();
 
@@ -61,7 +63,7 @@ namespace osu.Game.Tests.Visual
             {
                 userLookupCache,
                 beatmapLookupCache,
-                MultiplayerClient = new TestMultiplayerClient(RoomManager),
+                MultiplayerClient = new TestMultiplayerClient(),
                 screenStack = new OsuScreenStack
                 {
                     Name = nameof(TestMultiplayerComponents),
@@ -75,6 +77,9 @@ namespace osu.Game.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(IAPIProvider api)
         {
+            MultiplayerServer = new TestMultiplayerServer(multiplayerScreen.RequestsHandler, api, MultiplayerClient);
+            MultiplayerClient.Server = MultiplayerServer;
+
             ((DummyAPIAccess)api).HandleRequest = request => multiplayerScreen.RequestsHandler.HandleRequest(request, api.LocalUser.Value, beatmapManager);
         }
 

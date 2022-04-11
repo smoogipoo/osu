@@ -4,7 +4,6 @@
 using System.Linq;
 using Humanizer;
 using NUnit.Framework;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Testing;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
@@ -21,7 +20,7 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
         {
             var user = new APIUser { Id = 33 };
 
-            AddRepeatStep("add user multiple times", () => MultiplayerClient.AddUser(user), 3);
+            AddRepeatStep("add user multiple times", () => MultiplayerServer.AddUser(user.Id), 3);
             AddAssert("room has 2 users", () => MultiplayerClient.Room?.Users.Count == 2);
         }
 
@@ -30,10 +29,10 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
         {
             var user = new APIUser { Id = 44 };
 
-            AddStep("add user", () => MultiplayerClient.AddUser(user));
+            AddStep("add user", () => MultiplayerServer.AddUser(user.Id));
             AddAssert("room has 2 users", () => MultiplayerClient.Room?.Users.Count == 2);
 
-            AddRepeatStep("remove user multiple times", () => MultiplayerClient.RemoveUser(user), 3);
+            AddRepeatStep("remove user multiple times", () => MultiplayerServer.RemoveUser(user.Id), 3);
             AddAssert("room has 1 user", () => MultiplayerClient.Room?.Users.Count == 1);
         }
 
@@ -42,7 +41,7 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
         {
             int id = 2000;
 
-            AddRepeatStep("add some users", () => MultiplayerClient.AddUser(new APIUser { Id = id++ }), 5);
+            AddRepeatStep("add some users", () => MultiplayerServer.AddUser(id++), 5);
             checkPlayingUserCount(0);
 
             changeState(3, MultiplayerUserState.WaitingForLoad);
@@ -57,7 +56,7 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
             changeState(6, MultiplayerUserState.WaitingForLoad);
             checkPlayingUserCount(6);
 
-            AddStep("another user left", () => MultiplayerClient.RemoveUser((MultiplayerClient.Room?.Users.Last().User).AsNonNull()));
+            AddStep("another user left", () => MultiplayerServer.RemoveUser(MultiplayerClient.Room!.Users.Last().UserID));
             checkPlayingUserCount(5);
 
             AddStep("leave room", () => MultiplayerClient.LeaveRoom());
@@ -102,7 +101,7 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
                 for (int i = 0; i < userCount; ++i)
                 {
                     int userId = MultiplayerClient.Room?.Users[i].UserID ?? throw new AssertionException("Room cannot be null!");
-                    MultiplayerClient.ChangeUserState(userId, state);
+                    MultiplayerServer.ChangeUserState(userId, state);
                 }
             });
     }

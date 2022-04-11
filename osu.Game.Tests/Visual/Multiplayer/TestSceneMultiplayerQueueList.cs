@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
@@ -82,7 +81,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("set all players queue mode", () => MultiplayerClient.ChangeSettings(new MultiplayerRoomSettings { QueueMode = QueueMode.AllPlayers }).WaitSafely());
             AddUntilStep("wait for queue mode change", () => MultiplayerClient.APIRoom?.QueueMode.Value == QueueMode.AllPlayers);
 
-            AddStep("join other user", () => MultiplayerClient.AddUser(new APIUser { Id = 1234 }));
+            AddStep("join other user", () => MultiplayerServer.AddUser(1234));
             AddStep("set other user as host", () => MultiplayerClient.TransferHost(1234));
 
             addPlaylistItem(() => API.LocalUser.Value.OnlineID);
@@ -106,7 +105,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             assertDeleteButtonVisibility(0, false);
             assertDeleteButtonVisibility(1, true);
 
-            AddStep("finish current item", () => MultiplayerClient.FinishCurrentItem().WaitSafely());
+            AddStep("finish current item", () => MultiplayerServer.FinishCurrentItem().WaitSafely());
             AddUntilStep("wait for next item to be selected", () => MultiplayerClient.Room?.Settings.PlaylistItemId == 2);
             AddUntilStep("wait for two items in playlist", () => playlist.ChildrenOfType<DrawableRoomPlaylistItem>().Count() == 2);
 
@@ -122,7 +121,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 MultiplayerPlaylistItem item = new MultiplayerPlaylistItem(new PlaylistItem(importedBeatmap));
 
-                MultiplayerClient.AddUserPlaylistItem(userId(), item).WaitSafely();
+                MultiplayerServer.AddUserPlaylistItem(userId(), item).WaitSafely();
 
                 itemId = item.ID;
             });

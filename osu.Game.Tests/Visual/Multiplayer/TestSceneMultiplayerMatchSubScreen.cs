@@ -11,7 +11,6 @@ using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays.Mods;
@@ -100,7 +99,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddUntilStep("wait for join", () => RoomJoined);
 
-            AddStep("select swap mod", () => MultiplayerClient.ChangeUserMods(API.LocalUser.Value.OnlineID, new[] { new TaikoModSwap() }));
+            AddStep("select swap mod", () => MultiplayerServer.ChangeUserMods(API.LocalUser.Value.OnlineID, new[] { new TaikoModSwap() }));
             AddUntilStep("participant panel has mod", () => this.ChildrenOfType<ParticipantPanel>().Any(p => p.ChildrenOfType<ModIcon>().Any(m => m.Mod is TaikoModSwap)));
         }
 
@@ -137,8 +136,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("join other user (ready)", () =>
             {
-                MultiplayerClient.AddUser(new APIUser { Id = PLAYER_1_ID });
-                MultiplayerClient.ChangeUserState(PLAYER_1_ID, MultiplayerUserState.Ready);
+                MultiplayerServer.AddUser(PLAYER_1_ID);
+                MultiplayerServer.ChangeUserState(PLAYER_1_ID, MultiplayerUserState.Ready);
             });
 
             ClickButtonWhenEnabled<MultiplayerSpectateButton>();

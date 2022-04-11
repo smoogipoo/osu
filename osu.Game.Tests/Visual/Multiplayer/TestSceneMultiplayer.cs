@@ -54,6 +54,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private TestMultiplayerComponents multiplayerComponents;
 
         private TestMultiplayerClient multiplayerClient => multiplayerComponents.MultiplayerClient;
+        private TestMultiplayerServer multiplayerServer => multiplayerComponents.MultiplayerServer;
         private TestMultiplayerRoomManager roomManager => multiplayerComponents.RoomManager;
 
         [BackgroundDependencyLoader]
@@ -111,7 +112,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 var nextUnready = multiplayerClient.Room?.Users.FirstOrDefault(c => c.State == MultiplayerUserState.Idle);
                 if (nextUnready != null)
-                    multiplayerClient.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Ready);
+                    multiplayerServer.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Ready);
 
                 return multiplayerClient.Room?.Users.All(u => u.State == MultiplayerUserState.Ready) == true;
             });
@@ -120,21 +121,20 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 Debug.Assert(multiplayerClient.Room != null);
 
-                foreach (var u in multiplayerClient.Room.Users) multiplayerClient.ChangeUserState(u.UserID, MultiplayerUserState.Idle);
+                foreach (var u in multiplayerClient.Room.Users) multiplayerServer.ChangeUserState(u.UserID, MultiplayerUserState.Idle);
             });
 
             AddStep("ready all players at once", () =>
             {
                 Debug.Assert(multiplayerClient.Room != null);
 
-                foreach (var u in multiplayerClient.Room.Users) multiplayerClient.ChangeUserState(u.UserID, MultiplayerUserState.Ready);
+                foreach (var u in multiplayerClient.Room.Users) multiplayerServer.ChangeUserState(u.UserID, MultiplayerUserState.Ready);
             });
         }
 
         private void addRandomPlayer()
         {
-            int randomUser = RNG.Next(200000, 500000);
-            multiplayerClient.AddUser(new APIUser { Id = randomUser, Username = $"user {randomUser}" });
+            multiplayerServer.AddUser(RNG.Next(200000, 500000));
         }
 
         private void removeLastUser()
@@ -144,7 +144,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             if (lastUser == null || lastUser == multiplayerClient.LocalUser?.User)
                 return;
 
-            multiplayerClient.RemoveUser(lastUser);
+            multiplayerServer.RemoveUser(lastUser.Id);
         }
 
         private void kickLastUser()
@@ -161,14 +161,14 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             var nextUnready = multiplayerClient.Room?.Users.FirstOrDefault(c => c.State == MultiplayerUserState.Idle);
             if (nextUnready != null)
-                multiplayerClient.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Ready);
+                multiplayerServer.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Ready);
         }
 
         private void markNextPlayerIdle()
         {
             var nextUnready = multiplayerClient.Room?.Users.FirstOrDefault(c => c.State == MultiplayerUserState.Ready);
             if (nextUnready != null)
-                multiplayerClient.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Idle);
+                multiplayerServer.ChangeUserState(nextUnready.UserID, MultiplayerUserState.Idle);
         }
 
         private void performRandomAction()
@@ -525,9 +525,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("join other user (ready, host)", () =>
             {
-                multiplayerClient.AddUser(new APIUser { Id = MultiplayerTestScene.PLAYER_1_ID, Username = "Other" });
+                multiplayerServer.AddUser(MultiplayerTestScene.PLAYER_1_ID);
                 multiplayerClient.TransferHost(MultiplayerTestScene.PLAYER_1_ID);
-                multiplayerClient.ChangeUserState(MultiplayerTestScene.PLAYER_1_ID, MultiplayerUserState.Ready);
+                multiplayerServer.ChangeUserState(MultiplayerTestScene.PLAYER_1_ID, MultiplayerUserState.Ready);
             });
 
             AddStep("delete beatmap", () => beatmaps.Delete(importedSet));
@@ -560,9 +560,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("join other user (ready, host)", () =>
             {
-                multiplayerClient.AddUser(new APIUser { Id = MultiplayerTestScene.PLAYER_1_ID, Username = "Other" });
+                multiplayerServer.AddUser(MultiplayerTestScene.PLAYER_1_ID);
                 multiplayerClient.TransferHost(MultiplayerTestScene.PLAYER_1_ID);
-                multiplayerClient.ChangeUserState(MultiplayerTestScene.PLAYER_1_ID, MultiplayerUserState.Ready);
+                multiplayerServer.ChangeUserState(MultiplayerTestScene.PLAYER_1_ID, MultiplayerUserState.Ready);
             });
 
             ClickButtonWhenEnabled<MultiplayerSpectateButton>();
@@ -727,11 +727,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }
             });
 
-            AddStep("set spectating state", () => multiplayerClient.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
+            AddStep("set spectating state", () => multiplayerServer.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
             AddUntilStep("state set to spectating", () => multiplayerClient.LocalUser?.State == MultiplayerUserState.Spectating);
 
-            AddStep("join other user", () => multiplayerClient.AddUser(new APIUser { Id = 1234 }));
-            AddStep("set other user ready", () => multiplayerClient.ChangeUserState(1234, MultiplayerUserState.Ready));
+            AddStep("join other user", () => multiplayerServer.AddUser(1234));
+            AddStep("set other user ready", () => multiplayerServer.ChangeUserState(1234, MultiplayerUserState.Ready));
 
             pressReadyButton(1234);
             AddUntilStep("wait for gameplay", () => (multiplayerComponents.CurrentScreen as MultiSpectatorScreen)?.IsLoaded == true);
@@ -762,16 +762,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }
             });
 
-            AddStep("set spectating state", () => multiplayerClient.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
+            AddStep("set spectating state", () => multiplayerServer.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
             AddUntilStep("state set to spectating", () => multiplayerClient.LocalUser?.State == MultiplayerUserState.Spectating);
 
-            AddStep("join other user", () => multiplayerClient.AddUser(new APIUser { Id = 1234 }));
-            AddStep("set other user ready", () => multiplayerClient.ChangeUserState(1234, MultiplayerUserState.Ready));
+            AddStep("join other user", () => multiplayerServer.AddUser(1234));
+            AddStep("set other user ready", () => multiplayerServer.ChangeUserState(1234, MultiplayerUserState.Ready));
 
             pressReadyButton(1234);
             AddUntilStep("wait for gameplay", () => (multiplayerComponents.CurrentScreen as MultiSpectatorScreen)?.IsLoaded == true);
-            AddStep("set other user loaded", () => multiplayerClient.ChangeUserState(1234, MultiplayerUserState.Loaded));
-            AddStep("set other user finished play", () => multiplayerClient.ChangeUserState(1234, MultiplayerUserState.FinishedPlay));
+            AddStep("set other user loaded", () => multiplayerServer.ChangeUserState(1234, MultiplayerUserState.Loaded));
+            AddStep("set other user finished play", () => multiplayerServer.ChangeUserState(1234, MultiplayerUserState.FinishedPlay));
 
             AddStep("press back button and exit", () =>
             {
@@ -801,8 +801,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
 
             enterGameplay();
-            AddStep("join other user", () => multiplayerClient.AddUser(new APIUser { Id = 1234 }));
-            AddStep("add item as other user", () => multiplayerClient.AddUserPlaylistItem(1234, new MultiplayerPlaylistItem(
+            AddStep("join other user", () => multiplayerServer.AddUser(1234));
+            AddStep("add item as other user", () => multiplayerServer.AddUserPlaylistItem(1234, new MultiplayerPlaylistItem(
                 new PlaylistItem(beatmaps.GetWorkingBeatmap(importedSet.Beatmaps.First(b => b.Ruleset.OnlineID == 0)).BeatmapInfo)
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID,
@@ -832,8 +832,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             enterGameplay();
 
-            AddStep("join other user", () => multiplayerClient.AddUser(new APIUser { Id = 1234 }));
-            AddStep("add item as other user", () => multiplayerClient.AddUserPlaylistItem(1234, new MultiplayerPlaylistItem(
+            AddStep("join other user", () => multiplayerServer.AddUser(1234));
+            AddStep("add item as other user", () => multiplayerServer.AddUserPlaylistItem(1234, new MultiplayerPlaylistItem(
                 new PlaylistItem(beatmaps.GetWorkingBeatmap(importedSet.Beatmaps.First(b => b.Ruleset.OnlineID == 0)).BeatmapInfo)
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID,
@@ -841,7 +841,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddUntilStep("item arrived in playlist", () => multiplayerClient.Room?.Playlist.Count == 2);
 
-            AddStep("delete item as other user", () => multiplayerClient.RemoveUserPlaylistItem(1234, 2).WaitSafely());
+            AddStep("delete item as other user", () => multiplayerServer.RemoveUserPlaylistItem(1234, 2).WaitSafely());
             AddUntilStep("item removed from playlist", () => multiplayerClient.Room?.Playlist.Count == 1);
 
             AddStep("exit gameplay as initial user", () => multiplayerComponents.MultiplayerScreen.MakeCurrent());
@@ -865,16 +865,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("join other user and make host", () =>
             {
-                multiplayerClient.AddUser(new APIUser { Id = 1234 });
+                multiplayerServer.AddUser(1234);
                 multiplayerClient.TransferHost(1234);
             });
 
-            AddStep("set local user spectating", () => multiplayerClient.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
+            AddStep("set local user spectating", () => multiplayerServer.ChangeUserState(API.LocalUser.Value.OnlineID, MultiplayerUserState.Spectating));
             AddUntilStep("wait for spectating state", () => multiplayerClient.LocalUser?.State == MultiplayerUserState.Spectating);
 
             runGameplay();
 
-            AddStep("exit gameplay for other user", () => multiplayerClient.ChangeUserState(1234, MultiplayerUserState.Idle));
+            AddStep("exit gameplay for other user", () => multiplayerServer.ChangeUserState(1234, MultiplayerUserState.Idle));
             AddUntilStep("wait for room to be idle", () => multiplayerClient.Room?.State == MultiplayerRoomState.Open);
 
             runGameplay();
@@ -883,12 +883,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 AddStep("start match by other user", () =>
                 {
-                    multiplayerClient.ChangeUserState(1234, MultiplayerUserState.Ready);
+                    multiplayerServer.ChangeUserState(1234, MultiplayerUserState.Ready);
                     multiplayerClient.StartMatch().WaitSafely();
                 });
 
                 AddUntilStep("wait for loading", () => multiplayerClient.Room?.State == MultiplayerRoomState.WaitingForLoad);
-                AddStep("set player loaded", () => multiplayerClient.ChangeUserState(1234, MultiplayerUserState.Loaded));
+                AddStep("set player loaded", () => multiplayerServer.ChangeUserState(1234, MultiplayerUserState.Loaded));
                 AddUntilStep("wait for gameplay to start", () => multiplayerClient.Room?.State == MultiplayerRoomState.Playing);
                 AddUntilStep("wait for local user to enter spectator", () => multiplayerComponents.CurrentScreen is MultiSpectatorScreen);
             }

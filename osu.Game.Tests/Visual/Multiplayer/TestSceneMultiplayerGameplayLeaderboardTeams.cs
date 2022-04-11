@@ -6,11 +6,8 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
-using osu.Framework.Utils;
 using osu.Game.Online.API;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
@@ -27,11 +24,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public new TestSceneMultiplayerGameplayLeaderboard.TestMultiplayerSpectatorClient SpectatorClient =>
             (TestSceneMultiplayerGameplayLeaderboard.TestMultiplayerSpectatorClient)OnlinePlayDependencies?.SpectatorClient;
 
-        protected override OnlinePlayTestSceneDependencies CreateOnlinePlayDependencies() => new TestDependencies();
+        protected override OnlinePlayTestSceneDependencies CreateOnlinePlayDependencies() => new TestDependencies(API);
 
         protected class TestDependencies : MultiplayerTestSceneDependencies
         {
             protected override TestSpectatorClient CreateSpectatorClient() => new TestSceneMultiplayerGameplayLeaderboard.TestMultiplayerSpectatorClient();
+
+            public TestDependencies(IAPIProvider api)
+                : base(api)
+            {
+            }
         }
 
         private MultiplayerGameplayLeaderboard leaderboard;
@@ -63,14 +65,15 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 foreach (int user in users)
                 {
                     SpectatorClient.SendStartPlay(user, Beatmap.Value.BeatmapInfo.OnlineID);
-                    var roomUser = OnlinePlayDependencies.MultiplayerClient.AddUser(new APIUser { Id = user }, true);
-
-                    roomUser.MatchState = new TeamVersusUserState
-                    {
-                        TeamID = RNG.Next(0, 2)
-                    };
-
-                    multiplayerUsers.Add(roomUser);
+                    // Todo:
+                    // var roomUser = OnlinePlayDependencies.MultiplayerServer.AddUser(new APIUser { Id = user }, true);
+                    //
+                    // roomUser.MatchState = new TeamVersusUserState
+                    // {
+                    //     TeamID = RNG.Next(0, 2)
+                    // };
+                    //
+                    // multiplayerUsers.Add(roomUser);
                 }
 
                 Children = new Drawable[]

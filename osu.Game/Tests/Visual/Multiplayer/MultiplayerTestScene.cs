@@ -18,6 +18,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public const int PLAYER_2_ID = 56;
 
         public TestMultiplayerClient MultiplayerClient => OnlinePlayDependencies.MultiplayerClient;
+        public TestMultiplayerServer MultiplayerServer => OnlinePlayDependencies.MultiplayerServer;
         public new TestMultiplayerRoomManager RoomManager => OnlinePlayDependencies.RoomManager;
         public TestSpectatorClient SpectatorClient => OnlinePlayDependencies?.SpectatorClient;
 
@@ -65,6 +66,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
             }
         }
 
-        protected override OnlinePlayTestSceneDependencies CreateOnlinePlayDependencies() => new MultiplayerTestSceneDependencies();
+        protected override OnlinePlayTestSceneDependencies CreateOnlinePlayDependencies() => new MultiplayerTestSceneDependencies(API);
     }
 }

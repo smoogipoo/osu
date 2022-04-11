@@ -6,7 +6,6 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
@@ -35,7 +34,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 foreach ((int userId, var _) in clocks)
                 {
                     SpectatorClient.SendStartPlay(userId, 0);
-                    OnlinePlayDependencies.MultiplayerClient.AddUser(new APIUser { Id = userId });
+                    OnlinePlayDependencies.MultiplayerServer.AddUser(userId);
                 }
             });
 
