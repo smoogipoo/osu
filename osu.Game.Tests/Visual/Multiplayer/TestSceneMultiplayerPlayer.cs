@@ -5,7 +5,6 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
@@ -35,7 +34,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
 
             AddUntilStep("wait for player to be current", () => player.IsCurrentScreen() && player.IsLoaded);
-            AddStep("start gameplay", () => ((IMultiplayerClient)MultiplayerClient).MatchStarted());
+            AddStep("start gameplay", () => MultiplayerServer.StartMatch());
         }
 
         [Test]

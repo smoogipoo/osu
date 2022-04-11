@@ -23,6 +23,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 {
     public class TestMultiplayerServer : IMultiplayerRoomServer, IMultiplayerLoungeServer
     {
+        public Action<MultiplayerRoom>? RoomSetupAction;
+
         private readonly TestRoomRequestsHandler requestsHandler;
         private readonly IAPIProvider api;
         private readonly IMultiplayerClient client;
@@ -253,6 +255,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             await updatePlaylistOrder().ConfigureAwait(false);
             await updateCurrentItem(false).ConfigureAwait(false);
+
+            RoomSetupAction?.Invoke(multiplayerRoom);
+            RoomSetupAction = null;
 
             var settings = new JsonSerializerSettings
             {

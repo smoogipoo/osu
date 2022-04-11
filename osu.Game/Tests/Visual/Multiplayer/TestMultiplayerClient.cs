@@ -3,7 +3,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Bindables;
@@ -25,8 +24,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         public bool RoomJoined { get; private set; }
         public TestMultiplayerServer Server { get; set; } = null!;
-
-        public Action<MultiplayerRoom>? RoomSetupAction;
 
         public void Connect() => isConnected.Value = true;
 

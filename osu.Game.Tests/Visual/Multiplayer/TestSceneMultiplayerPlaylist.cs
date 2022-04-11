@@ -62,7 +62,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 importedBeatmap = importedSet.Beatmaps.First(b => b.Ruleset.OnlineID == 0);
             });
 
-            AddStep("change to all players mode", () => MultiplayerClient.ChangeSettings(new MultiplayerRoomSettings { QueueMode = QueueMode.AllPlayers }).WaitSafely());
+            AddStep("change to all players mode", () => MultiplayerServer.ChangeSettings(new MultiplayerRoomSettings { QueueMode = QueueMode.AllPlayers }).WaitSafely());
         }
 
         [Test]
@@ -186,7 +186,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestInsertedItemDoesNotRefreshAllOthers()
         {
-            AddStep("change to round robin queue mode", () => MultiplayerClient.ChangeSettings(new MultiplayerRoomSettings { QueueMode = QueueMode.AllPlayersRoundRobin }).WaitSafely());
+            AddStep("change to round robin queue mode", () => MultiplayerServer.ChangeSettings(new MultiplayerRoomSettings { QueueMode = QueueMode.AllPlayersRoundRobin }).WaitSafely());
 
             // Add a few items for the local user.
             addItemStep();

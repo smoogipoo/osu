@@ -59,14 +59,14 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
             AddStep("another user left", () => MultiplayerServer.RemoveUser(MultiplayerClient.Room!.Users.Last().UserID));
             checkPlayingUserCount(5);
 
-            AddStep("leave room", () => MultiplayerClient.LeaveRoom());
+            AddStep("leave room", () => MultiplayerServer.LeaveRoom());
             checkPlayingUserCount(0);
         }
 
         [Test]
         public void TestPlayingUsersUpdatedOnJoin()
         {
-            AddStep("leave room", () => MultiplayerClient.LeaveRoom());
+            AddStep("leave room", () => MultiplayerServer.LeaveRoom());
             AddUntilStep("wait for room part", () => !RoomJoined);
 
             AddStep("create room initially in gameplay", () =>
@@ -75,7 +75,7 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
                 newRoom.CopyFrom(SelectedRoom.Value);
 
                 newRoom.RoomID.Value = null;
-                MultiplayerClient.RoomSetupAction = room =>
+                MultiplayerServer.RoomSetupAction = room =>
                 {
                     room.State = MultiplayerRoomState.Playing;
                     room.Users.Add(new MultiplayerRoomUser(PLAYER_1_ID)

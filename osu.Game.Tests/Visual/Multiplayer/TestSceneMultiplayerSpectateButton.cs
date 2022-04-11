@@ -132,7 +132,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("add user and transfer host", () =>
             {
                 MultiplayerServer.AddUser(PLAYER_1_ID);
-                MultiplayerClient.TransferHost(PLAYER_1_ID);
+                MultiplayerServer.TransferHost(PLAYER_1_ID);
             });
 
             AddStep("set user ready", () => MultiplayerServer.ChangeUserState(PLAYER_1_ID, MultiplayerUserState.Ready));

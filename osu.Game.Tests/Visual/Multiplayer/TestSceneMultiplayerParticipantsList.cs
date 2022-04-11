@@ -66,21 +66,21 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestGameStateHasPriorityOverDownloadState()
         {
-            AddStep("set to downloading map", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
+            AddStep("set to downloading map", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
             checkProgressBarVisibility(true);
 
-            AddStep("make user ready", () => MultiplayerClient.ChangeState(MultiplayerUserState.Results));
+            AddStep("make user ready", () => MultiplayerServer.ChangeState(MultiplayerUserState.Results));
             checkProgressBarVisibility(false);
             AddUntilStep("ready mark visible", () => this.ChildrenOfType<StateDisplay>().Single().IsPresent);
 
-            AddStep("make user ready", () => MultiplayerClient.ChangeState(MultiplayerUserState.Idle));
+            AddStep("make user ready", () => MultiplayerServer.ChangeState(MultiplayerUserState.Idle));
             checkProgressBarVisibility(true);
         }
 
         [Test]
         public void TestCorrectInitialState()
         {
-            AddStep("set to downloading map", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
+            AddStep("set to downloading map", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
             createNewParticipantsList();
             checkProgressBarVisibility(true);
         }
@@ -88,23 +88,23 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestBeatmapDownloadingStates()
         {
-            AddStep("set to no map", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.NotDownloaded()));
-            AddStep("set to downloading map", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
+            AddStep("set to no map", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.NotDownloaded()));
+            AddStep("set to downloading map", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
 
             checkProgressBarVisibility(true);
 
             AddRepeatStep("increment progress", () =>
             {
                 float progress = this.ChildrenOfType<ParticipantPanel>().Single().User.BeatmapAvailability.DownloadProgress ?? 0;
-                MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(progress + RNG.NextSingle(0.1f)));
+                MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(progress + RNG.NextSingle(0.1f)));
             }, 25);
 
             AddAssert("progress bar increased", () => this.ChildrenOfType<ProgressBar>().Single().Current.Value > 0);
 
-            AddStep("set to importing map", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Importing()));
+            AddStep("set to importing map", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.Importing()));
             checkProgressBarVisibility(false);
 
-            AddStep("set to available", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.LocallyAvailable()));
+            AddStep("set to available", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.LocallyAvailable()));
         }
 
         [Test]
@@ -112,18 +112,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddAssert("ready mark invisible", () => !this.ChildrenOfType<StateDisplay>().Single().IsPresent);
 
-            AddStep("make user ready", () => MultiplayerClient.ChangeState(MultiplayerUserState.Ready));
+            AddStep("make user ready", () => MultiplayerServer.ChangeState(MultiplayerUserState.Ready));
             AddUntilStep("ready mark visible", () => this.ChildrenOfType<StateDisplay>().Single().IsPresent);
 
-            AddStep("make user idle", () => MultiplayerClient.ChangeState(MultiplayerUserState.Idle));
+            AddStep("make user idle", () => MultiplayerServer.ChangeState(MultiplayerUserState.Idle));
             AddUntilStep("ready mark invisible", () => !this.ChildrenOfType<StateDisplay>().Single().IsPresent);
         }
 
         [Test]
         public void TestToggleSpectateState()
         {
-            AddStep("make user spectating", () => MultiplayerClient.ChangeState(MultiplayerUserState.Spectating));
-            AddStep("make user idle", () => MultiplayerClient.ChangeState(MultiplayerUserState.Idle));
+            AddStep("make user spectating", () => MultiplayerServer.ChangeState(MultiplayerUserState.Spectating));
+            AddStep("make user idle", () => MultiplayerServer.ChangeState(MultiplayerUserState.Idle));
         }
 
         [Test]
@@ -134,7 +134,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddUntilStep("first user crown visible", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(0).ChildrenOfType<SpriteIcon>().First().Alpha == 1);
             AddUntilStep("second user crown hidden", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(1).ChildrenOfType<SpriteIcon>().First().Alpha == 0);
 
-            AddStep("make second user host", () => MultiplayerClient.TransferHost(3));
+            AddStep("make second user host", () => MultiplayerServer.TransferHost(3));
 
             AddUntilStep("first user crown hidden", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(0).ChildrenOfType<SpriteIcon>().First().Alpha == 0);
             AddUntilStep("second user crown visible", () => this.ChildrenOfType<ParticipantPanel>().ElementAt(1).ChildrenOfType<SpriteIcon>().First().Alpha == 1);
@@ -145,7 +145,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add user", () => MultiplayerServer.AddUser(3));
 
-            AddStep("make second user host", () => MultiplayerClient.TransferHost(3));
+            AddStep("make second user host", () => MultiplayerServer.TransferHost(3));
             AddAssert("second user above first", () =>
             {
                 var first = this.ChildrenOfType<ParticipantPanel>().ElementAt(0);
@@ -161,11 +161,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddUntilStep("kick buttons visible", () => this.ChildrenOfType<ParticipantPanel.KickButton>().Count(d => d.IsPresent) == 1);
 
-            AddStep("make second user host", () => MultiplayerClient.TransferHost(3));
+            AddStep("make second user host", () => MultiplayerServer.TransferHost(3));
 
             AddUntilStep("kick buttons not visible", () => this.ChildrenOfType<ParticipantPanel.KickButton>().Count(d => d.IsPresent) == 0);
 
-            AddStep("make local user host again", () => MultiplayerClient.TransferHost(API.LocalUser.Value.Id));
+            AddStep("make local user host again", () => MultiplayerServer.TransferHost(API.LocalUser.Value.Id));
 
             AddUntilStep("kick buttons visible", () => this.ChildrenOfType<ParticipantPanel.KickButton>().Count(d => d.IsPresent) == 1);
         }
@@ -215,8 +215,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }
             });
 
-            AddRepeatStep("switch hosts", () => MultiplayerClient.TransferHost(RNG.Next(0, users_count)), 10);
-            AddStep("give host back", () => MultiplayerClient.TransferHost(API.LocalUser.Value.Id));
+            AddRepeatStep("switch hosts", () => MultiplayerServer.TransferHost(RNG.Next(0, users_count)), 10);
+            AddStep("give host back", () => MultiplayerServer.TransferHost(API.LocalUser.Value.Id));
         }
 
         [Test]
@@ -249,7 +249,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             AddStep("add dummy mods", () =>
             {
-                MultiplayerClient.ChangeUserMods(new Mod[]
+                MultiplayerServer.ChangeUserMods(0, new Mod[]
                 {
                     new OsuModNoFail(),
                     new OsuModDoubleTime()
@@ -266,27 +266,27 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 });
             });
 
-            AddStep("set 0 ready", () => MultiplayerClient.ChangeState(MultiplayerUserState.Ready));
+            AddStep("set 0 ready", () => MultiplayerServer.ChangeState(MultiplayerUserState.Ready));
 
             AddStep("set 1 spectate", () => MultiplayerServer.ChangeUserState(0, MultiplayerUserState.Spectating));
 
             // Have to set back to idle due to status priority.
             AddStep("set 0 no map, 1 ready", () =>
             {
-                MultiplayerClient.ChangeState(MultiplayerUserState.Idle);
-                MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.NotDownloaded());
+                MultiplayerServer.ChangeState(MultiplayerUserState.Idle);
+                MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.NotDownloaded());
                 MultiplayerServer.ChangeUserState(0, MultiplayerUserState.Ready);
             });
 
-            AddStep("set 0 downloading", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
+            AddStep("set 0 downloading", () => MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.Downloading(0)));
 
             AddStep("set 0 spectate", () => MultiplayerServer.ChangeUserState(0, MultiplayerUserState.Spectating));
 
             AddStep("make both default", () =>
             {
-                MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.LocallyAvailable());
+                MultiplayerServer.ChangeBeatmapAvailability(BeatmapAvailability.LocallyAvailable());
                 MultiplayerServer.ChangeUserState(0, MultiplayerUserState.Idle);
-                MultiplayerClient.ChangeState(MultiplayerUserState.Idle);
+                MultiplayerServer.ChangeState(MultiplayerUserState.Idle);
             });
         }
 
