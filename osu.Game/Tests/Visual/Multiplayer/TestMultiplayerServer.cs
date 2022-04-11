@@ -581,6 +581,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             var currentItem = multiplayerRoom.Playlist.Single(i => i.ID == apiRoom.Playlist.GetCurrentItem()!.ID);
             currentItem.Expired = true;
             currentItem.PlayedAt = DateTimeOffset.Now;
+            apiRoom.Playlist[apiRoom.Playlist.IndexOf(apiRoom.Playlist.Single(i => i.ID == currentItem.ID))] = new PlaylistItem(currentItem);
 
             await client.PlaylistItemChanged(clone(currentItem)).ConfigureAwait(false);
             await updatePlaylistOrder().ConfigureAwait(false);
