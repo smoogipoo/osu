@@ -34,6 +34,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Server.JoinRoomWithPassword(roomId, password);
         }
 
+        protected override void OnRoomJoined()
+        {
+            base.OnRoomJoined();
+            RoomJoined = true;
+        }
+
         protected override Task LeaveRoomInternal()
         {
             return Server.LeaveRoom();
