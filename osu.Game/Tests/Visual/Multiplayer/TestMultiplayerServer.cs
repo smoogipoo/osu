@@ -531,21 +531,32 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 case MatchType.HeadToHead:
                     multiplayerRoom.MatchState = null;
+                    await client.MatchRoomStateChanged(null).ConfigureAwait(false);
+
                     foreach (var user in multiplayerRoom.Users)
+                    {
                         user.MatchState = null;
+                        await client.MatchUserStateChanged(user.UserID, null).ConfigureAwait(false);
+                    }
+
                     break;
 
                 case MatchType.TeamVersus:
-                    multiplayerRoom.MatchState = new TeamVersusRoomState();
+                    var roomState = TeamVersusRoomState.CreateDefault();
+
+                    multiplayerRoom.MatchState = roomState;
+                    await client.MatchRoomStateChanged(clone(roomState)).ConfigureAwait(false);
+
                     foreach (var user in multiplayerRoom.Users)
-                        user.MatchState = new TeamVersusUserState();
+                    {
+                        var userState = new TeamVersusUserState();
+
+                        user.MatchState = userState;
+                        await client.MatchUserStateChanged(user.UserID, clone(userState)).ConfigureAwait(false);
+                    }
+
                     break;
             }
-
-            await client.MatchRoomStateChanged(clone(multiplayerRoom.MatchState)).ConfigureAwait(false);
-
-            foreach (var user in multiplayerRoom.Users)
-                await client.MatchUserStateChanged(user.UserID, clone(user.MatchState)).ConfigureAwait(false);
         }
 
         private async Task changeQueueMode(QueueMode newMode)
