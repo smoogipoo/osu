@@ -104,6 +104,11 @@ namespace osu.Game.Online.Multiplayer
         Task GameplayStarted();
 
         /// <summary>
+        /// Signals that loading of gameplay is to be aborted.
+        /// </summary>
+        Task AbortGameplayLoad();
+
+        /// <summary>
         /// Signals that the match has ended, all players have finished and results are ready to be displayed.
         /// </summary>
         Task ResultsReady();

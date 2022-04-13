@@ -75,6 +75,11 @@ namespace osu.Game.Online.Multiplayer
         public event Action? GameplayStarted;
 
         /// <summary>
+        /// Invoked when the multiplayer server requests gameplay load to be aborted.
+        /// </summary>
+        public event Action? GameplayLoadAborted;
+
+        /// <summary>
         /// Invoked when the multiplayer server has finished collating results.
         /// </summary>
         public event Action? ResultsReady;
@@ -612,6 +617,19 @@ namespace osu.Game.Online.Multiplayer
                     return;
 
                 GameplayStarted?.Invoke();
+            }, false);
+
+            return Task.CompletedTask;
+        }
+
+        public Task AbortGameplayLoad()
+        {
+            Scheduler.Add(() =>
+            {
+                if (Room == null)
+                    return;
+
+                GameplayLoadAborted?.Invoke();
             }, false);
 
             return Task.CompletedTask;

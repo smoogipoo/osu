@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using osu.Framework.Allocation;
+using osu.Framework.Logging;
 using osu.Framework.Screens;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.OnlinePlay.Components;
@@ -20,6 +21,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             base.LoadComplete();
 
             client.RoomUpdated += onRoomUpdated;
+            client.GameplayLoadAborted += onGameplayLoadAborted;
             onRoomUpdated();
         }
 
@@ -31,8 +33,18 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             Debug.Assert(client.LocalUser != null);
 
             // If the user exits gameplay before score submission completes, we'll transition to idle when results has been prepared.
-            if (client.LocalUser.State == MultiplayerUserState.Results && this.IsCurrentScreen())
-                transitionFromResults();
+            if (this.IsCurrentScreen() && client.LocalUser.State == MultiplayerUserState.Results)
+                client.ChangeState(MultiplayerUserState.Idle);
+        }
+
+        private void onGameplayLoadAborted()
+        {
+            // If the server aborts gameplay for this user (due to loading too slow), exit gameplay screens.
+            if (!this.IsCurrentScreen())
+            {
+                Logger.Log("Gameplay aborted because this client took too long to load.", LoggingTarget.Runtime, LogLevel.Important);
+                this.MakeCurrent();
+            }
         }
 
         public override void OnResuming(IScreen last)
@@ -42,25 +54,24 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             if (client.Room == null)
                 return;
 
+            Debug.Assert(client.LocalUser != null);
+
             if (!(last is MultiplayerPlayerLoader playerLoader))
                 return;
 
-            // If gameplay wasn't finished, then we have a simple path back to the idle state by aborting gameplay.
+            // If the server moved the client to the idle state by itself.
+            // This could happen if the server aborted gameplay load.
+            if (client.LocalUser.State == MultiplayerUserState.Idle)
+                return;
+
+            // If gameplay was completed, then transition to the idle state by aborting gameplay.
             if (!playerLoader.GameplayPassed)
             {
                 client.AbortGameplay().FireAndForget();
                 return;
             }
 
-            // If gameplay was completed and the user went all the way to results, we'll transition to idle here.
-            // Otherwise, the transition will happen in onRoomUpdated().
-            transitionFromResults();
-        }
-
-        private void transitionFromResults()
-        {
-            Debug.Assert(client.LocalUser != null);
-
+            // If gameplay was completed and the user went all the way to results, transition to idle here. Otherwise, the transition will happen in onRoomUpdated().
             if (client.LocalUser.State == MultiplayerUserState.Results)
                 client.ChangeState(MultiplayerUserState.Idle);
         }
@@ -76,7 +87,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             base.Dispose(isDisposing);
 
             if (client != null)
+            {
                 client.RoomUpdated -= onRoomUpdated;
+                client.GameplayLoadAborted -= onGameplayLoadAborted;
+            }
         }
     }
 }
