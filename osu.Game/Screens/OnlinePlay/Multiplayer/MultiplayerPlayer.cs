@@ -115,7 +115,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             if (!ValidForResume)
                 return; // token retrieval may have failed.
 
-            client.MatchStarted += onMatchStarted;
+            client.GameplayStarted += onGameplayStarted;
             client.ResultsReady += onResultsReady;
 
             ScoreProcessor.HasCompleted.BindValueChanged(completed =>
@@ -187,7 +187,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             leaderboardFlow.Position = new Vector2(padding, padding + HUDOverlay.TopScoringElementsHeight);
         }
 
-        private void onMatchStarted() => Scheduler.Add(() =>
+        private void onGameplayStarted() => Scheduler.Add(() =>
         {
             if (!this.IsCurrentScreen())
                 return;
@@ -235,7 +235,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
             if (client != null)
             {
-                client.MatchStarted -= onMatchStarted;
+                client.GameplayStarted -= onGameplayStarted;
                 client.ResultsReady -= onResultsReady;
             }
         }
