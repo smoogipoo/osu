@@ -157,7 +157,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 case MultiplayerUserState.Loaded:
                     // block base call, but let the server know we are ready to start.
                     loadingDisplay.Show();
-                    client.ChangeState(MultiplayerUserState.ReadyToStart).ContinueWith(task => failAndBail(task.Exception?.Message ?? "Server error"), TaskContinuationOptions.NotOnRanToCompletion);
+                    client.ChangeState(MultiplayerUserState.ReadyForGameplay).ContinueWith(task => failAndBail(task.Exception?.Message ?? "Server error"), TaskContinuationOptions.NotOnRanToCompletion);
                     break;
             }
         }

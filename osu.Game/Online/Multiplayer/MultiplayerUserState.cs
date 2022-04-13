@@ -37,7 +37,7 @@ namespace osu.Game.Online.Multiplayer
         /// <summary>
         /// The user has finished adjusting settings and is ready to start gameplay.
         /// </summary>
-        ReadyToStart,
+        ReadyForGameplay,
 
         /// <summary>
         /// The user is currently playing in a game. This is a reserved state, and is set by the server.
