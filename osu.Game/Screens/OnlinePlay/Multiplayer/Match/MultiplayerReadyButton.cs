@@ -55,7 +55,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
         private void onRoomUpdated() => Scheduler.AddOnce(() =>
         {
-            if (countdown != room?.Countdown)
+            MultiplayerCountdown newCountdown = countdown;
+
+            switch (room?.Countdown)
+            {
+                case null:
+                    countdown = null;
+                    break;
+
+                case MatchStartCountdown _:
+                    countdown = room.Countdown;
+                    break;
+            }
+
+            if (newCountdown != countdown)
             {
                 countdown = room?.Countdown;
                 countdownChangeTime = Time.Current;
