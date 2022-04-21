@@ -622,7 +622,7 @@ namespace osu.Game.Online.Multiplayer
             return Task.CompletedTask;
         }
 
-        public Task AbortGameplayLoad()
+        public Task LoadAborted()
         {
             Scheduler.Add(() =>
             {
