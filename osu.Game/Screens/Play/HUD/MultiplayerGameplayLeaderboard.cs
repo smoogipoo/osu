@@ -80,7 +80,6 @@ namespace osu.Game.Screens.Play.HUD
                 scoreProcessor.ApplyBeatmap(gameplayState.Beatmap);
 
                 var trackedUser = CreateUserData(user, ruleset, scoreProcessor);
-
                 trackedUser.ScoringMode.BindTo(scoringMode);
                 trackedUser.Score.BindValueChanged(_ => Scheduler.AddOnce(updateTotals));
 

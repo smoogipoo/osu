@@ -29,7 +29,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 {
     public abstract class MultiplayerGameplayLeaderboardTestScene : OsuTestScene
     {
-        private const int total_users = 16;
+        protected const int TOTAL_USERS = 16;
 
         protected readonly BindableList<MultiplayerRoomUser> MultiplayerUsers = new BindableList<MultiplayerRoomUser>();
 
@@ -102,7 +102,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("populate users", () =>
             {
                 MultiplayerUsers.Clear();
-                for (int i = 0; i < total_users; i++)
+                for (int i = 0; i < TOTAL_USERS; i++)
                     MultiplayerUsers.Add(CreateUser(i));
             });
 
