@@ -10,6 +10,8 @@ using Moq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Configuration;
@@ -18,9 +20,9 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
-using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
+using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -35,7 +37,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         protected virtual MultiplayerRoomUser CreateUser(int userId) => new MultiplayerRoomUser(userId);
 
-        protected abstract MultiplayerGameplayLeaderboard CreateLeaderboard(OsuScoreProcessor scoreProcessor);
+        protected abstract MultiplayerGameplayLeaderboard CreateLeaderboard();
 
         private readonly BindableList<int> multiplayerUserIds = new BindableList<int>();
 
@@ -109,13 +111,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 Leaderboard?.Expire();
 
                 Beatmap.Value = CreateWorkingBeatmap(Ruleset.Value);
-                var playableBeatmap = Beatmap.Value.GetPlayableBeatmap(Ruleset.Value);
-                OsuScoreProcessor scoreProcessor = new OsuScoreProcessor();
-                scoreProcessor.ApplyBeatmap(playableBeatmap);
 
-                Child = scoreProcessor;
-
-                LoadComponentAsync(Leaderboard = CreateLeaderboard(scoreProcessor), Add);
+                Child = new DependencyProvidingContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    CachedDependencies = new (Type, object)[]
+                    {
+                        (typeof(GameplayState), new GameplayState(Beatmap.Value.GetPlayableBeatmap(Ruleset.Value), Ruleset.Value.CreateInstance()))
+                    },
+                    Child = new AsyncLoadingContainer(Leaderboard = CreateLeaderboard())
+                };
             });
 
             AddUntilStep("wait for load", () => Leaderboard.IsLoaded);
@@ -204,6 +209,24 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }
 
                 spectatorClient.Raise(s => s.OnNewFrames -= null, userId, new FrameDataBundle(header, new[] { new LegacyReplayFrame(Time.Current, 0, 0, ReplayButtonState.None) }));
+            }
+        }
+
+        private class AsyncLoadingContainer : Container
+        {
+            private readonly Drawable drawable;
+
+            public AsyncLoadingContainer(Drawable drawable)
+            {
+                this.drawable = drawable;
+
+                AutoSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                LoadComponentAsync(drawable, Add);
             }
         }
     }

@@ -3,16 +3,15 @@
 
 using System.Linq;
 using osu.Framework.Graphics;
-using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Screens.Play.HUD;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
     public class TestSceneMultiplayerGameplayLeaderboard : MultiplayerGameplayLeaderboardTestScene
     {
-        protected override MultiplayerGameplayLeaderboard CreateLeaderboard(OsuScoreProcessor scoreProcessor)
+        protected override MultiplayerGameplayLeaderboard CreateLeaderboard()
         {
-            return new MultiplayerGameplayLeaderboard(Ruleset.Value, scoreProcessor, MultiplayerUsers.ToArray())
+            return new MultiplayerGameplayLeaderboard(Ruleset.Value, MultiplayerUsers.ToArray())
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,

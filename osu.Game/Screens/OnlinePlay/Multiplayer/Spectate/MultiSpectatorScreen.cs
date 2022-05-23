@@ -52,6 +52,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private MultiSpectatorLeaderboard leaderboard;
         private PlayerArea currentAudioSource;
         private bool canStartMasterClock;
+        private DependencyContainer dependencies;
 
         private readonly Room room;
         private readonly MultiplayerRoomUser[] users;
@@ -128,12 +129,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 syncManager.AddPlayerClock(instances[i].GameplayClock);
             }
 
-            // Todo: This is not quite correct - it should be per-user to adjust for other mod combinations.
             var playableBeatmap = Beatmap.Value.GetPlayableBeatmap(Ruleset.Value);
-            var scoreProcessor = Ruleset.Value.CreateInstance().CreateScoreProcessor();
-            scoreProcessor.ApplyBeatmap(playableBeatmap);
+            dependencies.CacheAs(new GameplayState(playableBeatmap, Ruleset.Value.CreateInstance()));
 
-            LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, scoreProcessor, users)
+            LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, users)
             {
                 Expanded = { Value = true },
             }, l =>
@@ -158,6 +157,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 Expanded = { Value = true },
             }, chat => leaderboardFlow.Insert(1, chat));
         }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+            => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         protected override void LoadComplete()
         {

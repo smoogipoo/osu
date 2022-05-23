@@ -1,15 +1,19 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
+using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -42,14 +46,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("create leaderboard", () =>
             {
                 Beatmap.Value = CreateWorkingBeatmap(Ruleset.Value);
-                var playable = Beatmap.Value.GetPlayableBeatmap(Ruleset.Value);
-                var scoreProcessor = new OsuScoreProcessor();
-                scoreProcessor.ApplyBeatmap(playable);
 
-                LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, scoreProcessor, clocks.Keys.Select(id => new MultiplayerRoomUser(id)).ToArray())
+                Child = new DependencyProvidingContainer
                 {
-                    Expanded = { Value = true }
-                }, Add);
+                    CachedDependencies = new (Type, object)[]
+                    {
+                        (typeof(GameplayState), new GameplayState(Beatmap.Value.GetPlayableBeatmap(Ruleset.Value), Ruleset.Value.CreateInstance()))
+                    },
+                    Child = new AsyncLoadingContainer(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, clocks.Keys.Select(id => new MultiplayerRoomUser(id)).ToArray())
+                    {
+                        Expanded = { Value = true }
+                    })
+                };
             });
 
             AddUntilStep("wait for load", () => leaderboard.IsLoaded);
@@ -120,5 +128,23 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         private void assertCombo(int userId, int expectedCombo)
             => AddUntilStep($"player {userId} has {expectedCombo} combo", () => this.ChildrenOfType<GameplayLeaderboardScore>().Single(s => s.User?.Id == userId).Combo.Value == expectedCombo);
+
+        private class AsyncLoadingContainer : Container
+        {
+            private readonly Drawable drawable;
+
+            public AsyncLoadingContainer(Drawable drawable)
+            {
+                this.drawable = drawable;
+
+                AutoSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                LoadComponentAsync(drawable, Add);
+            }
+        }
     }
 }

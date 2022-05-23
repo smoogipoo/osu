@@ -43,8 +43,10 @@ namespace osu.Game.Screens.Play.HUD
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
 
+        [Resolved]
+        private GameplayState gameplayState { get; set; }
+
         private readonly RulesetInfo ruleset;
-        private readonly ScoreProcessor scoreProcessor;
         private readonly MultiplayerRoomUser[] playingUsers;
         private Bindable<ScoringMode> scoringMode;
 
@@ -56,13 +58,11 @@ namespace osu.Game.Screens.Play.HUD
         /// Construct a new leaderboard.
         /// </summary>
         /// <param name="ruleset">The ruleset.</param>
-        /// <param name="scoreProcessor">A score processor instance to handle score calculation for scores of users in the match.</param>
         /// <param name="users">IDs of all users in this match.</param>
-        public MultiplayerGameplayLeaderboard(RulesetInfo ruleset, ScoreProcessor scoreProcessor, MultiplayerRoomUser[] users)
+        public MultiplayerGameplayLeaderboard(RulesetInfo ruleset, MultiplayerRoomUser[] users)
         {
-            // todo: this will eventually need to be created per user to support different mod combinations.
+            // todo: this will eventually need to be created per user to support different rulesets.
             this.ruleset = ruleset;
-            this.scoreProcessor = scoreProcessor;
 
             playingUsers = users;
         }
@@ -74,6 +74,11 @@ namespace osu.Game.Screens.Play.HUD
 
             foreach (var user in playingUsers)
             {
+                var rulesetInstance = ruleset.CreateInstance();
+                var scoreProcessor = rulesetInstance.CreateScoreProcessor();
+                scoreProcessor.Mods.Value = user.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
+                scoreProcessor.ApplyBeatmap(gameplayState.Beatmap);
+
                 var trackedUser = CreateUserData(user, ruleset, scoreProcessor);
 
                 trackedUser.ScoringMode.BindTo(scoringMode);
