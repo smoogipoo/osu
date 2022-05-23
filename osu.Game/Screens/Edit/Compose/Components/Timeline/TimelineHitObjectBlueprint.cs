@@ -38,10 +38,9 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         [UsedImplicitly]
         private readonly Bindable<double> startTime;
 
-        private Bindable<int> indexInCurrentComboBindable;
-
-        private Bindable<int> comboIndexBindable;
-        private Bindable<int> comboIndexWithOffsetsBindable;
+        private IBindable<int> indexInCurrentComboBindable;
+        private IBindable<int> comboIndexBindable;
+        private IBindable<int> comboIndexWithOffsetsBindable;
 
         private Bindable<Color4> displayColourBindable;
 

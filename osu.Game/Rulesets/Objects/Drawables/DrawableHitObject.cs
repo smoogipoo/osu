@@ -250,7 +250,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
                 AddNestedHitObject(drawableNested);
             }
 
-            StartTimeBindable.BindTo(HitObject.StartTimeBindable);
+            StartTimeBindable.BindTo(ref HitObject.StartTimeBindable);
             StartTimeBindable.BindValueChanged(onStartTimeChanged);
 
             if (HitObject is IHasComboInformation combo)

@@ -34,12 +34,28 @@ namespace osu.Game.Rulesets.Osu.Objects
         public double TimePreempt = 600;
         public double TimeFadeIn = 400;
 
-        public readonly Bindable<Vector2> PositionBindable = new Bindable<Vector2>();
+        private BindableSlim<Vector2> positionBindable;
+        private BindableSlim<int> stackHeightBindable;
+        private BindableSlim<float> scaleBindable = new BindableSlim<float> { Default = 1, Value = 1 };
+        private BindableSlim<int> comboOffsetBindable;
+        private BindableSlim<int> indexInCurrentComboBindable;
+        private BindableSlim<int> comboIndexBindable;
+        private BindableSlim<int> comboIndexWithOffsetsBindable;
+        private BindableSlim<bool> lastInComboBindable;
+
+        public ref BindableSlim<Vector2> PositionBindable => ref positionBindable;
+        public ref BindableSlim<int> StackHeightBindable => ref stackHeightBindable;
+        public ref BindableSlim<float> ScaleBindable => ref scaleBindable;
+        public ref BindableSlim<int> ComboOffsetBindable => ref comboOffsetBindable;
+        public ref BindableSlim<int> IndexInCurrentComboBindable => ref indexInCurrentComboBindable;
+        public ref BindableSlim<int> ComboIndexBindable => ref comboIndexBindable;
+        public ref BindableSlim<int> ComboIndexWithOffsetsBindable => ref comboIndexWithOffsetsBindable;
+        public ref BindableSlim<bool> LastInComboBindable => ref lastInComboBindable;
 
         public virtual Vector2 Position
         {
-            get => PositionBindable.Value;
-            set => PositionBindable.Value = value;
+            get => positionBindable.Value;
+            set => positionBindable.Value = value;
         }
 
         public float X => Position.X;
@@ -51,71 +67,62 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public Vector2 StackedEndPosition => EndPosition + StackOffset;
 
-        public readonly Bindable<int> StackHeightBindable = new Bindable<int>();
-
         public int StackHeight
         {
-            get => StackHeightBindable.Value;
-            set => StackHeightBindable.Value = value;
+            get => stackHeightBindable.Value;
+            set => stackHeightBindable.Value = value;
         }
 
         public virtual Vector2 StackOffset => new Vector2(StackHeight * Scale * -6.4f);
 
         public double Radius => OBJECT_RADIUS * Scale;
 
-        public readonly Bindable<float> ScaleBindable = new BindableFloat(1);
-
         public float Scale
         {
-            get => ScaleBindable.Value;
-            set => ScaleBindable.Value = value;
+            get => scaleBindable.Value;
+            set => scaleBindable.Value = value;
         }
 
         public virtual bool NewCombo { get; set; }
 
-        public readonly Bindable<int> ComboOffsetBindable = new Bindable<int>();
-
         public int ComboOffset
         {
-            get => ComboOffsetBindable.Value;
-            set => ComboOffsetBindable.Value = value;
+            get => comboOffsetBindable.Value;
+            set => comboOffsetBindable.Value = value;
         }
-
-        public Bindable<int> IndexInCurrentComboBindable { get; } = new Bindable<int>();
 
         public virtual int IndexInCurrentCombo
         {
-            get => IndexInCurrentComboBindable.Value;
-            set => IndexInCurrentComboBindable.Value = value;
+            get => indexInCurrentComboBindable.Value;
+            set => indexInCurrentComboBindable.Value = value;
         }
-
-        public Bindable<int> ComboIndexBindable { get; } = new Bindable<int>();
 
         public virtual int ComboIndex
         {
-            get => ComboIndexBindable.Value;
-            set => ComboIndexBindable.Value = value;
+            get => comboIndexBindable.Value;
+            set => comboIndexBindable.Value = value;
         }
-
-        public Bindable<int> ComboIndexWithOffsetsBindable { get; } = new Bindable<int>();
 
         public int ComboIndexWithOffsets
         {
-            get => ComboIndexWithOffsetsBindable.Value;
-            set => ComboIndexWithOffsetsBindable.Value = value;
+            get => comboIndexWithOffsetsBindable.Value;
+            set => comboIndexWithOffsetsBindable.Value = value;
         }
-
-        public Bindable<bool> LastInComboBindable { get; } = new Bindable<bool>();
 
         public bool LastInCombo
         {
-            get => LastInComboBindable.Value;
-            set => LastInComboBindable.Value = value;
+            get => lastInComboBindable.Value;
+            set => lastInComboBindable.Value = value;
         }
+
+        IBindable<int> IHasComboInformation.IndexInCurrentComboBindable => indexInCurrentComboBindable;
+        IBindable<int> IHasComboInformation.ComboIndexBindable => comboIndexBindable;
+        IBindable<int> IHasComboInformation.ComboIndexWithOffsetsBindable => comboIndexWithOffsetsBindable;
+        IBindable<bool> IHasComboInformation.LastInComboBindable => lastInComboBindable;
 
         protected OsuHitObject()
         {
-            StackHeightBindable.BindValueChanged(height =>
+            stackHeightBindable.BindValueChanged(height =>
             {
                 foreach (var nested in NestedHitObjects.OfType<OsuHitObject>())
                     nested.StackHeight = height.NewValue;

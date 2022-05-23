@@ -12,21 +12,21 @@ namespace osu.Game.Rulesets.Objects.Types
     /// </summary>
     public interface IHasComboInformation : IHasCombo
     {
-        Bindable<int> IndexInCurrentComboBindable { get; }
+        IBindable<int> IndexInCurrentComboBindable { get; }
 
         /// <summary>
         /// The index of this hitobject in the current combo.
         /// </summary>
         int IndexInCurrentCombo { get; set; }
 
-        Bindable<int> ComboIndexBindable { get; }
+        IBindable<int> ComboIndexBindable { get; }
 
         /// <summary>
         /// The index of this combo in relation to the beatmap.
         /// </summary>
         int ComboIndex { get; set; }
 
-        Bindable<int> ComboIndexWithOffsetsBindable { get; }
+        IBindable<int> ComboIndexWithOffsetsBindable { get; }
 
         /// <summary>
         /// The index of this combo in relation to the beatmap, with all aggregate <see cref="IHasCombo.ComboOffset"/>s applied.
@@ -39,7 +39,7 @@ namespace osu.Game.Rulesets.Objects.Types
         /// </summary>
         new bool NewCombo { get; set; }
 
-        Bindable<bool> LastInComboBindable { get; }
+        IBindable<bool> LastInComboBindable { get; }
 
         /// <summary>
         /// Whether this is the last object in the current combo.

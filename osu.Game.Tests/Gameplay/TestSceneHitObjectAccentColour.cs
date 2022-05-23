@@ -84,7 +84,7 @@ namespace osu.Game.Tests.Gameplay
             public bool NewCombo { get; set; }
             public int ComboOffset => 0;
 
-            public Bindable<int> IndexInCurrentComboBindable { get; } = new Bindable<int>();
+            public IBindable<int> IndexInCurrentComboBindable { get; } = new Bindable<int>();
 
             public int IndexInCurrentCombo
             {
@@ -92,7 +92,7 @@ namespace osu.Game.Tests.Gameplay
                 set => IndexInCurrentComboBindable.Value = value;
             }
 
-            public Bindable<int> ComboIndexBindable { get; } = new Bindable<int>();
+            public IBindable<int> ComboIndexBindable { get; } = new Bindable<int>();
 
             public int ComboIndex
             {
@@ -100,7 +100,7 @@ namespace osu.Game.Tests.Gameplay
                 set => ComboIndexBindable.Value = value;
             }
 
-            public Bindable<int> ComboIndexWithOffsetsBindable { get; } = new Bindable<int>();
+            public IBindable<int> ComboIndexWithOffsetsBindable { get; } = new Bindable<int>();
 
             public int ComboIndexWithOffsets
             {
@@ -108,7 +108,7 @@ namespace osu.Game.Tests.Gameplay
                 set => ComboIndexWithOffsetsBindable.Value = value;
             }
 
-            public Bindable<bool> LastInComboBindable { get; } = new Bindable<bool>();
+            public IBindable<bool> LastInComboBindable { get; } = new Bindable<bool>();
 
             public bool LastInCombo
             {
