@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
+using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -18,6 +20,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Spectator;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osuTK.Graphics;
@@ -44,7 +47,7 @@ namespace osu.Game.Screens.Play.HUD
         private UserLookupCache userLookupCache { get; set; }
 
         [Resolved]
-        private GameplayState gameplayState { get; set; }
+        private IBindable<WorkingBeatmap> beatmap { get; set; }
 
         private readonly RulesetInfo ruleset;
         private readonly MultiplayerRoomUser[] playingUsers;
@@ -68,16 +71,19 @@ namespace osu.Game.Screens.Play.HUD
         }
 
         [BackgroundDependencyLoader]
-        private void load(OsuConfigManager config, IAPIProvider api)
+        private void load(OsuConfigManager config, IAPIProvider api, CancellationToken cancellationToken)
         {
             scoringMode = config.GetBindable<ScoringMode>(OsuSetting.ScoreDisplayMode);
 
             foreach (var user in playingUsers)
             {
-                var rulesetInstance = ruleset.CreateInstance();
+                Ruleset rulesetInstance = ruleset.CreateInstance();
+                Mod[] mods = user.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
+                IBeatmap playableBeatmap = beatmap.Value.GetPlayableBeatmap(ruleset, mods, cancellationToken);
+
                 var scoreProcessor = rulesetInstance.CreateScoreProcessor();
                 scoreProcessor.Mods.Value = user.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
-                scoreProcessor.ApplyBeatmap(gameplayState.Beatmap);
+                scoreProcessor.ApplyBeatmap(playableBeatmap);
 
                 var trackedUser = CreateUserData(user, ruleset, scoreProcessor);
                 trackedUser.ScoringMode.BindTo(scoringMode);
@@ -89,27 +95,31 @@ namespace osu.Game.Screens.Play.HUD
                     TeamScores.Add(team, new BindableLong());
             }
 
-            userLookupCache.GetUsersAsync(playingUsers.Select(u => u.UserID).ToArray()).ContinueWith(task => Schedule(() =>
-            {
-                var users = task.GetResultSafely();
+            userLookupCache.GetUsersAsync(playingUsers.Select(u => u.UserID).ToArray(), cancellationToken)
+                           .ContinueWith(task =>
+                           {
+                               Schedule(() =>
+                               {
+                                   var users = task.GetResultSafely();
 
-                for (int i = 0; i < users.Length; i++)
-                {
-                    var user = users[i] ?? new APIUser
-                    {
-                        Id = playingUsers[i].UserID,
-                        Username = "Unknown user",
-                    };
+                                   for (int i = 0; i < users.Length; i++)
+                                   {
+                                       var user = users[i] ?? new APIUser
+                                       {
+                                           Id = playingUsers[i].UserID,
+                                           Username = "Unknown user",
+                                       };
 
-                    var trackedUser = UserScores[user.Id];
+                                       var trackedUser = UserScores[user.Id];
 
-                    var leaderboardScore = Add(user, user.Id == api.LocalUser.Value.Id);
-                    leaderboardScore.Accuracy.BindTo(trackedUser.Accuracy);
-                    leaderboardScore.TotalScore.BindTo(trackedUser.Score);
-                    leaderboardScore.Combo.BindTo(trackedUser.CurrentCombo);
-                    leaderboardScore.HasQuit.BindTo(trackedUser.UserQuit);
-                }
-            }));
+                                       var leaderboardScore = Add(user, user.Id == api.LocalUser.Value.Id);
+                                       leaderboardScore.Accuracy.BindTo(trackedUser.Accuracy);
+                                       leaderboardScore.TotalScore.BindTo(trackedUser.Score);
+                                       leaderboardScore.Combo.BindTo(trackedUser.CurrentCombo);
+                                       leaderboardScore.HasQuit.BindTo(trackedUser.UserQuit);
+                                   }
+                               });
+                           }, cancellationToken);
         }
 
         protected override void LoadComplete()

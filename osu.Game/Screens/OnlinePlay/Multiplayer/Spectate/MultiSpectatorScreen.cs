@@ -52,7 +52,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         private MultiSpectatorLeaderboard leaderboard;
         private PlayerArea currentAudioSource;
         private bool canStartMasterClock;
-        private DependencyContainer dependencies;
 
         private readonly Room room;
         private readonly MultiplayerRoomUser[] users;
@@ -129,9 +128,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 syncManager.AddPlayerClock(instances[i].GameplayClock);
             }
 
-            var playableBeatmap = Beatmap.Value.GetPlayableBeatmap(Ruleset.Value);
-            dependencies.CacheAs(new GameplayState(playableBeatmap, Ruleset.Value.CreateInstance()));
-
             LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, users)
             {
                 Expanded = { Value = true },
@@ -157,9 +153,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 Expanded = { Value = true },
             }, chat => leaderboardFlow.Insert(1, chat));
         }
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-            => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         protected override void LoadComplete()
         {
