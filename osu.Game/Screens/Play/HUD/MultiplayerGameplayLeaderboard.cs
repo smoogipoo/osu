@@ -11,6 +11,8 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Game.Beatmaps;
+using osu.Game.Beatmaps.ControlPoints;
+using osu.Game.Beatmaps.Timing;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -20,7 +22,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Spectator;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osuTK.Graphics;
@@ -46,13 +48,11 @@ namespace osu.Game.Screens.Play.HUD
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
 
-        [Resolved]
-        private IBindable<WorkingBeatmap> beatmap { get; set; }
-
         private readonly RulesetInfo ruleset;
         private readonly MultiplayerRoomUser[] playingUsers;
         private Bindable<ScoringMode> scoringMode;
 
+        private readonly IBindableDictionary<int, SpectatorState> spectatorStates = new BindableDictionary<int, SpectatorState>();
         private readonly IBindableList<int> playingUserIds = new BindableList<int>();
 
         private bool hasTeams => TeamScores.Count > 0;
@@ -77,13 +77,14 @@ namespace osu.Game.Screens.Play.HUD
 
             foreach (var user in playingUsers)
             {
-                Ruleset rulesetInstance = ruleset.CreateInstance();
-                Mod[] mods = user.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
-                IBeatmap playableBeatmap = beatmap.Value.GetPlayableBeatmap(ruleset, mods, cancellationToken);
-
+                var rulesetInstance = ruleset.CreateInstance();
                 var scoreProcessor = rulesetInstance.CreateScoreProcessor();
+
+                // Apply mods to the score processor for score multipliers.
                 scoreProcessor.Mods.Value = user.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
-                scoreProcessor.ApplyBeatmap(playableBeatmap);
+
+                // Apply a dummy beatmap for the time being. The score processor will be populated manually from the spectator state later.
+                scoreProcessor.ApplyBeatmap(new DummyBeatmap());
 
                 var trackedUser = CreateUserData(user, ruleset, scoreProcessor);
                 trackedUser.ScoringMode.BindTo(scoringMode);
@@ -132,13 +133,16 @@ namespace osu.Game.Screens.Play.HUD
                 spectatorClient.WatchUser(user.UserID);
 
                 if (!multiplayerClient.CurrentMatchPlayingUserIds.Contains(user.UserID))
-                    usersChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { user.UserID }));
+                    playingUsersChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { user.UserID }));
             }
 
             // bind here is to support players leaving the match.
             // new players are not supported.
             playingUserIds.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
-            playingUserIds.BindCollectionChanged(usersChanged);
+            playingUserIds.BindCollectionChanged(playingUsersChanged);
+
+            spectatorStates.BindTo(spectatorClient.WatchedUserStates);
+            spectatorStates.BindCollectionChanged(onSpectatorStatesChanged, true);
 
             // this leaderboard should be guaranteed to be completely loaded before the gameplay starts (is a prerequisite in MultiplayerPlayer).
             spectatorClient.OnNewFrames += handleIncomingFrames;
@@ -171,7 +175,7 @@ namespace osu.Game.Screens.Play.HUD
             }
         }
 
-        private void usersChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void playingUsersChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
             {
@@ -185,6 +189,22 @@ namespace osu.Game.Screens.Play.HUD
                     }
 
                     break;
+            }
+        }
+
+        private void onSpectatorStatesChanged(object sender, NotifyDictionaryChangedEventArgs<int, SpectatorState> e)
+        {
+            if (e.NewItems == null)
+                return;
+
+            foreach (KeyValuePair<int, SpectatorState> kvp in e.NewItems)
+            {
+                if (!UserScores.TryGetValue(kvp.Key, out var trackedData))
+                    continue;
+
+                trackedData.ScoreProcessor.MaxAchievableCombo = kvp.Value.MaxAchievableCombo;
+                trackedData.ScoreProcessor.MaxAchievableBaseScore = kvp.Value.MaxAchievableBaseScore;
+                trackedData.ScoreProcessor.TotalBasicHitObjects = kvp.Value.TotalBasicHitObjects;
             }
         }
 
@@ -298,6 +318,23 @@ namespace osu.Game.Screens.Play.HUD
             }
 
             public int CompareTo(TimedFrame other) => Time.CompareTo(other.Time);
+        }
+
+        private class DummyBeatmap : IBeatmap
+        {
+            public BeatmapInfo BeatmapInfo { get; set; } = new BeatmapInfo();
+            public BeatmapMetadata Metadata { get; } = new BeatmapMetadata();
+            public BeatmapDifficulty Difficulty { get; set; } = new BeatmapDifficulty();
+            public ControlPointInfo ControlPointInfo { get; set; } = new ControlPointInfo();
+            public List<BreakPeriod> Breaks { get; } = new List<BreakPeriod>();
+            public double TotalBreakTime => 0;
+            public IReadOnlyList<HitObject> HitObjects => Array.Empty<HitObject>();
+
+            public IEnumerable<BeatmapStatistic> GetStatistics() => Array.Empty<BeatmapStatistic>();
+
+            public double GetMostCommonBeatLength() => 0;
+
+            public IBeatmap Clone() => throw new NotImplementedException();
         }
     }
 }
