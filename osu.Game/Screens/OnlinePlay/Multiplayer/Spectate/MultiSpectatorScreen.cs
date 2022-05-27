@@ -128,7 +128,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                 syncManager.AddPlayerClock(instances[i].GameplayClock);
             }
 
-            LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, users)
+            LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(users)
             {
                 Expanded = { Value = true },
             }, l =>
@@ -235,7 +235,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 
             instance.FadeColour(colours.Gray4, 400, Easing.OutQuint);
             syncManager.RemovePlayerClock(instance.GameplayClock);
-            leaderboard.RemoveClock(userId);
         }
 
         public override bool OnBackButton()

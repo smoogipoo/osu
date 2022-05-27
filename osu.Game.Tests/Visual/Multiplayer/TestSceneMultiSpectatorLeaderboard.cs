@@ -53,7 +53,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     {
                         (typeof(GameplayState), new GameplayState(Beatmap.Value.GetPlayableBeatmap(Ruleset.Value), Ruleset.Value.CreateInstance()))
                     },
-                    Child = new AsyncLoadingContainer(leaderboard = new MultiSpectatorLeaderboard(Ruleset.Value, clocks.Keys.Select(id => new MultiplayerRoomUser(id)).ToArray())
+                    Child = new AsyncLoadingContainer(leaderboard = new MultiSpectatorLeaderboard(clocks.Keys.Select(id => new MultiplayerRoomUser(id)).ToArray())
                     {
                         Expanded = { Value = true }
                     })

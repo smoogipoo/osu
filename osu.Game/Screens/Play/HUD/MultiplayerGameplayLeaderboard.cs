@@ -10,9 +10,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
-using osu.Game.Beatmaps;
-using osu.Game.Beatmaps.ControlPoints;
-using osu.Game.Beatmaps.Timing;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -21,10 +18,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Spectator;
-using osu.Game.Rulesets;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Scoring;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD
@@ -48,11 +42,9 @@ namespace osu.Game.Screens.Play.HUD
         [Resolved]
         private UserLookupCache userLookupCache { get; set; }
 
-        private readonly RulesetInfo ruleset;
         private readonly MultiplayerRoomUser[] playingUsers;
         private Bindable<ScoringMode> scoringMode;
 
-        private readonly IBindableDictionary<int, SpectatorState> spectatorStates = new BindableDictionary<int, SpectatorState>();
         private readonly IBindableList<int> playingUserIds = new BindableList<int>();
 
         private bool hasTeams => TeamScores.Count > 0;
@@ -60,13 +52,9 @@ namespace osu.Game.Screens.Play.HUD
         /// <summary>
         /// Construct a new leaderboard.
         /// </summary>
-        /// <param name="ruleset">The ruleset.</param>
         /// <param name="users">IDs of all users in this match.</param>
-        public MultiplayerGameplayLeaderboard(RulesetInfo ruleset, MultiplayerRoomUser[] users)
+        public MultiplayerGameplayLeaderboard(MultiplayerRoomUser[] users)
         {
-            // todo: this will eventually need to be created per user to support different rulesets.
-            this.ruleset = ruleset;
-
             playingUsers = users;
         }
 
@@ -77,19 +65,12 @@ namespace osu.Game.Screens.Play.HUD
 
             foreach (var user in playingUsers)
             {
-                var rulesetInstance = ruleset.CreateInstance();
-                var scoreProcessor = rulesetInstance.CreateScoreProcessor();
+                var scoreProcessor = new SpectatorScoreProcessor(user.UserID);
+                scoreProcessor.Mode.BindTo(scoringMode);
+                scoreProcessor.TotalScore.BindValueChanged(_ => Scheduler.AddOnce(updateTotals));
+                AddInternal(scoreProcessor);
 
-                // Apply mods to the score processor for score multipliers.
-                scoreProcessor.Mods.Value = user.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
-
-                // Apply a dummy beatmap for the time being. The score processor will be populated manually from the spectator state later.
-                scoreProcessor.ApplyBeatmap(new DummyBeatmap());
-
-                var trackedUser = CreateUserData(user, ruleset, scoreProcessor);
-                trackedUser.ScoringMode.BindTo(scoringMode);
-                trackedUser.Score.BindValueChanged(_ => Scheduler.AddOnce(updateTotals));
-
+                var trackedUser = new TrackedUserData(user, scoreProcessor);
                 UserScores[user.UserID] = trackedUser;
 
                 if (trackedUser.Team is int team && !TeamScores.ContainsKey(team))
@@ -114,9 +95,9 @@ namespace osu.Game.Screens.Play.HUD
                                        var trackedUser = UserScores[user.Id];
 
                                        var leaderboardScore = Add(user, user.Id == api.LocalUser.Value.Id);
-                                       leaderboardScore.Accuracy.BindTo(trackedUser.Accuracy);
-                                       leaderboardScore.TotalScore.BindTo(trackedUser.Score);
-                                       leaderboardScore.Combo.BindTo(trackedUser.CurrentCombo);
+                                       leaderboardScore.Accuracy.BindTo(trackedUser.ScoreProcessor.Accuracy);
+                                       leaderboardScore.TotalScore.BindTo(trackedUser.ScoreProcessor.TotalScore);
+                                       leaderboardScore.Combo.BindTo(trackedUser.ScoreProcessor.Combo);
                                        leaderboardScore.HasQuit.BindTo(trackedUser.UserQuit);
                                    }
                                });
@@ -140,15 +121,7 @@ namespace osu.Game.Screens.Play.HUD
             // new players are not supported.
             playingUserIds.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
             playingUserIds.BindCollectionChanged(playingUsersChanged);
-
-            spectatorStates.BindTo(spectatorClient.WatchedUserStates);
-            spectatorStates.BindCollectionChanged(onSpectatorStatesChanged, true);
-
-            // this leaderboard should be guaranteed to be completely loaded before the gameplay starts (is a prerequisite in MultiplayerPlayer).
-            spectatorClient.OnNewFrames += handleIncomingFrames;
         }
-
-        protected virtual TrackedUserData CreateUserData(MultiplayerRoomUser user, RulesetInfo ruleset, ScoreProcessor scoreProcessor) => new TrackedUserData(user, ruleset, scoreProcessor);
 
         protected override GameplayLeaderboardScore CreateLeaderboardScoreDrawable(APIUser user, bool isTracked)
         {
@@ -192,31 +165,6 @@ namespace osu.Game.Screens.Play.HUD
             }
         }
 
-        private void onSpectatorStatesChanged(object sender, NotifyDictionaryChangedEventArgs<int, SpectatorState> e)
-        {
-            if (e.NewItems == null)
-                return;
-
-            foreach (KeyValuePair<int, SpectatorState> kvp in e.NewItems)
-            {
-                if (!UserScores.TryGetValue(kvp.Key, out var trackedData))
-                    continue;
-
-                trackedData.ScoreProcessor.MaxAchievableCombo = kvp.Value.MaxAchievableCombo;
-                trackedData.ScoreProcessor.MaxAchievableBaseScore = kvp.Value.MaxAchievableBaseScore;
-                trackedData.ScoreProcessor.TotalBasicHitObjects = kvp.Value.TotalBasicHitObjects;
-            }
-        }
-
-        private void handleIncomingFrames(int userId, FrameDataBundle bundle) => Schedule(() =>
-        {
-            if (!UserScores.TryGetValue(userId, out var trackedData))
-                return;
-
-            trackedData.Frames.Add(new TimedFrame(bundle.Frames.First().Time, bundle.Header));
-            trackedData.UpdateScore();
-        });
-
         private void updateTotals()
         {
             if (!hasTeams)
@@ -230,7 +178,7 @@ namespace osu.Game.Screens.Play.HUD
                     continue;
 
                 if (TeamScores.TryGetValue(u.Team.Value, out var team))
-                    team.Value += (int)Math.Round(u.Score.Value);
+                    team.Value += (int)Math.Round(u.ScoreProcessor.TotalScore.Value);
             }
         }
 
@@ -241,100 +189,26 @@ namespace osu.Game.Screens.Play.HUD
             if (spectatorClient != null)
             {
                 foreach (var user in playingUsers)
-                {
                     spectatorClient.StopWatchingUser(user.UserID);
-                }
-
-                spectatorClient.OnNewFrames -= handleIncomingFrames;
             }
         }
 
         protected class TrackedUserData
         {
             public readonly MultiplayerRoomUser User;
-            public readonly ScoreProcessor ScoreProcessor;
+            public readonly SpectatorScoreProcessor ScoreProcessor;
 
-            public readonly BindableDouble Score = new BindableDouble();
-            public readonly BindableDouble Accuracy = new BindableDouble(1);
-            public readonly BindableInt CurrentCombo = new BindableInt();
             public readonly BindableBool UserQuit = new BindableBool();
-
-            public readonly IBindable<ScoringMode> ScoringMode = new Bindable<ScoringMode>();
-
-            public readonly List<TimedFrame> Frames = new List<TimedFrame>();
 
             public int? Team => (User.MatchState as TeamVersusUserState)?.TeamID;
 
-            private readonly ScoreInfo scoreInfo;
-
-            public TrackedUserData(MultiplayerRoomUser user, RulesetInfo ruleset, ScoreProcessor scoreProcessor)
+            public TrackedUserData(MultiplayerRoomUser user, SpectatorScoreProcessor scoreProcessor)
             {
                 User = user;
                 ScoreProcessor = scoreProcessor;
-
-                scoreInfo = new ScoreInfo { Ruleset = ruleset };
-
-                ScoringMode.BindValueChanged(_ => UpdateScore());
             }
 
             public void MarkUserQuit() => UserQuit.Value = true;
-
-            public virtual void UpdateScore()
-            {
-                if (Frames.Count == 0)
-                    return;
-
-                SetFrame(Frames.Last());
-            }
-
-            protected void SetFrame(TimedFrame frame)
-            {
-                var header = frame.Header;
-
-                scoreInfo.MaxCombo = header.MaxCombo;
-                scoreInfo.Statistics = header.Statistics;
-
-                Score.Value = ScoreProcessor.ComputePartialScore(ScoringMode.Value, scoreInfo);
-
-                Accuracy.Value = header.Accuracy;
-                CurrentCombo.Value = header.Combo;
-            }
-        }
-
-        protected class TimedFrame : IComparable<TimedFrame>
-        {
-            public readonly double Time;
-            public readonly FrameHeader Header;
-
-            public TimedFrame(double time)
-            {
-                Time = time;
-            }
-
-            public TimedFrame(double time, FrameHeader header)
-            {
-                Time = time;
-                Header = header;
-            }
-
-            public int CompareTo(TimedFrame other) => Time.CompareTo(other.Time);
-        }
-
-        private class DummyBeatmap : IBeatmap
-        {
-            public BeatmapInfo BeatmapInfo { get; set; } = new BeatmapInfo();
-            public BeatmapMetadata Metadata { get; } = new BeatmapMetadata();
-            public BeatmapDifficulty Difficulty { get; set; } = new BeatmapDifficulty();
-            public ControlPointInfo ControlPointInfo { get; set; } = new ControlPointInfo();
-            public List<BreakPeriod> Breaks { get; } = new List<BreakPeriod>();
-            public double TotalBreakTime => 0;
-            public IReadOnlyList<HitObject> HitObjects => Array.Empty<HitObject>();
-
-            public IEnumerable<BeatmapStatistic> GetStatistics() => Array.Empty<BeatmapStatistic>();
-
-            public double GetMostCommonBeatLength() => 0;
-
-            public IBeatmap Clone() => throw new NotImplementedException();
         }
     }
 }

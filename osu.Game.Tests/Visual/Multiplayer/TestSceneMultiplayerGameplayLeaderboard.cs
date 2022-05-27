@@ -7,7 +7,6 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
@@ -28,7 +27,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         protected override MultiplayerGameplayLeaderboard CreateLeaderboard()
         {
-            return new TestLeaderboard(Ruleset.Value, MultiplayerUsers.ToArray())
+            return new TestLeaderboard(MultiplayerUsers.ToArray())
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -50,15 +49,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             public readonly Dictionary<int, ScoreProcessor> ScoreProcessors = new Dictionary<int, ScoreProcessor>();
 
-            public TestLeaderboard(RulesetInfo ruleset, MultiplayerRoomUser[] users)
-                : base(ruleset, users)
+            public TestLeaderboard(MultiplayerRoomUser[] users)
+                : base(users)
             {
-            }
-
-            protected override TrackedUserData CreateUserData(MultiplayerRoomUser user, RulesetInfo ruleset, ScoreProcessor scoreProcessor)
-            {
-                ScoreProcessors[user.UserID] = scoreProcessor;
-                return base.CreateUserData(user, ruleset, scoreProcessor);
             }
         }
     }
