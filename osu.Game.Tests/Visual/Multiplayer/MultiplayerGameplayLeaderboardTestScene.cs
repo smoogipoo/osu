@@ -10,8 +10,6 @@ using Moq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Configuration;
@@ -22,7 +20,6 @@ using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
-using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -67,7 +64,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                         foreach (var user in e.NewItems.OfType<MultiplayerRoomUser>())
                             multiplayerUserIds.Add(user.UserID);
-
                         break;
 
                     case NotifyCollectionChangedAction.Remove:
@@ -132,15 +128,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                 Beatmap.Value = CreateWorkingBeatmap(Ruleset.Value);
 
-                Child = new DependencyProvidingContainer
-                {
-                    AutoSizeAxes = Axes.Both,
-                    CachedDependencies = new (Type, object)[]
-                    {
-                        (typeof(GameplayState), new GameplayState(Beatmap.Value.GetPlayableBeatmap(Ruleset.Value), Ruleset.Value.CreateInstance()))
-                    },
-                    Child = new AsyncLoadingContainer(Leaderboard = CreateLeaderboard())
-                };
+                LoadComponentAsync(Leaderboard = CreateLeaderboard(), Add);
             });
 
             AddUntilStep("wait for load", () => Leaderboard.IsLoaded);
@@ -229,24 +217,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 }
 
                 spectatorClient.Raise(s => s.OnNewFrames -= null, userId, new FrameDataBundle(header, new[] { new LegacyReplayFrame(Time.Current, 0, 0, ReplayButtonState.None) }));
-            }
-        }
-
-        private class AsyncLoadingContainer : Container
-        {
-            private readonly Drawable drawable;
-
-            public AsyncLoadingContainer(Drawable drawable)
-            {
-                this.drawable = drawable;
-
-                AutoSizeAxes = Axes.Both;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                LoadComponentAsync(drawable, Add);
             }
         }
     }
