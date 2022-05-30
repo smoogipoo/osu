@@ -74,6 +74,8 @@ namespace osu.Game.Online.Spectator
         {
             base.LoadComplete();
 
+            Mode.BindValueChanged(_ => UpdateScore());
+
             spectatorStates.BindTo(spectatorClient.WatchedUserStates);
             spectatorStates.BindCollectionChanged(onSpectatorStatesChanged, true);
 
