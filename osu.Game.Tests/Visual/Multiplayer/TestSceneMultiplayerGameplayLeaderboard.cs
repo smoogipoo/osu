@@ -7,8 +7,8 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
-using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 
 namespace osu.Game.Tests.Visual.Multiplayer
@@ -37,17 +37,17 @@ namespace osu.Game.Tests.Visual.Multiplayer
         [Test]
         public void TestPerUserMods()
         {
-            AddStep("first user has no mods", () => Assert.That(((TestLeaderboard)Leaderboard).ScoreProcessors[0].Mods.Value, Is.Empty));
+            AddStep("first user has no mods", () => Assert.That(((TestLeaderboard)Leaderboard).UserMods[0], Is.Empty));
             AddStep("last user has NF mod", () =>
             {
-                Assert.That(((TestLeaderboard)Leaderboard).ScoreProcessors[TOTAL_USERS - 1].Mods.Value, Has.One.Items);
-                Assert.That(((TestLeaderboard)Leaderboard).ScoreProcessors[TOTAL_USERS - 1].Mods.Value.Single(), Is.TypeOf<OsuModNoFail>());
+                Assert.That(((TestLeaderboard)Leaderboard).UserMods[TOTAL_USERS - 1], Has.One.Items);
+                Assert.That(((TestLeaderboard)Leaderboard).UserMods[TOTAL_USERS - 1].Single(), Is.TypeOf<OsuModNoFail>());
             });
         }
 
         private class TestLeaderboard : MultiplayerGameplayLeaderboard
         {
-            public readonly Dictionary<int, ScoreProcessor> ScoreProcessors = new Dictionary<int, ScoreProcessor>();
+            public Dictionary<int, IReadOnlyList<Mod>> UserMods => UserScores.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ScoreProcessor.Mods);
 
             public TestLeaderboard(MultiplayerRoomUser[] users)
                 : base(users)

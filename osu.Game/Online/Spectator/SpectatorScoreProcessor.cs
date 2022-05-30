@@ -7,15 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Beatmaps.Timing;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -47,6 +46,11 @@ namespace osu.Game.Online.Spectator
         /// The <see cref="ScoringMode"/> used to calculate scores.
         /// </summary>
         public readonly Bindable<ScoringMode> Mode = new Bindable<ScoringMode>();
+
+        /// <summary>
+        /// The applied <see cref="Mod"/>s.
+        /// </summary>
+        public IReadOnlyList<Mod> Mods => scoreProcessor?.Mods.Value ?? Array.Empty<Mod>();
 
         [Resolved]
         private SpectatorClient spectatorClient { get; set; } = null!;

@@ -40,6 +40,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         protected abstract MultiplayerGameplayLeaderboard CreateLeaderboard();
 
         private readonly BindableList<int> multiplayerUserIds = new BindableList<int>();
+        private readonly BindableDictionary<int, SpectatorState> watchedUserStates = new BindableDictionary<int, SpectatorState>();
 
         private OsuConfigManager config;
 
@@ -66,6 +67,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                         foreach (var user in e.NewItems.OfType<MultiplayerRoomUser>())
                             multiplayerUserIds.Add(user.UserID);
+
                         break;
 
                     case NotifyCollectionChangedAction.Remove:
@@ -83,6 +85,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             multiplayerClient.SetupGet(c => c.CurrentMatchPlayingUserIds)
                              .Returns(() => multiplayerUserIds);
+
+            spectatorClient.SetupGet(c => c.WatchedUserStates)
+                           .Returns(() => watchedUserStates);
         }
 
         [SetUpSteps]
@@ -102,8 +107,23 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("populate users", () =>
             {
                 MultiplayerUsers.Clear();
+
                 for (int i = 0; i < TOTAL_USERS; i++)
-                    MultiplayerUsers.Add(CreateUser(i));
+                {
+                    var user = CreateUser(i);
+
+                    MultiplayerUsers.Add(user);
+
+                    watchedUserStates[i] = new SpectatorState
+                    {
+                        BeatmapID = 0,
+                        RulesetID = 0,
+                        Mods = user.Mods,
+                        MaxAchievableCombo = 1000,
+                        MaxAchievableBaseScore = 10000,
+                        TotalBasicHitObjects = 1000
+                    };
+                }
             });
 
             AddStep("create leaderboard", () =>
