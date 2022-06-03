@@ -142,7 +142,18 @@ namespace osu.Game.Online.Multiplayer
         [Resolved]
         private UserLookupCache userLookupCache { get; set; } = null!;
 
-        protected Room? APIRoom { get; private set; }
+        private Room? apiRoom;
+
+        protected Room? APIRoom
+        {
+            get
+            {
+                if (!ThreadSafety.IsUpdateThread)
+                    throw new InvalidOperationException();
+
+                return apiRoom;
+            }
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -191,12 +202,13 @@ namespace osu.Game.Online.Multiplayer
                     Debug.Assert(Room == null);
 
                     Room = joinedRoom;
-                    APIRoom = room;
+                    apiRoom = room;
+                    room.IsMainRoom.Value = true;
 
                     Debug.Assert(joinedRoom.Playlist.Count > 0);
 
-                    APIRoom.Playlist.Clear();
-                    APIRoom.Playlist.AddRange(joinedRoom.Playlist.Select(createPlaylistItem));
+                    apiRoom.Playlist.Clear();
+                    APIRoom!.Playlist.AddRange(joinedRoom.Playlist.Select(createPlaylistItem));
 
                     Debug.Assert(LocalUser != null);
                     addUserToAPIRoom(LocalUser);
@@ -237,7 +249,7 @@ namespace osu.Game.Online.Multiplayer
             // For example, if a room was left and the user immediately pressed the "create room" button, then the user could be taken into the lobby if the value of Room is not reset in time.
             var scheduledReset = runOnUpdateThreadAsync(() =>
             {
-                APIRoom = null;
+                apiRoom = null;
                 Room = null;
                 PlayingUserIds.Clear();
 

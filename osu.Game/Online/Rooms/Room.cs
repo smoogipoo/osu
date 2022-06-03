@@ -6,6 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Game.IO.Serialization.Converters;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
@@ -157,9 +158,20 @@ namespace osu.Game.Online.Rooms
             set => MaxAttempts.Value = value;
         }
 
+        public readonly Bindable<bool> IsMainRoom = new Bindable<bool>();
+
         public Room()
         {
             Password.BindValueChanged(p => HasPassword.Value = !string.IsNullOrEmpty(p.NewValue));
+
+            Playlist.BindCollectionChanged((_, __) =>
+            {
+                if (IsMainRoom.Value)
+                {
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidOperationException("");
+                }
+            });
         }
 
         public void CopyFrom(Room other)
