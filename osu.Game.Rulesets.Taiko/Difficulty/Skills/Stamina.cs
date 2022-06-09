@@ -70,6 +70,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
+            if (current.Index < 2)
+                return 0;
+
             if (!(current.BaseObject is Hit))
             {
                 return 0.0;

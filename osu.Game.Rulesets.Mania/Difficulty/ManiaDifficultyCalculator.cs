@@ -70,10 +70,10 @@ namespace osu.Game.Rulesets.Mania.Difficulty
 
             LegacySortHelper<HitObject>.Sort(sortedObjects, Comparer<HitObject>.Create((a, b) => (int)Math.Round(a.StartTime) - (int)Math.Round(b.StartTime)));
 
-            List<DifficultyHitObject> objects = new List<DifficultyHitObject>();
+            DifficultyHitObject[] objects = new DifficultyHitObject[sortedObjects.Length];
 
-            for (int i = 1; i < sortedObjects.Length; i++)
-                objects.Add(new ManiaDifficultyHitObject(sortedObjects[i], sortedObjects[i - 1], clockRate, objects, objects.Count));
+            for (int i = 0; i < sortedObjects.Length; i++)
+                objects[i] = new ManiaDifficultyHitObject(i, sortedObjects[i], clockRate, objects);
 
             return objects;
         }

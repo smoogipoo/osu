@@ -46,18 +46,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
-            List<DifficultyHitObject> taikoDifficultyHitObjects = new List<DifficultyHitObject>();
+            DifficultyHitObject[] objects = new DifficultyHitObject[beatmap.HitObjects.Count];
 
-            for (int i = 2; i < beatmap.HitObjects.Count; i++)
-            {
-                taikoDifficultyHitObjects.Add(
-                    new TaikoDifficultyHitObject(
-                        beatmap.HitObjects[i], beatmap.HitObjects[i - 1], beatmap.HitObjects[i - 2], clockRate, taikoDifficultyHitObjects, taikoDifficultyHitObjects.Count
-                    )
-                );
-            }
+            for (int i = 0; i < beatmap.HitObjects.Count; i++)
+                objects[i] = new TaikoDifficultyHitObject(i, beatmap.HitObjects[i], clockRate, objects);
 
-            return taikoDifficultyHitObjects;
+            return objects;
         }
 
         protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)

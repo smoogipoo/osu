@@ -55,6 +55,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
+            if (current.Index < 2)
+                return 0;
+
             // drum rolls and swells are exempt.
             if (!(current.BaseObject is Hit))
             {

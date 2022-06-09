@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System.Collections.Generic;
-using System.Linq;
 using osu.Game.Rulesets.Objects;
 
 namespace osu.Game.Rulesets.Difficulty.Preprocessing
@@ -12,10 +13,8 @@ namespace osu.Game.Rulesets.Difficulty.Preprocessing
     /// </summary>
     public class DifficultyHitObject
     {
-        private readonly IReadOnlyList<DifficultyHitObject> difficultyHitObjects;
-
         /// <summary>
-        /// The index of this <see cref="DifficultyHitObject"/> in the list of all <see cref="DifficultyHitObject"/>s.
+        /// The index of this <see cref="DifficultyHitObject"/> in the beatmap.
         /// </summary>
         public int Index;
 
@@ -25,12 +24,7 @@ namespace osu.Game.Rulesets.Difficulty.Preprocessing
         public readonly HitObject BaseObject;
 
         /// <summary>
-        /// The last <see cref="HitObject"/> which occurs before <see cref="BaseObject"/>.
-        /// </summary>
-        public readonly HitObject LastObject;
-
-        /// <summary>
-        /// Amount of time elapsed between <see cref="BaseObject"/> and <see cref="LastObject"/>, adjusted by clockrate.
+        /// Amount of time elapsed between this <see cref="DifficultyHitObject"/> and the last one, or 0 if there was no previous <see cref="DifficultyHitObject"/>.
         /// </summary>
         public readonly double DeltaTime;
 
@@ -44,27 +38,30 @@ namespace osu.Game.Rulesets.Difficulty.Preprocessing
         /// </summary>
         public readonly double EndTime;
 
+        private readonly IReadOnlyList<DifficultyHitObject> allObjects;
+
         /// <summary>
         /// Creates a new <see cref="DifficultyHitObject"/>.
         /// </summary>
+        /// <param name="index">The index of this <see cref="DifficultyHitObject"/> in <paramref name="allObjects"/> list.</param>
         /// <param name="hitObject">The <see cref="HitObject"/> which this <see cref="DifficultyHitObject"/> wraps.</param>
-        /// <param name="lastObject">The last <see cref="HitObject"/> which occurs before <paramref name="hitObject"/> in the beatmap.</param>
         /// <param name="clockRate">The rate at which the gameplay clock is run at.</param>
-        /// <param name="objects">The list of <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
-        /// <param name="index">The index of this <see cref="DifficultyHitObject"/> in <paramref name="objects"/> list.</param>
-        public DifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate, List<DifficultyHitObject> objects, int index)
+        /// <param name="allObjects">The list of <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
+        public DifficultyHitObject(int index, HitObject hitObject, double clockRate, IReadOnlyList<DifficultyHitObject> allObjects)
         {
-            difficultyHitObjects = objects;
+            this.allObjects = allObjects;
+
             Index = index;
             BaseObject = hitObject;
-            LastObject = lastObject;
-            DeltaTime = (hitObject.StartTime - lastObject.StartTime) / clockRate;
             StartTime = hitObject.StartTime / clockRate;
             EndTime = hitObject.GetEndTime() / clockRate;
+
+            if (Index > 0)
+                DeltaTime = (hitObject.StartTime - Previous(0).BaseObject.StartTime) / clockRate;
         }
 
-        public DifficultyHitObject Previous(int backwardsIndex) => difficultyHitObjects.ElementAtOrDefault(Index - (backwardsIndex + 1));
+        public DifficultyHitObject Previous(int backwardsIndex) => allObjects[Index - (backwardsIndex + 1)];
 
-        public DifficultyHitObject Next(int forwardsIndex) => difficultyHitObjects.ElementAtOrDefault(Index + (forwardsIndex + 1));
+        public DifficultyHitObject Next(int forwardsIndex) => allObjects[Index + (forwardsIndex + 1)];
     }
 }

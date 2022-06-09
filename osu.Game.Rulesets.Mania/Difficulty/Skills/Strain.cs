@@ -35,10 +35,13 @@ namespace osu.Game.Rulesets.Mania.Difficulty.Skills
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
+            if (current.Index == 0)
+                return 0.0;
+
             var maniaCurrent = (ManiaDifficultyHitObject)current;
             double endTime = maniaCurrent.EndTime;
             int column = maniaCurrent.BaseObject.Column;
-            double closestEndTime = Math.Abs(endTime - maniaCurrent.LastObject.StartTime); // Lowest value we can assume with the current information
+            double closestEndTime = Math.Abs(endTime - maniaCurrent.Previous(0).BaseObject.StartTime); // Lowest value we can assume with the current information
 
             double holdFactor = 1.0; // Factor to all additional strains in case something else is held
             double holdAddition = 0; // Addition to the current note in case it's a hold and has to be released awkwardly

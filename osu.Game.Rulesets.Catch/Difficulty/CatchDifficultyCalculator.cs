@@ -47,9 +47,7 @@ namespace osu.Game.Rulesets.Catch.Difficulty
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
-            CatchHitObject lastObject = null;
-
-            List<DifficultyHitObject> objects = new List<DifficultyHitObject>();
+            List<DifficultyHitObject> objects = new List<DifficultyHitObject>(beatmap.HitObjects.Count);
 
             // In 2B beatmaps, it is possible that a normal Fruit is placed in the middle of a JuiceStream.
             foreach (var hitObject in beatmap.HitObjects
@@ -61,10 +59,7 @@ namespace osu.Game.Rulesets.Catch.Difficulty
                 if (hitObject is BananaShower || hitObject is TinyDroplet)
                     continue;
 
-                if (lastObject != null)
-                    objects.Add(new CatchDifficultyHitObject(hitObject, lastObject, clockRate, halfCatcherWidth, objects, objects.Count));
-
-                lastObject = hitObject;
+                objects.Add(new CatchDifficultyHitObject(objects.Count, hitObject, clockRate, halfCatcherWidth, objects));
             }
 
             return objects;

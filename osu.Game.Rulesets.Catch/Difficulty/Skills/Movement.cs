@@ -47,9 +47,13 @@ namespace osu.Game.Rulesets.Catch.Difficulty.Skills
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
-            var catchCurrent = (CatchDifficultyHitObject)current;
+            if (current.Index == 0)
+                return 0;
 
-            lastPlayerPosition ??= catchCurrent.LastNormalizedPosition;
+            var catchCurrent = (CatchDifficultyHitObject)current;
+            var catchLast = (CatchDifficultyHitObject)current.Previous(0);
+
+            lastPlayerPosition ??= catchLast.NormalizedPosition;
 
             float playerPosition = Math.Clamp(
                 lastPlayerPosition.Value,
@@ -82,9 +86,9 @@ namespace osu.Game.Rulesets.Catch.Difficulty.Skills
             }
 
             // Bonus for edge dashes.
-            if (catchCurrent.LastObject.DistanceToHyperDash <= 20.0f)
+            if (catchLast.BaseObject.DistanceToHyperDash <= 20.0f)
             {
-                if (!catchCurrent.LastObject.HyperDash)
+                if (!catchLast.BaseObject.HyperDash)
                     edgeDashBonus += 5.7;
                 else
                 {
@@ -92,7 +96,8 @@ namespace osu.Game.Rulesets.Catch.Difficulty.Skills
                     playerPosition = catchCurrent.NormalizedPosition;
                 }
 
-                distanceAddition *= 1.0 + edgeDashBonus * ((20 - catchCurrent.LastObject.DistanceToHyperDash) / 20) * Math.Pow((Math.Min(catchCurrent.StrainTime * catcherSpeedMultiplier, 265) / 265), 1.5); // Edge Dashes are easier at lower ms values
+                distanceAddition *= 1.0 + edgeDashBonus * ((20 - catchLast.BaseObject.DistanceToHyperDash) / 20)
+                                                        * Math.Pow((Math.Min(catchCurrent.StrainTime * catcherSpeedMultiplier, 265) / 265), 1.5); // Edge Dashes are easier at lower ms values
             }
 
             lastPlayerPosition = playerPosition;

@@ -47,9 +47,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
+            if (current.Index < 2)
+                return 0;
+
             // changing from/to a drum roll or a swell does not constitute a colour change.
             // hits spaced more than a second apart are also exempt from colour strain.
-            if (!(current.LastObject is Hit && current.BaseObject is Hit && current.DeltaTime < 1000))
+            if (!(current.BaseObject is Hit && current.DeltaTime < 1000 && current.Previous(0).BaseObject is Hit))
             {
                 monoHistory.Clear();
 

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
@@ -18,7 +20,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         private const float maximum_slider_radius = normalised_radius * 2.4f;
         private const float assumed_slider_radius = normalised_radius * 1.8f;
 
-        protected new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
+        public new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
 
         /// <summary>
         /// Milliseconds elapsed since the start time of the previous <see cref="OsuDifficultyHitObject"/>, with a minimum of 25ms.
@@ -72,14 +74,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// </summary>
         public double? Angle { get; private set; }
 
-        private readonly OsuHitObject lastLastObject;
-        private readonly OsuHitObject lastObject;
+        private readonly OsuHitObject? lastLastObject;
+        private readonly OsuHitObject? lastObject;
 
-        public OsuDifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate, List<DifficultyHitObject> objects, int index)
-            : base(hitObject, lastObject, clockRate, objects, index)
+        public OsuDifficultyHitObject(int index, HitObject hitObject, double clockRate, IReadOnlyList<DifficultyHitObject> allObjects)
+            : base(index, hitObject, clockRate, allObjects)
         {
-            lastLastObject = (OsuHitObject)Previous(1)?.BaseObject;
-            this.lastObject = (OsuHitObject)lastObject;
+            lastObject = Index > 0 ? (OsuHitObject)Previous(0).BaseObject : null;
+            lastLastObject = Index > 1 ? (OsuHitObject)Previous(1).BaseObject : null;
 
             // Capped to 25ms to prevent difficulty calculation breaking from simultaneous objects.
             StrainTime = Math.Max(DeltaTime, min_delta_time);
@@ -138,6 +140,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                 scalingFactor *= 1 + smallCircleBonus;
             }
 
+            if (lastObject == null)
+                return;
+
             Vector2 lastCursorPosition = getEndCursorPosition(lastObject);
 
             LazyJumpDistance = (BaseObject.StackedPosition * scalingFactor - lastCursorPosition * scalingFactor).Length;
@@ -175,18 +180,21 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                 MinimumJumpDistance = Math.Max(0, Math.Min(LazyJumpDistance - (maximum_slider_radius - assumed_slider_radius), tailJumpDistance - maximum_slider_radius));
             }
 
-            if (lastLastObject != null && !(lastLastObject is Spinner))
-            {
-                Vector2 lastLastCursorPosition = getEndCursorPosition(lastLastObject);
+            if (lastLastObject == null)
+                return;
 
-                Vector2 v1 = lastLastCursorPosition - lastObject.StackedPosition;
-                Vector2 v2 = BaseObject.StackedPosition - lastCursorPosition;
+            if (lastLastObject is Spinner)
+                return;
 
-                float dot = Vector2.Dot(v1, v2);
-                float det = v1.X * v2.Y - v1.Y * v2.X;
+            Vector2 lastLastCursorPosition = getEndCursorPosition(lastLastObject);
 
-                Angle = Math.Abs(Math.Atan2(det, dot));
-            }
+            Vector2 v1 = lastLastCursorPosition - lastObject.StackedPosition;
+            Vector2 v2 = BaseObject.StackedPosition - lastCursorPosition;
+
+            float dot = Vector2.Dot(v1, v2);
+            float det = v1.X * v2.Y - v1.Y * v2.X;
+
+            Angle = Math.Abs(Math.Atan2(det, dot));
         }
 
         private void computeSliderCursorPosition(Slider slider)

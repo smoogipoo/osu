@@ -87,12 +87,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
-            List<DifficultyHitObject> objects = new List<DifficultyHitObject>();
+            DifficultyHitObject[] objects = new DifficultyHitObject[beatmap.HitObjects.Count];
 
-            // The first jump is formed by the first two hitobjects of the map.
-            // If the map has less than two OsuHitObjects, the enumerator will not return anything.
-            for (int i = 1; i < beatmap.HitObjects.Count; i++)
-                objects.Add(new OsuDifficultyHitObject(beatmap.HitObjects[i], beatmap.HitObjects[i - 1], clockRate, objects, objects.Count));
+            for (int i = 0; i < beatmap.HitObjects.Count; i++)
+                objects[i] = new OsuDifficultyHitObject(i, beatmap.HitObjects[i], clockRate, objects);
 
             return objects;
         }

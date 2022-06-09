@@ -42,6 +42,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// </summary>
         private double calculateRhythmBonus(DifficultyHitObject current)
         {
+            if (current.Index == 0)
+                return 0;
+
             if (current.BaseObject is Spinner)
                 return 0;
 
