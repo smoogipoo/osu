@@ -1,8 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.22">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhoneSimulator</Platform>
+    <TargetFramework>xamarinios10</TargetFramework>
     <OutputType>Exe</OutputType>
     <ProjectGuid>{3F082D0B-A964-43D7-BDF7-C256D76A50D0}</ProjectGuid>
     <RootNamespace>osu.iOS</RootNamespace>
@@ -119,5 +119,4 @@
   <ItemGroup>
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
