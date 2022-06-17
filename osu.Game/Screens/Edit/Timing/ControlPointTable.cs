@@ -52,6 +52,8 @@ namespace osu.Game.Screens.Edit.Timing
 
                 Columns = createHeaders();
                 Content = value.Select(createContent).ToArray().ToRectangular();
+
+                updateSelectedGroup();
             }
         }
 
@@ -59,11 +61,14 @@ namespace osu.Game.Screens.Edit.Timing
         {
             base.LoadComplete();
 
-            selectedGroup.BindValueChanged(group =>
-            {
-                // TODO: This should scroll the selected row into view.
-                foreach (var b in BackgroundFlow) b.Selected = b.Item == group.NewValue;
-            }, true);
+            selectedGroup.BindValueChanged(group => updateSelectedGroup(), true);
+        }
+
+        private void updateSelectedGroup()
+        {
+            // TODO: This should scroll the selected row into view.
+            foreach (var b in BackgroundFlow)
+                b.Selected = b.Item == selectedGroup.Value;
         }
 
         private TableColumn[] createHeaders()
