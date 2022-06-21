@@ -105,7 +105,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
                 tracking = value;
 
                 if (InputTracksVisualSize)
-                    followCircle.ScaleTo(tracking ? 2.4f : 1f, 300, Easing.OutQuint);
+                    followCircle.ScaleTo(tracking ? 2.4f : 1f, getTimeToExpand(), Easing.OutQuint);
                 else
                 {
                     // We need to always be tracking the final size, at both endpoints. For now, this is achieved by removing the scale duration.
@@ -114,6 +114,26 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
 
                 followCircle.FadeTo(tracking ? 1f : 0, 300, Easing.OutQuint);
             }
+        }
+
+        private double getTimeToExpand()
+        {
+            // The player should be able to hit the far side of the start circle and maintain tracking without moving the cursor
+            // until the follow circle expands to its final size. In other words, the rate of expansion should match the slider velocity.
+
+            // Velocity is in pixels / millisecond.
+            double velocity = drawableSlider.HitObject.Velocity;
+
+            // The amount that the follow circle radius has to expand to reach its final size (in pixels).
+            double expandAmount = OsuHitObject.OBJECT_RADIUS * drawableSlider.HitObject.Scale * (2.4f - 1.0f);
+
+            // px / (px / ms) -> px * ms/px -> ms
+            double expandDuration = expandAmount / velocity;
+
+            // Clamp the rate of expansion to a sane value that feels better for slower sliders
+            expandDuration = Math.Min(300, expandDuration);
+
+            return expandDuration;
         }
 
         /// <summary>
@@ -143,9 +163,9 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
         /// </summary>
         private readonly List<OsuAction> lastPressedActions = new List<OsuAction>();
 
-        protected override void Update()
+        protected override void UpdateAfterChildren()
         {
-            base.Update();
+            base.UpdateAfterChildren();
 
             // from the point at which the head circle is hit, this will be non-null.
             // it may be null if the head circle was missed.
