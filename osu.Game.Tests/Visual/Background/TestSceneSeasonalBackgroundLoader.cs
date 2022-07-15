@@ -10,7 +10,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Configuration;
 using osu.Game.Graphics.Backgrounds;
@@ -192,6 +192,11 @@ namespace osu.Game.Tests.Visual.Background
         private class LookupLoggingTextureStore : LargeTextureStore
         {
             public List<string> PerformedLookups { get; } = new List<string>();
+
+            public LookupLoggingTextureStore()
+                : base(new DummyRenderer())
+            {
+            }
 
             public override Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
             {

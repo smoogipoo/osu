@@ -13,6 +13,7 @@ using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Audio;
 using osu.Game.Configuration;
@@ -35,6 +36,9 @@ namespace osu.Game.Tests.Gameplay
     {
         [Resolved]
         private OsuConfigManager config { get; set; }
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         [Test]
         public void TestRetrieveTopLevelSample()
@@ -204,6 +208,7 @@ namespace osu.Game.Tests.Gameplay
 
         #region IResourceStorageProvider
 
+        public GameHost Host => host;
         public AudioManager AudioManager => Audio;
         public IResourceStore<byte[]> Files => null;
         public new IResourceStore<byte[]> Resources => base.Resources;

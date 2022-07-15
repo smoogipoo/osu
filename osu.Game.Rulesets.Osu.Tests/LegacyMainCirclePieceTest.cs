@@ -6,9 +6,10 @@ using System.Diagnostics;
 using System.Linq;
 using Moq;
 using NUnit.Framework;
-using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Rulesets.Osu.Skinning.Legacy;
 using osu.Game.Skinning;
@@ -19,6 +20,9 @@ namespace osu.Game.Rulesets.Osu.Tests
     [HeadlessTest]
     public class LegacyMainCirclePieceTest : OsuTestScene
     {
+        [Resolved]
+        private GameHost host { get; set; } = null!;
+
         private static readonly object?[][] texture_priority_cases =
         {
             // default priority lookup
@@ -76,7 +80,13 @@ namespace osu.Game.Rulesets.Osu.Tests
                 skin.Setup(s => s.GetTexture(It.IsAny<string>())).CallBase();
 
                 skin.Setup(s => s.GetTexture(It.IsIn(textureFilenames), It.IsAny<WrapMode>(), It.IsAny<WrapMode>()))
-                    .Returns((string componentName, WrapMode _, WrapMode _) => new Texture(1, 1) { AssetName = componentName });
+                    .Returns((string componentName, WrapMode _, WrapMode _) =>
+                        {
+                            var tex = host.Renderer.CreateTexture(1, 1);
+                            tex.AssetName = componentName;
+                            return tex;
+                        }
+                    );
 
                 Child = new DependencyProvidingContainer
                 {

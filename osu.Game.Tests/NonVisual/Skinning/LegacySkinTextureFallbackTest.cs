@@ -13,6 +13,7 @@ using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Game.Database;
 using osu.Game.IO;
 using osu.Game.Skinning;
@@ -141,6 +142,7 @@ namespace osu.Game.Tests.NonVisual.Skinning
                     this.textureStore = textureStore;
                 }
 
+                public GameHost Host => null;
                 public AudioManager AudioManager => null;
                 public IResourceStore<byte[]> Files => null;
                 public IResourceStore<byte[]> Resources => null;

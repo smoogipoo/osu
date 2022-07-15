@@ -14,10 +14,11 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Lists;
+using osu.Framework.Platform;
 
 namespace osu.Game.Graphics.Backgrounds
 {
@@ -88,7 +89,7 @@ namespace osu.Game.Graphics.Backgrounds
 
         private Random stableRandom;
         private IShader shader;
-        private readonly Texture texture;
+        private Texture texture;
 
         /// <summary>
         /// Construct a new triangle visualisation.
@@ -98,13 +99,12 @@ namespace osu.Game.Graphics.Backgrounds
         {
             if (seed != null)
                 stableRandom = new Random(seed.Value);
-
-            texture = Texture.WhitePixel;
         }
 
         [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
+        private void load(GameHost host, ShaderManager shaders)
         {
+            texture = host.Renderer.WhitePixel;
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
@@ -251,7 +251,7 @@ namespace osu.Game.Graphics.Backgrounds
             private readonly List<TriangleParticle> parts = new List<TriangleParticle>();
             private Vector2 size;
 
-            private QuadBatch<TexturedVertex2D> vertexBatch;
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
             public TrianglesDrawNode(Triangles source)
                 : base(source)
@@ -270,14 +270,14 @@ namespace osu.Game.Graphics.Backgrounds
                 parts.AddRange(Source.parts);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
                 if (Source.AimCount > 0 && (vertexBatch == null || vertexBatch.Size != Source.AimCount))
                 {
                     vertexBatch?.Dispose();
-                    vertexBatch = new QuadBatch<TexturedVertex2D>(Source.AimCount, 1);
+                    vertexBatch = renderer.CreateQuadBatch<TexturedVertex2D>(Source.AimCount, 1);
                 }
 
                 shader.Bind();
@@ -297,13 +297,12 @@ namespace osu.Game.Graphics.Backgrounds
                     ColourInfo colourInfo = DrawColourInfo.Colour;
                     colourInfo.ApplyChild(particle.Colour);
 
-                    DrawTriangle(
+                    renderer.DrawTriangle(
                         texture,
                         triangle,
                         colourInfo,
-                        null,
-                        vertexBatch.AddAction,
-                        Vector2.Divide(localInflationAmount, new Vector2(2 * offset.X, offset.Y)));
+                        vertexAction: vertexBatch.AddAction,
+                        inflationPercentage: Vector2.Divide(localInflationAmount, new Vector2(2 * offset.X, offset.Y)));
                 }
 
                 shader.Unbind();

@@ -11,8 +11,8 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Testing.Input;
 using osu.Game.Audio;
 using osu.Game.Rulesets.Osu.Skinning.Legacy;
@@ -82,6 +82,9 @@ namespace osu.Game.Rulesets.Osu.Tests
         [Cached(typeof(ISkinSource))]
         private class LegacySkinContainer : Container, ISkinSource
         {
+            [Resolved]
+            private GameHost host { get; set; }
+
             private readonly bool disjoint;
 
             public LegacySkinContainer(bool disjoint)
@@ -98,14 +101,14 @@ namespace osu.Game.Rulesets.Osu.Tests
                 switch (componentName)
                 {
                     case "cursortrail":
-                        var tex = new Texture(Texture.WhitePixel.TextureGL);
+                        var tex = host.Renderer.WhitePixel;
 
                         if (disjoint)
                             tex.ScaleAdjust = 1 / 25f;
                         return tex;
 
                     case "cursormiddle":
-                        return disjoint ? null : Texture.WhitePixel;
+                        return disjoint ? null : host.Renderer.WhitePixel;
                 }
 
                 return null;

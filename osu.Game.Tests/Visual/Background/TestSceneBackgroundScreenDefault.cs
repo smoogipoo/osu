@@ -11,6 +11,7 @@ using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
@@ -36,6 +37,9 @@ namespace osu.Game.Tests.Visual.Background
         private BackgroundScreenStack stack;
         private TestBackgroundScreenDefault screen;
         private Graphics.Backgrounds.Background getCurrentBackground() => screen.ChildrenOfType<Graphics.Backgrounds.Background>().FirstOrDefault();
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         [Resolved]
         private SkinManager skins { get; set; }
@@ -245,7 +249,7 @@ namespace osu.Game.Tests.Visual.Background
                 Id = API.LocalUser.Value.Id + 1,
             });
 
-        private WorkingBeatmap createTestWorkingBeatmapWithUniqueBackground() => new UniqueBackgroundTestWorkingBeatmap(Audio);
+        private WorkingBeatmap createTestWorkingBeatmapWithUniqueBackground() => new UniqueBackgroundTestWorkingBeatmap(host, Audio);
         private WorkingBeatmap createTestWorkingBeatmapWithStoryboard() => new TestWorkingBeatmapWithStoryboard(Audio);
 
         private class TestBackgroundScreenDefault : BackgroundScreenDefault
@@ -274,12 +278,15 @@ namespace osu.Game.Tests.Visual.Background
 
         private class UniqueBackgroundTestWorkingBeatmap : TestWorkingBeatmap
         {
-            public UniqueBackgroundTestWorkingBeatmap(AudioManager audioManager)
+            private readonly GameHost host;
+
+            public UniqueBackgroundTestWorkingBeatmap(GameHost host, AudioManager audioManager)
                 : base(new Beatmap(), null, audioManager)
             {
+                this.host = host;
             }
 
-            protected override Texture GetBackground() => new Texture(1, 1);
+            protected override Texture GetBackground() => host.Renderer.CreateTexture(1, 1);
         }
 
         private class TestWorkingBeatmapWithStoryboard : TestWorkingBeatmap

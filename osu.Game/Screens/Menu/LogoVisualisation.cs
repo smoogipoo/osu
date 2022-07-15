@@ -6,7 +6,6 @@
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -22,6 +21,8 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Utils;
 using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Platform;
 
 namespace osu.Game.Screens.Menu
 {
@@ -77,11 +78,10 @@ namespace osu.Game.Screens.Menu
         private readonly float[] frequencyAmplitudes = new float[256];
 
         private IShader shader;
-        private readonly Texture texture;
+        private Texture texture;
 
         public LogoVisualisation()
         {
-            texture = Texture.WhitePixel;
             Blending = BlendingParameters.Additive;
         }
 
@@ -93,9 +93,10 @@ namespace osu.Game.Screens.Menu
         }
 
         [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders, IBindable<WorkingBeatmap> beatmap)
+        private void load(GameHost host, ShaderManager shaders, IBindable<WorkingBeatmap> beatmap)
         {
             this.beatmap.BindTo(beatmap);
+            texture = host.Renderer.WhitePixel;
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
@@ -180,7 +181,7 @@ namespace osu.Game.Screens.Menu
 
             private readonly float[] audioData = new float[256];
 
-            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(100, 10);
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
             public VisualisationDrawNode(LogoVisualisation source)
                 : base(source)
@@ -198,9 +199,11 @@ namespace osu.Game.Screens.Menu
                 Source.frequencyAmplitudes.AsSpan().CopyTo(audioData);
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
+
+                vertexBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(100, 10);
 
                 shader.Bind();
 
@@ -237,14 +240,13 @@ namespace osu.Game.Screens.Menu
                                 Vector2Extensions.Transform(barPosition + bottomOffset + amplitudeOffset, DrawInfo.Matrix)
                             );
 
-                            DrawQuad(
+                            renderer.DrawQuad(
                                 texture,
                                 rectangle,
                                 colourInfo,
-                                null,
-                                vertexBatch.AddAction,
+                                vertexAction: vertexBatch.AddAction,
                                 // barSize by itself will make it smooth more in the X axis than in the Y axis, this reverts that.
-                                Vector2.Divide(inflation, barSize.Yx));
+                                inflationPercentage: Vector2.Divide(inflation, barSize.Yx));
                         }
                     }
                 }

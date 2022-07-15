@@ -6,12 +6,18 @@
 using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Game.Database;
 
 namespace osu.Game.IO
 {
     public interface IStorageResourceProvider
     {
+        /// <summary>
+        /// The game host.
+        /// </summary>
+        GameHost Host { get; }
+
         /// <summary>
         /// Retrieve the game-wide audio manager.
         /// </summary>

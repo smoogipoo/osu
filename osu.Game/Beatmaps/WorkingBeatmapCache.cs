@@ -56,7 +56,7 @@ namespace osu.Game.Beatmaps
             this.resources = resources;
             this.host = host;
             this.files = files;
-            largeTextureStore = new LargeTextureStore(host?.CreateTextureLoaderStore(files));
+            largeTextureStore = new LargeTextureStore(host?.Renderer, host?.CreateTextureLoaderStore(files));
             this.trackStore = trackStore;
         }
 
@@ -110,6 +110,7 @@ namespace osu.Game.Beatmaps
 
         TextureStore IBeatmapResourceProvider.LargeTextureStore => largeTextureStore;
         ITrackStore IBeatmapResourceProvider.Tracks => trackStore;
+        GameHost IStorageResourceProvider.Host => host;
         AudioManager IStorageResourceProvider.AudioManager => audioManager;
         RealmAccess IStorageResourceProvider.RealmAccess => null;
         IResourceStore<byte[]> IStorageResourceProvider.Files => files;

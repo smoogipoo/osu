@@ -11,8 +11,8 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Audio;
@@ -30,12 +30,15 @@ namespace osu.Game.Tests.NonVisual.Skinning
         [Cached(typeof(IAnimationTimeReference))]
         private TestAnimationTimeReference animationTimeReference = new TestAnimationTimeReference();
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         private TextureAnimation animation;
 
         [Test]
         public void TestAnimationTimeReferenceChange()
         {
-            ISkin skin = new TestSkin();
+            ISkin skin = new TestSkin(host);
 
             AddStep("get animation", () => Add(animation = (TextureAnimation)skin.GetAnimation(animation_name, true, false)));
             AddAssert("frame count correct", () => animation.FrameCount == frame_count);
@@ -55,9 +58,16 @@ namespace osu.Game.Tests.NonVisual.Skinning
         {
             private static readonly string[] lookup_names = Enumerable.Range(0, frame_count).Select(frame => $"{animation_name}-{frame}").ToArray();
 
+            private readonly GameHost host;
+
+            public TestSkin(GameHost host)
+            {
+                this.host = host;
+            }
+
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
             {
-                return lookup_names.Contains(componentName) ? Texture.WhitePixel : null;
+                return lookup_names.Contains(componentName) ? host.Renderer.WhitePixel : null;
             }
 
             public Drawable GetDrawableComponent(ISkinComponent component) => throw new NotSupportedException();
