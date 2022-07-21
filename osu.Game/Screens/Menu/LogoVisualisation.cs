@@ -7,7 +7,6 @@ using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
@@ -21,6 +20,7 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Utils;
 using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
 

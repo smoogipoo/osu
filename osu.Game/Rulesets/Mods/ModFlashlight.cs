@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -210,8 +210,8 @@ namespace osu.Game.Rulesets.Mods
                 private Vector2 flashlightSize;
                 private float flashlightDim;
 
-                private IVertexBatch<PositionAndColourVertex> quadBatch;
-                private Action<TexturedVertex2D> addAction;
+                private IVertexBatch<PositionAndColourVertex>? quadBatch;
+                private Action<TexturedVertex2D>? addAction;
 
                 public FlashlightDrawNode(Flashlight source)
                     : base(source)
@@ -257,7 +257,7 @@ namespace osu.Game.Rulesets.Mods
                 protected override void Dispose(bool isDisposing)
                 {
                     base.Dispose(isDisposing);
-                    quadBatch.Dispose();
+                    quadBatch?.Dispose();
                 }
             }
         }

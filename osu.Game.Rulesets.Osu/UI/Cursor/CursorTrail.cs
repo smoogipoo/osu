@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
