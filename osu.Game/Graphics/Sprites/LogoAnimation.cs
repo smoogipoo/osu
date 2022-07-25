@@ -58,7 +58,7 @@ namespace osu.Game.Graphics.Sprites
 
             protected override void Blit(IRenderer renderer)
             {
-                Shader.GetUniform<float>("progress").UpdateValue(ref progress);
+                GetShader(renderer).GetUniform<float>("progress").UpdateValue(ref progress);
 
                 base.Blit(renderer);
             }
