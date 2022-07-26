@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
@@ -184,8 +183,8 @@ namespace osu.Game.Graphics.Backgrounds
 
         private void addTriangles(bool randomY)
         {
-            // limited by the maximum size of QuadVertexBuffer for safety.
-            const int max_triangles = QuadVertexBuffer<TexturedVertex2D>.MAX_QUADS;
+            // Limited by the maximum size of QuadVertexBuffer for safety.
+            const int max_triangles = ushort.MaxValue / (IRenderer.VERTICES_PER_QUAD + 2);
 
             AimCount = (int)Math.Min(max_triangles, (DrawWidth * DrawHeight * 0.002f / (triangleScale * triangleScale) * SpawnRatio));
 
