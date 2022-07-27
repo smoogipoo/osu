@@ -71,7 +71,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
         [BackgroundDependencyLoader]
         private void load(GameHost host, ShaderManager shaders)
         {
-            texture ??= host.Renderer.WhitePixel;
+            texture ??= host.Renderer.WhiteTexture;
             shader = shaders.Load(@"CursorTrail", FragmentShaderDescriptor.TEXTURE);
         }
 

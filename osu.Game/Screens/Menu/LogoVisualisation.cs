@@ -96,7 +96,7 @@ namespace osu.Game.Screens.Menu
         private void load(GameHost host, ShaderManager shaders, IBindable<WorkingBeatmap> beatmap)
         {
             this.beatmap.BindTo(beatmap);
-            texture = host.Renderer.WhitePixel;
+            texture = host.Renderer.WhiteTexture;
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 

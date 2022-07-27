@@ -67,7 +67,7 @@ namespace osu.Game.Tests.NonVisual.Skinning
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
             {
-                return lookup_names.Contains(componentName) ? host.Renderer.WhitePixel : null;
+                return lookup_names.Contains(componentName) ? host.Renderer.WhiteTexture : null;
             }
 
             public Drawable GetDrawableComponent(ISkinComponent component) => throw new NotSupportedException();

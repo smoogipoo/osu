@@ -103,7 +103,7 @@ namespace osu.Game.Graphics.Backgrounds
         [BackgroundDependencyLoader]
         private void load(GameHost host, ShaderManager shaders)
         {
-            texture = host.Renderer.WhitePixel;
+            texture = host.Renderer.WhiteTexture;
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 

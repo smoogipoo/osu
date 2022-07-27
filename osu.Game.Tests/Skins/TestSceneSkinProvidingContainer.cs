@@ -92,7 +92,7 @@ namespace osu.Game.Tests.Skins
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
             {
                 if (componentName == TEXTURE_NAME)
-                    return host.Renderer.WhitePixel;
+                    return host.Renderer.WhiteTexture;
 
                 return null;
             }

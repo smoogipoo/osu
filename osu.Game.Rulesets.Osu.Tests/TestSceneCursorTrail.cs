@@ -101,14 +101,14 @@ namespace osu.Game.Rulesets.Osu.Tests
                 switch (componentName)
                 {
                     case "cursortrail":
-                        var tex = host.Renderer.WhitePixel;
+                        var tex = host.Renderer.WhiteTexture;
 
                         if (disjoint)
                             tex.ScaleAdjust = 1 / 25f;
                         return tex;
 
                     case "cursormiddle":
-                        return disjoint ? null : host.Renderer.WhitePixel;
+                        return disjoint ? null : host.Renderer.WhiteTexture;
                 }
 
                 return null;
