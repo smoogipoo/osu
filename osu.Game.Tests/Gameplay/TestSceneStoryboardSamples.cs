@@ -73,7 +73,6 @@ namespace osu.Game.Tests.Gameplay
             AddStep("create container", () =>
             {
                 var working = CreateWorkingBeatmap(new OsuRuleset().RulesetInfo);
-                working.LoadTrack();
 
                 Add(gameplayContainer = new MasterGameplayClockContainer(working, 0)
                 {
@@ -100,7 +99,6 @@ namespace osu.Game.Tests.Gameplay
             AddStep("create container", () =>
             {
                 var working = CreateWorkingBeatmap(new OsuRuleset().RulesetInfo);
-                working.LoadTrack();
 
                 const double start_time = 1000;
 
