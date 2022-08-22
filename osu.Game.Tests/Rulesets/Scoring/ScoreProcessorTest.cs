@@ -306,7 +306,7 @@ namespace osu.Game.Tests.Rulesets.Scoring
                 HitObjects = { new TestHitObject(result) }
             });
 
-            Assert.That(scoreProcessor.ComputeFinalScore(ScoringMode.Standardised, new ScoreInfo
+            Assert.That(scoreProcessor.ComputeScore(ScoringMode.Standardised, new ScoreInfo
             {
                 Ruleset = new TestRuleset().RulesetInfo,
                 MaxCombo = result.AffectsCombo() ? 1 : 0,
