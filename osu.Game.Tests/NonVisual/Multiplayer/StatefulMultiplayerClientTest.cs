@@ -3,13 +3,16 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Humanizer;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Testing;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Online.Rooms;
 using osu.Game.Tests.Visual.Multiplayer;
 
@@ -95,6 +98,49 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
             checkPlayingUserCount(1);
         }
 
+        [Test]
+        public void TestMultipleInstancesOfNonExclusiveCountdowns()
+        {
+            AddStep("start countdown", () => MultiplayerClient.MatchEvent(new CountdownStartedEvent(new TestNonExclusiveCountdown
+            {
+                ID = 1,
+                TimeRemaining = TimeSpan.FromMinutes(10)
+            })).WaitSafely());
+
+            AddAssert("one active countdown", () => MultiplayerClient.ClientRoom?.ActiveCountdowns, () => Has.One.Items);
+
+            AddStep("start another countdown", () => MultiplayerClient.MatchEvent(new CountdownStartedEvent(new TestNonExclusiveCountdown
+            {
+                ID = 2,
+                TimeRemaining = TimeSpan.FromMinutes(10)
+            })).WaitSafely());
+
+            AddAssert("two active countdows", () => MultiplayerClient.ClientRoom?.ActiveCountdowns, () => Has.Count.EqualTo(2));
+            AddAssert("one countdown with id 1", () => MultiplayerClient.ClientRoom?.ActiveCountdowns, () => Has.One.Items.With.Property(nameof(MultiplayerCountdown.ID)).EqualTo(1));
+            AddAssert("one countdown with id 2", () => MultiplayerClient.ClientRoom?.ActiveCountdowns, () => Has.One.Items.With.Property(nameof(MultiplayerCountdown.ID)).EqualTo(2));
+        }
+
+        [Test]
+        public void TestSingleInstanceOfExclusiveCountdowns()
+        {
+            AddStep("start countdown", () => MultiplayerClient.MatchEvent(new CountdownStartedEvent(new TestExclusiveCountdown
+            {
+                ID = 1,
+                TimeRemaining = TimeSpan.FromMinutes(10)
+            })).WaitSafely());
+
+            AddAssert("one active countdown", () => MultiplayerClient.ClientRoom?.ActiveCountdowns, () => Has.One.Items);
+
+            AddStep("start another countdown", () => MultiplayerClient.MatchEvent(new CountdownStartedEvent(new TestExclusiveCountdown
+            {
+                ID = 2,
+                TimeRemaining = TimeSpan.FromMinutes(10)
+            })).WaitSafely());
+
+            AddAssert("one active countdown", () => MultiplayerClient.ClientRoom?.ActiveCountdowns, () => Has.One.Items);
+            AddAssert("active countdown has id 2", () => MultiplayerClient.ClientRoom?.ActiveCountdowns.Single().ID, () => Is.EqualTo(2));
+        }
+
         private void checkPlayingUserCount(int expectedCount)
             => AddAssert($"{"user".ToQuantity(expectedCount)} playing", () => MultiplayerClient.CurrentMatchPlayingUserIds.Count == expectedCount);
 
@@ -107,5 +153,14 @@ namespace osu.Game.Tests.NonVisual.Multiplayer
                     MultiplayerClient.ChangeUserState(userId, state);
                 }
             });
+
+        private class TestNonExclusiveCountdown : MultiplayerCountdown
+        {
+            public override bool IsExclusive => false;
+        }
+
+        private class TestExclusiveCountdown : MultiplayerCountdown
+        {
+        }
     }
 }

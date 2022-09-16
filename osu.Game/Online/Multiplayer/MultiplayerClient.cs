@@ -553,6 +553,15 @@ namespace osu.Game.Online.Multiplayer
                 switch (e)
                 {
                     case CountdownStartedEvent countdownStartedEvent:
+                        if (countdownStartedEvent.Countdown.IsExclusive)
+                        {
+                            for (int i = 0; i < Room.ActiveCountdowns.Count; i++)
+                            {
+                                if (Room.ActiveCountdowns[i].GetType() == countdownStartedEvent.Countdown.GetType())
+                                    Room.ActiveCountdowns.RemoveAt(i--);
+                            }
+                        }
+
                         Room.ActiveCountdowns.Add(countdownStartedEvent.Countdown);
                         break;
 
