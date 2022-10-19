@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Game.Database;
 using osu.Game.Input;
@@ -23,7 +25,7 @@ namespace osu.Game.Online.Chat
     /// <summary>
     /// Manages everything channel related
     /// </summary>
-    public class ChannelManager : PollingComponent, IChannelPostTarget
+    public class ChannelManager : CompositeComponent, IChannelPostTarget
     {
         /// <summary>
         /// The channels the player joins on startup
@@ -68,40 +70,10 @@ namespace osu.Game.Online.Chat
         [Resolved]
         private UserLookupCache users { get; set; }
 
-        public readonly BindableBool HighPollRate = new BindableBool();
-
-        private readonly IBindable<bool> isIdle = new BindableBool();
-
         public ChannelManager(IAPIProvider api)
         {
             this.api = api;
             CurrentChannel.ValueChanged += currentChannelChanged;
-        }
-
-        [BackgroundDependencyLoader(permitNulls: true)]
-        private void load(IdleTracker idleTracker)
-        {
-            HighPollRate.BindValueChanged(updatePollRate);
-            isIdle.BindValueChanged(updatePollRate, true);
-
-            if (idleTracker != null)
-                isIdle.BindTo(idleTracker.IsIdle);
-        }
-
-        private void updatePollRate(ValueChangedEvent<bool> valueChangedEvent)
-        {
-            // Polling will eventually be replaced with websocket, but let's avoid doing these background operations as much as possible for now.
-            // The only loss will be delayed PM/message highlight notifications.
-            int millisecondsBetweenPolls = HighPollRate.Value ? 1000 : 60000;
-
-            if (isIdle.Value)
-                millisecondsBetweenPolls *= 10;
-
-            if (TimeBetweenPolls.Value != millisecondsBetweenPolls)
-            {
-                TimeBetweenPolls.Value = millisecondsBetweenPolls;
-                Logger.Log($"Chat is now polling every {TimeBetweenPolls.Value} ms");
-            }
         }
 
         /// <summary>
@@ -572,57 +544,6 @@ namespace osu.Game.Online.Chat
 
                 return;
             }
-        }
-
-        private long lastMessageId;
-
-        private bool channelsInitialised;
-
-        protected override Task Poll()
-        {
-            if (!api.IsLoggedIn)
-                return base.Poll();
-
-            var fetchReq = new GetUpdatesRequest(lastMessageId);
-
-            var tcs = new TaskCompletionSource<bool>();
-
-            fetchReq.Success += updates =>
-            {
-                if (updates?.Presence != null)
-                {
-                    foreach (var channel in updates.Presence)
-                    {
-                        // we received this from the server so should mark the channel already joined.
-                        channel.Joined.Value = true;
-                        joinChannel(channel);
-                    }
-
-                    //todo: handle left channels
-
-                    handleChannelMessages(updates.Messages);
-
-                    foreach (var group in updates.Messages.GroupBy(m => m.ChannelId))
-                        JoinedChannels.FirstOrDefault(c => c.Id == group.Key)?.AddNewMessages(group.ToArray());
-
-                    lastMessageId = updates.Messages.LastOrDefault()?.Id ?? lastMessageId;
-                }
-
-                if (!channelsInitialised)
-                {
-                    channelsInitialised = true;
-                    // we want this to run after the first presence so we can see if the user is in any channels already.
-                    initializeChannels();
-                }
-
-                tcs.SetResult(true);
-            };
-
-            fetchReq.Failure += _ => tcs.SetResult(false);
-
-            api.Queue(fetchReq);
-
-            return tcs.Task;
         }
 
         /// <summary>
