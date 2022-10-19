@@ -75,6 +75,7 @@ namespace osu.Game.Online.Chat
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
         private readonly ClientWebSocket socket = new ClientWebSocket();
+        private long lastMessageId;
         private bool channelsInitialised;
 
         public ChannelManager(IAPIProvider api)
@@ -100,11 +101,45 @@ namespace osu.Game.Online.Chat
                     break;
 
                 case APIState.Online:
-                    if (!channelsInitialised)
+                    var fetchReq = new GetUpdatesRequest(lastMessageId);
+                    var tcs = new TaskCompletionSource<bool>();
+
+                    fetchReq.Success += updates =>
                     {
-                        initializeChannels();
-                        channelsInitialised = true;
-                    }
+                        if (updates?.Presence != null)
+                        {
+                            foreach (var channel in updates.Presence)
+                            {
+                                // we received this from the server so should mark the channel already joined.
+                                channel.Joined.Value = true;
+                                joinChannel(channel);
+                            }
+
+                            //todo: handle left channels
+
+                            handleChannelMessages(updates.Messages);
+
+                            foreach (var group in updates.Messages.GroupBy(m => m.ChannelId))
+                                JoinedChannels.FirstOrDefault(c => c.Id == group.Key)?.AddNewMessages(group.ToArray());
+
+                            lastMessageId = updates.Messages.LastOrDefault()?.Id ?? lastMessageId;
+                        }
+
+                        if (!channelsInitialised)
+                        {
+                            channelsInitialised = true;
+                            // we want this to run after the first presence so we can see if the user is in any channels already.
+                            initializeChannels();
+                        }
+
+                        tcs.SetResult(true);
+                    };
+
+                    fetchReq.Failure += _ => tcs.SetResult(false);
+
+                    api.Queue(fetchReq);
+
+                    await tcs.Task;
 
                     socket.Options.SetRequestHeader("Authorization", $"Bearer {api.AccessToken}");
                     await socket.ConnectAsync(new Uri("ws://127.0.0.1:2345"), CancellationToken.None);
