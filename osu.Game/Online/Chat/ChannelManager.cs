@@ -6,11 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -20,7 +16,6 @@ using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
-using osu.Game.Online.WebSockets;
 using osu.Game.Overlays.Chat.Listing;
 
 namespace osu.Game.Online.Chat
@@ -74,7 +69,7 @@ namespace osu.Game.Online.Chat
         private UserLookupCache users { get; set; }
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
-        private readonly ClientWebSocket socket = new ClientWebSocket();
+        private readonly ChatWebSocketConnector chatSocket;
         private long lastMessageId;
         private bool channelsInitialised;
 
@@ -82,24 +77,25 @@ namespace osu.Game.Online.Chat
         {
             this.api = api;
             CurrentChannel.ValueChanged += currentChannelChanged;
+
+            chatSocket = new ChatWebSocketConnector(api)
+            {
+                ChannelJoined = ch => joinChannel(ch),
+                NewMessages = handleChannelMessages
+            };
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
             apiState.BindTo(api.State);
-            apiState.BindValueChanged(state => Task.Run(setupSocket), true);
+            apiState.BindValueChanged(state => Task.Run(retrieveInitialMessages), true);
         }
 
-        private async Task setupSocket()
+        private async Task retrieveInitialMessages()
         {
             switch (apiState.Value)
             {
-                case APIState.Failing:
-                case APIState.Offline:
-                    await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disconnecting", CancellationToken.None);
-                    break;
-
                 case APIState.Online:
                     var fetchReq = new GetUpdatesRequest(lastMessageId);
                     var tcs = new TaskCompletionSource<bool>();
@@ -140,67 +136,6 @@ namespace osu.Game.Online.Chat
                     api.Queue(fetchReq);
 
                     await tcs.Task;
-
-                    socket.Options.SetRequestHeader("Authorization", $"Bearer {api.AccessToken}");
-                    await socket.ConnectAsync(new Uri("ws://127.0.0.1:2345"), CancellationToken.None);
-                    await socket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new StartChatSocketMessage())), WebSocketMessageType.Text, true, CancellationToken.None);
-
-                    bool hasClosed = false;
-                    byte[] buffer = new byte[1024];
-                    StringBuilder messageResult = new StringBuilder();
-
-                    while (!hasClosed)
-                    {
-                        try
-                        {
-                            WebSocketReceiveResult result = await socket.ReceiveAsync(buffer, CancellationToken.None);
-
-                            switch (result.MessageType)
-                            {
-                                case WebSocketMessageType.Text:
-                                    messageResult.Append(Encoding.UTF8.GetString(buffer[..result.Count]));
-
-                                    if (result.EndOfMessage)
-                                    {
-                                        SocketMessage message = JsonConvert.DeserializeObject<SocketMessage>(messageResult.ToString());
-                                        messageResult.Clear();
-
-                                        switch (message.Event)
-                                        {
-                                            case "chat.channel.join":
-                                                if (message.Data == null)
-                                                    continue;
-
-                                                Channel channel = JsonConvert.DeserializeObject<Channel>(message.Data.ToString());
-                                                channel.Joined.Value = true;
-                                                break;
-
-                                            case "chat.message.new":
-                                                if (message.Data == null)
-                                                    continue;
-
-                                                handleChannelMessages(JsonConvert.DeserializeObject<NewChatMessageData>(message.Data.ToString())
-                                                                                 .GetMessages().Where(m => m.Sender.OnlineID != api.LocalUser.Value.OnlineID));
-                                                break;
-                                        }
-                                    }
-
-                                    break;
-
-                                case WebSocketMessageType.Binary:
-                                    throw new NotImplementedException();
-
-                                case WebSocketMessageType.Close:
-                                    hasClosed = true;
-                                    break;
-                            }
-                        }
-                        catch
-                        {
-                            hasClosed = true;
-                        }
-                    }
-
                     break;
             }
         }
