@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -80,7 +79,7 @@ namespace osu.Game.Online.Chat
 
             chatSocket = new ChatWebSocketConnector(api)
             {
-                NewMessages = handleChannelMessages
+                NewMessages = handleIncomingMessages
             };
         }
 
@@ -88,53 +87,21 @@ namespace osu.Game.Online.Chat
         private void load()
         {
             apiState.BindTo(api.State);
-            apiState.BindValueChanged(state => Task.Run(retrieveInitialMessages), true);
+            apiState.BindValueChanged(_ => retrieveInitialMessages(), true);
         }
 
-        private async Task retrieveInitialMessages()
+        private void retrieveInitialMessages()
         {
             switch (apiState.Value)
             {
                 case APIState.Online:
-                    var fetchReq = new GetUpdatesRequest(lastMessageId);
-                    var tcs = new TaskCompletionSource<bool>();
-
-                    fetchReq.Success += updates =>
+                    if (!channelsInitialised)
                     {
-                        if (updates?.Presence != null)
-                        {
-                            foreach (var channel in updates.Presence)
-                            {
-                                // we received this from the server so should mark the channel already joined.
-                                channel.Joined.Value = true;
-                                joinChannel(channel);
-                            }
+                        channelsInitialised = true;
+                        // we want this to run after the first presence so we can see if the user is in any channels already.
+                        initializeChannels();
+                    }
 
-                            //todo: handle left channels
-
-                            handleChannelMessages(updates.Messages);
-
-                            foreach (var group in updates.Messages.GroupBy(m => m.ChannelId))
-                                JoinedChannels.FirstOrDefault(c => c.Id == group.Key)?.AddNewMessages(group.ToArray());
-
-                            lastMessageId = updates.Messages.LastOrDefault()?.Id ?? lastMessageId;
-                        }
-
-                        if (!channelsInitialised)
-                        {
-                            channelsInitialised = true;
-                            // we want this to run after the first presence so we can see if the user is in any channels already.
-                            initializeChannels();
-                        }
-
-                        tcs.SetResult(true);
-                    };
-
-                    fetchReq.Failure += _ => tcs.SetResult(false);
-
-                    api.Queue(fetchReq);
-
-                    await tcs.Task;
                     break;
             }
         }
@@ -362,6 +329,28 @@ namespace osu.Game.Online.Chat
                     break;
             }
         }
+
+        private void handleIncomingMessages(IEnumerable<Message> messages) => Schedule(() =>
+        {
+            Message[] messagesArray = messages.ToArray();
+
+            foreach (var msg in messagesArray)
+            {
+                // Todo: Passing sender like this is probably wrong.
+                joinChannel(new Channel(msg.Sender)
+                {
+                    Id = msg.ChannelId,
+                    // we received this from the server so should mark the channel already joined.
+                    Joined = { Value = true }
+                });
+            }
+
+            //todo: handle left channels
+
+            handleChannelMessages(messagesArray);
+
+            lastMessageId = messagesArray.LastOrDefault()?.Id ?? lastMessageId;
+        });
 
         private void handleChannelMessages(IEnumerable<Message> messages)
         {
