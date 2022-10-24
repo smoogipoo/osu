@@ -15,7 +15,6 @@ namespace osu.Game.Online.Chat
 {
     public class ChatWebSocketConnector : WebSocketConnector
     {
-        public Action<Channel>? ChannelJoined;
         public Action<IEnumerable<Message>>? NewMessages;
 
         private readonly IAPIProvider api;
@@ -35,16 +34,6 @@ namespace osu.Game.Online.Chat
         {
             switch (message.Event)
             {
-                case "chat.channel.join":
-                    Debug.Assert(message.Data != null);
-
-                    Channel? channel = JsonConvert.DeserializeObject<Channel>(message.Data.ToString());
-                    Debug.Assert(channel != null);
-                    channel.Joined.Value = true;
-
-                    ChannelJoined?.Invoke(channel);
-                    break;
-
                 case "chat.message.new":
                     Debug.Assert(message.Data != null);
 

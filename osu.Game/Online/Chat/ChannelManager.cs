@@ -80,7 +80,6 @@ namespace osu.Game.Online.Chat
 
             chatSocket = new ChatWebSocketConnector(api)
             {
-                ChannelJoined = ch => joinChannel(ch),
                 NewMessages = handleChannelMessages
             };
         }
