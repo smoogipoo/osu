@@ -11,6 +11,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
+using osu.Framework.Threading;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
@@ -71,6 +72,7 @@ namespace osu.Game.Online.Chat
         private readonly ChatWebSocketConnector chatSocket;
         private long lastMessageId;
         private bool channelsInitialised;
+        private ScheduledDelegate ackDelegate;
 
         public ChannelManager(IAPIProvider api)
         {
@@ -89,8 +91,13 @@ namespace osu.Game.Online.Chat
             apiState.BindTo(api.State);
             apiState.BindValueChanged(status =>
             {
+                ackDelegate?.Cancel();
+
                 if (status.NewValue == APIState.Online)
-                    doInitialPoll();
+                {
+                    fetchMessages();
+                    Scheduler.Add(ackDelegate = new ScheduledDelegate(() => api.Queue(new ChatAckRequest()), 0, 60000));
+                }
             }, true);
         }
 
@@ -318,7 +325,7 @@ namespace osu.Game.Online.Chat
             }
         }
 
-        private void doInitialPoll()
+        private void fetchMessages()
         {
             var fetchReq = new GetUpdatesRequest(lastMessageId);
 
