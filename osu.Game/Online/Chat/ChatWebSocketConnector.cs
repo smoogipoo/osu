@@ -17,12 +17,9 @@ namespace osu.Game.Online.Chat
     {
         public Action<IEnumerable<Message>>? NewMessages;
 
-        private readonly IAPIProvider api;
-
         public ChatWebSocketConnector(IAPIProvider api)
-            : base(new Uri("ws://127.0.0.1:2345"), api)
+            : base(api)
         {
-            this.api = api;
         }
 
         protected override async Task OnConnectedAsync(ClientWebSocket connection)
@@ -40,7 +37,7 @@ namespace osu.Game.Online.Chat
                     NewChatMessageData? messageData = JsonConvert.DeserializeObject<NewChatMessageData>(message.Data.ToString());
                     Debug.Assert(messageData != null);
 
-                    NewMessages?.Invoke(messageData.GetMessages().Where(m => m.Sender.OnlineID != api.LocalUser.Value.OnlineID));
+                    NewMessages?.Invoke(messageData.GetMessages().Where(m => m.Sender.OnlineID != API.LocalUser.Value.OnlineID));
                     break;
             }
 

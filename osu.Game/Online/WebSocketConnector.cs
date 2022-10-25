@@ -10,17 +10,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
 using osu.Game.Online.WebSockets;
 
 namespace osu.Game.Online
 {
-    public abstract class WebSocketConnector
+    public abstract class WebSocketConnector : IDisposable
     {
-        private readonly Uri uri;
-        private readonly IAPIProvider api;
-
         /// <summary>
         /// The current connection opened by this connector.
         /// </summary>
@@ -31,6 +30,8 @@ namespace osu.Game.Online
         /// </summary>
         public IBindable<bool> IsConnected => isConnected;
 
+        protected readonly IAPIProvider API;
+
         private readonly Bindable<bool> isConnected = new Bindable<bool>();
         private readonly SemaphoreSlim connectionLock = new SemaphoreSlim(1);
         private CancellationTokenSource connectCancelSource = new CancellationTokenSource();
@@ -40,12 +41,10 @@ namespace osu.Game.Online
         /// <summary>
         /// Constructs a new <see cref="HubClientConnector"/>.
         /// </summary>
-        /// <param name="uri"></param>
         /// <param name="api"> An API provider used to react to connection state changes.</param>
-        protected WebSocketConnector(Uri uri, IAPIProvider api)
+        protected WebSocketConnector(IAPIProvider api)
         {
-            this.uri = uri;
-            this.api = api;
+            API = api;
 
             apiState.BindTo(api.State);
             apiState.BindValueChanged(_ => Task.Run(connectIfPossible), true);
@@ -53,12 +52,14 @@ namespace osu.Game.Online
 
         public Task Reconnect()
         {
-            Logger.Log($"{uri} reconnecting...", LoggingTarget.Network);
+            Logger.Log($"{GetType().ReadableName()} reconnecting...", LoggingTarget.Network);
             return Task.Run(connectIfPossible);
         }
 
         private async Task connectIfPossible()
         {
+            // Todo: THIS IS NOT THREAD SAFE!!!
+
             switch (apiState.Value)
             {
                 case APIState.Failing:
@@ -67,12 +68,20 @@ namespace osu.Game.Online
                     break;
 
                 case APIState.Online:
-                    await connect();
+                    var req = new GetNotificationsRequest();
+
+                    req.Success += bundle =>
+                    {
+                        if (apiState.Value == APIState.Online)
+                            Task.Run(() => connect(bundle.Endpoint));
+                    };
+
+                    API.Queue(req);
                     break;
             }
         }
 
-        private async Task connect()
+        private async Task connect(string endpoint)
         {
             cancelExistingConnect();
 
@@ -93,16 +102,16 @@ namespace osu.Game.Online
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Logger.Log($"{uri} connecting...", LoggingTarget.Network);
+                    Logger.Log($"{GetType().ReadableName()} connecting to {endpoint}...", LoggingTarget.Network);
 
                     try
                     {
                         // importantly, rebuild the connection each attempt to get an updated access token.
                         CurrentConnection = buildConnection();
 
-                        await startAsync(CurrentConnection, cancellationToken).ConfigureAwait(false);
+                        await startAsync(endpoint, CurrentConnection, cancellationToken).ConfigureAwait(false);
 
-                        Logger.Log($"{uri} connected!", LoggingTarget.Network);
+                        Logger.Log($"{GetType().ReadableName()} connected!", LoggingTarget.Network);
                         isConnected.Value = true;
                         return;
                     }
@@ -128,14 +137,14 @@ namespace osu.Game.Online
         /// </summary>
         private async Task handleErrorAndDelay(Exception exception, CancellationToken cancellationToken)
         {
-            Logger.Log($"{uri} connect attempt failed: {exception.Message}", LoggingTarget.Network);
+            Logger.Log($"{GetType().ReadableName()} connect attempt failed: {exception.Message}", LoggingTarget.Network);
             await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
         }
 
         private ClientWebSocket buildConnection()
         {
             ClientWebSocket socket = new ClientWebSocket();
-            socket.Options.SetRequestHeader("Authorization", $"Bearer {api.AccessToken}");
+            socket.Options.SetRequestHeader("Authorization", $"Bearer {API.AccessToken}");
             socket.Options.Proxy = WebRequest.DefaultWebProxy;
             if (socket.Options.Proxy != null)
                 socket.Options.Proxy.Credentials = CredentialCache.DefaultCredentials;
@@ -143,9 +152,9 @@ namespace osu.Game.Online
             return socket;
         }
 
-        private async Task startAsync(ClientWebSocket socket, CancellationToken cancellationToken)
+        private async Task startAsync(string endpoint, ClientWebSocket socket, CancellationToken cancellationToken)
         {
-            await socket.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
+            await socket.ConnectAsync(new Uri(endpoint), cancellationToken).ConfigureAwait(false);
 
             await OnConnectedAsync(socket);
 
@@ -177,7 +186,7 @@ namespace osu.Game.Online
 
                                     if (message.Error != null)
                                     {
-                                        Logger.Log($"Error from {uri}: {message.Error}", LoggingTarget.Network);
+                                        Logger.Log($"{GetType().ReadableName()} error: {message.Error}", LoggingTarget.Network);
                                         break;
                                     }
 
@@ -222,11 +231,11 @@ namespace osu.Game.Online
             if (ex != null)
                 await handleErrorAndDelay(ex, cancellationToken).ConfigureAwait(false);
             else
-                Logger.Log($"{uri} disconnected", LoggingTarget.Network);
+                Logger.Log($"{GetType().ReadableName()} disconnected", LoggingTarget.Network);
 
             // make sure a disconnect wasn't triggered (and this is still the active connection).
             if (!cancellationToken.IsCancellationRequested)
-                await Task.Run(connect, default).ConfigureAwait(false);
+                await Reconnect().ConfigureAwait(false);
         }
 
         private async Task disconnect(bool takeLock)
@@ -269,7 +278,7 @@ namespace osu.Game.Online
             connectCancelSource = new CancellationTokenSource();
         }
 
-        public override string ToString() => $"Connector for {uri} ({(IsConnected.Value ? "connected" : "not connected")}";
+        public override string ToString() => $"{GetType().ReadableName()} ({(IsConnected.Value ? "connected" : "not connected")}";
 
         public void Dispose()
         {
