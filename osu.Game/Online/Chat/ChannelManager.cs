@@ -87,23 +87,11 @@ namespace osu.Game.Online.Chat
         private void load()
         {
             apiState.BindTo(api.State);
-            apiState.BindValueChanged(_ => retrieveInitialMessages(), true);
-        }
-
-        private void retrieveInitialMessages()
-        {
-            switch (apiState.Value)
+            apiState.BindValueChanged(status =>
             {
-                case APIState.Online:
-                    if (!channelsInitialised)
-                    {
-                        channelsInitialised = true;
-                        // we want this to run after the first presence so we can see if the user is in any channels already.
-                        initializeChannels();
-                    }
-
-                    break;
-            }
+                if (status.NewValue == APIState.Online)
+                    doInitialPoll();
+            }, true);
         }
 
         /// <summary>
@@ -328,6 +316,39 @@ namespace osu.Game.Online.Chat
                     target.AddNewMessages(new ErrorMessage($@"""/{command}"" is not supported! For a list of supported commands see /help"));
                     break;
             }
+        }
+
+        private void doInitialPoll()
+        {
+            var fetchReq = new GetUpdatesRequest(lastMessageId);
+
+            fetchReq.Success += updates =>
+            {
+                if (updates?.Presence != null)
+                {
+                    foreach (var channel in updates.Presence)
+                    {
+                        // we received this from the server so should mark the channel already joined.
+                        channel.Joined.Value = true;
+                        joinChannel(channel);
+                    }
+
+                    //todo: handle left channels
+
+                    handleChannelMessages(updates.Messages);
+
+                    lastMessageId = updates.Messages.LastOrDefault()?.Id ?? lastMessageId;
+                }
+
+                if (!channelsInitialised)
+                {
+                    channelsInitialised = true;
+                    // we want this to run after the first presence so we can see if the user is in any channels already.
+                    initializeChannels();
+                }
+            };
+
+            api.Queue(fetchReq);
         }
 
         private void handleIncomingMessages(IEnumerable<Message> messages) => Schedule(() =>
