@@ -335,9 +335,7 @@ namespace osu.Game.Online.Chat
 
                     //todo: handle left channels
 
-                    handleChannelMessages(updates.Messages);
-
-                    lastMessageId = updates.Messages.LastOrDefault()?.Id ?? lastMessageId;
+                    addMessages(updates.Messages);
                 }
 
                 if (!channelsInitialised)
@@ -353,7 +351,7 @@ namespace osu.Game.Online.Chat
 
         private void handleIncomingMessages(IEnumerable<Message> messages) => Schedule(() =>
         {
-            Message[] messagesArray = messages.ToArray();
+            List<Message> messagesArray = messages.ToList();
 
             foreach (var msg in messagesArray)
             {
@@ -368,17 +366,17 @@ namespace osu.Game.Online.Chat
 
             //todo: handle left channels
 
-            handleChannelMessages(messagesArray);
-
-            lastMessageId = messagesArray.LastOrDefault()?.Id ?? lastMessageId;
+            addMessages(messagesArray);
         });
 
-        private void handleChannelMessages(IEnumerable<Message> messages)
+        private void addMessages(List<Message> messages)
         {
             var channels = JoinedChannels.ToList();
 
             foreach (var group in messages.GroupBy(m => m.ChannelId))
                 channels.Find(c => c.Id == group.Key)?.AddNewMessages(group.ToArray());
+
+            lastMessageId = messages.LastOrDefault()?.Id ?? lastMessageId;
         }
 
         private void initializeChannels()
@@ -421,7 +419,7 @@ namespace osu.Game.Online.Chat
             var fetchInitialMsgReq = new GetMessagesRequest(channel);
             fetchInitialMsgReq.Success += messages =>
             {
-                handleChannelMessages(messages);
+                addMessages(messages);
                 channel.MessagesLoaded = true; // this will mark the channel as having received messages even if there were none.
             };
 
@@ -509,7 +507,7 @@ namespace osu.Game.Online.Chat
                             {
                                 channel.Id = resChannel.ChannelID.Value;
 
-                                handleChannelMessages(resChannel.RecentMessages);
+                                addMessages(resChannel.RecentMessages);
                                 channel.MessagesLoaded = true; // this will mark the channel as having received messages even if there were none.
                             }
                         };
