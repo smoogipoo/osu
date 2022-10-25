@@ -243,7 +243,15 @@ namespace osu.Game.Online
             {
                 if (CurrentConnection != null)
                 {
-                    await CurrentConnection.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disconnecting", CancellationToken.None).ConfigureAwait(false);
+                    try
+                    {
+                        await CurrentConnection.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disconnecting", CancellationToken.None).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // Closure can fail if the connection is aborted. Don't really care since it's disposed anyway.
+                    }
+
                     CurrentConnection.Dispose();
                 }
             }
