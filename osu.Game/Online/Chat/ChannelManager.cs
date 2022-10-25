@@ -638,6 +638,13 @@ namespace osu.Game.Online.Chat
 
             api.Queue(req);
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            chatSocket?.Dispose();
+        }
     }
 
     /// <summary>
