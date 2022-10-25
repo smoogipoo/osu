@@ -171,9 +171,16 @@ namespace osu.Game.Online
                                 if (result.EndOfMessage)
                                 {
                                     SocketMessage? message = JsonConvert.DeserializeObject<SocketMessage>(messageResult.ToString());
+                                    messageResult.Clear();
+
                                     Debug.Assert(message != null);
 
-                                    messageResult.Clear();
+                                    if (message.Error != null)
+                                    {
+                                        Logger.Log($"Error from {uri}: {message.Error}", LoggingTarget.Network);
+                                        break;
+                                    }
+
                                     await ProcessMessage(message);
                                 }
 

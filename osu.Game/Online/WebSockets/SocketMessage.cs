@@ -14,5 +14,8 @@ namespace osu.Game.Online.WebSockets
 
         [JsonProperty("data")]
         public JObject? Data { get; set; }
+
+        [JsonProperty("error")]
+        public string? Error { get; set; }
     }
 }
