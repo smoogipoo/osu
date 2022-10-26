@@ -58,8 +58,6 @@ namespace osu.Game.Online
 
         private async Task connectIfPossible()
         {
-            // Todo: THIS IS NOT THREAD SAFE!!!
-
             switch (apiState.Value)
             {
                 case APIState.Failing:
@@ -68,20 +66,12 @@ namespace osu.Game.Online
                     break;
 
                 case APIState.Online:
-                    var req = new GetNotificationsRequest();
-
-                    req.Success += bundle =>
-                    {
-                        if (apiState.Value == APIState.Online)
-                            Task.Run(() => connect(bundle.Endpoint));
-                    };
-
-                    API.Queue(req);
+                    await connect();
                     break;
             }
         }
 
-        private async Task connect(string endpoint)
+        private async Task connect()
         {
             cancelExistingConnect();
 
@@ -102,10 +92,19 @@ namespace osu.Game.Online
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Logger.Log($"{GetType().ReadableName()} connecting to {endpoint}...", LoggingTarget.Network);
-
                     try
                     {
+                        var tcs = new TaskCompletionSource<string>();
+                        var req = new GetNotificationsRequest();
+                        req.Success += bundle => tcs.SetResult(bundle.Endpoint);
+                        req.Failure += ex => tcs.SetException(ex);
+                        API.Queue(req);
+
+                        string endpoint = await tcs.Task;
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        Logger.Log($"{GetType().ReadableName()} connecting to {endpoint}...", LoggingTarget.Network);
+
                         // importantly, rebuild the connection each attempt to get an updated access token.
                         CurrentConnection = buildConnection();
 
