@@ -23,7 +23,8 @@ namespace osu.Game.Online.WebSockets
             Sender = users.Single(u => u.Id == m.SenderId),
             ChannelId = m.ChannelId,
             Content = m.Content,
-            IsAction = m.IsAction
+            IsAction = m.IsAction,
+            Timestamp = m.Timestamp
         });
     }
 }
