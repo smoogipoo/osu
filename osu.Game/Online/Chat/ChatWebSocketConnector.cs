@@ -9,22 +9,49 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
 using osu.Game.Online.WebSockets;
 
 namespace osu.Game.Online.Chat
 {
     public class ChatWebSocketConnector : WebSocketConnector
     {
-        public Action<IEnumerable<Message>>? NewMessages;
+        public Action<Channel>? ChannelJoined;
+        public Action<List<Message>>? NewMessages;
+        public Action? PresenceReceived;
+
+        private readonly IAPIProvider api;
+
+        private long lastMessageId;
 
         public ChatWebSocketConnector(IAPIProvider api)
             : base(api)
         {
+            this.api = api;
         }
 
         protected override async Task OnConnectedAsync(ClientWebSocket connection)
         {
             await SendMessage(new StartChatSocketMessage());
+
+            var fetchReq = new GetUpdatesRequest(lastMessageId);
+
+            fetchReq.Success += updates =>
+            {
+                if (updates?.Presence != null)
+                {
+                    foreach (var channel in updates.Presence)
+                        handleJoinedChannel(channel);
+
+                    //todo: handle left channels
+
+                    handleMessages(updates.Messages);
+                }
+
+                PresenceReceived?.Invoke();
+            };
+
+            api.Queue(fetchReq);
         }
 
         protected override Task ProcessMessage(SocketMessage message)
@@ -37,11 +64,29 @@ namespace osu.Game.Online.Chat
                     NewChatMessageData? messageData = JsonConvert.DeserializeObject<NewChatMessageData>(message.Data.ToString());
                     Debug.Assert(messageData != null);
 
-                    NewMessages?.Invoke(messageData.GetMessages().Where(m => m.Sender.OnlineID != API.LocalUser.Value.OnlineID));
+                    List<Message> messages = messageData.GetMessages().Where(m => m.Sender.OnlineID != API.LocalUser.Value.OnlineID).ToList();
+
+                    foreach (var msg in messages)
+                        handleJoinedChannel(new Channel(msg.Sender) { Id = msg.ChannelId });
+
+                    handleMessages(messages);
                     break;
             }
 
             return Task.CompletedTask;
+        }
+
+        private void handleJoinedChannel(Channel channel)
+        {
+            // we received this from the server so should mark the channel already joined.
+            channel.Joined.Value = true;
+            ChannelJoined?.Invoke(channel);
+        }
+
+        private void handleMessages(List<Message> messages)
+        {
+            NewMessages?.Invoke(messages);
+            lastMessageId = messages.LastOrDefault()?.Id ?? lastMessageId;
         }
     }
 }

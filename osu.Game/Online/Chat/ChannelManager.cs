@@ -70,7 +70,6 @@ namespace osu.Game.Online.Chat
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
         private readonly ChatWebSocketConnector chatSocket;
-        private long lastMessageId;
         private bool channelsInitialised;
         private ScheduledDelegate ackDelegate;
 
@@ -81,7 +80,17 @@ namespace osu.Game.Online.Chat
 
             chatSocket = new ChatWebSocketConnector(api)
             {
-                NewMessages = handleIncomingMessages
+                ChannelJoined = ch => joinChannel(ch),
+                NewMessages = addMessages,
+                PresenceReceived = () =>
+                {
+                    if (!channelsInitialised)
+                    {
+                        channelsInitialised = true;
+                        // we want this to run after the first presence so we can see if the user is in any channels already.
+                        initializeChannels();
+                    }
+                }
             };
         }
 
@@ -94,10 +103,7 @@ namespace osu.Game.Online.Chat
                 ackDelegate?.Cancel();
 
                 if (status.NewValue == APIState.Online)
-                {
-                    fetchMessages();
                     Scheduler.Add(ackDelegate = new ScheduledDelegate(() => api.Queue(new ChatAckRequest()), 0, 60000));
-                }
             }, true);
         }
 
@@ -325,65 +331,12 @@ namespace osu.Game.Online.Chat
             }
         }
 
-        private void fetchMessages()
-        {
-            var fetchReq = new GetUpdatesRequest(lastMessageId);
-
-            fetchReq.Success += updates =>
-            {
-                if (updates?.Presence != null)
-                {
-                    foreach (var channel in updates.Presence)
-                    {
-                        // we received this from the server so should mark the channel already joined.
-                        channel.Joined.Value = true;
-                        joinChannel(channel);
-                    }
-
-                    //todo: handle left channels
-
-                    addMessages(updates.Messages);
-                }
-
-                if (!channelsInitialised)
-                {
-                    channelsInitialised = true;
-                    // we want this to run after the first presence so we can see if the user is in any channels already.
-                    initializeChannels();
-                }
-            };
-
-            api.Queue(fetchReq);
-        }
-
-        private void handleIncomingMessages(IEnumerable<Message> messages) => Schedule(() =>
-        {
-            List<Message> messagesArray = messages.ToList();
-
-            foreach (var msg in messagesArray)
-            {
-                // Todo: Passing sender like this is probably wrong.
-                joinChannel(new Channel(msg.Sender)
-                {
-                    Id = msg.ChannelId,
-                    // we received this from the server so should mark the channel already joined.
-                    Joined = { Value = true }
-                });
-            }
-
-            //todo: handle left channels
-
-            addMessages(messagesArray);
-        });
-
         private void addMessages(List<Message> messages)
         {
             var channels = JoinedChannels.ToList();
 
             foreach (var group in messages.GroupBy(m => m.ChannelId))
                 channels.Find(c => c.Id == group.Key)?.AddNewMessages(group.ToArray());
-
-            lastMessageId = messages.LastOrDefault()?.Id ?? lastMessageId;
         }
 
         private void initializeChannels()
