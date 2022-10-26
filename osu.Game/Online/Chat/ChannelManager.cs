@@ -16,6 +16,7 @@ using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Notifications;
 using osu.Game.Overlays.Chat.Listing;
 
 namespace osu.Game.Online.Chat
@@ -68,8 +69,10 @@ namespace osu.Game.Online.Chat
         [Resolved]
         private UserLookupCache users { get; set; }
 
+        [Resolved]
+        private NotificationsClientConnector connector { get; set; }
+
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
-        private readonly ChatWebSocketConnector chatSocket;
         private bool channelsInitialised;
         private ScheduledDelegate ackDelegate;
 
@@ -77,26 +80,25 @@ namespace osu.Game.Online.Chat
         {
             this.api = api;
             CurrentChannel.ValueChanged += currentChannelChanged;
-
-            chatSocket = new ChatWebSocketConnector(api)
-            {
-                ChannelJoined = ch => joinChannel(ch),
-                NewMessages = addMessages,
-                PresenceReceived = () =>
-                {
-                    if (!channelsInitialised)
-                    {
-                        channelsInitialised = true;
-                        // we want this to run after the first presence so we can see if the user is in any channels already.
-                        initializeChannels();
-                    }
-                }
-            };
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
+            connector.ChannelJoined += ch => joinChannel(ch);
+            connector.NewMessages += addMessages;
+            connector.PresenceReceived += () =>
+            {
+                if (!channelsInitialised)
+                {
+                    channelsInitialised = true;
+                    // we want this to run after the first presence so we can see if the user is in any channels already.
+                    initializeChannels();
+                }
+            };
+
+            connector.StartChat();
+
             apiState.BindTo(api.State);
             apiState.BindValueChanged(status =>
             {
@@ -597,13 +599,6 @@ namespace osu.Game.Online.Chat
             req.Failure += e => Logger.Log($"Failed to mark channel {channel} up to '{message}' as read ({e.Message})", LoggingTarget.Network);
 
             api.Queue(req);
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            chatSocket?.Dispose();
         }
     }
 

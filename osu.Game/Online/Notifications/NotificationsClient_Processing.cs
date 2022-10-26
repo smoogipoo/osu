@@ -5,34 +5,45 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
+using osu.Game.Online.Chat;
 using osu.Game.Online.WebSockets;
 
-namespace osu.Game.Online.Chat
+namespace osu.Game.Online.Notifications
 {
-    public class ChatWebSocketConnector : WebSocketConnector
+    public partial class NotificationsClient
     {
         public Action<Channel>? ChannelJoined;
         public Action<List<Message>>? NewMessages;
         public Action? PresenceReceived;
 
-        private readonly IAPIProvider api;
-
+        private bool enableChat;
         private long lastMessageId;
 
-        public ChatWebSocketConnector(IAPIProvider api)
-            : base(api)
+        public bool EnableChat
         {
-            this.api = api;
+            get => enableChat;
+            set
+            {
+                enableChat = value;
+                Task.Run(startChatIfEnabledAsync);
+            }
         }
 
-        protected override async Task OnConnectedAsync(ClientWebSocket connection)
+        private async Task onConnectedAsync()
         {
-            await SendMessage(new StartChatSocketMessage());
+            await startChatIfEnabledAsync();
+        }
+
+        private async Task startChatIfEnabledAsync()
+        {
+            if (!EnableChat)
+                return;
+
+            await sendMessage(new StartChatSocketMessage(), CancellationToken.None);
 
             var fetchReq = new GetUpdatesRequest(lastMessageId);
 
@@ -54,7 +65,7 @@ namespace osu.Game.Online.Chat
             api.Queue(fetchReq);
         }
 
-        protected override Task ProcessMessage(SocketMessage message)
+        private Task onMessageReceivedAsync(SocketMessage message)
         {
             switch (message.Event)
             {
@@ -64,7 +75,7 @@ namespace osu.Game.Online.Chat
                     NewChatMessageData? messageData = JsonConvert.DeserializeObject<NewChatMessageData>(message.Data.ToString());
                     Debug.Assert(messageData != null);
 
-                    List<Message> messages = messageData.GetMessages().Where(m => m.Sender.OnlineID != API.LocalUser.Value.OnlineID).ToList();
+                    List<Message> messages = messageData.GetMessages().Where(m => m.Sender.OnlineID != api.LocalUser.Value.OnlineID).ToList();
 
                     foreach (var msg in messages)
                         handleJoinedChannel(new Channel(msg.Sender) { Id = msg.ChannelId });
