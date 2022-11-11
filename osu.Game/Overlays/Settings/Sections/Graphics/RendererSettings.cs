@@ -39,6 +39,11 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     LabelText = GraphicsSettingsStrings.ShowFPS,
                     Current = osuConfig.GetBindable<bool>(OsuSetting.ShowFpsDisplay)
                 },
+                new SettingsSlider<float>
+                {
+                    LabelText = "Render scale",
+                    Current = config.GetBindable<float>(FrameworkSetting.RenderScale)
+                }
             };
         }
     }
