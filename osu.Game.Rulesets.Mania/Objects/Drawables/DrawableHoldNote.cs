@@ -69,6 +69,8 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
         /// </summary>
         private double? releaseTime;
 
+        public override double MaximumJudgementOffset => Tail.MaximumJudgementOffset;
+
         public DrawableHoldNote()
             : this(null)
         {
@@ -103,7 +105,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
                         headContainer = new Container<DrawableHoldNoteHead> { RelativeSizeAxes = Axes.Both }
                     }
                 },
-                bodyPiece = new SkinnableDrawable(new ManiaSkinComponent(ManiaSkinComponents.HoldNoteBody), _ => new DefaultBodyPiece
+                bodyPiece = new SkinnableDrawable(new ManiaSkinComponentLookup(ManiaSkinComponents.HoldNoteBody), _ => new DefaultBodyPiece
                 {
                     RelativeSizeAxes = Axes.Both,
                 })
@@ -260,7 +262,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
                         tick.MissForcefully();
                 }
 
-                ApplyResult(r => r.Type = r.Judgement.MaxResult);
+                ApplyResult(r => r.Type = Tail.IsHit ? r.Judgement.MaxResult : r.Judgement.MinResult);
                 endHold();
             }
 
