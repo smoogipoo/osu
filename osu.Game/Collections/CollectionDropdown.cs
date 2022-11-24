@@ -23,7 +23,7 @@ namespace osu.Game.Collections
     /// <summary>
     /// A dropdown to select the collection to be used to filter results.
     /// </summary>
-    public class CollectionDropdown : OsuDropdown<CollectionFilterMenuItem>
+    public partial class CollectionDropdown : OsuDropdown<CollectionFilterMenuItem>
     {
         /// <summary>
         /// Whether to show the "manage collections..." menu item in the dropdown.
@@ -139,7 +139,7 @@ namespace osu.Game.Collections
 
         protected virtual CollectionDropdownMenu CreateCollectionMenu() => new CollectionDropdownMenu();
 
-        public class CollectionDropdownHeader : OsuDropdownHeader
+        public partial class CollectionDropdownHeader : OsuDropdownHeader
         {
             public CollectionDropdownHeader()
             {
@@ -149,7 +149,7 @@ namespace osu.Game.Collections
             }
         }
 
-        protected class CollectionDropdownMenu : OsuDropdownMenu
+        protected partial class CollectionDropdownMenu : OsuDropdownMenu
         {
             public CollectionDropdownMenu()
             {
@@ -163,7 +163,7 @@ namespace osu.Game.Collections
             };
         }
 
-        protected class CollectionDropdownDrawableMenuItem : OsuDropdownMenu.DrawableOsuDropdownMenuItem
+        protected partial class CollectionDropdownDrawableMenuItem : OsuDropdownMenu.DrawableOsuDropdownMenuItem
         {
             private IconButton addOrRemoveButton = null!;
 
