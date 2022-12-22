@@ -58,7 +58,7 @@ namespace osu.Game.Screens.Play
 
         public override bool AllowBackButton => false; // handled by HoldForMenuButton
 
-        protected override bool PlayExitSound => !isRestarting;
+        protected override bool PlayExitSound => true;
 
         protected override UserActivity InitialActivity => new UserActivity.InSoloGame(Beatmap.Value.BeatmapInfo, Ruleset.Value);
 
@@ -83,8 +83,6 @@ namespace osu.Game.Screens.Play
         protected virtual bool PauseOnFocusLost => true;
 
         public Action<bool> RestartRequested;
-
-        private bool isRestarting;
 
         private Bindable<bool> mouseWheelDisabled;
 
@@ -303,7 +301,7 @@ namespace osu.Game.Screens.Play
                     {
                         if (!this.IsCurrentScreen()) return;
 
-                        fadeOut(true);
+                        // fadeOut(true);
                         Restart(true);
                     },
                 });
@@ -644,7 +642,7 @@ namespace osu.Game.Screens.Play
         /// This performs a non-frame-stable seek. Intermediate hitobject judgements may not be applied or reverted correctly during this seek.
         /// </remarks>
         /// <param name="time">The destination time to seek to.</param>
-        protected void SetGameplayStartTime(double time)
+        protected void SetGameplayStartTime(double? time)
         {
             if (frameStablePlaybackResetDelegate?.Cancelled == false && !frameStablePlaybackResetDelegate.Completed)
                 frameStablePlaybackResetDelegate.RunTask();
@@ -668,16 +666,22 @@ namespace osu.Game.Screens.Play
             if (!Configuration.AllowRestart)
                 return;
 
-            isRestarting = true;
-
-            // at the point of restarting the track should either already be paused or the volume should be zero.
-            // stopping here is to ensure music doesn't become audible after exiting back to PlayerLoader.
-            musicController.Stop();
+            // isRestarting = true;
+            //
+            // // at the point of restarting the track should either already be paused or the volume should be zero.
+            // // stopping here is to ensure music doesn't become audible after exiting back to PlayerLoader.
+            // musicController.Stop();
 
             sampleRestart?.Play();
-            RestartRequested?.Invoke(quickRestart);
 
-            PerformExit(false);
+            GameplayClockContainer.Stop();
+            SetGameplayStartTime(null);
+            DrawableRuleset.RevertAll();
+            GameplayClockContainer.Start();
+
+            // RestartRequested?.Invoke(quickRestart);
+            //
+            // PerformExit(false);
         }
 
         /// <summary>

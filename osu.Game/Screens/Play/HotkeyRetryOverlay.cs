@@ -12,6 +12,8 @@ namespace osu.Game.Screens.Play
 {
     public partial class HotkeyRetryOverlay : HoldToConfirmOverlay, IKeyBindingHandler<GlobalAction>
     {
+        protected override bool AllowMultipleFires => true;
+
         public bool OnPressed(KeyBindingPressEvent<GlobalAction> e)
         {
             if (e.Repeat)
@@ -27,6 +29,12 @@ namespace osu.Game.Screens.Play
         {
             if (e.Action != GlobalAction.QuickRetry) return;
 
+            AbortConfirm();
+        }
+
+        protected override void Confirm()
+        {
+            base.Confirm();
             AbortConfirm();
         }
     }

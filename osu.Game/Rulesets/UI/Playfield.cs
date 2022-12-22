@@ -22,6 +22,7 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Skinning;
 using osuTK;
 using osu.Game.Rulesets.Objects.Pooling;
+using osu.Game.Rulesets.Scoring;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -96,7 +97,20 @@ namespace osu.Game.Rulesets.UI
         [CanBeNull]
         protected IReadOnlyList<Mod> Mods { get; private set; }
 
+        public IEnumerable<HitObjectLifetimeEntry> AllEntries => entryManager.AllEntries;
+
         private readonly HitObjectEntryManager entryManager = new HitObjectEntryManager();
+
+        public void RevertAll()
+        {
+            foreach (var entry in AllEntries.Where(e => e.Result != null && e.Result.Type != HitResult.None).OrderByDescending(e => e.Result.TimeAbsolute).ToArray())
+            {
+                RevertResult?.Invoke(null, entry.Result);
+
+                entry.Result.TimeOffset = 0;
+                entry.Result.Type = HitResult.None;
+            }
+        }
 
         /// <summary>
         /// Creates a new <see cref="Playfield"/>.

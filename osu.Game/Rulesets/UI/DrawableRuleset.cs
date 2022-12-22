@@ -480,6 +480,8 @@ namespace osu.Game.Rulesets.UI
             Ruleset = ruleset;
         }
 
+        public void RevertAll() => Playfield.RevertAll();
+
         /// <summary>
         /// All the converted hit objects contained by this hit renderer.
         /// </summary>
