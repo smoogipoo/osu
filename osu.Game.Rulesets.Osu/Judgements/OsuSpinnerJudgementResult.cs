@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
@@ -15,13 +16,17 @@ namespace osu.Game.Rulesets.Osu.Judgements
         public Spinner Spinner => (Spinner)HitObject;
 
         /// <summary>
-        /// The total rotation performed on the spinner disc, disregarding the spin direction,
-        /// adjusted for the track's playback rate.
+        /// The total rotation performed on the spinner disc, adjusted for the track's playback rate,
+        /// as an absolute value.
+        /// </summary>
+        public float AbsoluteRateAdjustedRotation => Math.Abs(RateAdjustedRotation);
+
+        /// <summary>
+        /// The total rotation performed on the spinner disc, adjusted for the track's playback rate.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This value is always non-negative and is monotonically increasing with time
-        /// (i.e. will only increase if time is passing forward, but can decrease during rewind).
+        /// This value may be positive or negative, representing the most dominant spinning direction.
         /// </para>
         /// <para>
         /// The rotation from each frame is multiplied by the clock's current playback rate.
@@ -32,7 +37,7 @@ namespace osu.Game.Rulesets.Osu.Judgements
         /// <example>
         /// Assuming no speed-modifying mods are active,
         /// if the spinner is spun 360 degrees clockwise and then 360 degrees counter-clockwise,
-        /// this property will return the value of 720 (as opposed to 0).
+        /// this property will return the value of 0 (as opposed to 720).
         /// If Double Time is active instead (with a speed multiplier of 1.5x),
         /// in the same scenario the property will return 720 * 1.5 = 1080.
         /// </example>

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -49,7 +50,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
                 while (records.Count > 0 && Time.Current - records.Peek().Time > spm_count_duration)
                     record = records.Dequeue();
 
-                result.Value = (currentRotation - record.Rotation) / (Time.Current - record.Time) * 1000 * 60 / 360;
+                result.Value = Math.Abs(currentRotation - record.Rotation) / (Time.Current - record.Time) * 1000 * 60 / 360;
             }
 
             records.Enqueue(new RotationRecord { Rotation = currentRotation, Time = Time.Current });

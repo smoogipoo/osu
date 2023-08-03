@@ -37,7 +37,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
         {
             get
             {
-                int rotations = (int)(drawableSpinner.Result.RateAdjustedRotation / 360);
+                int rotations = (int)(drawableSpinner.Result.AbsoluteRateAdjustedRotation / 360);
 
                 if (wholeRotationCount == rotations) return false;
 

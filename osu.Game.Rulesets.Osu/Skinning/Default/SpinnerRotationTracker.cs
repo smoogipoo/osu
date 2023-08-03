@@ -107,9 +107,15 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             }
 
             currentRotation += angle;
+
+            double clockRate = gameplayClock?.GetTrueGameplayRate() ?? Clock.Rate;
+
             // rate has to be applied each frame, because it's not guaranteed to be constant throughout playback
             // (see: ModTimeRamp)
-            drawableSpinner.Result.RateAdjustedRotation += (float)(Math.Abs(angle) * (gameplayClock?.GetTrueGameplayRate() ?? Clock.Rate));
+            if (clockRate > 0)
+                drawableSpinner.Result.RateAdjustedRotation += (float)(angle * clockRate);
+            else
+                drawableSpinner.Result.RateAdjustedRotation -= (float)(angle * clockRate);
         }
 
         private void resetState(DrawableHitObject obj)
