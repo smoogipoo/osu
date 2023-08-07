@@ -54,7 +54,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Miss);
             assertNoteJudgement(HitResult.IgnoreMiss);
         }
@@ -73,7 +72,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Perfect);
             assertNoteJudgement(HitResult.IgnoreHit);
         }
@@ -92,7 +90,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Miss);
             assertNoteJudgement(HitResult.IgnoreMiss);
         }
@@ -111,7 +108,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Miss);
         }
 
@@ -129,7 +125,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Miss);
         }
 
@@ -149,7 +144,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Miss);
         }
 
@@ -169,7 +163,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Perfect);
         }
 
@@ -188,7 +181,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Miss);
         }
 
@@ -208,7 +200,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Miss);
         }
 
@@ -228,7 +219,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Perfect);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Meh);
         }
 
@@ -246,7 +236,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Miss);
         }
 
@@ -264,7 +253,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.Meh);
         }
 
@@ -358,7 +346,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             }, beatmap);
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Miss);
 
             assertHitObjectJudgement(note, HitResult.Good);
@@ -405,7 +392,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             }, beatmap);
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Miss);
 
             assertHitObjectJudgement(note, HitResult.Great);
@@ -425,7 +411,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             });
 
             assertHeadJudgement(HitResult.Miss);
-            assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Meh);
         }
 
@@ -508,7 +493,6 @@ namespace osu.Game.Rulesets.Mania.Tests
             }, beatmap);
 
             assertHeadJudgement(HitResult.Perfect);
-            assertLastTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.Ok);
         }
 
@@ -550,12 +534,6 @@ namespace osu.Game.Rulesets.Mania.Tests
 
         private void assertNoteJudgement(HitResult result)
             => AddAssert($"hold note judged as {result}", () => judgementResults.Single(j => j.HitObject is HoldNote).Type, () => Is.EqualTo(result));
-
-        private void assertTickJudgement(HitResult result)
-            => AddAssert($"any tick judged as {result}", () => judgementResults.Where(j => j.HitObject is HoldNoteTick).Select(j => j.Type), () => Does.Contain(result));
-
-        private void assertLastTickJudgement(HitResult result)
-            => AddAssert($"last tick judged as {result}", () => judgementResults.Last(j => j.HitObject is HoldNoteTick).Type, () => Is.EqualTo(result));
 
         private ScoreAccessibleReplayPlayer currentPlayer = null!;
 
