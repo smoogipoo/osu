@@ -54,8 +54,11 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
             ApplyResult(r =>
             {
-                // If the head wasn't hit or the hold note was broken, cap the max score to Meh.
-                if (result > HitResult.Meh && (!HoldNote.Head.IsHit || HoldNote.HoldBrokenTime != null))
+                // If the user hasn't hit the head note, or the holding key was released at some point,
+                // then the user's score is to be capped to a maximum of a "meh".
+                bool hasHitCorrectly = HoldNote.Head.IsHit && HoldNote.HoldBrokenTime == null;
+
+                if (result > HitResult.Meh && !hasHitCorrectly)
                     result = HitResult.Meh;
 
                 r.Type = result;
