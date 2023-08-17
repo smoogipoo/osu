@@ -138,6 +138,10 @@ namespace osu.Game.Beatmaps
 
         public float StackLeniency { get; set; } = 0.7f;
 
+        /// <summary>
+        /// osu!mania beatmaps only. Whether the stage is to have a "scratch" column, otherwise known as 7K+1.
+        /// The column at index 0 is to become a "special" column and its physical placement depends on the user's skin (usually the left or right of the stage).
+        /// </summary>
         public bool SpecialStyle { get; set; }
 
         public bool LetterboxInBreaks { get; set; }

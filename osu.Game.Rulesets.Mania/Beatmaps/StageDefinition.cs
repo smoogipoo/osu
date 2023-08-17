@@ -16,12 +16,15 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
         /// </summary>
         public readonly int Columns;
 
-        public StageDefinition(int columns)
+        public readonly bool HasScratchColumn;
+
+        public StageDefinition(int columns, bool hasScratchColumn = false)
         {
             if (columns < 1)
                 throw new ArgumentException("Column count must be above zero.", nameof(columns));
 
             Columns = columns;
+            HasScratchColumn = hasScratchColumn;
         }
 
         /// <summary>
@@ -29,6 +32,12 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
         /// </summary>
         /// <param name="column">The 0-based column index.</param>
         /// <returns>Whether the column is a special column.</returns>
-        public bool IsSpecialColumn(int column) => Columns % 2 == 1 && column == Columns / 2;
+        public bool IsSpecialColumn(int column)
+        {
+            if (Columns % 2 == 1)
+                return column == Columns / 2;
+
+            return HasScratchColumn && column == 0;
+        }
     }
 }

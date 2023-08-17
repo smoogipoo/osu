@@ -104,10 +104,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                         ));
 
                     case LegacyManiaSkinConfigurationLookups.ColumnBackgroundColour:
-
-                        var colour = getColourForLayout(columnIndex, stage);
-
-                        return SkinUtils.As<TValue>(new Bindable<Color4>(colour));
+                        return SkinUtils.As<TValue>(new Bindable<Color4>(getColourForLayout(columnIndex, stage)));
                 }
             }
 
@@ -179,6 +176,26 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                     }
 
                 case 6:
+                    if (stage.HasScratchColumn)
+                    {
+                        switch (columnIndex)
+                        {
+                            case 0: return colour_special_column;
+
+                            case 1: return colour_pink;
+
+                            case 2: return colour_orange;
+
+                            case 3: return colour_yellow;
+
+                            case 4: return colour_green;
+
+                            case 5: return colour_cyan;
+
+                            default: throw new ArgumentOutOfRangeException();
+                        }
+                    }
+
                     switch (columnIndex)
                     {
                         case 0: return colour_pink;
@@ -217,6 +234,30 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                     }
 
                 case 8:
+                    if (stage.HasScratchColumn)
+                    {
+                        switch (columnIndex)
+                        {
+                            case 0: return colour_special_column;
+
+                            case 1: return colour_pink;
+
+                            case 2: return colour_orange;
+
+                            case 3: return colour_pink;
+
+                            case 4: return colour_green;
+
+                            case 5: return colour_pink;
+
+                            case 6: return colour_orange;
+
+                            case 7: return colour_pink;
+
+                            default: throw new ArgumentOutOfRangeException();
+                        }
+                    }
+
                     switch (columnIndex)
                     {
                         case 0: return colour_purple;
@@ -263,6 +304,34 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                     }
 
                 case 10:
+                    if (stage.HasScratchColumn)
+                    {
+                        switch (columnIndex)
+                        {
+                            case 0: return colour_special_column;
+
+                            case 1: return colour_purple;
+
+                            case 2: return colour_pink;
+
+                            case 3: return colour_orange;
+
+                            case 4: return colour_yellow;
+
+                            case 5: return colour_cyan;
+
+                            case 6: return colour_yellow;
+
+                            case 7: return colour_orange;
+
+                            case 8: return colour_pink;
+
+                            case 9: return colour_purple;
+
+                            default: throw new ArgumentOutOfRangeException();
+                        }
+                    }
+
                     switch (columnIndex)
                     {
                         case 0: return colour_purple;
