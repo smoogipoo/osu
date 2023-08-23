@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Scoring;
@@ -35,20 +34,18 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
         protected override void CheckForResult(bool userTriggered, double timeOffset)
         {
-            Debug.Assert(HitObject.HitWindows != null);
-
             // Factor in the release lenience
             timeOffset /= TailNote.RELEASE_WINDOW_LENIENCE;
 
             if (!userTriggered)
             {
-                if (!HitObject.HitWindows.CanBeHit(timeOffset))
+                if (!CanBeHit(timeOffset))
                     ApplyResult(r => r.Type = r.Judgement.MinResult);
 
                 return;
             }
 
-            var result = HitObject.HitWindows.ResultFor(timeOffset);
+            var result = ResultFor(timeOffset);
             if (result == HitResult.None)
                 return;
 

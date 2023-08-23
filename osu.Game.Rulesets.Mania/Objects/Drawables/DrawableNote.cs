@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -84,16 +83,14 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
         protected override void CheckForResult(bool userTriggered, double timeOffset)
         {
-            Debug.Assert(HitObject.HitWindows != null);
-
             if (!userTriggered)
             {
-                if (!HitObject.HitWindows.CanBeHit(timeOffset))
+                if (!CanBeHit(timeOffset))
                     ApplyResult(r => r.Type = r.Judgement.MinResult);
                 return;
             }
 
-            var result = HitObject.HitWindows.ResultFor(timeOffset);
+            var result = ResultFor(timeOffset);
             if (result == HitResult.None)
                 return;
 

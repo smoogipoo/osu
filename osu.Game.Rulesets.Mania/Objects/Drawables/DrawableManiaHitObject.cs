@@ -11,6 +11,8 @@ using osu.Framework.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Rulesets.Mania.UI;
+using osu.Game.Rulesets.Scoring;
+using osu.Game.Screens.Play;
 
 namespace osu.Game.Rulesets.Mania.Objects.Drawables
 {
@@ -25,6 +27,9 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
         [Resolved(canBeNull: true)]
         private ManiaPlayfield playfield { get; set; }
+
+        [Resolved(CanBeNull = true)]
+        private IGameplayClock gameplayClock { get; set; }
 
         protected override float SamplePlaybackPosition
         {
@@ -88,6 +93,28 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
         /// Causes this <see cref="DrawableManiaHitObject"/> to get missed, disregarding all conditions in implementations of <see cref="DrawableHitObject.CheckForResult"/>.
         /// </summary>
         public virtual void MissForcefully() => ApplyResult(r => r.Type = r.Judgement.MinResult);
+
+        #region HitWindows overrides
+
+        /// <inheritdoc cref="HitWindows.CanBeHit"/>
+        /// <remarks>
+        /// Accounts for the gameplay rate.
+        /// </remarks>
+        public bool CanBeHit(double timeOffset) => HitObject.HitWindows.CanBeHit(timeOffset / gameplayClock?.GetTrueGameplayRate() ?? 1);
+
+        /// <inheritdoc cref="HitWindows.ResultFor"/>
+        /// <remarks>
+        /// Accounts for the gameplay rate.
+        /// </remarks>
+        public HitResult ResultFor(double timeOffset) => HitObject.HitWindows.ResultFor(timeOffset / gameplayClock?.GetTrueGameplayRate() ?? 1);
+
+        /// <inheritdoc cref="HitWindows.WindowFor"/>
+        /// <remarks>
+        /// Accounts for the gameplay rate.
+        /// </remarks>
+        public double WindowFor(HitResult result) => HitObject.HitWindows.WindowFor(result) * gameplayClock?.GetTrueGameplayRate() ?? 1;
+
+        #endregion
     }
 
     public abstract partial class DrawableManiaHitObject<TObject> : DrawableManiaHitObject
