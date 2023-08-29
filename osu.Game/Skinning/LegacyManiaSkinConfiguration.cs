@@ -42,6 +42,7 @@ namespace osu.Game.Skinning
         public bool KeysUnderNotes;
 
         public LegacyNoteBodyStyle? NoteBodyStyle;
+        public LegacyScratchKeyLocation ScratchKeyLocation;
 
         public LegacyManiaSkinConfiguration(int keys)
         {

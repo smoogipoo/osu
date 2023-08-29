@@ -29,10 +29,12 @@ namespace osu.Game.Rulesets.Mania.UI
 
         private readonly FillFlowContainer<Container> columns;
         private readonly StageDefinition stageDefinition;
+        private readonly int stageIndex;
 
-        public ColumnFlow(StageDefinition stageDefinition)
+        public ColumnFlow(StageDefinition stageDefinition, int stageIndex)
         {
             this.stageDefinition = stageDefinition;
+            this.stageIndex = stageIndex;
 
             AutoSizeAxes = Axes.X;
 
@@ -62,6 +64,32 @@ namespace osu.Game.Rulesets.Mania.UI
 
         private void onSkinChanged()
         {
+            LegacyScratchKeyLocation scratchLocation =
+                currentSkin.GetConfig<ManiaSkinConfigurationLookup, LegacyScratchKeyLocation>(new ManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.ScratchLocation))?.Value
+                ?? LegacyScratchKeyLocation.None;
+
+            // Invert the scratch key location every other stage.
+            if (scratchLocation != LegacyScratchKeyLocation.None && stageIndex % 2 == 1)
+            {
+                scratchLocation = scratchLocation == LegacyScratchKeyLocation.Left
+                    ? LegacyScratchKeyLocation.Right
+                    : LegacyScratchKeyLocation.Left;
+            }
+
+            // Move the scratch key around depending on the skin's choice
+            if (scratchLocation == LegacyScratchKeyLocation.Right && stageIndex % 2 == 0)
+            {
+                // Left-scratch is the default for the primary stage, but the skin requested it to be on the right.
+                columns.SetLayoutPosition(columns[0], 1);
+            }
+            else if (scratchLocation == LegacyScratchKeyLocation.Left && stageIndex % 2 == 1)
+            {
+                // Right-scratch is the default for the secondary stage, but the skin requested it to be on the left.
+                columns.SetLayoutPosition(columns[^1], -1);
+            }
+
+            // Iterate thr
+
             for (int i = 0; i < stageDefinition.Columns; i++)
             {
                 if (i > 0)

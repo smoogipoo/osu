@@ -72,6 +72,7 @@ namespace osu.Game.Skinning
         Hit50,
         Hit0,
         KeysUnderNotes,
-        NoteBodyStyle
+        NoteBodyStyle,
+        ScratchLocation
     }
 }

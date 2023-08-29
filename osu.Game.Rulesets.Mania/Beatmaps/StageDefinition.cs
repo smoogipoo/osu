@@ -16,15 +16,15 @@ namespace osu.Game.Rulesets.Mania.Beatmaps
         /// </summary>
         public readonly int Columns;
 
-        public readonly bool HasScratchColumn;
+        public readonly int? ScratchColumn;
 
-        public StageDefinition(int columns, bool hasScratchColumn = false)
+        public StageDefinition(int index, int columns, int? scratchColumn = null)
         {
             if (columns < 1)
                 throw new ArgumentException("Column count must be above zero.", nameof(columns));
 
             Columns = columns;
-            HasScratchColumn = hasScratchColumn;
+            ScratchColumn = scratchColumn;
         }
 
         /// <summary>

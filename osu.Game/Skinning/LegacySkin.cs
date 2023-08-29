@@ -271,6 +271,9 @@ namespace osu.Game.Skinning
 
                 case LegacyManiaSkinConfigurationLookups.KeysUnderNotes:
                     return SkinUtils.As<TValue>(new Bindable<bool>(existing.KeysUnderNotes));
+
+                case LegacyManiaSkinConfigurationLookups.ScratchLocation:
+                    return SkinUtils.As<TValue>(new Bindable<LegacyScratchKeyLocation>(existing.ScratchKeyLocation));
             }
 
             return null;

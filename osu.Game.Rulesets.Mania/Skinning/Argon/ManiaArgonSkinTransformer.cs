@@ -105,6 +105,9 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
 
                     case LegacyManiaSkinConfigurationLookups.ColumnBackgroundColour:
                         return SkinUtils.As<TValue>(new Bindable<Color4>(getColourForLayout(columnIndex, stage)));
+
+                    case LegacyManiaSkinConfigurationLookups.ScratchLocation:
+                        return SkinUtils.As<TValue>(new Bindable<LegacyScratchKeyLocation>(LegacyScratchKeyLocation.Left));
                 }
             }
 

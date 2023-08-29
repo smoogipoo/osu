@@ -135,6 +135,11 @@ namespace osu.Game.Skinning
                     case string when pair.Key.StartsWith("Lighting", StringComparison.Ordinal):
                         currentConfig.ImageLookups[pair.Key] = pair.Value;
                         break;
+
+                    case "SpecialStyle":
+                        if (Enum.TryParse<LegacyScratchKeyLocation>(pair.Value, out var location))
+                            currentConfig.ScratchKeyLocation = location;
+                        break;
                 }
             }
 
