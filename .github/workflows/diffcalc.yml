@@ -352,7 +352,7 @@ jobs:
     name: Update PR comment
     needs: [ create-comment, generator ]
     runs-on: ubuntu-latest
-    if: ${{ needs.create-comment.result == 'success' }}
+    if: ${{ always() && needs.create-comment.result == 'success' }}
     steps:
       - name: Update comment on success
         if: ${{ needs.generator.result == 'success' }}
