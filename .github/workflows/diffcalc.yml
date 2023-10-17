@@ -381,3 +381,4 @@ jobs:
         with:
           comment_tag: ${{ env.COMMENT_TAG }}
           mode: delete
+          message: '.' # Apperas to be required by this action for non-error status code.
