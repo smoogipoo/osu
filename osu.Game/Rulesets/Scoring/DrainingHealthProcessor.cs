@@ -41,8 +41,9 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         private const double max_health_target = 0.4;
 
-        private IBeatmap beatmap;
+        public override double DrainRate => drainRate;
 
+        private IBeatmap beatmap;
         private double gameplayEndTime;
 
         private readonly double drainStartTime;
@@ -50,7 +51,7 @@ namespace osu.Game.Rulesets.Scoring
 
         private readonly List<(double time, double health)> healthIncreases = new List<(double, double)>();
         private double targetMinimumHealth;
-        private double drainRate = 1;
+        private double drainRate;
 
         private PeriodTracker noDrainPeriodTracker;
 

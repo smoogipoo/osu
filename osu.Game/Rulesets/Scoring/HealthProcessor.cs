@@ -31,6 +31,8 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         public bool HasFailed { get; private set; }
 
+        public abstract double DrainRate { get; }
+
         /// <summary>
         /// Immediately triggers a failure for this HealthProcessor.
         /// </summary>

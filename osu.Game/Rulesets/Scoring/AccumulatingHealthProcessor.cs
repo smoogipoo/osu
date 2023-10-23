@@ -11,6 +11,8 @@ namespace osu.Game.Rulesets.Scoring
     {
         protected override bool DefaultFailCondition => JudgedHits == MaxHits && Health.Value < requiredHealth;
 
+        public override double DrainRate => 0;
+
         private readonly double requiredHealth;
 
         /// <summary>
