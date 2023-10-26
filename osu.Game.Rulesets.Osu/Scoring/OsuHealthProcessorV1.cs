@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using osu.Game.Beatmaps;
-using osu.Game.Beatmaps.Timing;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Scoring;
@@ -80,24 +79,17 @@ namespace osu.Game.Rulesets.Osu.Scoring
                 {
                     HitObject h = Beatmap.HitObjects[i];
 
-                    // Find active break (between current and lastTime)
-                    double localLastTime = lastTime;
-                    double breakTime = 0;
-
                     // Subtract any break time from the duration since the last object
                     if (Beatmap.Breaks.Count > 0 && currentBreak < Beatmap.Breaks.Count)
                     {
-                        BreakPeriod e = Beatmap.Breaks[currentBreak];
-
-                        if (e.StartTime >= localLastTime && e.EndTime <= h.StartTime)
-                        {
-                            // consider break start equal to object end time for version 8+ since drain stops during this time
-                            breakTime = (Beatmap.BeatmapInfo.BeatmapVersion < 8) ? (e.EndTime - e.StartTime) : e.EndTime - localLastTime;
+                        while (currentBreak + 1 < Beatmap.Breaks.Count && Beatmap.Breaks[currentBreak + 1].EndTime < h.StartTime)
                             currentBreak++;
-                        }
+
+                        if (currentBreak >= 0)
+                            lastTime = Math.Max(lastTime, Beatmap.Breaks[currentBreak].EndTime);
                     }
 
-                    reduceHp(testDrop * (h.StartTime - lastTime - breakTime));
+                    reduceHp(testDrop * (h.StartTime - lastTime));
 
                     lastTime = h.GetEndTime();
 
