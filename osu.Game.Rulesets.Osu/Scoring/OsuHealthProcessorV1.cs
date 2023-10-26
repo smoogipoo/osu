@@ -69,7 +69,7 @@ namespace osu.Game.Rulesets.Osu.Scoring
                 currentHpUncapped = hp_bar_maximum;
 
                 double lowestHp = currentHp;
-                double lastTime = Beatmap.HitObjects[0].StartTime - ((OsuHitObject)Beatmap.HitObjects[0]).TimePreempt;
+                double lastTime = DrainStartTime;
                 int currentBreak = 0;
                 bool fail = false;
                 int comboTooLowCount = 0;
