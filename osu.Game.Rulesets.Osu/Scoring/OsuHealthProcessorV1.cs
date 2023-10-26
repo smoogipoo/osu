@@ -55,8 +55,16 @@ namespace osu.Game.Rulesets.Osu.Scoring
             double currentHp;
             double currentHpUncapped;
 
+#if LOGGING
+            int iteration = 1;
+#endif
+
             do
             {
+#if LOGGING
+                Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration++})...");
+#endif
+
                 currentHp = hp_bar_maximum;
                 currentHpUncapped = hp_bar_maximum;
 
@@ -66,7 +74,9 @@ namespace osu.Game.Rulesets.Osu.Scoring
                 bool fail = false;
                 int comboTooLowCount = 0;
 
-                for (int i = 0; i < Beatmap.HitObjects.Count; i++)
+                int i = 0;
+
+                for (; i < Beatmap.HitObjects.Count; i++)
                 {
                     HitObject h = Beatmap.HitObjects[i];
 
@@ -162,7 +172,13 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     hpMultiplierNormal *= 1.01;
                 }
 
-                if (fail) continue;
+                if (fail)
+                {
+#if LOGGING
+                    Console.WriteLine($"V1 failed at {Beatmap.HitObjects[i].StartTime}");
+#endif
+                    continue;
+                }
 
                 return testDrop / hp_bar_maximum;
             } while (true);

@@ -147,6 +147,10 @@ namespace osu.Game.Rulesets.Scoring
             // we'll still keep a safety measure to avoid infinite loops by detecting overflows.
             while (adjustment > 0)
             {
+#if LOGGING
+                Console.WriteLine($"V2 testing drop {result} (a = {adjustment})...");
+#endif
+
                 double currentHealth = 1;
                 double lowestHealth = 1;
                 int currentBreak = -1;
@@ -173,8 +177,13 @@ namespace osu.Game.Rulesets.Scoring
                     currentHealth = Math.Min(1, currentHealth + healthIncreases[i].health);
 
                     // Common scenario for when the drain rate is definitely too harsh
-                    if (lowestHealth < 0)
+                    if (lowestHealth < 0 || lowestHealth < targetMinimumHealth - minimum_health_error)
+                    {
+#if LOGGING
+                        Console.WriteLine($"V2 failed at {healthIncreases[i].time}");
+#endif
                         break;
+                    }
                 }
 
                 // Stop if the resulting health is within a reasonable offset from the target
