@@ -78,14 +78,11 @@ namespace osu.Game.Rulesets.Osu.Scoring
                 {
                     HitObject h = Beatmap.HitObjects[i];
 
-                    // Subtract any break time from the duration since the last object
-                    if (Beatmap.Breaks.Count > 0 && currentBreak < Beatmap.Breaks.Count)
+                    // Exclude the duration of any breaks between the last time and current time from HP drain.
+                    while (currentBreak < Beatmap.Breaks.Count && Beatmap.Breaks[currentBreak].EndTime < h.StartTime)
                     {
-                        while (currentBreak + 1 < Beatmap.Breaks.Count && Beatmap.Breaks[currentBreak + 1].EndTime < h.StartTime)
-                            currentBreak++;
-
-                        if (currentBreak >= 0)
-                            lastTime = Math.Max(lastTime, Beatmap.Breaks[currentBreak].EndTime);
+                        lastTime = Math.Max(lastTime, Beatmap.Breaks[currentBreak].EndTime);
+                        currentBreak++;
                     }
 
                     reduceHp(testDrop * (h.StartTime - lastTime));

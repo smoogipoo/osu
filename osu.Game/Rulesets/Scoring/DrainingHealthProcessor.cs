@@ -153,21 +153,17 @@ namespace osu.Game.Rulesets.Scoring
 
                 double currentHealth = 1;
                 double lowestHealth = 1;
-                int currentBreak = -1;
+                int currentBreak = 0;
 
                 for (int i = 0; i < healthIncreases.Count; i++)
                 {
                     double lastTime = i > 0 ? healthIncreases[i - 1].time : drainStartTime;
 
-                    // Subtract any break time from the duration since the last object
-                    if (beatmap.Breaks.Count > 0)
+                    // Exclude the duration of any breaks between the last time and current time from HP drain.
+                    while (currentBreak < beatmap.Breaks.Count && beatmap.Breaks[currentBreak].EndTime < healthIncreases[i].time)
                     {
-                        // Advance the last break occuring before the current time
-                        while (currentBreak + 1 < beatmap.Breaks.Count && beatmap.Breaks[currentBreak + 1].EndTime < healthIncreases[i].time)
-                            currentBreak++;
-
-                        if (currentBreak >= 0)
-                            lastTime = Math.Max(lastTime, beatmap.Breaks[currentBreak].EndTime);
+                        lastTime = Math.Max(lastTime, beatmap.Breaks[currentBreak].EndTime);
+                        currentBreak++;
                     }
 
                     // Apply health adjustments
