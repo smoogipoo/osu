@@ -157,14 +157,13 @@ namespace osu.Game.Rulesets.Scoring
 
                 for (int i = 0; i < healthIncreases.Count; i++)
                 {
-                    double currentTime = healthIncreases[i].time;
                     double lastTime = i > 0 ? healthIncreases[i - 1].time : drainStartTime;
 
                     // Subtract any break time from the duration since the last object
                     if (beatmap.Breaks.Count > 0)
                     {
                         // Advance the last break occuring before the current time
-                        while (currentBreak + 1 < beatmap.Breaks.Count && beatmap.Breaks[currentBreak + 1].EndTime < currentTime)
+                        while (currentBreak + 1 < beatmap.Breaks.Count && beatmap.Breaks[currentBreak + 1].EndTime < healthIncreases[i].time)
                             currentBreak++;
 
                         if (currentBreak >= 0)

@@ -72,10 +72,9 @@ namespace osu.Game.Rulesets.Osu.Scoring
                 int currentBreak = 0;
                 bool fail = false;
                 int comboTooLowCount = 0;
+                string failReason = string.Empty;
 
-                int i = 0;
-
-                for (; i < Beatmap.HitObjects.Count; i++)
+                for (int i = 0; i < Beatmap.HitObjects.Count; i++)
                 {
                     HitObject h = Beatmap.HitObjects[i];
 
@@ -100,6 +99,7 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     {
                         fail = true;
                         testDrop *= 0.96;
+                        failReason = $"hp too low @ {h.StartTime}";
                         break;
                     }
 
@@ -124,6 +124,7 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     {
                         fail = true;
                         testDrop *= 0.96;
+                        failReason = $"overkill @ {h.StartTime}";
                         break;
                     }
 
@@ -138,6 +139,7 @@ namespace osu.Game.Rulesets.Osu.Scoring
                                 hpMultiplierComboEnd *= 1.07;
                                 hpMultiplierNormal *= 1.03;
                                 fail = true;
+                                failReason = $"combo end hp too low @ {h.StartTime}";
                                 break;
                             }
                         }
@@ -152,6 +154,7 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     testDrop *= 0.94;
                     hpMultiplierComboEnd *= 1.01;
                     hpMultiplierNormal *= 1.01;
+                    failReason = "final hp too low";
                 }
 
                 double recovery = (currentHpUncapped - hp_bar_maximum) / Beatmap.HitObjects.Count;
@@ -162,12 +165,13 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     testDrop *= 0.96;
                     hpMultiplierComboEnd *= 1.02;
                     hpMultiplierNormal *= 1.01;
+                    failReason = "recovery too low";
                 }
 
                 if (fail)
                 {
 #if LOGGING
-                    Console.WriteLine($"V1 failed at {Beatmap.HitObjects[i].StartTime}");
+                    Console.WriteLine($"V1 failed ({failReason})");
 #endif
                     continue;
                 }
