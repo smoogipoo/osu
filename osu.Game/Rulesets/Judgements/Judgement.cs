@@ -121,40 +121,40 @@ namespace osu.Game.Rulesets.Judgements
                     return 0;
 
                 case HitResult.SmallTickHit:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.5;
+                    return 0.0015;
 
                 case HitResult.SmallTickMiss:
-                    return -DEFAULT_MAX_HEALTH_INCREASE * 0.5;
+                    return -0.0015;
 
                 case HitResult.LargeTickHit:
-                    return DEFAULT_MAX_HEALTH_INCREASE;
+                    return 0.015;
 
                 case HitResult.LargeTickMiss:
-                    return -DEFAULT_MAX_HEALTH_INCREASE;
+                    return -0.015;
 
                 case HitResult.Miss:
-                    return -DEFAULT_MAX_HEALTH_INCREASE * 2;
+                    return -0.06;
 
                 case HitResult.Meh:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.05;
+                    return 0.002;
 
                 case HitResult.Ok:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.5;
+                    return 0.011;
 
                 case HitResult.Good:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.75;
+                    return 0.024;
 
                 case HitResult.Great:
-                    return DEFAULT_MAX_HEALTH_INCREASE;
+                    return 0.03;
 
                 case HitResult.Perfect:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 1.05;
+                    return 0.033;
 
                 case HitResult.SmallBonus:
-                    return DEFAULT_MAX_HEALTH_INCREASE * 0.5;
+                    return 0.0085;
 
                 case HitResult.LargeBonus:
-                    return DEFAULT_MAX_HEALTH_INCREASE;
+                    return 0.01;
             }
         }
 
