@@ -154,6 +154,7 @@ namespace osu.Game.Rulesets.Scoring
                 double currentHealth = 1;
                 double lowestHealth = 1;
                 int currentBreak = 0;
+                string failReason = string.Empty;
 
                 for (int i = 0; i < healthIncreases.Count; i++)
                 {
@@ -171,12 +172,15 @@ namespace osu.Game.Rulesets.Scoring
                     lowestHealth = Math.Min(lowestHealth, currentHealth);
                     currentHealth = Math.Min(1, currentHealth + healthIncreases[i].health);
 
-                    // Common scenario for when the drain rate is definitely too harsh
-                    if (lowestHealth < 0 || lowestHealth < targetMinimumHealth - minimum_health_error)
+                    if (lowestHealth < 0)
                     {
-#if LOGGING
-                        Console.WriteLine($"V2 failed at {healthIncreases[i].time}");
-#endif
+                        failReason = $"overkill @ {healthIncreases[i].time}";
+                        break;
+                    }
+
+                    if (lowestHealth < targetMinimumHealth - minimum_health_error)
+                    {
+                        failReason = $"health too low @ {healthIncreases[i].time} (actual: {lowestHealth}, target: {targetMinimumHealth})";
                         break;
                     }
                 }
@@ -184,6 +188,13 @@ namespace osu.Game.Rulesets.Scoring
                 // Stop if the resulting health is within a reasonable offset from the target
                 if (Math.Abs(lowestHealth - targetMinimumHealth) <= minimum_health_error)
                     break;
+
+                if (string.IsNullOrEmpty(failReason))
+                    failReason = $"health not within suitable range (actual: {lowestHealth}, target: {targetMinimumHealth})";
+
+#if LOGGING
+                Console.WriteLine($"V2 failed ({failReason})");
+#endif
 
                 // This effectively works like a binary search - each iteration the search space moves closer to the target, but may exceed it.
                 adjustment *= 2;
