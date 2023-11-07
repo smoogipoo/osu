@@ -186,7 +186,7 @@ namespace osu.Game.Rulesets.Scoring
                     break;
 
                 if (string.IsNullOrEmpty(failReason))
-                    failReason = $"health not within suitable range (actual: {lowestHealth}, target: {targetMinimumHealth})";
+                    failReason = $"health too high (actual: {lowestHealth}, target: {targetMinimumHealth})";
 
 #if LOGGING
                 Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... FAILED ({failReason})");
