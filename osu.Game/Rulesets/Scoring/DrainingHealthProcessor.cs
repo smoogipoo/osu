@@ -164,7 +164,7 @@ namespace osu.Game.Rulesets.Scoring
                         break;
                     }
 
-                    if (lowestHealth < targetMinimumHealth - minimum_health_error)
+                    if (lowestHealth < targetMinimumHealth)
                     {
                         failReason = $"health too low @ {judgementTime} (actual: {lowestHealth}, target: {targetMinimumHealth})";
                         break;
@@ -172,7 +172,7 @@ namespace osu.Game.Rulesets.Scoring
                 }
 
                 // Stop if the resulting health is within a reasonable offset from the target
-                if (Math.Abs(lowestHealth - targetMinimumHealth) <= minimum_health_error)
+                if (lowestHealth >= targetMinimumHealth && Math.Abs(lowestHealth - targetMinimumHealth) <= minimum_health_error)
                     break;
 
                 // Stop if there was no drain
