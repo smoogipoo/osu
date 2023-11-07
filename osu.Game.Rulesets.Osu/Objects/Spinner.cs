@@ -87,11 +87,27 @@ namespace osu.Game.Rulesets.Osu.Objects
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                double startTime = StartTime + (float)(i + 1) / totalSpins * Duration;
+                if (i < SpinsRequiredForBonus)
+                {
+                    // Evenly space out the required ticks along the full length of the spinner so that HP calculations are as lenient as possible.
+                    float fraction = (float)(i + 1) / (SpinsRequiredForBonus + 1);
 
-                AddNested(i < SpinsRequiredForBonus
-                    ? new SpinnerTick { StartTime = startTime, SpinnerDuration = Duration }
-                    : new SpinnerBonusTick { StartTime = startTime, SpinnerDuration = Duration, Samples = new[] { CreateHitSampleInfo("spinnerbonus") } });
+                    AddNested(new SpinnerTick
+                    {
+                        StartTime = StartTime + fraction * Duration,
+                        SpinnerDuration = Duration
+                    });
+                }
+                else
+                {
+                    AddNested(new SpinnerBonusTick
+                    {
+                        // It doesn't matter where bonus ticks are placed.
+                        StartTime = EndTime,
+                        SpinnerDuration = Duration,
+                        Samples = new[] { CreateHitSampleInfo("spinnerbonus") }
+                    });
+                }
             }
         }
 

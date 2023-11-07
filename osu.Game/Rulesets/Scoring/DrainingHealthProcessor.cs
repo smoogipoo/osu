@@ -119,7 +119,7 @@ namespace osu.Game.Rulesets.Scoring
         {
             base.ApplyResultInternal(result);
 
-            if (!result.Type.IsBonus())
+            if (result.Type != HitResult.LargeBonus)
                 healthIncreases.Add((result.HitObject.GetEndTime() + result.TimeOffset, GetHealthIncreaseFor(result)));
         }
 
