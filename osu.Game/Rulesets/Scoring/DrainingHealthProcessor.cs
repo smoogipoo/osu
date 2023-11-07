@@ -147,10 +147,6 @@ namespace osu.Game.Rulesets.Scoring
             // we'll still keep a safety measure to avoid infinite loops by detecting overflows.
             while (adjustment > 0)
             {
-#if LOGGING
-                Console.WriteLine($"V2 testing drop {result} (a = {adjustment})...");
-#endif
-
                 double currentHealth = 1;
                 double lowestHealth = 1;
                 int currentBreak = 0;
@@ -193,7 +189,7 @@ namespace osu.Game.Rulesets.Scoring
                     failReason = $"health not within suitable range (actual: {lowestHealth}, target: {targetMinimumHealth})";
 
 #if LOGGING
-                Console.WriteLine($"V2 failed ({failReason})");
+                Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... FAILED ({failReason})");
 #endif
 
                 // This effectively works like a binary search - each iteration the search space moves closer to the target, but may exceed it.
@@ -201,6 +197,9 @@ namespace osu.Game.Rulesets.Scoring
                 result += 1.0 / adjustment * Math.Sign(lowestHealth - targetMinimumHealth);
             }
 
+#if LOGGING
+            Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... PASSED");
+#endif
             return result;
         }
     }

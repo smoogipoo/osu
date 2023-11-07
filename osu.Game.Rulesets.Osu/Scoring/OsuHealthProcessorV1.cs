@@ -60,9 +60,6 @@ namespace osu.Game.Rulesets.Osu.Scoring
 
             do
             {
-#if LOGGING
-                Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration++})...");
-#endif
 
                 currentHp = hp_bar_maximum;
                 currentHpUncapped = hp_bar_maximum;
@@ -168,11 +165,14 @@ namespace osu.Game.Rulesets.Osu.Scoring
                 if (fail)
                 {
 #if LOGGING
-                    Console.WriteLine($"V1 failed ({failReason})");
+                    Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration++})... FAILED ({failReason})");
 #endif
                     continue;
                 }
 
+#if LOGGING
+                Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration})... PASSED");
+#endif
                 return testDrop / hp_bar_maximum;
             } while (true);
 
