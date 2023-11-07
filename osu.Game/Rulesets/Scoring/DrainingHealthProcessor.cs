@@ -4,10 +4,8 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps;
-using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Utils;
 
@@ -49,7 +47,6 @@ namespace osu.Game.Rulesets.Scoring
         private readonly double drainStartTime;
         private readonly double drainLenience;
 
-        private readonly List<(double time, double health)> healthIncreases = new List<(double, double)>();
         private double targetMinimumHealth;
         private double drainRate;
 
@@ -115,14 +112,6 @@ namespace osu.Game.Rulesets.Scoring
             base.ApplyBeatmap(beatmap);
         }
 
-        protected override void ApplyResultInternal(JudgementResult result)
-        {
-            base.ApplyResultInternal(result);
-
-            if (result.Type != HitResult.LargeBonus)
-                healthIncreases.Add((result.HitObject.GetEndTime() + result.TimeOffset, GetHealthIncreaseFor(result)));
-        }
-
         protected override void Reset(bool storeResults)
         {
             base.Reset(storeResults);
@@ -131,13 +120,11 @@ namespace osu.Game.Rulesets.Scoring
 
             if (storeResults)
                 drainRate = computeDrainRate();
-
-            healthIncreases.Clear();
         }
 
         private double computeDrainRate()
         {
-            if (healthIncreases.Count <= 1)
+            if (beatmap.HitObjects.Count == 0)
                 return 0;
 
             int adjustment = 1;
@@ -151,38 +138,45 @@ namespace osu.Game.Rulesets.Scoring
                 double lowestHealth = 1;
                 int currentBreak = 0;
                 string failReason = string.Empty;
+                double lastTime = drainStartTime;
 
-                for (int i = 0; i < healthIncreases.Count; i++)
+                foreach (var h in EnumerateHitObjects(beatmap))
                 {
-                    double lastTime = i > 0 ? healthIncreases[i - 1].time : drainStartTime;
+                    double judgementTime = h.GetEndTime();
+                    double healthIncrease = h.CreateJudgement().MaxHealthIncrease;
 
                     // Exclude the duration of any breaks between the last time and current time from HP drain.
-                    while (currentBreak < beatmap.Breaks.Count && beatmap.Breaks[currentBreak].EndTime < healthIncreases[i].time)
+                    while (currentBreak < beatmap.Breaks.Count && beatmap.Breaks[currentBreak].EndTime < judgementTime)
                     {
                         lastTime = Math.Max(lastTime, beatmap.Breaks[currentBreak].EndTime);
                         currentBreak++;
                     }
 
                     // Apply health adjustments
-                    currentHealth -= (healthIncreases[i].time - lastTime) * result;
+                    currentHealth -= (judgementTime - lastTime) * result;
                     lowestHealth = Math.Min(lowestHealth, currentHealth);
-                    currentHealth = Math.Min(1, currentHealth + healthIncreases[i].health);
+                    currentHealth = Math.Min(1, currentHealth + healthIncrease);
+                    lastTime = judgementTime;
 
                     if (lowestHealth < 0)
                     {
-                        failReason = $"overkill @ {healthIncreases[i].time}";
+                        failReason = $"overkill @ {judgementTime}";
                         break;
                     }
 
                     if (lowestHealth < targetMinimumHealth - minimum_health_error)
                     {
-                        failReason = $"health too low @ {healthIncreases[i].time} (actual: {lowestHealth}, target: {targetMinimumHealth})";
+                        failReason = $"health too low @ {judgementTime} (actual: {lowestHealth}, target: {targetMinimumHealth})";
                         break;
                     }
                 }
 
                 // Stop if the resulting health is within a reasonable offset from the target
                 if (Math.Abs(lowestHealth - targetMinimumHealth) <= minimum_health_error)
+                    break;
+
+                // Stop if there was no drain
+                if (lowestHealth == 1)
                     break;
 
                 if (string.IsNullOrEmpty(failReason))
