@@ -114,7 +114,7 @@ namespace osu.Game.Rulesets.Osu.Scoring
                             increaseHp(hpMultiplierNormal * 1.7);
                     }
 
-                    if (hpOverkill > 0 && currentHp - hpOverkill <= lowestHpEver)
+                    if (hpOverkill > 0 && currentHpUncapped - hpOverkill <= lowestHpEver)
                     {
                         fail = true;
                         testDrop *= 0.96;
