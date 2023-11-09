@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
@@ -53,16 +54,14 @@ namespace osu.Game.Rulesets.Osu.Scoring
             double testDrop = 0.05;
             double currentHp;
             double currentHpUncapped;
-
-#if LOGGING
             int iteration = 1;
-#endif
+            List<(double Time, double Hp)> graph = new List<(double Time, double Hp)>();
 
             do
             {
-
                 currentHp = hp_bar_maximum;
                 currentHpUncapped = hp_bar_maximum;
+                graph.Clear();
 
                 double lowestHp = currentHp;
                 double lastTime = DrainStartTime;
@@ -140,6 +139,8 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     }
                     else
                         increaseHp(hpMultiplierNormal * hp_hit_300);
+
+                    graph.Add((h.GetEndTime(), currentHp / hp_bar_maximum));
                 }
 
                 if (!fail && currentHp < lowestHpEnd)
@@ -164,15 +165,21 @@ namespace osu.Game.Rulesets.Osu.Scoring
 
                 if (fail)
                 {
-#if LOGGING
-                    Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration++})... FAILED ({failReason})");
-#endif
+                    if (Log)
+                        Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration++})... FAILED ({failReason})");
                     continue;
                 }
 
-#if LOGGING
-                Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration})... PASSED");
-#endif
+                if (Log)
+                    Console.WriteLine($"V1 testing drop {testDrop / 200} (i = {iteration})... PASSED");
+
+                if (Graph)
+                {
+                    Console.WriteLine("Time,Hp");
+                    foreach (var t in graph)
+                        Console.WriteLine($"{t.Time},{t.Hp}");
+                }
+
                 return testDrop / hp_bar_maximum;
             } while (true);
 

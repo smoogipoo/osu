@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
@@ -129,6 +130,7 @@ namespace osu.Game.Rulesets.Scoring
 
             int adjustment = 1;
             double result = 1;
+            List<(double Time, double Hp)> graph = new List<(double Time, double Hp)>();
 
             // Although we expect the following loop to converge within 30 iterations (health within 1/2^31 accuracy of the target),
             // we'll still keep a safety measure to avoid infinite loops by detecting overflows.
@@ -139,6 +141,7 @@ namespace osu.Game.Rulesets.Scoring
                 int currentBreak = 0;
                 string failReason = string.Empty;
                 double lastTime = drainStartTime;
+                graph.Clear();
 
                 foreach (var h in EnumerateHitObjects(beatmap))
                 {
@@ -169,6 +172,8 @@ namespace osu.Game.Rulesets.Scoring
                         failReason = $"health too low @ {judgementTime} (actual: {lowestHealth}, target: {targetMinimumHealth})";
                         break;
                     }
+
+                    graph.Add((judgementTime, currentHealth));
                 }
 
                 // Stop if the resulting health is within a reasonable offset from the target
@@ -182,18 +187,24 @@ namespace osu.Game.Rulesets.Scoring
                 if (string.IsNullOrEmpty(failReason))
                     failReason = $"health too high (actual: {lowestHealth}, target: {targetMinimumHealth})";
 
-#if LOGGING
-                Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... FAILED ({failReason})");
-#endif
+                if (Log)
+                    Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... FAILED ({failReason})");
 
                 // This effectively works like a binary search - each iteration the search space moves closer to the target, but may exceed it.
                 adjustment *= 2;
                 result += 1.0 / adjustment * Math.Sign(lowestHealth - targetMinimumHealth);
             }
 
-#if LOGGING
-            Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... PASSED");
-#endif
+            if (Log)
+                Console.WriteLine($"V2 testing drop {result} (a = {adjustment})... PASSED");
+
+            if (Graph)
+            {
+                Console.WriteLine("Time,Hp");
+                foreach (var t in graph)
+                    Console.WriteLine($"{t.Time},{t.Hp}");
+            }
+
             return result;
         }
     }

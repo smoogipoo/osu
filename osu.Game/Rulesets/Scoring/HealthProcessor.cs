@@ -31,6 +31,10 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         public bool HasFailed { get; private set; }
 
+        public bool Log { get; set; }
+
+        public bool Graph { get; set; }
+
         public abstract double DrainRate { get; }
 
         /// <summary>
