@@ -327,50 +327,50 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
             private void drawPointQuad(IRenderer renderer, SmokePoint point, RectangleF textureRect, int index)
             {
-                Debug.Assert(quadBatch != null);
-
-                var colour = PointColour(point);
-                if (colour.A == 0)
-                    return;
-
-                float scale = PointScale(point);
-                if (scale == 0)
-                    return;
-
-                var dir = PointDirection(point, index);
-                var ortho = dir.PerpendicularLeft;
-                dir *= scale * width;
-                ortho *= scale * height;
-
-                var localTopLeft = point.Position - ortho - dir;
-                var localTopRight = point.Position - ortho + dir;
-                var localBotLeft = point.Position + ortho - dir;
-                var localBotRight = point.Position + ortho + dir;
-
-                quadBatch.Add(new TexturedVertex2D(renderer)
-                {
-                    Position = localTopLeft,
-                    TexturePosition = textureRect.TopLeft,
-                    Colour = Color4Extensions.Multiply(ColourAtPosition(localTopLeft), colour),
-                });
-                quadBatch.Add(new TexturedVertex2D(renderer)
-                {
-                    Position = localTopRight,
-                    TexturePosition = textureRect.TopRight,
-                    Colour = Color4Extensions.Multiply(ColourAtPosition(localTopRight), colour),
-                });
-                quadBatch.Add(new TexturedVertex2D(renderer)
-                {
-                    Position = localBotRight,
-                    TexturePosition = textureRect.BottomRight,
-                    Colour = Color4Extensions.Multiply(ColourAtPosition(localBotRight), colour),
-                });
-                quadBatch.Add(new TexturedVertex2D(renderer)
-                {
-                    Position = localBotLeft,
-                    TexturePosition = textureRect.BottomLeft,
-                    Colour = Color4Extensions.Multiply(ColourAtPosition(localBotLeft), colour),
-                });
+                // Debug.Assert(quadBatch != null);
+                //
+                // var colour = PointColour(point);
+                // if (colour.A == 0)
+                //     return;
+                //
+                // float scale = PointScale(point);
+                // if (scale == 0)
+                //     return;
+                //
+                // var dir = PointDirection(point, index);
+                // var ortho = dir.PerpendicularLeft;
+                // dir *= scale * width;
+                // ortho *= scale * height;
+                //
+                // var localTopLeft = point.Position - ortho - dir;
+                // var localTopRight = point.Position - ortho + dir;
+                // var localBotLeft = point.Position + ortho - dir;
+                // var localBotRight = point.Position + ortho + dir;
+                //
+                // quadBatch.Add(new TexturedVertex2D(renderer)
+                // {
+                //     Position = localTopLeft,
+                //     TexturePosition = textureRect.TopLeft,
+                //     Colour = Color4Extensions.Multiply(ColourAtPosition(localTopLeft), colour),
+                // });
+                // quadBatch.Add(new TexturedVertex2D(renderer)
+                // {
+                //     Position = localTopRight,
+                //     TexturePosition = textureRect.TopRight,
+                //     Colour = Color4Extensions.Multiply(ColourAtPosition(localTopRight), colour),
+                // });
+                // quadBatch.Add(new TexturedVertex2D(renderer)
+                // {
+                //     Position = localBotRight,
+                //     TexturePosition = textureRect.BottomRight,
+                //     Colour = Color4Extensions.Multiply(ColourAtPosition(localBotRight), colour),
+                // });
+                // quadBatch.Add(new TexturedVertex2D(renderer)
+                // {
+                //     Position = localBotLeft,
+                //     TexturePosition = textureRect.BottomLeft,
+                //     Colour = Color4Extensions.Multiply(ColourAtPosition(localBotLeft), colour),
+                // });
             }
 
             protected override void Dispose(bool isDisposing)

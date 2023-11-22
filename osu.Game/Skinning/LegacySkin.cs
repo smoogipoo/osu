@@ -363,7 +363,7 @@ namespace osu.Game.Skinning
 
                                 if (score != null && accuracy != null)
                                 {
-                                    accuracy.Y = container.ToLocalSpace(score.ScreenSpaceDrawQuad.BottomRight).Y;
+                                    accuracy.Y = container.ToLocalSpace(score.ScreenSpaceDrawQuad.BottomRight.Xy).Y;
                                 }
 
                                 var songProgress = container.OfType<LegacySongProgress>().FirstOrDefault();
@@ -373,7 +373,7 @@ namespace osu.Game.Skinning
                                     songProgress.Anchor = Anchor.TopRight;
                                     songProgress.Origin = Anchor.CentreRight;
                                     songProgress.X = -accuracy.ScreenSpaceDeltaToParentSpace(accuracy.ScreenSpaceDrawQuad.Size).X - 18;
-                                    songProgress.Y = container.ToLocalSpace(accuracy.ScreenSpaceDrawQuad.TopLeft).Y + (accuracy.ScreenSpaceDeltaToParentSpace(accuracy.ScreenSpaceDrawQuad.Size).Y / 2);
+                                    songProgress.Y = container.ToLocalSpace(accuracy.ScreenSpaceDrawQuad.TopLeft.Xy).Y + (accuracy.ScreenSpaceDeltaToParentSpace(accuracy.ScreenSpaceDrawQuad.Size).Y / 2);
                                 }
 
                                 var hitError = container.OfType<HitErrorMeter>().FirstOrDefault();

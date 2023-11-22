@@ -164,12 +164,12 @@ namespace osu.Game.Tournament.Screens.Ladder
 
                 if (topMatch == null) continue;
 
-                headings.Add(new DrawableTournamentRound(round)
-                {
-                    Position = headings.ToLocalSpace((topMatch.ScreenSpaceDrawQuad.TopLeft + topMatch.ScreenSpaceDrawQuad.TopRight) / 2),
-                    Margin = new MarginPadding { Bottom = 10 },
-                    Origin = Anchor.BottomCentre,
-                });
+                // headings.Add(new DrawableTournamentRound(round)
+                // {
+                //     Position = headings.ToLocalSpace((topMatch.ScreenSpaceDrawQuad.TopLeft + topMatch.ScreenSpaceDrawQuad.TopRight) / 2),
+                //     Margin = new MarginPadding { Bottom = 10 },
+                //     Origin = Anchor.BottomCentre,
+                // });
             }
 
             foreach (var round in LadderInfo.Rounds)
@@ -178,12 +178,12 @@ namespace osu.Game.Tournament.Screens.Ladder
 
                 if (topMatch == null) continue;
 
-                headings.Add(new DrawableTournamentRound(round, true)
-                {
-                    Position = headings.ToLocalSpace((topMatch.ScreenSpaceDrawQuad.TopLeft + topMatch.ScreenSpaceDrawQuad.TopRight) / 2),
-                    Margin = new MarginPadding { Bottom = 10 },
-                    Origin = Anchor.BottomCentre,
-                });
+                // headings.Add(new DrawableTournamentRound(round, true)
+                // {
+                //     Position = headings.ToLocalSpace((topMatch.ScreenSpaceDrawQuad.TopLeft + topMatch.ScreenSpaceDrawQuad.TopRight) / 2),
+                //     Margin = new MarginPadding { Bottom = 10 },
+                //     Origin = Anchor.BottomCentre,
+                // });
             }
 
             layout.Validate();

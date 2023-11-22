@@ -260,10 +260,10 @@ namespace osu.Game.Graphics.Backgrounds
                     Quad triangleQuad = masking ? clampToDrawable(topLeft, relativeSize) : new Quad(topLeft.X, topLeft.Y, relativeSize.X, relativeSize.Y);
 
                     var drawQuad = new Quad(
-                        Vector2Extensions.Transform(triangleQuad.TopLeft * size, DrawInfo.Matrix),
-                        Vector2Extensions.Transform(triangleQuad.TopRight * size, DrawInfo.Matrix),
-                        Vector2Extensions.Transform(triangleQuad.BottomLeft * size, DrawInfo.Matrix),
-                        Vector2Extensions.Transform(triangleQuad.BottomRight * size, DrawInfo.Matrix)
+                        Vector2Extensions.Transform(triangleQuad.TopLeft.Xy * size, DrawInfo.Matrix),
+                        Vector2Extensions.Transform(triangleQuad.TopRight.Xy * size, DrawInfo.Matrix),
+                        Vector2Extensions.Transform(triangleQuad.BottomLeft.Xy * size, DrawInfo.Matrix),
+                        Vector2Extensions.Transform(triangleQuad.BottomRight.Xy * size, DrawInfo.Matrix)
                     );
 
                     RectangleF textureCoords = new RectangleF(

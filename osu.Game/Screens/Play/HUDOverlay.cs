@@ -243,9 +243,9 @@ namespace osu.Game.Screens.Play
             {
                 Quad playfieldScreenSpaceDrawQuad = drawableRuleset.Playfield.SkinnableComponentScreenSpaceDrawQuad;
 
-                playfieldComponents.Position = ToLocalSpace(playfieldScreenSpaceDrawQuad.TopLeft);
-                playfieldComponents.Width = (ToLocalSpace(playfieldScreenSpaceDrawQuad.TopRight) - ToLocalSpace(playfieldScreenSpaceDrawQuad.TopLeft)).Length;
-                playfieldComponents.Height = (ToLocalSpace(playfieldScreenSpaceDrawQuad.BottomLeft) - ToLocalSpace(playfieldScreenSpaceDrawQuad.TopLeft)).Length;
+                playfieldComponents.Position = ToLocalSpace(playfieldScreenSpaceDrawQuad.TopLeft.Xy);
+                playfieldComponents.Width = (ToLocalSpace(playfieldScreenSpaceDrawQuad.TopRight.Xy) - ToLocalSpace(playfieldScreenSpaceDrawQuad.TopLeft.Xy)).Length;
+                playfieldComponents.Height = (ToLocalSpace(playfieldScreenSpaceDrawQuad.BottomLeft.Xy) - ToLocalSpace(playfieldScreenSpaceDrawQuad.TopLeft.Xy)).Length;
                 playfieldComponents.Rotation = drawableRuleset.Playfield.Rotation;
             }
 
@@ -285,7 +285,7 @@ namespace osu.Game.Screens.Play
                 {
                     var topLeft = element.ScreenSpaceDrawQuad.TopLeft;
                     if (highestBottomScreenSpace == null || topLeft.Y < highestBottomScreenSpace.Value.Y)
-                        highestBottomScreenSpace = topLeft;
+                        highestBottomScreenSpace = topLeft.Xy;
                 }
             }
 

@@ -164,14 +164,14 @@ namespace osu.Game.Rulesets.Objects
                         break;
 
                     case SplineType.BSpline:
-                        var bSplineResult = segmentType.Degree == null
-                            ? segmentVertices
-                            : PathApproximator.BSplineToBezier(segmentVertices, segmentType.Degree.Value);
-
-                        for (int j = 0; j < bSplineResult.Length - 1; j++)
-                        {
-                            result.Add(new PathControlPoint(bSplineResult[j], j == 0 ? PathType.BEZIER : null));
-                        }
+                        // var bSplineResult = segmentType.Degree == null
+                        //     ? segmentVertices
+                        //     : PathApproximator.BSplineToBezier(segmentVertices, segmentType.Degree.Value);
+                        //
+                        // for (int j = 0; j < bSplineResult.Length - 1; j++)
+                        // {
+                        //     result.Add(new PathControlPoint(bSplineResult[j], j == 0 ? PathType.BEZIER : null));
+                        // }
 
                         break;
 

@@ -55,6 +55,8 @@ namespace osu.Game.Rulesets.Mania.UI
             AddInternal(playfieldGrid = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
+                Camera = new Camera(45, new Vector2(0.5f)),
+                Rotation3D = new Quaternion(-MathF.PI / 4, 0, 0),
                 Content = new[] { new Drawable[stageDefinitions.Count] }
             });
 

@@ -1456,9 +1456,9 @@ namespace osu.Game
             // Content is a child of a scaling container with ScalingMode.Everything set, while the game itself is never scaled.
             // this avoids a visible jump in the positioning of the screen offset container.
             if (Settings.IsLoaded && Settings.IsPresent)
-                horizontalOffset += Content.ToLocalSpace(Settings.ScreenSpaceDrawQuad.TopRight).X * SIDE_OVERLAY_OFFSET_RATIO;
+                horizontalOffset += Content.ToLocalSpace(Settings.ScreenSpaceDrawQuad.TopRight.Xy).X * SIDE_OVERLAY_OFFSET_RATIO;
             if (Notifications.IsLoaded && Notifications.IsPresent)
-                horizontalOffset += (Content.ToLocalSpace(Notifications.ScreenSpaceDrawQuad.TopLeft).X - Content.DrawWidth) * SIDE_OVERLAY_OFFSET_RATIO;
+                horizontalOffset += (Content.ToLocalSpace(Notifications.ScreenSpaceDrawQuad.TopLeft.Xy).X - Content.DrawWidth) * SIDE_OVERLAY_OFFSET_RATIO;
 
             ScreenOffsetContainer.X = horizontalOffset;
             overlayContent.X = horizontalOffset * 1.2f;

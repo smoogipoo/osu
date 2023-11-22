@@ -135,37 +135,37 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             protected override void Update()
             {
-                float start, end;
-
-                if (Precision.AlmostEquals(restrictTo.Rotation, 0))
-                {
-                    start = Parent!.ToLocalSpace(restrictTo.ScreenSpaceDrawQuad.TopLeft).X;
-                    end = Parent!.ToLocalSpace(restrictTo.ScreenSpaceDrawQuad.TopRight).X;
-                }
-                else
-                {
-                    float center = restrictTo.ToSpaceOfOtherDrawable(restrictTo.OriginPosition, Parent!).X;
-                    float halfDiagonal = (restrictTo.DrawSize / 2).LengthFast;
-
-                    start = center - halfDiagonal;
-                    end = center + halfDiagonal;
-                }
-
-                float rawWidth = end - start;
-
-                start -= rawWidth * leniency * 0.5f;
-                end += rawWidth * leniency * 0.5f;
-
-                float width = (end - start) * 0.5f * applyAdjustmentCurve(calculateGap(easing));
-
-                // different values in case the playfield ever moves from center to somewhere else.
-                blackBoxLeft.Width = start + width;
-                blackBoxRight.Width = DrawWidth - end + width;
-
-                panelLeft.X = start + width;
-                panelRight.X = end - width;
-                bgPanelLeft.X = start;
-                bgPanelRight.X = end;
+                // float start, end;
+                //
+                // if (Precision.AlmostEquals(restrictTo.Rotation, 0))
+                // {
+                //     // start = Parent!.ToLocalSpace(restrictTo.ScreenSpaceDrawQuad.TopLeft).X;
+                //     // end = Parent!.ToLocalSpace(restrictTo.ScreenSpaceDrawQuad.TopRight).X;
+                // }
+                // else
+                // {
+                //     float center = restrictTo.ToSpaceOfOtherDrawable(restrictTo.OriginPosition, Parent!).X;
+                //     float halfDiagonal = (restrictTo.DrawSize / 2).LengthFast;
+                //
+                //     start = center - halfDiagonal;
+                //     end = center + halfDiagonal;
+                // }
+                //
+                // float rawWidth = end - start;
+                //
+                // start -= rawWidth * leniency * 0.5f;
+                // end += rawWidth * leniency * 0.5f;
+                //
+                // float width = (end - start) * 0.5f * applyAdjustmentCurve(calculateGap(easing));
+                //
+                // // different values in case the playfield ever moves from center to somewhere else.
+                // blackBoxLeft.Width = start + width;
+                // blackBoxRight.Width = DrawWidth - end + width;
+                //
+                // panelLeft.X = start + width;
+                // panelRight.X = end - width;
+                // bgPanelLeft.X = start;
+                // bgPanelRight.X = end;
             }
 
             protected override void LoadComplete()

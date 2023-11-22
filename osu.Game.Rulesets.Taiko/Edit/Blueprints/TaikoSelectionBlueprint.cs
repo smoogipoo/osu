@@ -30,11 +30,11 @@ namespace osu.Game.Rulesets.Taiko.Edit.Blueprints
             var topLeft = new Vector2(float.MaxValue, float.MaxValue);
             var bottomRight = new Vector2(float.MinValue, float.MinValue);
 
-            topLeft = Vector2.ComponentMin(topLeft, Parent!.ToLocalSpace(DrawableObject.ScreenSpaceDrawQuad.TopLeft));
-            bottomRight = Vector2.ComponentMax(bottomRight, Parent!.ToLocalSpace(DrawableObject.ScreenSpaceDrawQuad.BottomRight));
-
-            Size = bottomRight - topLeft;
-            Position = topLeft;
+            // topLeft = Vector2.ComponentMin(topLeft, Parent!.ToLocalSpace(DrawableObject.ScreenSpaceDrawQuad.TopLeft));
+            // bottomRight = Vector2.ComponentMax(bottomRight, Parent!.ToLocalSpace(DrawableObject.ScreenSpaceDrawQuad.BottomRight));
+            //
+            // Size = bottomRight - topLeft;
+            // Position = topLeft;
         }
     }
 }

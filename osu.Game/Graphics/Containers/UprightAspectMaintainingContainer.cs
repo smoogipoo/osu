@@ -54,14 +54,14 @@ namespace osu.Game.Graphics.Containers
             parentMatrix.M31 = 0.0f;
             parentMatrix.M32 = 0.0f;
 
-            Matrix3 reversedParent = parentMatrix.Inverted();
+            Matrix4 reversedParent = parentMatrix.Inverted();
 
             // Extract the rotation.
             float angle = MathF.Atan2(reversedParent.M12, reversedParent.M11);
             Rotation = MathHelper.RadiansToDegrees(angle);
 
             // Remove rotation from the C matrix so that it only contains shear and scale.
-            Matrix3 m = Matrix3.CreateRotationZ(-angle);
+            Matrix4 m = Matrix4.CreateRotationZ(-angle);
             reversedParent *= m;
 
             // Extract shear.

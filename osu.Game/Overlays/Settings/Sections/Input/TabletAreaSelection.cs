@@ -193,7 +193,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 new Vector2(halfUsableArea.X, halfUsableArea.Y)
             );
 
-            var matrix = Matrix3.Identity;
+            var matrix = Matrix4.Identity;
 
             MatrixExtensions.TranslateFromLeft(ref matrix, offset);
             MatrixExtensions.RotateFromLeft(ref matrix, MathUtils.DegreesToRadians(rotation.Value));
@@ -201,10 +201,10 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             usableAreaQuad *= matrix;
 
             IsWithinBounds =
-                tabletArea.Contains(usableAreaQuad.TopLeft) &&
-                tabletArea.Contains(usableAreaQuad.TopRight) &&
-                tabletArea.Contains(usableAreaQuad.BottomLeft) &&
-                tabletArea.Contains(usableAreaQuad.BottomRight);
+                tabletArea.Contains(usableAreaQuad.TopLeft.Xy) &&
+                tabletArea.Contains(usableAreaQuad.TopRight.Xy) &&
+                tabletArea.Contains(usableAreaQuad.BottomLeft.Xy) &&
+                tabletArea.Contains(usableAreaQuad.BottomRight.Xy);
 
             usableFill.FadeColour(IsWithinBounds ? colour.Blue : colour.RedLight, 100);
         }

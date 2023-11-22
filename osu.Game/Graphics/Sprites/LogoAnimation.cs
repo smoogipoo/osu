@@ -59,7 +59,7 @@ namespace osu.Game.Graphics.Sprites
                 {
                     animationVertexBatch!.Add(new LogoAnimationVertex
                     {
-                        Position = v.Position,
+                        Position = v.Position.Xy,
                         Colour = v.Colour,
                         TexturePosition = v.TexturePosition,
                     });

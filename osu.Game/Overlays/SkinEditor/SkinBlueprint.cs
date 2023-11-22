@@ -142,7 +142,7 @@ namespace osu.Game.Overlays.SkinEditor
 
             var localSpaceQuad = ToLocalSpace(drawableQuad);
 
-            box.Position = localSpaceQuad.TopLeft;
+            box.Position = localSpaceQuad.TopLeft.Xy;
             box.Size = localSpaceQuad.Size;
             box.Rotation = drawable.Rotation;
             box.Scale = new Vector2(MathF.Sign(drawable.Scale.X), MathF.Sign(drawable.Scale.Y));

@@ -244,7 +244,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
         public override Quad SelectionQuad => circle.ScreenSpaceDrawQuad;
 
-        public override Vector2 ScreenSpaceSelectionPoint => ScreenSpaceDrawQuad.TopLeft;
+        public override Vector2 ScreenSpaceSelectionPoint => ScreenSpaceDrawQuad.TopLeft.Xy;
 
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
         {
