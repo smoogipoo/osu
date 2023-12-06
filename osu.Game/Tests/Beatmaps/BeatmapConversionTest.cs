@@ -36,10 +36,17 @@ namespace osu.Game.Tests.Beatmaps
 
         protected abstract string ResourceAssembly { get; }
 
-        protected void Test(string name, params Type[] mods)
+        public void Test(WorkingBeatmap beatmap, Type[] mods, string expectedResult)
         {
-            var ourResult = convert(name, mods.Select(m => (Mod)Activator.CreateInstance(m)).ToArray());
-            var expectedResult = read(name);
+            test(beatmap.Beatmap, mods, JsonConvert.DeserializeObject<ConvertResult>(expectedResult));
+        }
+
+        protected void Test(string resourceName, params Type[] mods)
+            => test(GetBeatmap(resourceName), mods, read(resourceName));
+
+        private void test(IBeatmap beatmap, Type[] mods, ConvertResult expectedResult)
+        {
+            var ourResult = convert(beatmap, mods.Select(m => (Mod)Activator.CreateInstance(m)).ToArray());
 
             foreach (var m in ourResult.Mappings)
                 m.PostProcess();
@@ -110,12 +117,10 @@ namespace osu.Game.Tests.Beatmaps
             });
         }
 
-        private ConvertResult convert(string name, Mod[] mods)
+        private ConvertResult convert(IBeatmap beatmap, Mod[] mods)
         {
             var conversionTask = Task.Factory.StartNew(() =>
             {
-                var beatmap = GetBeatmap(name);
-
                 string beforeConversion = beatmap.Serialize();
 
                 var converterResult = new Dictionary<HitObject, IEnumerable<HitObject>>();
