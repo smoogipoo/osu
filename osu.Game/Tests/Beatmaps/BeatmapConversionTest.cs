@@ -54,67 +54,61 @@ namespace osu.Game.Tests.Beatmaps
             foreach (var m in expectedResult.Mappings)
                 m.PostProcess();
 
-            Assert.Multiple(() =>
+            int mappingCounter = 0;
+
+            while (true)
             {
-                int mappingCounter = 0;
+                if (mappingCounter >= ourResult.Mappings.Count && mappingCounter >= expectedResult.Mappings.Count)
+                    break;
 
-                while (true)
+                if (mappingCounter >= ourResult.Mappings.Count)
+                    Assert.Fail($"A conversion did not generate any hitobjects, but should have, for hitobject at time: {expectedResult.Mappings[mappingCounter].StartTime}\n");
+                else if (mappingCounter >= expectedResult.Mappings.Count)
+                    Assert.Fail($"A conversion generated hitobjects, but should not have, for hitobject at time: {ourResult.Mappings[mappingCounter].StartTime}\n");
+                else if (!expectedResult.Mappings[mappingCounter].Equals(ourResult.Mappings[mappingCounter]))
                 {
-                    if (mappingCounter >= ourResult.Mappings.Count && mappingCounter >= expectedResult.Mappings.Count)
-                        break;
+                    var expectedMapping = expectedResult.Mappings[mappingCounter];
+                    var ourMapping = ourResult.Mappings[mappingCounter];
 
-                    if (mappingCounter >= ourResult.Mappings.Count)
-                        Assert.Fail($"A conversion did not generate any hitobjects, but should have, for hitobject at time: {expectedResult.Mappings[mappingCounter].StartTime}\n");
-                    else if (mappingCounter >= expectedResult.Mappings.Count)
-                        Assert.Fail($"A conversion generated hitobjects, but should not have, for hitobject at time: {ourResult.Mappings[mappingCounter].StartTime}\n");
-                    else if (!expectedResult.Mappings[mappingCounter].Equals(ourResult.Mappings[mappingCounter]))
-                    {
-                        var expectedMapping = expectedResult.Mappings[mappingCounter];
-                        var ourMapping = ourResult.Mappings[mappingCounter];
-
-                        Assert.Fail($"The conversion mapping differed for object at time {expectedMapping.StartTime}:\n"
-                                    + $"Expected {JsonConvert.SerializeObject(expectedMapping)}\n"
-                                    + $"Received: {JsonConvert.SerializeObject(ourMapping)}\n");
-                    }
-                    else
-                    {
-                        var ourMapping = ourResult.Mappings[mappingCounter];
-                        var expectedMapping = expectedResult.Mappings[mappingCounter];
-
-                        Assert.Multiple(() =>
-                        {
-                            int objectCounter = 0;
-
-                            while (true)
-                            {
-                                if (objectCounter >= ourMapping.Objects.Count && objectCounter >= expectedMapping.Objects.Count)
-                                    break;
-
-                                if (objectCounter >= ourMapping.Objects.Count)
-                                {
-                                    Assert.Fail($"The conversion did not generate a hitobject, but should have, for hitobject at time: {expectedMapping.StartTime}:\n"
-                                                + $"Expected: {JsonConvert.SerializeObject(expectedMapping.Objects[objectCounter])}\n");
-                                }
-                                else if (objectCounter >= expectedMapping.Objects.Count)
-                                {
-                                    Assert.Fail($"The conversion generated a hitobject, but should not have, for hitobject at time: {ourMapping.StartTime}:\n"
-                                                + $"Received: {JsonConvert.SerializeObject(ourMapping.Objects[objectCounter])}\n");
-                                }
-                                else if (!expectedMapping.Objects[objectCounter].Equals(ourMapping.Objects[objectCounter]))
-                                {
-                                    Assert.Fail($"The conversion generated differing hitobjects for object at time: {expectedMapping.StartTime}:\n"
-                                                + $"Expected: {JsonConvert.SerializeObject(expectedMapping.Objects[objectCounter])}\n"
-                                                + $"Received: {JsonConvert.SerializeObject(ourMapping.Objects[objectCounter])}\n");
-                                }
-
-                                objectCounter++;
-                            }
-                        });
-                    }
-
-                    mappingCounter++;
+                    Assert.Fail($"The conversion mapping differed for object at time {expectedMapping.StartTime}:\n"
+                                + $"Expected {JsonConvert.SerializeObject(expectedMapping)}\n"
+                                + $"Received: {JsonConvert.SerializeObject(ourMapping)}\n");
                 }
-            });
+                else
+                {
+                    var ourMapping = ourResult.Mappings[mappingCounter];
+                    var expectedMapping = expectedResult.Mappings[mappingCounter];
+
+                    int objectCounter = 0;
+
+                    while (true)
+                    {
+                        if (objectCounter >= ourMapping.Objects.Count && objectCounter >= expectedMapping.Objects.Count)
+                            break;
+
+                        if (objectCounter >= ourMapping.Objects.Count)
+                        {
+                            Assert.Fail($"The conversion did not generate a hitobject, but should have, for hitobject at time: {expectedMapping.StartTime}:\n"
+                                        + $"Expected: {JsonConvert.SerializeObject(expectedMapping.Objects[objectCounter])}\n");
+                        }
+                        else if (objectCounter >= expectedMapping.Objects.Count)
+                        {
+                            Assert.Fail($"The conversion generated a hitobject, but should not have, for hitobject at time: {ourMapping.StartTime}:\n"
+                                        + $"Received: {JsonConvert.SerializeObject(ourMapping.Objects[objectCounter])}\n");
+                        }
+                        else if (!expectedMapping.Objects[objectCounter].Equals(ourMapping.Objects[objectCounter]))
+                        {
+                            Assert.Fail($"The conversion generated differing hitobjects for object at time: {expectedMapping.StartTime}:\n"
+                                        + $"Expected: {JsonConvert.SerializeObject(expectedMapping.Objects[objectCounter])}\n"
+                                        + $"Received: {JsonConvert.SerializeObject(ourMapping.Objects[objectCounter])}\n");
+                        }
+
+                        objectCounter++;
+                    }
+                }
+
+                mappingCounter++;
+            }
         }
 
         private ConvertResult convert(IBeatmap beatmap, Mod[] mods)
