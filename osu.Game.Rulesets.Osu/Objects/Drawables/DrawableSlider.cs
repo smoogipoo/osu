@@ -285,25 +285,24 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     else if (hitTicks > 0)
                         r.Type = HitResult.LegacyMehNoCombo;
                     else
-                        r.Type = HitResult.Miss;
+                        r.Type = r.Judgement.MinResult;
                 });
             }
             else
             {
-                HitResult headResult = HeadCircle.HitObject.HitWindows.ResultFor(HeadCircle.Result.TimeOffset);
                 ApplyResult(r =>
                 {
                     int totalTicks = NestedHitObjects.Count;
                     int hitTicks = NestedHitObjects.Count(h => h.IsHit);
 
-                    if (hitTicks == totalTicks && headResult == HitResult.Great)
+                    if (hitTicks == totalTicks && HeadCircle.Result.Type == HitResult.Great)
                         r.Type = HitResult.LegacyGreatNoCombo;
-                    else if ((double)hitTicks / totalTicks >= 0.5 && headResult >= HitResult.Ok)
+                    else if ((double)hitTicks / totalTicks >= 0.5 && HeadCircle.Result.Type >= HitResult.Ok)
                         r.Type = HitResult.LegacyOkNoCombo;
                     else if (hitTicks > 0)
                         r.Type = HitResult.LegacyMehNoCombo;
                     else
-                        r.Type = HitResult.Miss;
+                        r.Type = r.Judgement.MinResult;
                 });
             }
         }

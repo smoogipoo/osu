@@ -50,7 +50,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             });
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyGreatNoCombo);
@@ -66,7 +66,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             });
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Ok);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -82,7 +82,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             });
 
-            assertHeadJudgement(HitResult.LargeTickMiss);
+            assertHeadJudgement(HitResult.Miss);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyMehNoCombo);
@@ -99,7 +99,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             });
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -115,7 +115,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position),
             });
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.IgnoreMiss);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -133,7 +133,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position),
             });
 
-            assertHeadJudgement(HitResult.LargeTickMiss);
+            assertHeadJudgement(HitResult.Miss);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyMehNoCombo);
@@ -144,10 +144,10 @@ namespace osu.Game.Rulesets.Osu.Tests
         {
             performTest(new List<ReplayFrame>());
 
-            assertHeadJudgement(HitResult.LargeTickMiss);
+            assertHeadJudgement(HitResult.Miss);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.IgnoreMiss);
-            assertSliderJudgement(HitResult.Miss);
+            assertSliderJudgement(HitResult.IgnoreMiss);
         }
 
         [Test]
@@ -168,7 +168,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 s.TickDistanceMultiplier = 10;
             });
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertRepeatJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -187,7 +187,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             }, classic: true);
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyGreatNoCombo);
@@ -219,7 +219,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             }, classic: true);
 
-            assertHeadJudgement(HitResult.LargeTickMiss);
+            assertHeadJudgement(HitResult.Miss);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -236,7 +236,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position, OsuAction.LeftButton),
             }, classic: true);
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -252,7 +252,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position),
             }, classic: true);
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.IgnoreMiss);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);
@@ -270,7 +270,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame(time_slider_end, slider_end_position),
             }, classic: true);
 
-            assertHeadJudgement(HitResult.LargeTickMiss);
+            assertHeadJudgement(HitResult.Miss);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyMehNoCombo);
@@ -305,7 +305,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 s.TickDistanceMultiplier = 10;
             }, classic: true);
 
-            assertHeadJudgement(HitResult.LargeTickHit);
+            assertHeadJudgement(HitResult.Great);
             assertRepeatJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
             assertSliderJudgement(HitResult.LegacyOkNoCombo);

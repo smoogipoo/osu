@@ -8,6 +8,8 @@ namespace osu.Game.Rulesets.Osu.Objects
 {
     public class SliderHeadCircle : HitCircle
     {
-        public override Judgement CreateJudgement() => new SliderTickJudgement();
+        public bool ClassicSliderBehaviour { get; set; }
+
+        public override Judgement CreateJudgement() => ClassicSliderBehaviour ? new SliderTickJudgement() : base.CreateJudgement();
     }
 }

@@ -123,11 +123,23 @@ namespace osu.Game.Rulesets.Osu.Objects
         /// </summary>
         public double TickDistanceMultiplier = 1;
 
+        private bool classicSliderBehaviour;
+
         /// <summary>
         /// If <see langword="false"/>, the <see cref="SliderHeadCircle"/> hit accuracy will limit the judgement of the <see cref="Slider"/>.
         /// If <see langword="true"/>, the <see cref="SliderHeadCircle"/> is counted as a perfect hit at any point inside its hit window.
         /// </summary>
-        public bool ClassicSliderBehaviour { get; set; }
+        public bool ClassicSliderBehaviour
+        {
+            get => classicSliderBehaviour;
+            set
+            {
+                classicSliderBehaviour = value;
+
+                if (HeadCircle != null)
+                    HeadCircle.ClassicSliderBehaviour = value;
+            }
+        }
 
         public BindableNumber<double> SliderVelocityMultiplierBindable { get; } = new BindableDouble(1)
         {
@@ -196,6 +208,7 @@ namespace osu.Game.Rulesets.Osu.Objects
                             StartTime = e.Time,
                             Position = Position,
                             StackHeight = StackHeight,
+                            ClassicSliderBehaviour = ClassicSliderBehaviour
                         });
                         break;
 
@@ -260,7 +273,7 @@ namespace osu.Game.Rulesets.Osu.Objects
             TailSamples = this.GetNodeSamples(repeatCount + 1);
         }
 
-        public override Judgement CreateJudgement() => new SliderJudgement();
+        public override Judgement CreateJudgement() => ClassicSliderBehaviour ? new ClassicSliderJudgement() : new SliderJudgement();
 
         protected override HitWindows CreateHitWindows() => HitWindows.Empty;
 
@@ -268,6 +281,15 @@ namespace osu.Game.Rulesets.Osu.Objects
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             public override HitResult MaxResult => HitResult.LegacyGreatNoCombo;
+            public override HitResult MinResult => HitResult.IgnoreMiss;
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private class ClassicSliderJudgement : OsuJudgement
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            public override HitResult MaxResult => HitResult.LegacyGreatNoCombo;
+            public override HitResult MinResult => HitResult.Miss;
 #pragma warning restore CS0618 // Type or member is obsolete
         }
     }

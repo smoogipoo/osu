@@ -212,8 +212,8 @@ namespace osu.Game.Rulesets.Osu.Tests
             });
 
             addJudgementAssert(hitObjects[0], HitResult.Great);
-            addJudgementAssert(hitObjects[1], HitResult.LegacyOkNoCombo);
-            addJudgementAssert("slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.LargeTickMiss);
+            addJudgementAssert(hitObjects[1], HitResult.LegacyMehNoCombo);
+            addJudgementAssert("slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.Miss);
             addJudgementAssert("slider tick", () => ((Slider)hitObjects[1]).NestedHitObjects[1] as SliderTick, HitResult.LargeTickHit);
         }
 
@@ -256,7 +256,7 @@ namespace osu.Game.Rulesets.Osu.Tests
 
             addJudgementAssert(hitObjects[0], HitResult.Great);
             addJudgementAssert(hitObjects[1], HitResult.LegacyGreatNoCombo);
-            addJudgementAssert("slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.LargeTickHit);
+            addJudgementAssert("slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.Great);
             addJudgementAssert("slider tick", () => ((Slider)hitObjects[1]).NestedHitObjects[1] as SliderTick, HitResult.LargeTickHit);
         }
 
@@ -378,9 +378,9 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame { Time = time_first_slider + 50, Position = midpoint },
             });
 
-            addJudgementAssert("first slider head", () => ((Slider)hitObjects[0]).HeadCircle, HitResult.LargeTickHit);
+            addJudgementAssert("first slider head", () => ((Slider)hitObjects[0]).HeadCircle, HitResult.Great);
             addJudgementOffsetAssert("first slider head", () => ((Slider)hitObjects[0]).HeadCircle, 0);
-            addJudgementAssert("second slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.LargeTickHit);
+            addJudgementAssert("second slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.Great);
             addJudgementOffsetAssert("second slider head", () => ((Slider)hitObjects[1]).HeadCircle, -200);
         }
 

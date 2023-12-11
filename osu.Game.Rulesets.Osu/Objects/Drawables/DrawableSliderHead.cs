@@ -56,9 +56,15 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             Debug.Assert(HitObject != null);
 
-            return base.ResultFor(timeOffset).IsHit()
-                ? Result.Judgement.MaxResult
-                : Result.Judgement.MinResult;
+            if (HitObject.ClassicSliderBehaviour)
+            {
+                // With classic slider behaviour, the head is judged as a tick anywhere within its hit window.
+                return base.ResultFor(timeOffset).IsHit()
+                    ? Result.Judgement.MaxResult
+                    : Result.Judgement.MinResult;
+            }
+
+            return base.ResultFor(timeOffset);
         }
 
         public override void Shake()
