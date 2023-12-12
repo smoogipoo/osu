@@ -18,7 +18,7 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(new[] { HitResult.SmallTickHit }, new[] { HitResult.SmallTickMiss, HitResult.IgnoreMiss })]
         [TestCase(new[] { HitResult.LargeBonus, HitResult.SmallBonus }, new[] { HitResult.IgnoreMiss })]
         [TestCase(new[] { HitResult.IgnoreHit }, new[] { HitResult.IgnoreMiss, HitResult.ComboBreak })]
-        [TestCase(new[] { HitResult.LegacyGreatNoCombo, HitResult.LegacyOkNoCombo, HitResult.LegacyMehNoCombo }, new[] { HitResult.Miss, HitResult.IgnoreMiss })]
+        [TestCase(new[] { HitResult.Great, HitResult.Ok, HitResult.Meh }, new[] { HitResult.Miss, HitResult.IgnoreMiss })]
         public void TestValidResultPairs(HitResult[] maxResults, HitResult[] minResults)
         {
             HitResult[] unsupportedResults = HitResultExtensions.ALL_TYPES.Where(t => !minResults.Contains(t)).ToArray();

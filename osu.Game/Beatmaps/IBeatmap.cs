@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Beatmaps.Timing;
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 
@@ -94,7 +95,9 @@ namespace osu.Game.Beatmaps
 
             static void addCombo(HitObject hitObject, ref int combo)
             {
-                if (hitObject.CreateJudgement().MaxResult.AffectsCombo())
+                Judgement judgement = hitObject.CreateJudgement();
+
+                if (judgement.AffectsCombo(judgement.MaxResult) && judgement.MaxResult.IncreasesCombo())
                     combo++;
 
                 foreach (var nested in hitObject.NestedHitObjects)

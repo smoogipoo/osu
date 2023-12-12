@@ -190,7 +190,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickHit);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
-            assertSliderJudgement(HitResult.LegacyGreatNoCombo);
+            assertSliderJudgement(HitResult.Great);
         }
 
         [Test]
@@ -206,7 +206,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickHit);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
-            assertSliderJudgement(HitResult.LegacyGreatNoCombo);
+            assertSliderJudgement(HitResult.Great);
         }
 
         [Test]
@@ -222,7 +222,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickMiss);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.LargeTickHit);
-            assertSliderJudgement(HitResult.LegacyOkNoCombo);
+            assertSliderJudgement(HitResult.Ok);
         }
 
         [Test]
@@ -239,7 +239,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickHit);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
-            assertSliderJudgement(HitResult.LegacyOkNoCombo);
+            assertSliderJudgement(HitResult.Ok);
         }
 
         [Test]
@@ -255,7 +255,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickHit);
             assertTickJudgement(HitResult.LargeTickHit);
             assertTailJudgement(HitResult.IgnoreMiss);
-            assertSliderJudgement(HitResult.LegacyOkNoCombo);
+            assertSliderJudgement(HitResult.Ok);
         }
 
         [Test]
@@ -273,7 +273,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickMiss);
             assertTickJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
-            assertSliderJudgement(HitResult.LegacyMehNoCombo);
+            assertSliderJudgement(HitResult.Meh);
         }
 
         [Test]
@@ -308,7 +308,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             assertHeadJudgement(HitResult.LargeTickHit);
             assertRepeatJudgement(HitResult.LargeTickMiss);
             assertTailJudgement(HitResult.LargeTickHit);
-            assertSliderJudgement(HitResult.LegacyOkNoCombo);
+            assertSliderJudgement(HitResult.Ok);
         }
 
         #endregion

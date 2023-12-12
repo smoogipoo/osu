@@ -281,7 +281,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             });
 
             addJudgementAssert(hitObjects[0], HitResult.Great);
-            addJudgementAssert(hitObjects[1], HitResult.LegacyGreatNoCombo);
+            addJudgementAssert(hitObjects[1], HitResult.Great);
             addJudgementAssert("slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.LargeTickHit);
             addJudgementAssert("slider tick", () => ((Slider)hitObjects[1]).NestedHitObjects[1] as SliderTick, HitResult.LargeTickHit);
             addClickActionAssert(0, ClickAction.Hit);
@@ -326,7 +326,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             });
 
             addJudgementAssert(hitObjects[0], HitResult.Ok);
-            addJudgementAssert(hitObjects[1], HitResult.LegacyGreatNoCombo);
+            addJudgementAssert(hitObjects[1], HitResult.Great);
             addJudgementAssert("slider head", () => ((Slider)hitObjects[1]).HeadCircle, HitResult.LargeTickHit);
             addJudgementAssert("slider tick", () => ((Slider)hitObjects[1]).NestedHitObjects[1] as SliderTick, HitResult.LargeTickHit);
             addClickActionAssert(0, ClickAction.Hit);
@@ -409,7 +409,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             });
 
             addJudgementAssert(hitObjects[0], HitResult.Great);
-            addJudgementAssert(hitObjects[1], HitResult.LegacyGreatNoCombo);
+            addJudgementAssert(hitObjects[1], HitResult.Great);
             addClickActionAssert(0, ClickAction.Shake);
             addClickActionAssert(1, ClickAction.Hit);
             addClickActionAssert(2, ClickAction.Hit);
@@ -456,8 +456,8 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame { Time = time_second_slider, Position = positionSecondSlider + new Vector2(0, 10), Actions = { OsuAction.LeftButton } },
             });
 
-            addJudgementAssert(hitObjects[0], HitResult.LegacyOkNoCombo);
-            addJudgementAssert(hitObjects[1], HitResult.LegacyGreatNoCombo);
+            addJudgementAssert(hitObjects[0], HitResult.Ok);
+            addJudgementAssert(hitObjects[1], HitResult.Great);
             addClickActionAssert(0, ClickAction.Hit);
             addClickActionAssert(1, ClickAction.Hit);
         }
@@ -548,9 +548,9 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame { Time = time_first_slider + 50, Position = midpoint },
             });
 
-            addJudgementAssert(hitObjects[0], HitResult.LegacyOkNoCombo);
+            addJudgementAssert(hitObjects[0], HitResult.Ok);
             addJudgementOffsetAssert("first slider head", () => ((Slider)hitObjects[0]).HeadCircle, 0);
-            addJudgementAssert(hitObjects[1], HitResult.IgnoreMiss);
+            addJudgementAssert(hitObjects[1], HitResult.Miss);
             // the slider head of the first slider prevents the second slider's head from being hit, so the judgement offset should be very late.
             // this is not strictly done by the hit policy implementation itself (see `OsuModClassic.blockInputToObjectsUnderSliderHead()`),
             // but we're testing this here anyways to just keep everything related to input handling and note lock in one place.
@@ -602,9 +602,9 @@ namespace osu.Game.Rulesets.Osu.Tests
                 new OsuReplayFrame { Time = time_second_slider + 75, Position = midpoint },
             });
 
-            addJudgementAssert(hitObjects[0], HitResult.LegacyOkNoCombo);
+            addJudgementAssert(hitObjects[0], HitResult.Ok);
             addJudgementOffsetAssert("first slider head", () => ((Slider)hitObjects[0]).HeadCircle, 0);
-            addJudgementAssert(hitObjects[1], HitResult.LegacyOkNoCombo);
+            addJudgementAssert(hitObjects[1], HitResult.Ok);
             addJudgementOffsetAssert("second slider head", () => ((Slider)hitObjects[1]).HeadCircle, 50);
             addClickActionAssert(0, ClickAction.Hit);
             addClickActionAssert(1, ClickAction.Hit);

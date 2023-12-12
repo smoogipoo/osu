@@ -53,12 +53,6 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(ScoringMode.Classic, HitResult.Great, HitResult.Meh, 11_670)]
         [TestCase(ScoringMode.Classic, HitResult.Great, HitResult.Ok, 23_341)]
         [TestCase(ScoringMode.Classic, HitResult.Great, HitResult.Great, 100_033)]
-        [TestCase(ScoringMode.Standardised, HitResult.LegacyGreatNoCombo, HitResult.LegacyMehNoCombo, 116_667)]
-        [TestCase(ScoringMode.Standardised, HitResult.LegacyGreatNoCombo, HitResult.LegacyOkNoCombo, 233_338)]
-        [TestCase(ScoringMode.Standardised, HitResult.LegacyGreatNoCombo, HitResult.LegacyGreatNoCombo, 1_000_000)]
-        [TestCase(ScoringMode.Classic, HitResult.LegacyGreatNoCombo, HitResult.LegacyMehNoCombo, 11_670)]
-        [TestCase(ScoringMode.Classic, HitResult.LegacyGreatNoCombo, HitResult.LegacyOkNoCombo, 23_341)]
-        [TestCase(ScoringMode.Classic, HitResult.LegacyGreatNoCombo, HitResult.LegacyGreatNoCombo, 100_033)]
         public void TestSingleHit(ScoringMode scoringMode, HitResult maxResult, HitResult hitResult, int expectedScore)
         {
             scoreProcessor.ApplyBeatmap(new TestBeatmap(new RulesetInfo())
@@ -183,9 +177,9 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(HitResult.LargeTickHit, HitResult.LargeTickMiss)]
         [TestCase(HitResult.SmallBonus, HitResult.IgnoreMiss)]
         [TestCase(HitResult.LargeBonus, HitResult.IgnoreMiss)]
-        [TestCase(HitResult.LegacyMehNoCombo, HitResult.Miss)]
-        [TestCase(HitResult.LegacyOkNoCombo, HitResult.Miss)]
-        [TestCase(HitResult.LegacyGreatNoCombo, HitResult.Miss)]
+        [TestCase(HitResult.Meh, HitResult.Miss)]
+        [TestCase(HitResult.Ok, HitResult.Miss)]
+        [TestCase(HitResult.Great, HitResult.Miss)]
         public void TestMinResults(HitResult hitResult, HitResult expectedMinResult)
         {
             Assert.AreEqual(expectedMinResult, new TestJudgement(hitResult).MinResult);
@@ -206,9 +200,9 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(HitResult.LargeTickHit, true)]
         [TestCase(HitResult.SmallBonus, false)]
         [TestCase(HitResult.LargeBonus, false)]
-        [TestCase(HitResult.LegacyMehNoCombo, false)]
-        [TestCase(HitResult.LegacyOkNoCombo, false)]
-        [TestCase(HitResult.LegacyGreatNoCombo, false)]
+        [TestCase(HitResult.Meh, false)]
+        [TestCase(HitResult.Ok, false)]
+        [TestCase(HitResult.Great, false)]
         public void TestAffectsCombo(HitResult hitResult, bool expectedReturnValue)
         {
             Assert.AreEqual(expectedReturnValue, hitResult.AffectsCombo());
@@ -229,9 +223,9 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(HitResult.LargeTickHit, true)]
         [TestCase(HitResult.SmallBonus, false)]
         [TestCase(HitResult.LargeBonus, false)]
-        [TestCase(HitResult.LegacyMehNoCombo, true)]
-        [TestCase(HitResult.LegacyOkNoCombo, true)]
-        [TestCase(HitResult.LegacyGreatNoCombo, true)]
+        [TestCase(HitResult.Meh, true)]
+        [TestCase(HitResult.Ok, true)]
+        [TestCase(HitResult.Great, true)]
         public void TestAffectsAccuracy(HitResult hitResult, bool expectedReturnValue)
         {
             Assert.AreEqual(expectedReturnValue, hitResult.AffectsAccuracy());
@@ -252,9 +246,9 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(HitResult.LargeTickHit, false)]
         [TestCase(HitResult.SmallBonus, true)]
         [TestCase(HitResult.LargeBonus, true)]
-        [TestCase(HitResult.LegacyMehNoCombo, false)]
-        [TestCase(HitResult.LegacyOkNoCombo, false)]
-        [TestCase(HitResult.LegacyGreatNoCombo, false)]
+        [TestCase(HitResult.Meh, false)]
+        [TestCase(HitResult.Ok, false)]
+        [TestCase(HitResult.Great, false)]
         public void TestIsBonus(HitResult hitResult, bool expectedReturnValue)
         {
             Assert.AreEqual(expectedReturnValue, hitResult.IsBonus());
@@ -275,9 +269,9 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(HitResult.LargeTickHit, true)]
         [TestCase(HitResult.SmallBonus, true)]
         [TestCase(HitResult.LargeBonus, true)]
-        [TestCase(HitResult.LegacyMehNoCombo, true)]
-        [TestCase(HitResult.LegacyOkNoCombo, true)]
-        [TestCase(HitResult.LegacyGreatNoCombo, true)]
+        [TestCase(HitResult.Meh, true)]
+        [TestCase(HitResult.Ok, true)]
+        [TestCase(HitResult.Great, true)]
         public void TestIsHit(HitResult hitResult, bool expectedReturnValue)
         {
             Assert.AreEqual(expectedReturnValue, hitResult.IsHit());
@@ -298,9 +292,9 @@ namespace osu.Game.Tests.Rulesets.Scoring
         [TestCase(HitResult.LargeTickHit, true)]
         [TestCase(HitResult.SmallBonus, true)]
         [TestCase(HitResult.LargeBonus, true)]
-        [TestCase(HitResult.LegacyMehNoCombo, true)]
-        [TestCase(HitResult.LegacyOkNoCombo, true)]
-        [TestCase(HitResult.LegacyGreatNoCombo, true)]
+        [TestCase(HitResult.Meh, true)]
+        [TestCase(HitResult.Ok, true)]
+        [TestCase(HitResult.Great, true)]
         public void TestIsScorable(HitResult hitResult, bool expectedReturnValue)
         {
             Assert.AreEqual(expectedReturnValue, hitResult.IsScorable());

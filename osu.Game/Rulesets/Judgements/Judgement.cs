@@ -93,6 +93,8 @@ namespace osu.Game.Rulesets.Judgements
             }
         }
 
+        public virtual bool AffectsCombo(HitResult result) => result.AffectsCombo();
+
         /// <summary>
         /// The numeric score representation for the maximum achievable result.
         /// </summary>
@@ -137,18 +139,15 @@ namespace osu.Game.Rulesets.Judgements
                 case HitResult.Miss:
                     return -DEFAULT_MAX_HEALTH_INCREASE * 2;
 
-                case HitResult.LegacyMehNoCombo:
                 case HitResult.Meh:
                     return DEFAULT_MAX_HEALTH_INCREASE * 0.05;
 
-                case HitResult.LegacyOkNoCombo:
                 case HitResult.Ok:
                     return DEFAULT_MAX_HEALTH_INCREASE * 0.5;
 
                 case HitResult.Good:
                     return DEFAULT_MAX_HEALTH_INCREASE * 0.75;
 
-                case HitResult.LegacyGreatNoCombo:
                 case HitResult.Great:
                     return DEFAULT_MAX_HEALTH_INCREASE;
 
@@ -185,18 +184,15 @@ namespace osu.Game.Rulesets.Judgements
                 case HitResult.LargeTickHit:
                     return 30;
 
-                case HitResult.LegacyMehNoCombo:
                 case HitResult.Meh:
                     return 50;
 
-                case HitResult.LegacyOkNoCombo:
                 case HitResult.Ok:
                     return 100;
 
                 case HitResult.Good:
                     return 200;
 
-                case HitResult.LegacyGreatNoCombo:
                 case HitResult.Great:
                 // Perfect doesn't actually give more score / accuracy directly.
                 case HitResult.Perfect:

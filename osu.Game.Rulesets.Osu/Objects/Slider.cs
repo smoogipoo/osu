@@ -279,8 +279,13 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         private class ClassicSliderJudgement : OsuJudgement
         {
-            public override HitResult MaxResult => HitResult.LegacyGreatNoCombo;
-            public override HitResult MinResult => HitResult.Miss;
+            public override bool AffectsCombo(HitResult result)
+            {
+                if (result == MinResult)
+                    return base.AffectsCombo(result);
+
+                return false;
+            }
         }
     }
 }

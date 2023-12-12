@@ -73,11 +73,6 @@ namespace osu.Game.Rulesets.Osu.UI
 
             AddRangeInternal(poolDictionary.Values);
 
-            // These results share existing judgement pools, so they're only added after the pools are added to the draw hierarchy above.
-            poolDictionary.Add(HitResult.LegacyGreatNoCombo, poolDictionary[HitResult.Great]);
-            poolDictionary.Add(HitResult.LegacyOkNoCombo, poolDictionary[HitResult.Ok]);
-            poolDictionary.Add(HitResult.LegacyMehNoCombo, poolDictionary[HitResult.Meh]);
-
             NewResult += onNewResult;
         }
 

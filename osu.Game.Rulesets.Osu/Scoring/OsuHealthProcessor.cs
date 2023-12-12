@@ -59,17 +59,14 @@ namespace osu.Game.Rulesets.Osu.Scoring
                     increase = hitObject is SliderTick ? 0.015 : 0.02;
                     break;
 
-                case HitResult.LegacyMehNoCombo:
                 case HitResult.Meh:
                     increase = 0.002;
                     break;
 
-                case HitResult.LegacyOkNoCombo:
                 case HitResult.Ok:
                     increase = 0.011;
                     break;
 
-                case HitResult.LegacyGreatNoCombo:
                 case HitResult.Great:
                     increase = 0.03;
                     break;

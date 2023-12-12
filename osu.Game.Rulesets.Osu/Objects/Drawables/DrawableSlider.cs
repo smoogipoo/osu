@@ -282,13 +282,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     int hitTicks = NestedHitObjects.Count(h => h.IsHit);
 
                     if (hitTicks == totalTicks)
-                        r.Type = HitResult.LegacyGreatNoCombo;
+                        r.Type = HitResult.Great;
                     else if (hitTicks == 0)
                         r.Type = HitResult.Miss;
                     else
                     {
                         double hitFraction = (double)hitTicks / totalTicks;
-                        r.Type = hitFraction >= 0.5 ? HitResult.LegacyOkNoCombo : HitResult.LegacyMehNoCombo;
+                        r.Type = hitFraction >= 0.5 ? HitResult.Ok : HitResult.Meh;
                     }
                 });
             }
