@@ -146,7 +146,31 @@ namespace osu.Game.Rulesets.Scoring
         [EnumMember(Value = "legacy_combo_increase")]
         [Order(99)]
         [Obsolete("Do not use.")]
-        LegacyComboIncrease = 99
+        LegacyComboIncrease = 99,
+
+        /// <summary>
+        /// Special result for legacy rulesets that provide a <see cref="Meh"/> judgement that does not increase combo.
+        /// </summary>
+        [EnumMember(Value = "legacy_meh_no_combo")]
+        [Order(100)]
+        [Obsolete("Do not use.")]
+        LegacyMehNoCombo = 100,
+
+        /// <summary>
+        /// Special result for legacy rulesets that provide an <see cref="Ok"/> judgement that does not increase combo.
+        /// </summary>
+        [EnumMember(Value = "legacy_ok_no_combo")]
+        [Order(101)]
+        [Obsolete("Do not use.")]
+        LegacyOkNoCombo = 101,
+
+        /// <summary>
+        /// Special result for legacy rulesets that provide a <see cref="Great"/> judgement that does not increase combo.
+        /// </summary>
+        [EnumMember(Value = "legacy_great_no_combo")]
+        [Order(102)]
+        [Obsolete("Do not use.")]
+        LegacyGreatNoCombo = 102
     }
 
 #pragma warning disable CS0618
@@ -299,6 +323,12 @@ namespace osu.Game.Rulesets.Scoring
                 case HitResult.ComboBreak:
                     return true;
 
+                // Special single-use legacy types that fall outside the standard valid range.
+                case HitResult.LegacyMehNoCombo:
+                case HitResult.LegacyOkNoCombo:
+                case HitResult.LegacyGreatNoCombo:
+                    return true;
+
                 default:
                     // Note that IgnoreHit and IgnoreMiss are excluded as they do not affect score.
                     return result >= HitResult.Miss && result < HitResult.IgnoreMiss;
@@ -361,6 +391,28 @@ namespace osu.Game.Rulesets.Scoring
 
             if (maxResult.IsBasic() && minResult != HitResult.Miss)
                 throw new ArgumentOutOfRangeException(nameof(minResult), $"{HitResult.Miss} is the only valid minimum result for a {maxResult} judgement.");
+        }
+
+        /// <summary>
+        /// Returns the most applicable type for results that share a common visual representation.
+        /// </summary>
+        /// <param name="result">The result.</param>
+        /// <returns>The most applicable type for visual representations.</returns>
+        public static HitResult GetDisplayableType(this HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.LegacyGreatNoCombo:
+                    return HitResult.Great;
+
+                case HitResult.LegacyOkNoCombo:
+                    return HitResult.Ok;
+
+                case HitResult.LegacyMehNoCombo:
+                    return HitResult.Meh;
+            }
+
+            return result;
         }
     }
 #pragma warning restore CS0618

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
+#pragma warning disable CS0618 // Type or member is obsolete
 
 using System;
 using System.Diagnostics;
@@ -157,7 +158,7 @@ namespace osu.Game.Rulesets.Judgements
 
         private void prepareDrawables()
         {
-            var type = Result?.Type ?? HitResult.Perfect; //TODO: better default type from ruleset
+            var type = (Result?.Type ?? HitResult.Perfect).GetDisplayableType(); //TODO: better default type from ruleset
 
             // todo: this should be removed once judgements are always pooled.
             if (type == currentDrawableType)
