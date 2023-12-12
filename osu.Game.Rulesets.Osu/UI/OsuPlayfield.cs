@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
+#pragma warning disable CS0618 // Type or member is obsolete
 
 using System;
 using System.Collections.Generic;
@@ -71,6 +72,11 @@ namespace osu.Game.Rulesets.Osu.UI
                 poolDictionary.Add(result, new DrawableJudgementPool(result, onJudgementLoaded));
 
             AddRangeInternal(poolDictionary.Values);
+
+            // These results share existing judgement pools, so they're only added after the pools are added to the draw hierarchy above.
+            poolDictionary.Add(HitResult.LegacyGreatNoCombo, poolDictionary[HitResult.Great]);
+            poolDictionary.Add(HitResult.LegacyOkNoCombo, poolDictionary[HitResult.Ok]);
+            poolDictionary.Add(HitResult.LegacyMehNoCombo, poolDictionary[HitResult.Meh]);
 
             NewResult += onNewResult;
         }
@@ -168,6 +174,9 @@ namespace osu.Game.Rulesets.Osu.UI
             hitPolicy.HandleHit(judgedObject);
 
             if (!judgedObject.DisplayResult || !DisplayJudgements.Value)
+                return;
+
+            if (!result.Type.IsScorable())
                 return;
 
             DrawableOsuJudgement explosion = poolDictionary[result.Type].Get(doj => doj.Apply(result, judgedObject));

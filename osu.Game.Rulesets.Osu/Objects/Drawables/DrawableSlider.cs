@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
+#pragma warning disable CS0618 // Type or member is obsolete
 
 using System;
 using System.Collections.Generic;
@@ -281,13 +282,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     int hitTicks = NestedHitObjects.Count(h => h.IsHit);
 
                     if (hitTicks == totalTicks)
-                        r.Type = HitResult.Great;
+                        r.Type = HitResult.LegacyGreatNoCombo;
                     else if (hitTicks == 0)
                         r.Type = HitResult.Miss;
                     else
                     {
                         double hitFraction = (double)hitTicks / totalTicks;
-                        r.Type = hitFraction >= 0.5 ? HitResult.Ok : HitResult.Meh;
+                        r.Type = hitFraction >= 0.5 ? HitResult.LegacyOkNoCombo : HitResult.LegacyMehNoCombo;
                     }
                 });
             }
