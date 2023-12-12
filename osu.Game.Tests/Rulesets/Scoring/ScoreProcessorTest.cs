@@ -47,17 +47,29 @@ namespace osu.Game.Tests.Rulesets.Scoring
             };
         }
 
-        [TestCase(ScoringMode.Standardised, HitResult.Meh, 116_667)]
-        [TestCase(ScoringMode.Standardised, HitResult.Ok, 233_338)]
-        [TestCase(ScoringMode.Standardised, HitResult.Great, 1_000_000)]
-        [TestCase(ScoringMode.Classic, HitResult.Meh, 11_670)]
-        [TestCase(ScoringMode.Classic, HitResult.Ok, 23_341)]
-        [TestCase(ScoringMode.Classic, HitResult.Great, 100_033)]
-        public void TestSingleOsuHit(ScoringMode scoringMode, HitResult hitResult, int expectedScore)
+        [TestCase(ScoringMode.Standardised, HitResult.Great, HitResult.Meh, 116_667)]
+        [TestCase(ScoringMode.Standardised, HitResult.Great, HitResult.Ok, 233_338)]
+        [TestCase(ScoringMode.Standardised, HitResult.Great, HitResult.Great, 1_000_000)]
+        [TestCase(ScoringMode.Classic, HitResult.Great, HitResult.Meh, 11_670)]
+        [TestCase(ScoringMode.Classic, HitResult.Great, HitResult.Ok, 23_341)]
+        [TestCase(ScoringMode.Classic, HitResult.Great, HitResult.Great, 100_033)]
+        [TestCase(ScoringMode.Standardised, HitResult.LegacyGreatNoCombo, HitResult.LegacyMehNoCombo, 116_667)]
+        [TestCase(ScoringMode.Standardised, HitResult.LegacyGreatNoCombo, HitResult.LegacyOkNoCombo, 233_338)]
+        [TestCase(ScoringMode.Standardised, HitResult.LegacyGreatNoCombo, HitResult.LegacyGreatNoCombo, 1_000_000)]
+        [TestCase(ScoringMode.Classic, HitResult.LegacyGreatNoCombo, HitResult.LegacyMehNoCombo, 11_670)]
+        [TestCase(ScoringMode.Classic, HitResult.LegacyGreatNoCombo, HitResult.LegacyOkNoCombo, 23_341)]
+        [TestCase(ScoringMode.Classic, HitResult.LegacyGreatNoCombo, HitResult.LegacyGreatNoCombo, 100_033)]
+        public void TestSingleHit(ScoringMode scoringMode, HitResult maxResult, HitResult hitResult, int expectedScore)
         {
-            scoreProcessor.ApplyBeatmap(beatmap);
+            scoreProcessor.ApplyBeatmap(new TestBeatmap(new RulesetInfo())
+            {
+                HitObjects = new List<HitObject>
+                {
+                    new TestHitObject(maxResult)
+                }
+            });
 
-            var judgementResult = new JudgementResult(beatmap.HitObjects.Single(), new OsuJudgement())
+            var judgementResult = new JudgementResult(beatmap.HitObjects.Single(), new TestJudgement(maxResult))
             {
                 Type = hitResult
             };
