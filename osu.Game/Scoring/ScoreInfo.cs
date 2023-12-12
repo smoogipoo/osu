@@ -354,6 +354,23 @@ namespace osu.Game.Scoring
                     case HitResult.LargeTickMiss:
                         break;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+                    case HitResult.Great:
+                        yield return new HitResultDisplayStatistic(r.result, value + Statistics.GetValueOrDefault(HitResult.LegacyGreatNoCombo), null, r.displayName);
+
+                        break;
+
+                    case HitResult.Ok:
+                        yield return new HitResultDisplayStatistic(r.result, value + Statistics.GetValueOrDefault(HitResult.LegacyOkNoCombo), null, r.displayName);
+
+                        break;
+
+                    case HitResult.Meh:
+                        yield return new HitResultDisplayStatistic(r.result, value + Statistics.GetValueOrDefault(HitResult.LegacyMehNoCombo), null, r.displayName);
+
+                        break;
+#pragma warning restore CS0618 // Type or member is obsolete
+
                     default:
                         yield return new HitResultDisplayStatistic(r.result, value, null, r.displayName);
 

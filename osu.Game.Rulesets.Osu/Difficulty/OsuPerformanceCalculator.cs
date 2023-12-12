@@ -33,13 +33,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         {
             var osuAttributes = (OsuDifficultyAttributes)attributes;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             accuracy = score.Accuracy;
             scoreMaxCombo = score.MaxCombo;
-            countGreat = score.Statistics.GetValueOrDefault(HitResult.Great);
-            countOk = score.Statistics.GetValueOrDefault(HitResult.Ok);
-            countMeh = score.Statistics.GetValueOrDefault(HitResult.Meh);
+            countGreat = score.Statistics.GetValueOrDefault(HitResult.Great) + score.Statistics.GetValueOrDefault(HitResult.LegacyGreatNoCombo);
+            countOk = score.Statistics.GetValueOrDefault(HitResult.Ok) + score.Statistics.GetValueOrDefault(HitResult.LegacyOkNoCombo);
+            countMeh = score.Statistics.GetValueOrDefault(HitResult.Meh) + score.Statistics.GetValueOrDefault(HitResult.LegacyMehNoCombo);
             countMiss = score.Statistics.GetValueOrDefault(HitResult.Miss);
             effectiveMissCount = calculateEffectiveMissCount(osuAttributes);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             double multiplier = PERFORMANCE_BASE_MULTIPLIER;
 
