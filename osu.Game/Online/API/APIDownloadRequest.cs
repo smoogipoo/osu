@@ -30,6 +30,7 @@ namespace osu.Game.Online.API
             File.Move(file, filename = Path.ChangeExtension(file, FileExtension));
 
             var request = new FileWebRequest(filename, Uri);
+            request.AllowInsecureRequests = true;
             request.DownloadProgress += request_Progress;
             return request;
         }
