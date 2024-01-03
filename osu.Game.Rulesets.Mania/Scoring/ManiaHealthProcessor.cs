@@ -10,6 +10,8 @@ namespace osu.Game.Rulesets.Mania.Scoring
 {
     public partial class ManiaHealthProcessor : LegacyDrainingHealthProcessor
     {
+        protected override bool AllowComboBonus => false;
+
         public ManiaHealthProcessor(double drainStartTime)
             : base(drainStartTime)
         {

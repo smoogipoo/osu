@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
 
 namespace osu.Game.Rulesets.Scoring
 {
@@ -18,9 +19,13 @@ namespace osu.Game.Rulesets.Scoring
         public Action<string>? OnIterationSuccess;
 
         protected double HpMultiplierNormal { get; private set; }
+        protected double HpMultiplierComboEnd { get; private set; }
+
+        protected virtual bool AllowComboBonus => true;
 
         private double lowestHpEver;
         private double lowestHpEnd;
+        private double lowestHpComboEnd;
         private double hpRecoveryAvailable;
 
         protected LegacyDrainingHealthProcessor(double drainStartTime)
@@ -32,6 +37,7 @@ namespace osu.Game.Rulesets.Scoring
         {
             lowestHpEver = IBeatmapDifficultyInfo.DifficultyRange(beatmap.Difficulty.DrainRate, 0.975, 0.8, 0.3);
             lowestHpEnd = IBeatmapDifficultyInfo.DifficultyRange(beatmap.Difficulty.DrainRate, 0.99, 0.9, 0.4);
+            lowestHpComboEnd = IBeatmapDifficultyInfo.DifficultyRange(beatmap.Difficulty.DrainRate, 0.99, 0.85, 0.4);
             hpRecoveryAvailable = IBeatmapDifficultyInfo.DifficultyRange(beatmap.Difficulty.DrainRate, 0.04, 0.02, 0);
 
             base.ApplyBeatmap(beatmap);
@@ -40,6 +46,7 @@ namespace osu.Game.Rulesets.Scoring
         protected override void Reset(bool storeResults)
         {
             HpMultiplierNormal = 1;
+            HpMultiplierComboEnd = 1;
             base.Reset(storeResults);
         }
 
@@ -59,6 +66,7 @@ namespace osu.Game.Rulesets.Scoring
                 int currentBreak = 0;
                 bool fail = false;
                 int topLevelObjectCount = 0;
+                int comboTooLowCount = 0;
 
                 foreach (var h in EnumerateTopLevelHitObjects())
                 {
@@ -106,6 +114,18 @@ namespace osu.Game.Rulesets.Scoring
                     }
 
                     increaseHp(h);
+
+                    if (AllowComboBonus && (h as IHasComboInformation)?.LastInCombo == true)
+                    {
+                        if (currentHp < lowestHpComboEnd && ++comboTooLowCount > 2)
+                        {
+                            HpMultiplierComboEnd *= 1.07;
+                            HpMultiplierNormal *= 1.03;
+                            fail = true;
+                            OnIterationFail?.Invoke($"FAILED drop {testDrop}: combo end hp too low ({currentHp} < {lowestHpComboEnd})");
+                            break;
+                        }
+                    }
                 }
 
                 if (!fail && currentHp < lowestHpEnd)

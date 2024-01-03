@@ -1,10 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
+using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Scoring;
 
@@ -12,9 +15,17 @@ namespace osu.Game.Rulesets.Osu.Scoring
 {
     public partial class OsuLegacyHealthProcessor : LegacyDrainingHealthProcessor
     {
+        private ComboResult currentComboResult = ComboResult.Perfect;
+
         public OsuLegacyHealthProcessor(double drainStartTime)
             : base(drainStartTime)
         {
+        }
+
+        protected override void Reset(bool storeResults)
+        {
+            base.Reset(storeResults);
+            currentComboResult = ComboResult.Perfect;
         }
 
         protected override IEnumerable<HitObject> EnumerateTopLevelHitObjects() => Beatmap.HitObjects;
@@ -38,6 +49,51 @@ namespace osu.Game.Rulesets.Osu.Scoring
         }
 
         protected override double GetHealthIncreaseFor(HitObject hitObject, HitResult result)
+        {
+            if (hitObject is not IHasComboInformation combo)
+                return getHealthIncreaseFor(hitObject, result);
+
+            if (combo.NewCombo)
+                currentComboResult = ComboResult.Perfect;
+
+            switch (result)
+            {
+                case HitResult.LargeTickMiss:
+                case HitResult.Ok:
+                    setComboResult(ComboResult.Good);
+                    break;
+
+                case HitResult.Meh:
+                case HitResult.Miss:
+                    setComboResult(ComboResult.None);
+                    break;
+            }
+
+            // The slider tail has a special judgement that can't accurately be described above.
+            if (hitObject is SliderTailCircle && !result.IsHit())
+                setComboResult(ComboResult.Good);
+
+            if (combo.LastInCombo && result.IsHit())
+            {
+                switch (currentComboResult)
+                {
+                    case ComboResult.Perfect:
+                        return getHealthIncreaseFor(hitObject, result) + 0.07;
+
+                    case ComboResult.Good:
+                        return getHealthIncreaseFor(hitObject, result) + 0.05;
+
+                    default:
+                        return getHealthIncreaseFor(hitObject, result) + 0.03;
+                }
+            }
+
+            return getHealthIncreaseFor(hitObject, result);
+
+            void setComboResult(ComboResult comboResult) => currentComboResult = (ComboResult)Math.Min((int)currentComboResult, (int)comboResult);
+        }
+
+        private double getHealthIncreaseFor(HitObject hitObject, HitResult result)
         {
             double increase = 0;
 
