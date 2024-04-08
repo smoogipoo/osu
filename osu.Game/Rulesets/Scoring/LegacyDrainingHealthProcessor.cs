@@ -45,6 +45,9 @@ namespace osu.Game.Rulesets.Scoring
 
         protected override double ComputeDrainRate()
         {
+            if (!BeatmapApplied)
+                throw new InvalidOperationException($"Cannot compute drain before calling {nameof(ApplyBeatmap)}.");
+
             double testDrop = 0.00025;
             double currentHp;
             double currentHpUncapped;
@@ -64,7 +67,7 @@ namespace osu.Game.Rulesets.Scoring
                 {
                     topLevelObjectCount++;
 
-                    while (currentBreak < Beatmap.Breaks.Count && Beatmap.Breaks[currentBreak].EndTime <= h.StartTime)
+                    while (currentBreak < Beatmap!.Breaks.Count && Beatmap.Breaks[currentBreak].EndTime <= h.StartTime)
                     {
                         // If two hitobjects are separated by a break period, there is no drain for the full duration between the hitobjects.
                         // This differs from legacy (version < 8) beatmaps which continue draining until the break section is entered,

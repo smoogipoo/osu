@@ -1,10 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Judgements;
@@ -49,7 +48,7 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// The beatmap.
         /// </summary>
-        protected IBeatmap Beatmap { get; private set; }
+        protected IBeatmap? Beatmap { get; private set; }
 
         /// <summary>
         /// The time at which health starts draining.
@@ -63,10 +62,9 @@ namespace osu.Game.Rulesets.Scoring
 
         private readonly List<HealthIncrease> healthIncreases = new List<HealthIncrease>();
 
+        private PeriodTracker? noDrainPeriodTracker;
         private double gameplayEndTime;
         private double targetMinimumHealth;
-
-        private PeriodTracker noDrainPeriodTracker;
 
         /// <summary>
         /// Creates a new <see cref="DrainingHealthProcessor"/>.
@@ -86,7 +84,10 @@ namespace osu.Game.Rulesets.Scoring
         {
             base.Update();
 
-            if (noDrainPeriodTracker?.IsInAny(Time.Current) == true)
+            if (!BeatmapApplied)
+                throw new InvalidOperationException($"Cannot compute drain before calling {nameof(ApplyBeatmap)}.");
+
+            if (noDrainPeriodTracker!.IsInAny(Time.Current))
                 return;
 
             // When jumping in and out of gameplay time within a single frame, health should only be drained for the period within the gameplay time
@@ -97,6 +98,7 @@ namespace osu.Game.Rulesets.Scoring
                 Health.Value -= DrainRate * (currentGameplayTime - lastGameplayTime);
         }
 
+        [MemberNotNull(nameof(Beatmap), nameof(noDrainPeriodTracker))]
         public override void ApplyBeatmap(IBeatmap beatmap)
         {
             Beatmap = beatmap;
@@ -162,6 +164,9 @@ namespace osu.Game.Rulesets.Scoring
 
         protected virtual double ComputeDrainRate()
         {
+            if (!BeatmapApplied)
+                throw new InvalidOperationException($"Cannot compute drain before calling {nameof(ApplyBeatmap)}.");
+
             if (healthIncreases.Count <= 1)
                 return 0;
 
@@ -181,7 +186,7 @@ namespace osu.Game.Rulesets.Scoring
                     double currentTime = healthIncreases[i].Time;
                     double lastTime = i > 0 ? healthIncreases[i - 1].Time : DrainStartTime;
 
-                    while (currentBreak < Beatmap.Breaks.Count && Beatmap.Breaks[currentBreak].EndTime <= currentTime)
+                    while (currentBreak < Beatmap!.Breaks.Count && Beatmap.Breaks[currentBreak].EndTime <= currentTime)
                     {
                         // If two hitobjects are separated by a break period, there is no drain for the full duration between the hitobjects.
                         // This differs from legacy (version < 8) beatmaps which continue draining until the break section is entered,

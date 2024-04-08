@@ -8,7 +8,6 @@ using System.Linq;
 using MessagePack;
 using osu.Framework.Bindables;
 using osu.Framework.Localisation;
-using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Localisation;
 using osu.Game.Rulesets.Judgements;
@@ -166,14 +165,12 @@ namespace osu.Game.Rulesets.Scoring
         {
             get
             {
-                if (!beatmapApplied)
+                if (!BeatmapApplied)
                     throw new InvalidOperationException($"Cannot access maximum statistics before calling {nameof(ApplyBeatmap)}.");
 
                 return new Dictionary<HitResult, int>(MaximumResultCounts);
             }
         }
-
-        private bool beatmapApplied;
 
         protected readonly Dictionary<HitResult, int> ScoreResultCounts = new Dictionary<HitResult, int>();
         protected readonly Dictionary<HitResult, int> MaximumResultCounts = new Dictionary<HitResult, int>();
@@ -200,12 +197,6 @@ namespace osu.Game.Rulesets.Scoring
                 updateScore();
                 updateRank();
             };
-        }
-
-        public override void ApplyBeatmap(IBeatmap beatmap)
-        {
-            base.ApplyBeatmap(beatmap);
-            beatmapApplied = true;
         }
 
         protected sealed override void ApplyResultInternal(JudgementResult result)

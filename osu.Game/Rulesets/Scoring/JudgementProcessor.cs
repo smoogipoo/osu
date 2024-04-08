@@ -41,6 +41,11 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         public int JudgedHits { get; private set; }
 
+        /// <summary>
+        /// Whether <see cref="ApplyBeatmap"/> has been called.
+        /// </summary>
+        protected bool BeatmapApplied { get; private set; }
+
         private JudgementResult? lastAppliedResult;
 
         private readonly BindableBool hasCompleted = new BindableBool();
@@ -59,6 +64,8 @@ namespace osu.Game.Rulesets.Scoring
             Reset(false);
             SimulateAutoplay(beatmap);
             Reset(true);
+
+            BeatmapApplied = true;
         }
 
         /// <summary>
