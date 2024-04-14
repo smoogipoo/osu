@@ -22,6 +22,8 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public override Type[] IncompatibleMods => new[] { typeof(IHidesApproachCircles), typeof(OsuModDepth) };
 
+        public override bool Ranked => true;
+
         protected override void ApplyIncreasedVisibilityState(DrawableHitObject hitObject, ArmedState state)
         {
         }
