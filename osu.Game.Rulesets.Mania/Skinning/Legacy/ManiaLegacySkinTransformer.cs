@@ -14,6 +14,7 @@ using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Skinning;
+using osuTK;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {
@@ -123,7 +124,10 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
                             return null; // Not yet implemented.
 
                         case ManiaSkinComponents.Stage:
-                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyStageConfiguration>(lookup) ?? new LegacyStageConfiguration());
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ManiaStageConfiguration>(lookup) ?? new ManiaStageConfiguration
+                            {
+                                Position = new Vector2(this.GetManiaSkinConfig<float>(LegacyManiaSkinConfigurationLookups.ColumnStart)?.Value ?? 0, 0)
+                            });
 
                         default:
                             throw new UnsupportedSkinComponentException(lookup);

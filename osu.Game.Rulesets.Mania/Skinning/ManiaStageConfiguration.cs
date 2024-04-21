@@ -4,14 +4,12 @@
 using osu.Framework.Graphics;
 using osu.Game.Skinning;
 
-namespace osu.Game.Rulesets.Mania.Skinning.Default
+namespace osu.Game.Rulesets.Mania.Skinning
 {
-    public partial class DefaultStageConfiguration : Drawable, ISerialisableDrawable
+    public partial class ManiaStageConfiguration : Drawable, ISerialisableDrawable
     {
-        public DefaultStageConfiguration()
+        public ManiaStageConfiguration()
         {
-            Anchor = Anchor.Centre;
-            Origin = Anchor.Centre;
             RelativeSizeAxes = Axes.Y;
         }
 

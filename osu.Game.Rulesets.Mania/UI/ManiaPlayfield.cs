@@ -12,7 +12,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Primitives;
 using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Rulesets.Mania.Objects;
-using osu.Game.Rulesets.Mania.Skinning.Default;
+using osu.Game.Rulesets.Mania.Skinning;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
@@ -83,7 +83,11 @@ namespace osu.Game.Rulesets.Mania.UI
                         }
                     }
                 },
-                skinnableConfiguration = new SkinnableDrawable(new ManiaSkinComponentLookup(ManiaSkinComponents.Stage), _ => new DefaultStageConfiguration())
+                skinnableConfiguration = new SkinnableDrawable(new ManiaSkinComponentLookup(ManiaSkinComponents.Stage), _ => new ManiaStageConfiguration
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                })
                 {
                     CentreComponent = false,
                     RelativeSizeAxes = Axes.Both
