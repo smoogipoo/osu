@@ -135,7 +135,7 @@ namespace osu.Game.Skinning
         /// <param name="targetContainer">The target container to reset.</param>
         public void ResetDrawableTarget(ISerialisableDrawableContainer targetContainer)
         {
-            LayoutInfos.Remove(new LayoutLookupKey(targetContainer.Lookup));
+            LayoutInfos[new LayoutLookupKey(targetContainer.Lookup)] = new SkinLayoutInfo();
         }
 
         /// <summary>
