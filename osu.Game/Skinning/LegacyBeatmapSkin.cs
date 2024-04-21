@@ -4,7 +4,6 @@
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Graphics;
 using osu.Framework.IO.Stores;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
@@ -48,7 +47,8 @@ namespace osu.Game.Skinning
             return new RealmBackedResourceStore<BeatmapSetInfo>(beatmapInfo.BeatmapSet.ToLive(resources.RealmAccess), resources.Files, resources.RealmAccess);
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
             if (lookup is SkinnableContainerLookup containerLookup)
             {
@@ -64,7 +64,7 @@ namespace osu.Game.Skinning
                 }
             }
 
-            return base.GetDrawableComponent(lookup);
+            return base.GetDrawableComponent<T>(lookup);
         }
 
         public override IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)

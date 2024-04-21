@@ -22,56 +22,54 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
             this.beatmap = (ManiaBeatmap)beatmap;
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
             switch (lookup)
             {
                 case GameplaySkinComponentLookup<HitResult> resultComponent:
                     // This should eventually be moved to a skin setting, when supported.
                     if (Skin is ArgonProSkin && resultComponent.Component >= HitResult.Great)
-                        return Drawable.Empty();
+                        return SkinUtils.As<T>(Drawable.Empty());
 
-                    return new ArgonJudgementPiece(resultComponent.Component);
+                    return SkinUtils.As<T>(new ArgonJudgementPiece(resultComponent.Component));
 
                 case ManiaSkinComponentLookup maniaComponent:
-                    if (base.GetDrawableComponent(lookup) is Drawable c)
-                        return c;
-
                     // TODO: Once everything is finalised, consider throwing UnsupportedSkinComponentException on missing entries.
                     switch (maniaComponent.Component)
                     {
                         case ManiaSkinComponents.StageBackground:
-                            return new ArgonStageBackground();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonStageBackground>(lookup) ?? new ArgonStageBackground());
 
                         case ManiaSkinComponents.ColumnBackground:
-                            return new ArgonColumnBackground();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonColumnBackground>(lookup) ?? new ArgonColumnBackground());
 
                         case ManiaSkinComponents.HoldNoteBody:
-                            return new ArgonHoldBodyPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHoldBodyPiece>(lookup) ?? new ArgonHoldBodyPiece());
 
                         case ManiaSkinComponents.HoldNoteTail:
-                            return new ArgonHoldNoteTailPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHoldNoteTailPiece>(lookup) ?? new ArgonHoldNoteTailPiece());
 
                         case ManiaSkinComponents.HoldNoteHead:
-                            return new ArgonHoldNoteHeadPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHoldNoteHeadPiece>(lookup) ?? new ArgonHoldNoteHeadPiece());
 
                         case ManiaSkinComponents.Note:
-                            return new ArgonNotePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonNotePiece>(lookup) ?? new ArgonNotePiece());
 
                         case ManiaSkinComponents.HitTarget:
-                            return new ArgonHitTarget();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHitTarget>(lookup) ?? new ArgonHitTarget());
 
                         case ManiaSkinComponents.KeyArea:
-                            return new ArgonKeyArea();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonKeyArea>(lookup) ?? new ArgonKeyArea());
 
                         case ManiaSkinComponents.HitExplosion:
-                            return new ArgonHitExplosion();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHitExplosion>(lookup) ?? new ArgonHitExplosion());
                     }
 
                     break;
             }
 
-            return base.GetDrawableComponent(lookup);
+            return base.GetDrawableComponent<T>(lookup);
         }
 
         private static readonly Color4 colour_special_column = new Color4(169, 106, 255, 255);

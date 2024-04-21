@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Skinning
 {
@@ -17,5 +18,7 @@ namespace osu.Game.Skinning
         /// <typeparam name="TValue">The type of value <paramref name="value"/>, and the type of the resulting bindable.</typeparam>
         /// <returns>The resulting bindable.</returns>
         public static Bindable<TValue>? As<TValue>(object? value) => (Bindable<TValue>?)value;
+
+        public static T? As<T>(Drawable? value) => (T?)(object?)value;
     }
 }

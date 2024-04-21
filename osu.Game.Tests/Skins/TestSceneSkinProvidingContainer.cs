@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -87,7 +88,7 @@ namespace osu.Game.Tests.Skins
                 this.renderer = renderer;
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => throw new System.NotImplementedException();
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => throw new NotImplementedException();
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
             {

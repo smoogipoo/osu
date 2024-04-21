@@ -150,18 +150,19 @@ namespace osu.Game.Rulesets.Osu.Tests
                 this.identifier = identifier;
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup)
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup)
+                where T : Drawable
             {
                 if (!enabled) return null;
 
                 if (lookup is OsuSkinComponentLookup osuComponent && osuComponent.Component == OsuSkinComponents.SliderBody)
                     return null;
 
-                return new OsuSpriteText
+                return SkinUtils.As<T>(new OsuSpriteText
                 {
                     Text = identifier,
                     Font = OsuFont.Default.With(size: 30),
-                };
+                });
             }
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => null;

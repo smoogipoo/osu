@@ -150,13 +150,14 @@ namespace osu.Game.Skinning
             layoutInfo.Update(targetContainer.Lookup.Ruleset, targetContainer.CreateSerialisedInfo().ToArray());
         }
 
-        public virtual Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public virtual T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : Drawable
         {
             switch (lookup)
             {
                 // This fallback is important for user skins which use SkinnableSprites.
                 case SkinnableSprite.SpriteComponentLookup sprite:
-                    return this.GetAnimation(sprite.LookupName, false, false, maxSize: sprite.MaxSize);
+                    return SkinUtils.As<T>(this.GetAnimation(sprite.LookupName, false, false, maxSize: sprite.MaxSize));
 
                 default:
                 {
@@ -170,14 +171,14 @@ namespace osu.Game.Skinning
 
                     if (lookup is SkinnableContainerLookup)
                     {
-                        return new Container
+                        return SkinUtils.As<T>(new Container
                         {
                             RelativeSizeAxes = Axes.Both,
                             ChildrenEnumerable = drawableInfos.Select(i => i.CreateInstance())
-                        };
+                        });
                     }
 
-                    return drawableInfos.SingleOrDefault()?.CreateInstance();
+                    return SkinUtils.As<T>(drawableInfos.SingleOrDefault()?.CreateInstance());
                 }
             }
         }

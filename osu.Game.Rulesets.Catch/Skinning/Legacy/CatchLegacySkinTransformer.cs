@@ -3,7 +3,6 @@
 
 using System.Linq;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Skinning;
 using osuTK.Graphics;
@@ -26,14 +25,15 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
         {
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
             if (lookup is SkinnableContainerLookup containerLookup)
             {
                 switch (containerLookup.Target)
                 {
                     case SkinnableContainerLookup.TargetArea.MainHUDComponents:
-                        var components = base.GetDrawableComponent(lookup) as Container;
+                        var components = base.GetDrawableComponent<Container>(lookup);
 
                         if (providesComboCounter && components != null)
                         {
@@ -43,7 +43,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
                                 legacyComboCounter.HiddenByRulesetImplementation = false;
                         }
 
-                        return components;
+                        return SkinUtils.As<T>(components);
                 }
             }
 
@@ -53,19 +53,19 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
                 {
                     case CatchSkinComponents.Fruit:
                         if (hasPear)
-                            return new LegacyFruitPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyFruitPiece>(lookup) ?? new LegacyFruitPiece());
 
                         return null;
 
                     case CatchSkinComponents.Banana:
                         if (GetTexture("fruit-bananas") != null)
-                            return new LegacyBananaPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyBananaPiece>(lookup) ?? new LegacyBananaPiece());
 
                         return null;
 
                     case CatchSkinComponents.Droplet:
                         if (GetTexture("fruit-drop") != null)
-                            return new LegacyDropletPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyDropletPiece>(lookup) ?? new LegacyDropletPiece());
 
                         return null;
 
@@ -75,23 +75,23 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
                         if (version < 2.3m)
                         {
                             if (hasOldStyleCatcherSprite())
-                                return new LegacyCatcherOld();
+                                return SkinUtils.As<T>(base.GetDrawableComponent<LegacyCatcherOld>(lookup) ?? new LegacyCatcherOld());
                         }
 
                         if (hasNewStyleCatcherSprite())
-                            return new LegacyCatcherNew();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyCatcherNew>(lookup) ?? new LegacyCatcherNew());
 
                         return null;
 
                     case CatchSkinComponents.CatchComboCounter:
                         if (providesComboCounter)
-                            return new LegacyCatchComboCounter();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyCatchComboCounter>(lookup) ?? new LegacyCatchComboCounter());
 
                         return null;
 
                     case CatchSkinComponents.HitExplosion:
                         if (hasOldStyleCatcherSprite() || hasNewStyleCatcherSprite())
-                            return new LegacyHitExplosion();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyHitExplosion>(lookup) ?? new LegacyHitExplosion());
 
                         return null;
 
@@ -100,7 +100,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
                 }
             }
 
-            return base.GetDrawableComponent(lookup);
+            return base.GetDrawableComponent<T>(lookup);
         }
 
         private bool hasOldStyleCatcherSprite() =>

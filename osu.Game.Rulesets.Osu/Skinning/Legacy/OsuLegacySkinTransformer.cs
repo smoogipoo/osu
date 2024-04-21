@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Skinning;
 using osuTK;
@@ -39,70 +38,71 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
             hasHitCircle = new Lazy<bool>(() => GetTexture("hitcircle") != null);
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
             if (lookup is OsuSkinComponentLookup osuComponent)
             {
                 switch (osuComponent.Component)
                 {
                     case OsuSkinComponents.FollowPoint:
-                        return this.GetAnimation("followpoint", true, true, true, startAtCurrentTime: false, maxSize: new Vector2(OsuHitObject.OBJECT_RADIUS * 2, OsuHitObject.OBJECT_RADIUS));
+                        return SkinUtils.As<T>(this.GetAnimation("followpoint", true, true, true, startAtCurrentTime: false, maxSize: new Vector2(OsuHitObject.OBJECT_RADIUS * 2, OsuHitObject.OBJECT_RADIUS)));
 
                     case OsuSkinComponents.SliderScorePoint:
-                        return this.GetAnimation("sliderscorepoint", false, false, maxSize: OsuHitObject.OBJECT_DIMENSIONS);
+                        return SkinUtils.As<T>(this.GetAnimation("sliderscorepoint", false, false, maxSize: OsuHitObject.OBJECT_DIMENSIONS));
 
                     case OsuSkinComponents.SliderFollowCircle:
                         var followCircleContent = this.GetAnimation("sliderfollowcircle", true, true, true, maxSize: MAX_FOLLOW_CIRCLE_AREA_SIZE);
                         if (followCircleContent != null)
-                            return new LegacyFollowCircle(followCircleContent);
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyFollowCircle>(lookup) ?? new LegacyFollowCircle(followCircleContent));
 
                         return null;
 
                     case OsuSkinComponents.SliderBall:
                         if (GetTexture("sliderb") != null || GetTexture("sliderb0") != null)
-                            return new LegacySliderBall(this);
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacySliderBall>(lookup) ?? new LegacySliderBall(this));
 
                         return null;
 
                     case OsuSkinComponents.SliderBody:
                         if (hasHitCircle.Value)
-                            return new LegacySliderBody();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacySliderBody>(lookup) ?? new LegacySliderBody());
 
                         return null;
 
                     case OsuSkinComponents.SliderTailHitCircle:
                         if (hasHitCircle.Value)
-                            return new LegacyMainCirclePiece("sliderendcircle", false);
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyMainCirclePiece>(lookup) ?? new LegacyMainCirclePiece("sliderendcircle", false));
 
                         return null;
 
                     case OsuSkinComponents.SliderHeadHitCircle:
                         if (hasHitCircle.Value)
-                            return new LegacySliderHeadHitCircle();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacySliderHeadHitCircle>(lookup) ?? new LegacySliderHeadHitCircle());
 
                         return null;
 
                     case OsuSkinComponents.ReverseArrow:
                         if (hasHitCircle.Value)
-                            return new LegacyReverseArrow();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyReverseArrow>(lookup) ?? new LegacyReverseArrow());
 
                         return null;
 
                     case OsuSkinComponents.HitCircle:
                         if (hasHitCircle.Value)
-                            return new LegacyMainCirclePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyMainCirclePiece>(lookup) ?? new LegacyMainCirclePiece());
 
                         return null;
 
                     case OsuSkinComponents.Cursor:
                         if (GetTexture("cursor") != null)
-                            return new LegacyCursor(this);
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyCursor>(lookup) ?? new LegacyCursor(this));
 
                         return null;
 
                     case OsuSkinComponents.CursorTrail:
                         if (GetTexture("cursortrail") != null)
-                            return new LegacyCursorTrail(this);
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyCursorTrail>(lookup) ?? new LegacyCursorTrail(this));
 
                         return null;
 
@@ -123,20 +123,20 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                             //     ripple.Alpha = 0.2f;
                             // }
 
-                            return ripple;
+                            return SkinUtils.As<T>(ripple);
                         }
 
                         return null;
 
                     case OsuSkinComponents.CursorParticles:
                         if (GetTexture("star2") != null)
-                            return new LegacyCursorParticles();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyCursorParticles>(lookup) ?? new LegacyCursorParticles());
 
                         return null;
 
                     case OsuSkinComponents.CursorSmoke:
                         if (GetTexture("cursor-smoke") != null)
-                            return new LegacySmokeSegment();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacySmokeSegment>(lookup) ?? new LegacySmokeSegment());
 
                         return null;
 
@@ -145,26 +145,26 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                             return null;
 
                         const float hitcircle_text_scale = 0.8f;
-                        return new LegacySpriteText(LegacyFont.HitCircle)
+                        return SkinUtils.As<T>(base.GetDrawableComponent<LegacySpriteText>(lookup) ?? new LegacySpriteText(LegacyFont.HitCircle)
                         {
                             // stable applies a blanket 0.8x scale to hitcircle fonts
                             Scale = new Vector2(hitcircle_text_scale),
                             MaxSizePerGlyph = OsuHitObject.OBJECT_DIMENSIONS * 2 / hitcircle_text_scale,
-                        };
+                        });
 
                     case OsuSkinComponents.SpinnerBody:
                         bool hasBackground = GetTexture("spinner-background") != null;
 
                         if (GetTexture("spinner-top") != null && !hasBackground)
-                            return new LegacyNewStyleSpinner();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyNewStyleSpinner>(lookup) ?? new LegacyNewStyleSpinner());
                         else if (hasBackground)
-                            return new LegacyOldStyleSpinner();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyOldStyleSpinner>(lookup) ?? new LegacyOldStyleSpinner());
 
                         return null;
 
                     case OsuSkinComponents.ApproachCircle:
                         if (GetTexture(@"approachcircle") != null)
-                            return new LegacyApproachCircle();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyApproachCircle>(lookup) ?? new LegacyApproachCircle());
 
                         return null;
 
@@ -173,7 +173,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                 }
             }
 
-            return base.GetDrawableComponent(lookup);
+            return base.GetDrawableComponent<T>(lookup);
         }
 
         public override IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)

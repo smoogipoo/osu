@@ -26,7 +26,7 @@ namespace osu.Game.Skinning
             Skin = skin ?? throw new ArgumentNullException(nameof(skin));
         }
 
-        public virtual Drawable? GetDrawableComponent(ISkinComponentLookup lookup) => Skin.GetDrawableComponent(lookup);
+        public virtual T? GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => Skin.GetDrawableComponent<T>(lookup);
 
         public virtual Texture? GetTexture(string componentName) => GetTexture(componentName, default, default);
 

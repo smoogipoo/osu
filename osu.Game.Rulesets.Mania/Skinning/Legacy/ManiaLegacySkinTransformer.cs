@@ -74,12 +74,12 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
             });
         }
 
-        public override Drawable GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T GetDrawableComponent<T>(ISkinComponentLookup lookup)
         {
             switch (lookup)
             {
                 case GameplaySkinComponentLookup<HitResult> resultComponent:
-                    return getResult(resultComponent.Component);
+                    return SkinUtils.As<T>(getResult(resultComponent.Component));
 
                 case ManiaSkinComponentLookup maniaComponent:
                     if (!isLegacySkin.Value || !hasKeyTexture.Value)
@@ -88,49 +88,49 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
                     switch (maniaComponent.Component)
                     {
                         case ManiaSkinComponents.ColumnBackground:
-                            return new LegacyColumnBackground();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyColumnBackground>(lookup) ?? new LegacyColumnBackground());
 
                         case ManiaSkinComponents.HitTarget:
                             // Legacy skins sandwich the hit target between the column background and the column light.
                             // To preserve this ordering, it's created manually inside LegacyStageBackground.
-                            return Drawable.Empty();
+                            return SkinUtils.As<T>(Drawable.Empty());
 
                         case ManiaSkinComponents.KeyArea:
-                            return new LegacyKeyArea();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyKeyArea>(lookup) ?? new LegacyKeyArea());
 
                         case ManiaSkinComponents.Note:
-                            return new LegacyNotePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyNotePiece>(lookup) ?? new LegacyNotePiece());
 
                         case ManiaSkinComponents.HoldNoteHead:
-                            return new LegacyHoldNoteHeadPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyHoldNoteHeadPiece>(lookup) ?? new LegacyHoldNoteHeadPiece());
 
                         case ManiaSkinComponents.HoldNoteTail:
-                            return new LegacyHoldNoteTailPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyHoldNoteTailPiece>(lookup) ?? new LegacyHoldNoteTailPiece());
 
                         case ManiaSkinComponents.HoldNoteBody:
-                            return new LegacyBodyPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyBodyPiece>(lookup) ?? new LegacyBodyPiece());
 
                         case ManiaSkinComponents.HitExplosion:
-                            return new LegacyHitExplosion();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyHitExplosion>(lookup) ?? new LegacyHitExplosion());
 
                         case ManiaSkinComponents.StageBackground:
-                            return new LegacyStageBackground();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyStageBackground>(lookup) ?? new LegacyStageBackground());
 
                         case ManiaSkinComponents.StageForeground:
-                            return new LegacyStageForeground();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyStageForeground>(lookup) ?? new LegacyStageForeground());
 
                         case ManiaSkinComponents.BarLine:
                             return null; // Not yet implemented.
 
                         case ManiaSkinComponents.Stage:
-                            return new LegacyStageConfiguration();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<LegacyStageConfiguration>(lookup) ?? new LegacyStageConfiguration());
 
                         default:
                             throw new UnsupportedSkinComponentException(lookup);
                     }
             }
 
-            return base.GetDrawableComponent(lookup);
+            return base.GetDrawableComponent<T>(lookup);
         }
 
         private Drawable getResult(HitResult result)

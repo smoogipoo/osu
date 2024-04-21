@@ -112,7 +112,7 @@ namespace osu.Game.Skinning
             }
         }
 
-        void ISerialisableDrawableContainer.Reload() => reload(CurrentSkin.GetDrawableComponent(Lookup));
+        void ISerialisableDrawableContainer.Reload() => reload(CurrentSkin.GetDrawableComponent<Drawable>(Lookup));
 
         private void reload(Drawable? newComponent)
         {

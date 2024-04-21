@@ -49,7 +49,7 @@ namespace osu.Game.Tests.Skins
 
             string expected = allowBeatmapLookups ? "beatmap" : "user";
 
-            AddAssert($"Check lookup is from {expected}", () => requester.GetDrawableComponent(new TestSkinComponentLookup())?.Name == expected);
+            AddAssert($"Check lookup is from {expected}", () => requester.GetDrawableComponent<Drawable>(new TestSkinComponentLookup())?.Name == expected);
         }
 
         [TestCase(false)]
@@ -60,7 +60,7 @@ namespace osu.Game.Tests.Skins
 
             ISkin expected() => allowBeatmapLookups ? beatmapSource : userSource;
 
-            AddAssert("Check lookup is from correct source", () => requester.FindProvider(s => s.GetDrawableComponent(new TestSkinComponentLookup()) != null) == expected());
+            AddAssert("Check lookup is from correct source", () => requester.FindProvider(s => s.GetDrawableComponent<Drawable>(new TestSkinComponentLookup()) != null) == expected());
         }
 
         public class UserSkinSource : LegacySkin
@@ -70,9 +70,10 @@ namespace osu.Game.Tests.Skins
             {
             }
 
-            public override Drawable GetDrawableComponent(ISkinComponentLookup lookup)
+            public override T GetDrawableComponent<T>(ISkinComponentLookup lookup)
+                where T : class
             {
-                return new Container { Name = "user" };
+                return SkinUtils.As<T>(new Container { Name = "user" });
             }
         }
 
@@ -83,9 +84,10 @@ namespace osu.Game.Tests.Skins
             {
             }
 
-            public override Drawable GetDrawableComponent(ISkinComponentLookup lookup)
+            public override T GetDrawableComponent<T>(ISkinComponentLookup lookup)
+                where T : class
             {
-                return new Container { Name = "beatmap" };
+                return SkinUtils.As<T>(new Container { Name = "beatmap" });
             }
         }
 
@@ -99,7 +101,7 @@ namespace osu.Game.Tests.Skins
                 this.skin = skin;
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => skin.GetDrawableComponent(lookup);
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => skin.GetDrawableComponent<T>(lookup);
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => skin.GetTexture(componentName, wrapModeS, wrapModeT);
 

@@ -96,7 +96,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 RelativeSizeAxes = Axes.Both;
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => null;
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => null;
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
             {

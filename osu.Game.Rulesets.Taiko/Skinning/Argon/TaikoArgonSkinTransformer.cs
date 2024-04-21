@@ -14,71 +14,69 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
         {
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
             switch (lookup)
             {
                 case GameplaySkinComponentLookup<HitResult> resultComponent:
                     // This should eventually be moved to a skin setting, when supported.
                     if (Skin is ArgonProSkin && resultComponent.Component >= HitResult.Great)
-                        return Drawable.Empty();
+                        return SkinUtils.As<T>(Drawable.Empty());
 
-                    return new ArgonJudgementPiece(resultComponent.Component);
+                    return SkinUtils.As<T>(new ArgonJudgementPiece(resultComponent.Component));
 
                 case TaikoSkinComponentLookup taikoComponent:
-                    if (base.GetDrawableComponent(lookup) is Drawable c)
-                        return c;
-
                     // TODO: Once everything is finalised, consider throwing UnsupportedSkinComponentException on missing entries.
                     switch (taikoComponent.Component)
                     {
                         case TaikoSkinComponents.CentreHit:
-                            return new ArgonCentreCirclePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonCentreCirclePiece>(lookup) ?? new ArgonCentreCirclePiece());
 
                         case TaikoSkinComponents.RimHit:
-                            return new ArgonRimCirclePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonRimCirclePiece>(lookup) ?? new ArgonRimCirclePiece());
 
                         case TaikoSkinComponents.PlayfieldBackgroundLeft:
-                            return new ArgonPlayfieldBackgroundLeft();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonPlayfieldBackgroundLeft>(lookup) ?? new ArgonPlayfieldBackgroundLeft());
 
                         case TaikoSkinComponents.PlayfieldBackgroundRight:
-                            return new ArgonPlayfieldBackgroundRight();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonPlayfieldBackgroundRight>(lookup) ?? new ArgonPlayfieldBackgroundRight());
 
                         case TaikoSkinComponents.InputDrum:
-                            return new ArgonInputDrum();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonInputDrum>(lookup) ?? new ArgonInputDrum());
 
                         case TaikoSkinComponents.HitTarget:
-                            return new ArgonHitTarget();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHitTarget>(lookup) ?? new ArgonHitTarget());
 
                         case TaikoSkinComponents.BarLine:
-                            return new ArgonBarLine();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonBarLine>(lookup) ?? new ArgonBarLine());
 
                         case TaikoSkinComponents.DrumRollBody:
-                            return new ArgonElongatedCirclePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonElongatedCirclePiece>(lookup) ?? new ArgonElongatedCirclePiece());
 
                         case TaikoSkinComponents.DrumRollTick:
-                            return new ArgonTickPiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonTickPiece>(lookup) ?? new ArgonTickPiece());
 
                         case TaikoSkinComponents.TaikoExplosionKiai:
                             // the drawable needs to expire as soon as possible to avoid accumulating empty drawables on the playfield.
-                            return Drawable.Empty().With(d => d.Expire());
+                            return SkinUtils.As<T>(Drawable.Empty().With(d => d.Expire()));
 
                         case TaikoSkinComponents.DrumSamplePlayer:
-                            return new ArgonDrumSamplePlayer();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonDrumSamplePlayer>(lookup) ?? new ArgonDrumSamplePlayer());
 
                         case TaikoSkinComponents.TaikoExplosionGreat:
                         case TaikoSkinComponents.TaikoExplosionMiss:
                         case TaikoSkinComponents.TaikoExplosionOk:
-                            return new ArgonHitExplosion(taikoComponent.Component);
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonHitExplosion>(lookup) ?? new ArgonHitExplosion(taikoComponent.Component));
 
                         case TaikoSkinComponents.Swell:
-                            return new ArgonSwellCirclePiece();
+                            return SkinUtils.As<T>(base.GetDrawableComponent<ArgonSwellCirclePiece>(lookup) ?? new ArgonSwellCirclePiece());
                     }
 
                     break;
             }
 
-            return base.GetDrawableComponent(lookup);
+            return base.GetDrawableComponent<T>(lookup);
         }
     }
 }

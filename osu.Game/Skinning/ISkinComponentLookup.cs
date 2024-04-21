@@ -7,11 +7,11 @@ using osu.Game.Rulesets;
 namespace osu.Game.Skinning
 {
     /// <summary>
-    /// The base lookup type to be used with <see cref="ISkin.GetDrawableComponent"/>.
+    /// The base lookup type to be used with <see cref="ISkin.GetDrawableComponent{T}"/>.
     /// Should be implemented as necessary to add further criteria to lookups, which are usually consumed by ruleset transformers or legacy lookup cases.
     /// </summary>
     /// <remarks>
-    /// Implementations of <see cref="ISkin.GetDrawableComponent"/> should match on types implementing this interface
+    /// Implementations of <see cref="ISkin.GetDrawableComponent{T}"/> should match on types implementing this interface
     /// to scope particular lookup variations. Using this, a ruleset or skin implementation could make its own lookup
     /// type to scope away from more global contexts.
     ///

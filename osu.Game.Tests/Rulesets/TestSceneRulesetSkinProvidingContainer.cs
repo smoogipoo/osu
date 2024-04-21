@@ -78,7 +78,7 @@ namespace osu.Game.Tests.Rulesets
                 OnLoadAsync?.Invoke();
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => skin.GetDrawableComponent(lookup);
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => skin.GetDrawableComponent<T>(lookup);
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS = default, WrapMode wrapModeT = default) => skin.GetTexture(componentName);
 

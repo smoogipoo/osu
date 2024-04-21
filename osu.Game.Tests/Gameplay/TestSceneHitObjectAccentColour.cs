@@ -135,7 +135,7 @@ namespace osu.Game.Tests.Gameplay
                 Color4.Green
             };
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => throw new NotImplementedException();
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => throw new NotImplementedException();
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => throw new NotImplementedException();
 

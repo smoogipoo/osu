@@ -88,12 +88,13 @@ namespace osu.Game.Skinning
             return null;
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
             // Temporary until default skin has a valid hit lighting.
-            if ((lookup as SkinnableSprite.SpriteComponentLookup)?.LookupName == @"lighting") return Drawable.Empty();
+            if ((lookup as SkinnableSprite.SpriteComponentLookup)?.LookupName == @"lighting") return SkinUtils.As<T>(Drawable.Empty());
 
-            if (base.GetDrawableComponent(lookup) is Drawable c)
+            if (base.GetDrawableComponent<T>(lookup) is T c)
                 return c;
 
             switch (lookup)
@@ -111,7 +112,7 @@ namespace osu.Game.Skinning
                                 // do stuff when we need to.
                             });
 
-                            return songSelectComponents;
+                            return SkinUtils.As<T>(songSelectComponents);
 
                         case SkinnableContainerLookup.TargetArea.MainHUDComponents:
                             var skinnableTargetWrapper = new SkinnableContainerWithDefaults(container =>
@@ -250,7 +251,7 @@ namespace osu.Game.Skinning
                                 }
                             };
 
-                            return skinnableTargetWrapper;
+                            return SkinUtils.As<T>(skinnableTargetWrapper);
                     }
 
                     return null;

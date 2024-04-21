@@ -162,7 +162,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
             IBindable<bool> ISamplePlaybackDisabler.SamplePlaybackDisabled => SamplePlaybackDisabled;
 
-            public Drawable? GetDrawableComponent(ISkinComponentLookup lookup) => source.GetDrawableComponent(lookup);
+            public T? GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => source.GetDrawableComponent<T>(lookup);
             public Texture? GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => source.GetTexture(componentName, wrapModeS, wrapModeT);
             public ISample? GetSample(ISampleInfo sampleInfo) => OverridingSample ?? source.GetSample(sampleInfo);
 

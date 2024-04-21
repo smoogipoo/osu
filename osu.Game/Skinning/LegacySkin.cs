@@ -348,9 +348,10 @@ namespace osu.Game.Skinning
             return null;
         }
 
-        public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public override T? GetDrawableComponent<T>(ISkinComponentLookup lookup)
+            where T : class
         {
-            if (base.GetDrawableComponent(lookup) is Drawable c)
+            if (base.GetDrawableComponent<T>(lookup) is T c)
                 return c;
 
             switch (lookup)
@@ -363,7 +364,7 @@ namespace osu.Game.Skinning
                     switch (containerLookup.Target)
                     {
                         case SkinnableContainerLookup.TargetArea.MainHUDComponents:
-                            return new SkinnableContainerWithDefaults(container =>
+                            return SkinUtils.As<T>(new SkinnableContainerWithDefaults(container =>
                             {
                                 var score = container.OfType<LegacyScoreCounter>().FirstOrDefault();
                                 var accuracy = container.OfType<GameplayAccuracyCounter>().FirstOrDefault();
@@ -413,7 +414,7 @@ namespace osu.Game.Skinning
                                     new BarHitErrorMeter(),
                                     new DefaultKeyCounterDisplay()
                                 }
-                            };
+                            });
                     }
 
                     return null;
@@ -429,9 +430,9 @@ namespace osu.Game.Skinning
                         var particle = getParticleTexture(resultComponent.Component);
 
                         if (particle != null)
-                            return new LegacyJudgementPieceNew(resultComponent.Component, createDrawable, particle);
+                            return SkinUtils.As<T>(new LegacyJudgementPieceNew(resultComponent.Component, createDrawable, particle));
 
-                        return new LegacyJudgementPieceOld(resultComponent.Component, createDrawable);
+                        return SkinUtils.As<T>(new LegacyJudgementPieceOld(resultComponent.Component, createDrawable));
                     }
 
                     return null;

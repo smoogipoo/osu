@@ -73,7 +73,7 @@ namespace osu.Game.Tests.NonVisual.Skinning
                 return lookup_names.Contains(componentName) ? renderer.WhitePixel : null;
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => throw new NotSupportedException();
+            public T GetDrawableComponent<T>(ISkinComponentLookup lookup) where T : Drawable => throw new NotSupportedException();
             public ISample GetSample(ISampleInfo sampleInfo) => throw new NotSupportedException();
             public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => throw new NotSupportedException();
         }

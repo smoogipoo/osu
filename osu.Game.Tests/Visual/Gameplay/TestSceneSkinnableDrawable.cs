@@ -289,13 +289,13 @@ namespace osu.Game.Tests.Visual.Gameplay
                 this.size = size;
             }
 
-            public Drawable GetDrawableComponent(ISkinComponentLookup componentLookupName) =>
+            public T GetDrawableComponent<T>(ISkinComponentLookup componentLookupName) where T : Drawable =>
                 (componentLookupName as TestSkinComponentLookup)?.LookupName == "available"
-                    ? new DrawWidthBox
+                    ? SkinUtils.As<T>(new DrawWidthBox
                     {
                         Colour = Color4.Yellow,
                         Size = new Vector2(size)
-                    }
+                    })
                     : null;
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => throw new NotImplementedException();
@@ -307,7 +307,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private class SecondarySource : ISkin
         {
-            public Drawable GetDrawableComponent(ISkinComponentLookup componentLookupName) => new SecondarySourceBox();
+            public T GetDrawableComponent<T>(ISkinComponentLookup componentLookupName) where T : Drawable => SkinUtils.As<T>(new SecondarySourceBox());
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => throw new NotImplementedException();
 
@@ -319,7 +319,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         [Cached(typeof(ISkinSource))]
         private partial class SkinSourceContainer : Container, ISkinSource
         {
-            public Drawable GetDrawableComponent(ISkinComponentLookup componentLookupName) => new BaseSourceBox();
+            public T GetDrawableComponent<T>(ISkinComponentLookup componentLookupName) where T : Drawable => SkinUtils.As<T>(new BaseSourceBox());
 
             public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => throw new NotImplementedException();
 
