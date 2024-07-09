@@ -115,9 +115,6 @@ namespace osu.Game.Rulesets.UI
                 // it should be provided as the original value each loop.
                 updateClock();
 
-                if (state == PlaybackState.NotValid)
-                    break;
-
                 base.UpdateSubTree();
                 UpdateSubTreeMasking();
             } while (state == PlaybackState.RequiresCatchUp && stopwatch.ElapsedMilliseconds < max_catchup_milliseconds);
