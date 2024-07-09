@@ -19,6 +19,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
@@ -508,6 +509,8 @@ namespace osu.Game.Tests.Visual
                             accumulated += (refTime - lastRefTime.Value) * Rate;
 
                         lastReferenceTime = refTime;
+
+                        Logger.Log($"TVM refTime: {refTime} lastRefTime: {lastRefTime}");
                     }
 
                     if (CurrentTime >= Length)
