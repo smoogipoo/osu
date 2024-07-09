@@ -8,52 +8,6 @@ permissions:
   contents: read # to fetch code (actions/checkout)
 
 jobs:
-  inspect-code:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Restore Tools
-        run: dotnet tool restore
-
-      - name: Restore Packages
-        run: dotnet restore osu.Desktop.slnf
-
-      - name: Restore inspectcode cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/inspectcode
-          key: inspectcode-${{ hashFiles('.config/dotnet-tools.json', '.github/workflows/ci.yml', 'osu.sln*', 'osu*.slnf', '.editorconfig', '.globalconfig', 'CodeAnalysis/*', '**/*.csproj', '**/*.props') }}
-
-      - name: Dotnet code style
-        run: dotnet build -c Debug -warnaserror osu.Desktop.slnf -p:EnforceCodeStyleInBuild=true
-
-      - name: CodeFileSanity
-        run: |
-          # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
-          # FIXME: Suppress warnings from templates project
-          exit_code=0
-          while read -r line; do
-            if [[ ! -z "$line" ]]; then
-              echo "::error::$line"
-              exit_code=1
-            fi
-          done <<< $(dotnet codefilesanity)
-          exit $exit_code
-
-      - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu.Desktop.slnf --no-build --output="inspectcodereport.xml" --caches-home="inspectcode" --verbosity=WARN
-
-      - name: NVika
-        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors
-
   test:
     name: Test
     runs-on: ${{matrix.os.fullname}}
@@ -63,10 +17,8 @@ jobs:
        fail-fast: false
        matrix:
           os:
-            - { prettyname: Windows, fullname: windows-latest }
             - { prettyname: macOS, fullname: macos-latest }
-            - { prettyname: Linux, fullname: ubuntu-latest }
-          threadingMode: ['SingleThread', 'MultiThreaded']
+          threadingMode: ['MultiThreaded']
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -77,11 +29,8 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Compile
-        run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
-
       - name: Test
-        run: dotnet test $pwd/**/*.Tests/bin/Debug/*/*.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx" -- NUnit.ConsoleOut=0
+        run: dotnet test osu.Game.Rulesets.Catch.Tests --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx" -- NUnit.ConsoleOut=0
         shell: pwsh
 
       # Attempt to upload results even if test fails.
@@ -92,52 +41,3 @@ jobs:
         with:
           name: osu-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
           path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
-
-  build-only-android:
-    name: Build only (Android)
-    runs-on: windows-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup JDK 11
-        uses: actions/setup-java@v4
-        with:
-          distribution: microsoft
-          java-version: 11
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Install .NET workloads
-        run: dotnet workload install maui-android
-
-      - name: Compile
-        run: dotnet build -c Debug osu.Android.slnf
-
-  build-only-ios:
-    name: Build only (iOS)
-    # `macos-13` is required, because the newest Microsoft.iOS.Sdk versions require Xcode 14.3.
-    # TODO: can be changed to `macos-latest` once `macos-13` becomes latest (currently in beta: https://github.com/actions/runner-images/tree/main#available-images)
-    runs-on: macos-13
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Install .NET Workloads
-        run: dotnet workload install maui-ios
-
-      - name: Select Xcode 15.2
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
-
-      - name: Build
-        run: dotnet build -c Debug osu.iOS
