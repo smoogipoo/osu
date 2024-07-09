@@ -30,7 +30,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Test
-        run: dotnet test osu.Game.Rulesets.Catch.Tests --filter="NoScope"
+        run: dotnet test osu.Game.Rulesets.Catch.Tests
         shell: pwsh
 
       # Attempt to upload results even if test fails.
