@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -194,7 +195,12 @@ namespace osu.Game.Beatmaps
 
         public string GetSnapshot()
         {
+            Type? tvm = Type.GetType("osu.Game.Tests.Visual.OsuTestScene+ClockBackedTestWorkingBeatmap+TrackVirtualManual, osu.Game, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            FieldInfo? fi = tvm?.GetField("referenceClock", BindingFlags.Instance | BindingFlags.NonPublic);
+            IClock? fastFramedSource = (IClock?)fi?.GetValue(Source);
+
             return
+                $"fastFramedSource: {output(fastFramedSource)}\n" +
                 $"originalSource: {output(Source)}\n" +
                 $"userGlobalOffsetClock: {output(userGlobalOffsetClock)}\n" +
                 $"platformOffsetClock: {output(platformOffsetClock)}\n" +

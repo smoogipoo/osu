@@ -27,8 +27,7 @@ namespace osu.Game.Tests.Visual
 
         protected OsuConfigManager LocalConfig;
 
-        private double lastReportedTime;
-        private int frameCount;
+        private double? lastReportedTime;
 
         protected override void Update()
         {
@@ -36,11 +35,13 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != null)
             {
-                if (++frameCount % 10 == 0)
+                if (lastReportedTime != null && Math.Abs(Player.GameplayClockContainer.CurrentTime - lastReportedTime.Value) > 100)
                 {
-                    Logger.Log($"⏱️ Gameplay clock reached {Player.GameplayClockContainer.CurrentTime:N0} ms (after frames: {frameCount})");
-                    frameCount = 0;
+                    Logger.Log($"Suspicious gameplay clock jump ({lastReportedTime} -> {Player.GameplayClockContainer.CurrentTime})");
+                    Logger.Log(Player.GameplayClockContainer.GameplayClock.GetSnapshot());
                 }
+
+                lastReportedTime = Player.GameplayClockContainer.CurrentTime;
             }
         }
 
