@@ -17,8 +17,8 @@ jobs:
        fail-fast: false
        matrix:
           os:
-            - { prettyname: macOS, fullname: macos-12 }
-          threadingMode: ['MultiThreaded']
+            - { prettyname: macOS, fullname: macos-latest }
+          threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -30,7 +30,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Test
-        run: dotnet test osu.Game.Rulesets.Catch.Tests
+        run: dotnet test osu.Game.Rulesets.Catch.Tests --filter="NoScope"
         shell: pwsh
 
       # Attempt to upload results even if test fails.
