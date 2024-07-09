@@ -28,6 +28,7 @@ namespace osu.Game.Tests.Visual
         protected OsuConfigManager LocalConfig;
 
         private double lastReportedTime;
+        private int frameCount;
 
         protected override void Update()
         {
@@ -35,12 +36,16 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != null)
             {
+                frameCount++;
+
                 int roundedTime = (int)Player.GameplayClockContainer.CurrentTime / 100;
 
                 if (roundedTime != lastReportedTime)
                 {
                     lastReportedTime = roundedTime;
-                    Logger.Log($"⏱️ Gameplay clock reached {lastReportedTime * 100:N0} ms");
+                    Logger.Log($"⏱️ Gameplay clock reached {lastReportedTime * 100:N0} ms (after frames: {frameCount})");
+
+                    frameCount = 0;
                 }
             }
         }
