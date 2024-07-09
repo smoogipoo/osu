@@ -44,6 +44,7 @@ namespace osu.Game.Tests.Visual
                 {
                     lastReportedTime = roundedTime;
                     Logger.Log($"⏱️ Gameplay clock reached {lastReportedTime * 100:N0} ms (after frames: {frameCount})");
+                    Logger.Log($"Dump: {Player.GameplayClockContainer.GameplayClock.GetSnapshot()}");
 
                     frameCount = 0;
                 }

@@ -209,9 +209,9 @@ namespace osu.Game.Beatmaps
                     return "null";
 
                 if (clock is IFrameBasedClock framed)
-                    return $"current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate} elapsed: {framed.ElapsedFrameTime:N2}";
+                    return $"{clock.GetType()} current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate} elapsed: {framed.ElapsedFrameTime:N2}";
 
-                return $"current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate}";
+                return $"{clock.GetType()} current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate}";
             }
         }
     }
