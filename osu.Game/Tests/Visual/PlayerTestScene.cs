@@ -35,12 +35,12 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != null)
             {
-                int roundedTime = (int)Player.GameplayClockContainer.CurrentTime / 1000;
+                int roundedTime = (int)Player.GameplayClockContainer.CurrentTime / 100;
 
                 if (roundedTime != lastReportedTime)
                 {
                     lastReportedTime = roundedTime;
-                    Logger.Log($"⏱️ Gameplay clock reached {lastReportedTime * 1000:N0} ms");
+                    Logger.Log($"⏱️ Gameplay clock reached {lastReportedTime * 100:N0} ms");
                 }
             }
         }
