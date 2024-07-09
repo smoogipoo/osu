@@ -28,6 +28,7 @@ namespace osu.Game.Tests.Visual
         protected OsuConfigManager LocalConfig;
 
         private double? lastReportedTime;
+        private long? lastTotalProcessedFrames;
 
         protected override void Update()
         {
@@ -35,13 +36,20 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != null)
             {
-                if (lastReportedTime != null && Math.Abs(Player.GameplayClockContainer.CurrentTime - lastReportedTime.Value) > 100)
+                long totalProcessedFrames = long.Parse(Player.GameplayClockContainer.GameplayClock.GetSnapshot().Split('\n')[0].Split(':', StringSplitOptions.TrimEntries)[1]);
+
+                if (lastTotalProcessedFrames != null
+                    && lastReportedTime != null
+                    && totalProcessedFrames - lastTotalProcessedFrames > 0
+                    && Math.Abs(Player.GameplayClockContainer.CurrentTime - lastReportedTime.Value) < 1
+                    && Player.GameplayClockContainer.IsRunning)
                 {
-                    Logger.Log($"Suspicious gameplay clock jump ({lastReportedTime} -> {Player.GameplayClockContainer.CurrentTime})");
+                    Logger.Log("Suspicious gameplay clock:");
                     Logger.Log(Player.GameplayClockContainer.GameplayClock.GetSnapshot());
                 }
 
                 lastReportedTime = Player.GameplayClockContainer.CurrentTime;
+                lastTotalProcessedFrames = totalProcessedFrames;
             }
         }
 

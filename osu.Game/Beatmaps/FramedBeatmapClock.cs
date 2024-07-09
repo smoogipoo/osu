@@ -197,15 +197,25 @@ namespace osu.Game.Beatmaps
         {
             Type? trackVirtualManualType =
                 Type.GetType("osu.Game.Tests.Visual.OsuTestScene+ClockBackedTestWorkingBeatmap+TrackVirtualManual, osu.Game, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            FieldInfo? referenceClockField = trackVirtualManualType?.GetField("referenceClock", BindingFlags.Instance | BindingFlags.NonPublic);
-            IClock? referenceClock = (IClock?)referenceClockField?.GetValue(Source);
-
             Type? framedClockType = Type.GetType("osu.Framework.Timing.FramedClock, osu.Framework, Version=2024.702.0.0, Culture=neutral, PublicKeyToken=null");
-            FieldInfo? totalFramesProcessedField = framedClockType?.GetField("totalFramesProcessed", BindingFlags.Instance | BindingFlags.NonPublic);
-            long totalFramesProcessed = (long?)totalFramesProcessedField?.GetValue(referenceClock) ?? 0;
 
+            FieldInfo? referenceClockField = trackVirtualManualType?.GetField("referenceClock", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo? totalFramesProcessedField = framedClockType?.GetField("totalFramesProcessed", BindingFlags.Instance | BindingFlags.NonPublic);
             FieldInfo? betweenFrameTimesField = framedClockType?.GetField("betweenFrameTimes", BindingFlags.Instance | BindingFlags.NonPublic);
-            double[] betweenFrameTimes = (double[]?)betweenFrameTimesField?.GetValue(referenceClock) ?? Array.Empty<double>();
+
+            IClock? referenceClock = null;
+            long totalFramesProcessed = 0;
+            double[] betweenFrameTimes = Array.Empty<double>();
+
+            try
+            {
+                referenceClock = (IClock?)referenceClockField?.GetValue(Source);
+                totalFramesProcessed = (long?)totalFramesProcessedField?.GetValue(referenceClock) ?? 0;
+                betweenFrameTimes = (double[]?)betweenFrameTimesField?.GetValue(referenceClock) ?? Array.Empty<double>();
+            }
+            catch
+            {
+            }
 
             return
                 $"totalFramesProcessed: {totalFramesProcessed}\n" +
