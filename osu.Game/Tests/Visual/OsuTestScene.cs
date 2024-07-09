@@ -505,7 +505,7 @@ namespace osu.Game.Tests.Visual
                         double? lastRefTime = lastReferenceTime;
 
                         if (lastRefTime != null)
-                            accumulated += (refTime - lastRefTime.Value) * base.Rate;
+                            accumulated += (refTime - lastRefTime.Value) * Rate;
 
                         lastReferenceTime = refTime;
                     }

@@ -36,16 +36,9 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != null)
             {
-                frameCount++;
-
-                int roundedTime = (int)Player.GameplayClockContainer.CurrentTime / 100;
-
-                if (roundedTime != lastReportedTime)
+                if (++frameCount % 10 == 0)
                 {
-                    lastReportedTime = roundedTime;
-                    Logger.Log($"⏱️ Gameplay clock reached {lastReportedTime * 100:N0} ms (after frames: {frameCount})");
-                    Logger.Log($"Dump: {Player.GameplayClockContainer.GameplayClock.GetSnapshot()}");
-
+                    Logger.Log($"⏱️ Gameplay clock reached {Player.GameplayClockContainer.CurrentTime:N0} ms (after frames: {frameCount})");
                     frameCount = 0;
                 }
             }
