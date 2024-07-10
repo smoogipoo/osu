@@ -30,10 +30,21 @@ namespace osu.Game.Tests.Visual
         private long? lastFcTotalProcessedFrames;
         private long? lastTrackTotalProcessedFrames;
         private long? lastGcTotalProcessedFrames;
+        private GameplayClockContainer lastGc;
+
+        private long? fcUpdateStart;
+        private long updateCount;
 
         protected override void Update()
         {
             base.Update();
+
+            if (Player?.GameplayClockContainer != lastGc)
+            {
+                fcUpdateStart = null;
+                updateCount = 0;
+                lastGc = Player?.GameplayClockContainer;
+            }
 
             if (Player?.GameplayClockContainer != null)
             {
@@ -43,18 +54,26 @@ namespace osu.Game.Tests.Visual
                 long trackTotalProcessedFrames = tvm?.TotalProcessedFrames ?? 0;
                 long gcTotalProcessedFrames = Player.GameplayClockContainer.TotalProcessedFrames;
 
+                fcUpdateStart ??= fcTotalProcessedFrames;
+
+                if (fcTotalProcessedFrames - fcUpdateStart > updateCount)
+                {
+                    Logger.Log("Fast clock updated too fast!!");
+                }
+
                 if (fcTotalProcessedFrames > lastFcTotalProcessedFrames
                     && trackTotalProcessedFrames == lastTrackTotalProcessedFrames
                     && gcTotalProcessedFrames > lastGcTotalProcessedFrames
                     && tvm?.IsRunning == true)
                 {
-                    Logger.Log("Framed fast clock updated but TVM did not!");
-                    Logger.Log(Player.GameplayClockContainer.GameplayClock.GetSnapshot());
+                    Logger.Log("Fast clock updated but track did not!");
                 }
 
                 lastFcTotalProcessedFrames = fcTotalProcessedFrames;
                 lastTrackTotalProcessedFrames = trackTotalProcessedFrames;
                 lastGcTotalProcessedFrames = gcTotalProcessedFrames;
+
+                updateCount++;
             }
         }
 
