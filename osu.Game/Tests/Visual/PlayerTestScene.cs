@@ -27,11 +27,10 @@ namespace osu.Game.Tests.Visual
 
         protected OsuConfigManager LocalConfig;
 
+        private GameplayClockContainer lastGc;
         private long? lastFcTotalProcessedFrames;
         private long? lastTrackTotalProcessedFrames;
         private long? lastGcTotalProcessedFrames;
-        private GameplayClockContainer lastGc;
-
         private long? fcUpdateStart;
         private long updateCount;
 
@@ -41,9 +40,12 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != lastGc)
             {
+                lastGc = Player?.GameplayClockContainer;
+                lastFcTotalProcessedFrames = null;
+                lastTrackTotalProcessedFrames = null;
+                lastGcTotalProcessedFrames = null;
                 fcUpdateStart = null;
                 updateCount = 0;
-                lastGc = Player?.GameplayClockContainer;
             }
 
             if (Player?.GameplayClockContainer != null)
