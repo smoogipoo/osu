@@ -495,13 +495,13 @@ namespace osu.Game.Tests.Visual
 
                 public override double CurrentTime => Math.Min(accumulated, Length);
 
-                public long totalProcessedFrames;
+                public long TotalProcessedFrames;
 
                 protected override void UpdateState()
                 {
                     base.UpdateState();
 
-                    ++totalProcessedFrames;
+                    ++TotalProcessedFrames;
 
                     if (running)
                     {
@@ -513,8 +513,6 @@ namespace osu.Game.Tests.Visual
                             accumulated += (refTime - lastRefTime.Value) * Rate;
 
                         lastReferenceTime = refTime;
-
-                        Logger.Log($"TVM lastRefTime: {lastRefTime} refTime: {refTime}");
                     }
 
                     if (CurrentTime >= Length)

@@ -27,7 +27,6 @@ namespace osu.Game.Tests.Visual
 
         protected OsuConfigManager LocalConfig;
 
-        private double? lastReportedTime;
         private long? lastTotalProcessedFrames;
         private long? lastTvmTotalProcessedFrames;
 
@@ -41,21 +40,16 @@ namespace osu.Game.Tests.Visual
 
                 ClockBackedTestWorkingBeatmap.TrackVirtualManual tvm = Player.GameplayClockContainer.GameplayClock.Source as ClockBackedTestWorkingBeatmap.TrackVirtualManual;
 
-                if (lastTotalProcessedFrames != null
-                    && lastReportedTime != null
-                    && lastTvmTotalProcessedFrames != null
-                    && totalProcessedFrames - lastTotalProcessedFrames > 0
-                    && lastTvmTotalProcessedFrames - tvm?.totalProcessedFrames > 0
-                    && Math.Abs(Player.GameplayClockContainer.CurrentTime - lastReportedTime.Value) < 1
-                    && Player.GameplayClockContainer.IsRunning)
+                if (totalProcessedFrames > lastTotalProcessedFrames
+                    && tvm?.TotalProcessedFrames == lastTvmTotalProcessedFrames
+                    && tvm?.IsRunning == true)
                 {
-                    Logger.Log("Suspicious gameplay clock:");
+                    Logger.Log("Gameplay clock updated but TVM did not!");
                     Logger.Log(Player.GameplayClockContainer.GameplayClock.GetSnapshot());
                 }
 
-                lastReportedTime = Player.GameplayClockContainer.CurrentTime;
                 lastTotalProcessedFrames = totalProcessedFrames;
-                lastTvmTotalProcessedFrames = tvm?.totalProcessedFrames;
+                lastTvmTotalProcessedFrames = tvm?.TotalProcessedFrames;
             }
         }
 
