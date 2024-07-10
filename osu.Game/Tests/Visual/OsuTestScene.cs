@@ -514,7 +514,7 @@ namespace osu.Game.Tests.Visual
 
                         lastReferenceTime = refTime;
 
-                        Logger.Log($"TVM refTime: {refTime} lastRefTime: {lastRefTime}");
+                        Logger.Log($"TVM lastRefTime: {lastRefTime} refTime: {refTime}");
                     }
 
                     if (CurrentTime >= Length)
