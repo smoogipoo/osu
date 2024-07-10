@@ -201,26 +201,19 @@ namespace osu.Game.Beatmaps
 
             FieldInfo? referenceClockField = trackVirtualManualType?.GetField("referenceClock", BindingFlags.Instance | BindingFlags.NonPublic);
             FieldInfo? totalFramesProcessedField = framedClockType?.GetField("totalFramesProcessed", BindingFlags.Instance | BindingFlags.NonPublic);
-            FieldInfo? betweenFrameTimesField = framedClockType?.GetField("betweenFrameTimes", BindingFlags.Instance | BindingFlags.NonPublic);
 
             IClock? referenceClock = null;
-            long totalFramesProcessed = 0;
-            double[] betweenFrameTimes = Array.Empty<double>();
 
             try
             {
                 referenceClock = (IClock?)referenceClockField?.GetValue(Source);
-                totalFramesProcessed = (long?)totalFramesProcessedField?.GetValue(referenceClock) ?? 0;
-                betweenFrameTimes = (double[]?)betweenFrameTimesField?.GetValue(referenceClock) ?? Array.Empty<double>();
             }
             catch
             {
             }
 
             return
-                $"totalFramesProcessed: {totalFramesProcessed}\n" +
-                $"betweenFrameTimes: {string.Join(',', betweenFrameTimes)}\n" +
-                $"fastFramedSource: {output(referenceClock)}\n" +
+                $"referenceClock: {output(referenceClock)}\n" +
                 $"originalSource: {output(Source)}\n" +
                 $"userGlobalOffsetClock: {output(userGlobalOffsetClock)}\n" +
                 $"platformOffsetClock: {output(platformOffsetClock)}\n" +
@@ -234,8 +227,15 @@ namespace osu.Game.Beatmaps
                 if (clock == null)
                     return "null";
 
-                if (clock is IFrameBasedClock framed)
-                    return $"{clock.GetType()} current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate} elapsed: {framed.ElapsedFrameTime:N2}";
+                if (clock is IFrameBasedClock frameBased)
+                {
+                    long? totalFrames = null;
+
+                    if (clock is FramedClock framed)
+                        totalFrames = (long?)totalFramesProcessedField?.GetValue(framed);
+
+                    return $"{clock.GetType()} frame: {totalFrames} current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate} elapsed: {frameBased.ElapsedFrameTime:N2}";
+                }
 
                 return $"{clock.GetType()} current: {clock.CurrentTime:N2} running: {clock.IsRunning} rate: {clock.Rate}";
             }

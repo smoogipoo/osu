@@ -28,11 +28,8 @@ namespace osu.Game.Tests.Visual
         protected OsuConfigManager LocalConfig;
 
         private GameplayClockContainer lastGc;
-        private long? lastFcTotalProcessedFrames;
         private long? lastTrackTotalProcessedFrames;
         private long? lastGcTotalProcessedFrames;
-        private long? fcUpdateStart;
-        private long updateCount;
 
         protected override void Update()
         {
@@ -41,41 +38,27 @@ namespace osu.Game.Tests.Visual
             if (Player?.GameplayClockContainer != lastGc)
             {
                 lastGc = Player?.GameplayClockContainer;
-                lastFcTotalProcessedFrames = null;
                 lastTrackTotalProcessedFrames = null;
                 lastGcTotalProcessedFrames = null;
-                fcUpdateStart = null;
-                updateCount = 0;
             }
 
             if (Player?.GameplayClockContainer != null)
             {
                 ClockBackedTestWorkingBeatmap.TrackVirtualManual tvm = Player.GameplayClockContainer.GameplayClock.Source as ClockBackedTestWorkingBeatmap.TrackVirtualManual;
 
-                long fcTotalProcessedFrames = long.Parse(Player.GameplayClockContainer.GameplayClock.GetSnapshot().Split('\n')[0].Split(':', StringSplitOptions.TrimEntries)[1]);
                 long trackTotalProcessedFrames = tvm?.TotalProcessedFrames ?? 0;
                 long gcTotalProcessedFrames = Player.GameplayClockContainer.TotalProcessedFrames;
 
-                fcUpdateStart ??= fcTotalProcessedFrames;
-
-                if (fcTotalProcessedFrames - fcUpdateStart > updateCount)
-                {
-                    Logger.Log("Fast clock updated too fast!!");
-                }
-
-                if (fcTotalProcessedFrames > lastFcTotalProcessedFrames
-                    && trackTotalProcessedFrames == lastTrackTotalProcessedFrames
+                if (trackTotalProcessedFrames == lastTrackTotalProcessedFrames
                     && gcTotalProcessedFrames > lastGcTotalProcessedFrames
                     && tvm?.IsRunning == true)
                 {
                     Logger.Log("Fast clock updated but track did not!");
+                    Logger.Log(Player.GameplayClockContainer.GameplayClock.GetSnapshot());
                 }
 
-                lastFcTotalProcessedFrames = fcTotalProcessedFrames;
                 lastTrackTotalProcessedFrames = trackTotalProcessedFrames;
                 lastGcTotalProcessedFrames = gcTotalProcessedFrames;
-
-                updateCount++;
             }
         }
 
