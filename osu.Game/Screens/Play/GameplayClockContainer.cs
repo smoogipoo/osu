@@ -68,6 +68,15 @@ namespace osu.Game.Screens.Play
             };
         }
 
+        public long TotalProcessedFrames;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            ++TotalProcessedFrames;
+        }
+
         /// <summary>
         /// Starts gameplay and marks un-paused state.
         /// </summary>

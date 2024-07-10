@@ -27,8 +27,9 @@ namespace osu.Game.Tests.Visual
 
         protected OsuConfigManager LocalConfig;
 
-        private long? lastTotalProcessedFrames;
-        private long? lastTvmTotalProcessedFrames;
+        private long? lastFcTotalProcessedFrames;
+        private long? lastTrackTotalProcessedFrames;
+        private long? lastGcTotalProcessedFrames;
 
         protected override void Update()
         {
@@ -36,20 +37,24 @@ namespace osu.Game.Tests.Visual
 
             if (Player?.GameplayClockContainer != null)
             {
-                long totalProcessedFrames = long.Parse(Player.GameplayClockContainer.GameplayClock.GetSnapshot().Split('\n')[0].Split(':', StringSplitOptions.TrimEntries)[1]);
-
                 ClockBackedTestWorkingBeatmap.TrackVirtualManual tvm = Player.GameplayClockContainer.GameplayClock.Source as ClockBackedTestWorkingBeatmap.TrackVirtualManual;
 
-                if (totalProcessedFrames > lastTotalProcessedFrames
-                    && tvm?.TotalProcessedFrames == lastTvmTotalProcessedFrames
+                long fcTotalProcessedFrames = long.Parse(Player.GameplayClockContainer.GameplayClock.GetSnapshot().Split('\n')[0].Split(':', StringSplitOptions.TrimEntries)[1]);
+                long trackTotalProcessedFrames = tvm?.TotalProcessedFrames ?? 0;
+                long gcTotalProcessedFrames = Player.GameplayClockContainer.TotalProcessedFrames;
+
+                if (fcTotalProcessedFrames > lastFcTotalProcessedFrames
+                    && trackTotalProcessedFrames == lastTrackTotalProcessedFrames
+                    && gcTotalProcessedFrames > lastGcTotalProcessedFrames
                     && tvm?.IsRunning == true)
                 {
-                    Logger.Log("Gameplay clock updated but TVM did not!");
+                    Logger.Log("Framed fast clock updated but TVM did not!");
                     Logger.Log(Player.GameplayClockContainer.GameplayClock.GetSnapshot());
                 }
 
-                lastTotalProcessedFrames = totalProcessedFrames;
-                lastTvmTotalProcessedFrames = tvm?.TotalProcessedFrames;
+                lastFcTotalProcessedFrames = fcTotalProcessedFrames;
+                lastTrackTotalProcessedFrames = trackTotalProcessedFrames;
+                lastGcTotalProcessedFrames = gcTotalProcessedFrames;
             }
         }
 
