@@ -495,9 +495,13 @@ namespace osu.Game.Tests.Visual
 
                 public override double CurrentTime => Math.Min(accumulated, Length);
 
+                public long totalProcessedFrames;
+
                 protected override void UpdateState()
                 {
                     base.UpdateState();
+
+                    ++totalProcessedFrames;
 
                     if (running)
                     {

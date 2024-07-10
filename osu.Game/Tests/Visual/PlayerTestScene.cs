@@ -29,6 +29,7 @@ namespace osu.Game.Tests.Visual
 
         private double? lastReportedTime;
         private long? lastTotalProcessedFrames;
+        private long? lastTvmTotalProcessedFrames;
 
         protected override void Update()
         {
@@ -38,9 +39,13 @@ namespace osu.Game.Tests.Visual
             {
                 long totalProcessedFrames = long.Parse(Player.GameplayClockContainer.GameplayClock.GetSnapshot().Split('\n')[0].Split(':', StringSplitOptions.TrimEntries)[1]);
 
+                ClockBackedTestWorkingBeatmap.TrackVirtualManual tvm = Player.GameplayClockContainer.GameplayClock.Source as ClockBackedTestWorkingBeatmap.TrackVirtualManual;
+
                 if (lastTotalProcessedFrames != null
                     && lastReportedTime != null
+                    && lastTvmTotalProcessedFrames != null
                     && totalProcessedFrames - lastTotalProcessedFrames > 0
+                    && lastTvmTotalProcessedFrames - tvm?.totalProcessedFrames > 0
                     && Math.Abs(Player.GameplayClockContainer.CurrentTime - lastReportedTime.Value) < 1
                     && Player.GameplayClockContainer.IsRunning)
                 {
@@ -50,6 +55,7 @@ namespace osu.Game.Tests.Visual
 
                 lastReportedTime = Player.GameplayClockContainer.CurrentTime;
                 lastTotalProcessedFrames = totalProcessedFrames;
+                lastTvmTotalProcessedFrames = tvm?.totalProcessedFrames;
             }
         }
 
