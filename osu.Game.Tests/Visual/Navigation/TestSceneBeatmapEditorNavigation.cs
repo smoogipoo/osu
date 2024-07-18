@@ -208,7 +208,7 @@ namespace osu.Game.Tests.Visual.Navigation
             AddUntilStep("Wait for loader current", () => Game.ScreenStack.CurrentScreen is EditorLoader);
             AddStep("Close editor while loading", () => Game.ScreenStack.CurrentScreen.Exit());
 
-            AddUntilStep("Wait for menu", () => Game.ScreenStack.CurrentScreen is MainMenu);
+            AddUntilStep("Wait for menu", () => Game.ScreenStack.CurrentScreen, Is.AssignableTo<MainMenu>);
             AddAssert("Check no new beatmaps were made", () => allBeatmapSets().SequenceEqual(beatmapSets));
 
             BeatmapSetInfo[] allBeatmapSets() => Game.Realm.Run(realm => realm.All<BeatmapSetInfo>().Where(x => !x.DeletePending).ToArray());

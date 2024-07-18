@@ -973,7 +973,11 @@ namespace osu.Game.Tests.Visual.Navigation
 
             Screens.Select.SongSelect songSelect = null;
             AddRepeatStep("go to solo", () => InputManager.Key(Key.P), 3);
-            AddUntilStep("wait for song select", () => (songSelect = Game.ScreenStack.CurrentScreen as Screens.Select.SongSelect) != null);
+            AddUntilStep("wait for song select", () =>
+            {
+                songSelect = Game.ScreenStack.CurrentScreen as Screens.Select.SongSelect;
+                return Game.ScreenStack.CurrentScreen;
+            }, Is.AssignableTo<Screens.Select.SongSelect>);
             AddUntilStep("wait for beatmap sets loaded", () => songSelect.BeatmapSetsLoaded);
 
             AddStep("switch to osu! ruleset", () =>
