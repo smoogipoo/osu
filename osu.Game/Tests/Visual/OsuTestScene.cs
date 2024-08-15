@@ -11,6 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using NUnit.Framework;
+using NUnit.Framework.Interfaces;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
@@ -19,6 +21,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
@@ -38,6 +41,7 @@ using osu.Game.Tests.Rulesets;
 
 namespace osu.Game.Tests.Visual
 {
+    [LogThreads]
     public abstract partial class OsuTestScene : TestScene
     {
         [Cached]
@@ -537,6 +541,17 @@ namespace osu.Game.Tests.Visual
             }
 
             public void RunTestBlocking(TestScene test) => runner.RunTestBlocking(test);
+        }
+
+        private class LogThreads : TestActionAttribute
+        {
+            public override void AfterTest(ITest test)
+            {
+                base.AfterTest(test);
+                Logger.Log($"[Suite] Threads: {Process.GetCurrentProcess().Threads.Count}");
+            }
+
+            public override ActionTargets Targets => ActionTargets.Test;
         }
     }
 }

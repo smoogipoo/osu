@@ -65,7 +65,7 @@ jobs:
           os:
             - { prettyname: Windows, fullname: windows-latest }
             # macOS runner performance has gotten unbearably slow so let's turn them off temporarily.
-            # - { prettyname: macOS, fullname: macos-latest }
+            - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
           threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 120
@@ -82,7 +82,7 @@ jobs:
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/**/*.Tests/bin/Debug/*/*.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx" -- NUnit.ConsoleOut=0
+        run: dotnet test $pwd/**/*.Tests/bin/Debug/*/*.Tests.dll
         shell: pwsh
 
       # Attempt to upload results even if test fails.
