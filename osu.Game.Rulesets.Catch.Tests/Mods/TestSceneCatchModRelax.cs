@@ -83,11 +83,11 @@ namespace osu.Game.Rulesets.Catch.Tests.Mods
                     break;
 
                 case 1:
-                    InputManager.MoveMouseTo(playfield.ScreenSpaceDrawQuad.BottomLeft);
+                    InputManager.MoveMouseTo(playfield.ScreenSpaceDrawQuad.BottomLeft.Xy);
                     break;
 
                 case 2:
-                    InputManager.MoveMouseTo(playfield.ScreenSpaceDrawQuad.BottomRight);
+                    InputManager.MoveMouseTo(playfield.ScreenSpaceDrawQuad.BottomRight.Xy);
                     break;
 
                 case 3:

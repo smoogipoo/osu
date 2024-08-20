@@ -183,8 +183,8 @@ namespace osu.Game.Rulesets.Mania.Tests.Editor
                 InputManager.ReleaseButton(MouseButton.Left);
             });
 
-            AddAssert("head note positioned correctly", () => Precision.AlmostEquals(holdNote.ScreenSpaceDrawQuad.BottomLeft, holdNote.Head.ScreenSpaceDrawQuad.BottomLeft));
-            AddAssert("tail note positioned correctly", () => Precision.AlmostEquals(holdNote.ScreenSpaceDrawQuad.TopLeft, holdNote.Tail.ScreenSpaceDrawQuad.BottomLeft));
+            AddAssert("head note positioned correctly", () => Precision.AlmostEquals(holdNote.ScreenSpaceDrawQuad.BottomLeft.Xy, holdNote.Head.ScreenSpaceDrawQuad.BottomLeft.Xy));
+            AddAssert("tail note positioned correctly", () => Precision.AlmostEquals(holdNote.ScreenSpaceDrawQuad.TopLeft.Xy, holdNote.Tail.ScreenSpaceDrawQuad.BottomLeft.Xy));
 
             AddAssert("head blueprint positioned correctly", () => this.ChildrenOfType<EditHoldNoteEndPiece>().ElementAt(0).DrawPosition == holdNote.Head.DrawPosition);
             AddAssert("tail blueprint positioned correctly", () => this.ChildrenOfType<EditHoldNoteEndPiece>().ElementAt(1).DrawPosition == holdNote.Tail.DrawPosition);
@@ -232,8 +232,8 @@ namespace osu.Game.Rulesets.Mania.Tests.Editor
             AddAssert("start time moved back", () => holdNote!.StartTime, () => Is.LessThan(250));
             AddAssert("end time unchanged", () => holdNote.EndTime, () => Is.EqualTo(750));
 
-            AddAssert("head note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.BottomLeft, drawableHoldNote.Head.ScreenSpaceDrawQuad.BottomLeft));
-            AddAssert("tail note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.TopLeft, drawableHoldNote.Tail.ScreenSpaceDrawQuad.BottomLeft));
+            AddAssert("head note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.BottomLeft.Xy, drawableHoldNote.Head.ScreenSpaceDrawQuad.BottomLeft.Xy));
+            AddAssert("tail note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.TopLeft.Xy, drawableHoldNote.Tail.ScreenSpaceDrawQuad.BottomLeft.Xy));
 
             AddAssert("head blueprint positioned correctly", () => this.ChildrenOfType<EditHoldNoteEndPiece>().ElementAt(0).DrawPosition == drawableHoldNote.Head.DrawPosition);
             AddAssert("tail blueprint positioned correctly", () => this.ChildrenOfType<EditHoldNoteEndPiece>().ElementAt(1).DrawPosition == drawableHoldNote.Tail.DrawPosition);
@@ -281,8 +281,8 @@ namespace osu.Game.Rulesets.Mania.Tests.Editor
             AddAssert("start time unchanged", () => holdNote!.StartTime, () => Is.EqualTo(250));
             AddAssert("end time moved forward", () => holdNote.EndTime, () => Is.GreaterThan(750));
 
-            AddAssert("head note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.BottomLeft, drawableHoldNote.Head.ScreenSpaceDrawQuad.BottomLeft));
-            AddAssert("tail note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.TopLeft, drawableHoldNote.Tail.ScreenSpaceDrawQuad.BottomLeft));
+            AddAssert("head note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.BottomLeft.Xy, drawableHoldNote.Head.ScreenSpaceDrawQuad.BottomLeft.Xy));
+            AddAssert("tail note positioned correctly", () => Precision.AlmostEquals(drawableHoldNote.ScreenSpaceDrawQuad.TopLeft.Xy, drawableHoldNote.Tail.ScreenSpaceDrawQuad.BottomLeft.Xy));
 
             AddAssert("head blueprint positioned correctly", () => this.ChildrenOfType<EditHoldNoteEndPiece>().ElementAt(0).DrawPosition == drawableHoldNote.Head.DrawPosition);
             AddAssert("tail blueprint positioned correctly", () => this.ChildrenOfType<EditHoldNoteEndPiece>().ElementAt(1).DrawPosition == drawableHoldNote.Tail.DrawPosition);

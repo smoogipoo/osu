@@ -42,8 +42,8 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             if (DrawWidth <= 0) return;
 
             (float, float) newRange = (
-                (ToLocalSpace(timeline.ScreenSpaceDrawQuad.TopLeft).X - TopPointPiece.WIDTH) / DrawWidth * Content.RelativeChildSize.X,
-                (ToLocalSpace(timeline.ScreenSpaceDrawQuad.TopRight).X) / DrawWidth * Content.RelativeChildSize.X);
+                (ToLocalSpace(timeline.ScreenSpaceDrawQuad.TopLeft.Xy).X - TopPointPiece.WIDTH) / DrawWidth * Content.RelativeChildSize.X,
+                (ToLocalSpace(timeline.ScreenSpaceDrawQuad.TopRight.Xy).X) / DrawWidth * Content.RelativeChildSize.X);
 
             if (visibleRange != newRange)
             {

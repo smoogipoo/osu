@@ -112,7 +112,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
                 Scheduler.AddDelayed(() =>
                 {
-                    float startY = ToLocalSpace(barsContainer[targetBin].CircularBar.ScreenSpaceDrawQuad.TopLeft).Y;
+                    float startY = ToLocalSpace(barsContainer[targetBin].CircularBar.ScreenSpaceDrawQuad.TopLeft.Xy).Y;
                     text.FadeInFromZero()
                         .ScaleTo(new Vector2(0.8f), 500, Easing.OutElasticHalf)
                         .MoveToY(startY)

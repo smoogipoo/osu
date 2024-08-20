@@ -191,10 +191,10 @@ namespace osu.Game.Rulesets.Osu.Edit
             Vector2 actualOrigin = origin ?? defaultOrigin.Value;
             var selectionQuad = OriginalSurroundingQuad.Value;
 
-            var tl1 = Vector2.Divide(-actualOrigin, selectionQuad.TopLeft - actualOrigin);
-            var tl2 = Vector2.Divide(OsuPlayfield.BASE_SIZE - actualOrigin, selectionQuad.TopLeft - actualOrigin);
-            var br1 = Vector2.Divide(-actualOrigin, selectionQuad.BottomRight - actualOrigin);
-            var br2 = Vector2.Divide(OsuPlayfield.BASE_SIZE - actualOrigin, selectionQuad.BottomRight - actualOrigin);
+            var tl1 = Vector2.Divide(-actualOrigin, selectionQuad.TopLeft.Xy - actualOrigin);
+            var tl2 = Vector2.Divide(OsuPlayfield.BASE_SIZE - actualOrigin, selectionQuad.TopLeft.Xy - actualOrigin);
+            var br1 = Vector2.Divide(-actualOrigin, selectionQuad.BottomRight.Xy - actualOrigin);
+            var br2 = Vector2.Divide(OsuPlayfield.BASE_SIZE - actualOrigin, selectionQuad.BottomRight.Xy - actualOrigin);
 
             if (!Precision.AlmostEquals(selectionQuad.TopLeft.X - actualOrigin.X, 0))
                 scale.X = selectionQuad.TopLeft.X - actualOrigin.X < 0 ? MathHelper.Clamp(scale.X, tl2.X, tl1.X) : MathHelper.Clamp(scale.X, tl1.X, tl2.X);
