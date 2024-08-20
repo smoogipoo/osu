@@ -46,12 +46,12 @@ namespace osu.Game.Screens.Edit.Components.Menus
                     Padding = new MarginPadding(8),
                     Children = new Drawable[]
                     {
-                        new Sprite
+                        new SpriteIcon
                         {
                             Size = new Vector2(26),
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Texture = textures.Get("Icons/Hexacons/editor"),
+                            Icon = OsuIcon.EditCircle,
                         },
                         text = new TextFlowContainer
                         {
@@ -71,7 +71,10 @@ namespace osu.Game.Screens.Edit.Components.Menus
             });
         }
 
-        protected override Framework.Graphics.UserInterface.Menu CreateSubMenu() => new SubMenu();
+        protected override Framework.Graphics.UserInterface.Menu CreateSubMenu() => new SubMenu
+        {
+            MaxHeight = MaxHeight,
+        };
 
         protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableEditorBarMenuItem(item);
 
@@ -143,7 +146,10 @@ namespace osu.Game.Screens.Edit.Components.Menus
                 BackgroundColour = colourProvider.Background2;
             }
 
-            protected override Framework.Graphics.UserInterface.Menu CreateSubMenu() => new SubMenu();
+            protected override Framework.Graphics.UserInterface.Menu CreateSubMenu() => new SubMenu
+            {
+                MaxHeight = MaxHeight,
+            };
 
             protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item)
             {

@@ -19,7 +19,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Testing;
-using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
@@ -33,6 +32,7 @@ using osu.Game.Overlays.Chat.ChannelList;
 using osuTK;
 using osuTK.Input;
 using osu.Game.Graphics.UserInterfaceV2;
+using osu.Game.Tests.Resources;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -122,7 +122,7 @@ namespace osu.Game.Tests.Visual.Online
                             return true;
 
                         case PostMessageRequest postMessage:
-                            postMessage.TriggerSuccess(new Message(RNG.Next(0, 10000000))
+                            postMessage.TriggerSuccess(new Message(TestResources.GetNextTestID())
                             {
                                 Content = postMessage.Message.Content,
                                 ChannelId = postMessage.Message.ChannelId,
@@ -180,11 +180,8 @@ namespace osu.Game.Tests.Visual.Online
             });
             AddStep("Show overlay", () => chatOverlay.Show());
             AddAssert("Overlay uses config height", () => chatOverlay.Height == configChatHeight.Default);
-            AddStep("Click top bar", () =>
-            {
-                InputManager.MoveMouseTo(chatOverlayTopBar);
-                InputManager.PressButton(MouseButton.Left);
-            });
+            AddStep("Move mouse to drag bar", () => InputManager.MoveMouseTo(chatOverlayTopBar.DragBar));
+            AddStep("Click drag bar", () => InputManager.PressButton(MouseButton.Left));
             AddStep("Drag overlay to new height", () => InputManager.MoveMouseTo(chatOverlayTopBar, new Vector2(0, -300)));
             AddStep("Stop dragging", () => InputManager.ReleaseButton(MouseButton.Left));
             AddStep("Store new height", () => newHeight = chatOverlay.Height);
@@ -634,7 +631,7 @@ namespace osu.Game.Tests.Visual.Online
             AddAssert("Nothing happened", () => this.ChildrenOfType<ReportChatPopover>().Any());
             AddStep("Set report data", () =>
             {
-                var field = this.ChildrenOfType<ReportChatPopover>().Single().ChildrenOfType<OsuTextBox>().Single();
+                var field = this.ChildrenOfType<ReportChatPopover>().Single().ChildrenOfType<OsuTextBox>().First();
                 field.Current.Value = "test other";
             });
 
@@ -722,7 +719,8 @@ namespace osu.Game.Tests.Visual.Online
 
         private Channel createPrivateChannel()
         {
-            int id = RNG.Next(0, DummyAPIAccess.DUMMY_USER_ID - 1);
+            int id = TestResources.GetNextTestID();
+
             return new Channel(new APIUser
             {
                 Id = id,

@@ -208,6 +208,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         protected override async Task<MultiplayerRoom> JoinRoom(long roomId, string? password = null)
         {
+            if (RoomJoined || ServerAPIRoom != null)
+                throw new InvalidOperationException("Already joined a room");
+
             roomId = clone(roomId);
             password = clone(password);
 
@@ -260,6 +263,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
         protected override Task LeaveRoomInternal()
         {
             RoomJoined = false;
+            ServerAPIRoom = null;
+            ServerRoom = null;
             return Task.CompletedTask;
         }
 
@@ -394,6 +399,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
             ChangeUserState(LocalUser.UserID, MultiplayerUserState.Idle);
 
             return Task.CompletedTask;
+        }
+
+        public override async Task AbortMatch()
+        {
+            ChangeUserState(api.LocalUser.Value.Id, MultiplayerUserState.Idle);
+            await ((IMultiplayerClient)this).GameplayAborted(GameplayAbortReason.HostAbortedTheMatch).ConfigureAwait(false);
         }
 
         public async Task AddUserPlaylistItem(int userId, MultiplayerPlaylistItem item)
@@ -658,5 +669,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             PlayedAt = item.PlayedAt,
             StarRating = item.Beatmap.StarRating,
         };
+
+        public override Task DisconnectInternal()
+        {
+            isConnected.Value = false;
+            return Task.CompletedTask;
+        }
     }
 }

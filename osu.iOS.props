@@ -19,11 +19,7 @@
     <UseInterpreter>false</UseInterpreter>
     <MtouchInterpreter>-all</MtouchInterpreter>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
-    <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' == 'iPhoneSimulator'">
-    <RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>
-  </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)../osu-framework/osu.Framework.iOS.props"/>
+  <ItemGroup>
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2024.809.2" />
+  </ItemGroup>
 </Project>

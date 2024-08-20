@@ -23,12 +23,6 @@ namespace osu.Game.Beatmaps.Formats
     {
         public const int FIRST_LAZER_VERSION = 128;
 
-        /// <summary>
-        /// osu! is generally slower than taiko, so a factor is added to increase
-        /// speed. This must be used everywhere slider length or beat length is used.
-        /// </summary>
-        public const float LEGACY_TAIKO_VELOCITY_MULTIPLIER = 1.4f;
-
         private readonly IBeatmap beatmap;
 
         private readonly ISkin? skin;
@@ -149,11 +143,7 @@ namespace osu.Game.Beatmaps.Formats
             writer.WriteLine(FormattableString.Invariant($"OverallDifficulty: {beatmap.Difficulty.OverallDifficulty}"));
             writer.WriteLine(FormattableString.Invariant($"ApproachRate: {beatmap.Difficulty.ApproachRate}"));
 
-            // Taiko adjusts the slider multiplier (see: LEGACY_TAIKO_VELOCITY_MULTIPLIER)
-            writer.WriteLine(onlineRulesetID == 1
-                ? FormattableString.Invariant($"SliderMultiplier: {beatmap.Difficulty.SliderMultiplier / LEGACY_TAIKO_VELOCITY_MULTIPLIER}")
-                : FormattableString.Invariant($"SliderMultiplier: {beatmap.Difficulty.SliderMultiplier}"));
-
+            writer.WriteLine(FormattableString.Invariant($"SliderMultiplier: {beatmap.Difficulty.SliderMultiplier}"));
             writer.WriteLine(FormattableString.Invariant($"SliderTickRate: {beatmap.Difficulty.SliderTickRate}"));
         }
 
@@ -166,6 +156,9 @@ namespace osu.Game.Beatmaps.Formats
 
             foreach (var b in beatmap.Breaks)
                 writer.WriteLine(FormattableString.Invariant($"{(int)LegacyEventType.Break},{b.StartTime},{b.EndTime}"));
+
+            foreach (string l in beatmap.UnhandledEventLines)
+                writer.WriteLine(l);
         }
 
         private void handleControlPoints(TextWriter writer)
@@ -289,18 +282,38 @@ namespace osu.Game.Beatmaps.Formats
             {
                 foreach (var hitObject in hitObjects)
                 {
-                    if (hitObject.Samples.Count > 0)
+                    if (hitObject is IHasRepeats hasNodeSamples)
                     {
-                        int volume = hitObject.Samples.Max(o => o.Volume);
-                        int customIndex = hitObject.Samples.Any(o => o is ConvertHitObjectParser.LegacyHitSampleInfo)
-                            ? hitObject.Samples.OfType<ConvertHitObjectParser.LegacyHitSampleInfo>().Max(o => o.CustomSampleBank)
-                            : -1;
+                        double spanDuration = hasNodeSamples.Duration / hasNodeSamples.SpanCount();
 
-                        yield return new LegacyBeatmapDecoder.LegacySampleControlPoint { Time = hitObject.GetEndTime(), SampleVolume = volume, CustomSampleBank = customIndex };
+                        for (int i = 0; i < hasNodeSamples.NodeSamples.Count; ++i)
+                        {
+                            double nodeTime = hitObject.StartTime + i * spanDuration;
+
+                            if (hasNodeSamples.NodeSamples[i].Count > 0)
+                                yield return createSampleControlPointFor(nodeTime, hasNodeSamples.NodeSamples[i]);
+
+                            if (spanDuration > LegacyBeatmapDecoder.CONTROL_POINT_LENIENCY + 1 && hitObject.Samples.Count > 0 && i < hasNodeSamples.NodeSamples.Count - 1)
+                                yield return createSampleControlPointFor(nodeTime + LegacyBeatmapDecoder.CONTROL_POINT_LENIENCY + 1, hitObject.Samples);
+                        }
+                    }
+                    else if (hitObject.Samples.Count > 0)
+                    {
+                        yield return createSampleControlPointFor(hitObject.GetEndTime(), hitObject.Samples);
                     }
 
                     foreach (var nested in collectSampleControlPoints(hitObject.NestedHitObjects))
                         yield return nested;
+                }
+
+                SampleControlPoint createSampleControlPointFor(double time, IList<HitSampleInfo> samples)
+                {
+                    int volume = samples.Max(o => o.Volume);
+                    int customIndex = samples.Any(o => o is ConvertHitObjectParser.LegacyHitSampleInfo)
+                        ? samples.OfType<ConvertHitObjectParser.LegacyHitSampleInfo>().Max(o => o.CustomSampleBank)
+                        : -1;
+
+                    return new LegacyBeatmapDecoder.LegacySampleControlPoint { Time = time, SampleVolume = volume, CustomSampleBank = customIndex };
                 }
             }
 

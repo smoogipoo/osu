@@ -12,14 +12,17 @@ using osu.Game.Beatmaps.Formats;
 using osu.Game.Beatmaps.Legacy;
 using osu.Game.Beatmaps.Timing;
 using osu.Game.IO;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Catch;
 using osu.Game.Rulesets.Catch.Beatmaps;
+using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Beatmaps;
+using osu.Game.Rulesets.Taiko;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
 using osuTK;
@@ -433,12 +436,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 new OsuBeatmapProcessor(converted).PreProcess();
                 new OsuBeatmapProcessor(converted).PostProcess();
 
-                Assert.AreEqual(4, ((IHasComboInformation)converted.HitObjects.ElementAt(0)).ComboIndexWithOffsets);
-                Assert.AreEqual(5, ((IHasComboInformation)converted.HitObjects.ElementAt(2)).ComboIndexWithOffsets);
-                Assert.AreEqual(5, ((IHasComboInformation)converted.HitObjects.ElementAt(4)).ComboIndexWithOffsets);
-                Assert.AreEqual(6, ((IHasComboInformation)converted.HitObjects.ElementAt(6)).ComboIndexWithOffsets);
-                Assert.AreEqual(11, ((IHasComboInformation)converted.HitObjects.ElementAt(8)).ComboIndexWithOffsets);
-                Assert.AreEqual(14, ((IHasComboInformation)converted.HitObjects.ElementAt(11)).ComboIndexWithOffsets);
+                Assert.AreEqual(1, ((IHasComboInformation)converted.HitObjects.ElementAt(0)).ComboIndexWithOffsets);
+                Assert.AreEqual(2, ((IHasComboInformation)converted.HitObjects.ElementAt(2)).ComboIndexWithOffsets);
+                Assert.AreEqual(3, ((IHasComboInformation)converted.HitObjects.ElementAt(4)).ComboIndexWithOffsets);
+                Assert.AreEqual(4, ((IHasComboInformation)converted.HitObjects.ElementAt(6)).ComboIndexWithOffsets);
+                Assert.AreEqual(8, ((IHasComboInformation)converted.HitObjects.ElementAt(8)).ComboIndexWithOffsets);
+                Assert.AreEqual(9, ((IHasComboInformation)converted.HitObjects.ElementAt(11)).ComboIndexWithOffsets);
             }
         }
 
@@ -456,12 +459,46 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 new CatchBeatmapProcessor(converted).PreProcess();
                 new CatchBeatmapProcessor(converted).PostProcess();
 
-                Assert.AreEqual(4, ((IHasComboInformation)converted.HitObjects.ElementAt(0)).ComboIndexWithOffsets);
-                Assert.AreEqual(5, ((IHasComboInformation)converted.HitObjects.ElementAt(2)).ComboIndexWithOffsets);
-                Assert.AreEqual(5, ((IHasComboInformation)converted.HitObjects.ElementAt(4)).ComboIndexWithOffsets);
-                Assert.AreEqual(6, ((IHasComboInformation)converted.HitObjects.ElementAt(6)).ComboIndexWithOffsets);
-                Assert.AreEqual(11, ((IHasComboInformation)converted.HitObjects.ElementAt(8)).ComboIndexWithOffsets);
-                Assert.AreEqual(14, ((IHasComboInformation)converted.HitObjects.ElementAt(11)).ComboIndexWithOffsets);
+                Assert.AreEqual(1, ((IHasComboInformation)converted.HitObjects.ElementAt(0)).ComboIndexWithOffsets);
+                Assert.AreEqual(2, ((IHasComboInformation)converted.HitObjects.ElementAt(2)).ComboIndexWithOffsets);
+                Assert.AreEqual(3, ((IHasComboInformation)converted.HitObjects.ElementAt(4)).ComboIndexWithOffsets);
+                Assert.AreEqual(4, ((IHasComboInformation)converted.HitObjects.ElementAt(6)).ComboIndexWithOffsets);
+                Assert.AreEqual(8, ((IHasComboInformation)converted.HitObjects.ElementAt(8)).ComboIndexWithOffsets);
+                Assert.AreEqual(9, ((IHasComboInformation)converted.HitObjects.ElementAt(11)).ComboIndexWithOffsets);
+            }
+        }
+
+        [Test]
+        public void TestDecodeBeatmapHitObjectCoordinatesLegacy()
+        {
+            var decoder = new LegacyBeatmapDecoder();
+
+            using (var resStream = TestResources.OpenResource("hitobject-coordinates-legacy.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                var hitObjects = decoder.Decode(stream).HitObjects;
+
+                var positionData = hitObjects[0] as IHasPosition;
+
+                Assert.IsNotNull(positionData);
+                Assert.AreEqual(new Vector2(256, 256), positionData!.Position);
+            }
+        }
+
+        [Test]
+        public void TestDecodeBeatmapHitObjectCoordinatesLazer()
+        {
+            var decoder = new LegacyBeatmapDecoder(LegacyBeatmapEncoder.FIRST_LAZER_VERSION);
+
+            using (var resStream = TestResources.OpenResource("hitobject-coordinates-lazer.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                var hitObjects = decoder.Decode(stream).HitObjects;
+
+                var positionData = hitObjects[0] as IHasPosition;
+
+                Assert.IsNotNull(positionData);
+                Assert.AreEqual(new Vector2(256.99853f, 256.001f), positionData!.Position);
             }
         }
 
@@ -525,8 +562,17 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 Assert.AreEqual("Gameplay/normal-hitnormal2", getTestableSampleInfo(hitObjects[2]).LookupNames.First());
                 Assert.AreEqual("Gameplay/normal-hitnormal", getTestableSampleInfo(hitObjects[3]).LookupNames.First());
 
-                // The control point at the end time of the slider should be applied
-                Assert.AreEqual("Gameplay/soft-hitnormal8", getTestableSampleInfo(hitObjects[4]).LookupNames.First());
+                // The fourth object is a slider.
+                // `Samples` of a slider are presumed to control the volume of sounds that last the entire duration of the slider
+                // (such as ticks, slider slide sounds, etc.)
+                // Thus, the point of query of control points used for `Samples` is just beyond the start time of the slider.
+                Assert.AreEqual("Gameplay/soft-hitnormal11", getTestableSampleInfo(hitObjects[4]).LookupNames.First());
+
+                // That said, the `NodeSamples` of the slider are responsible for the sounds of the slider's head / tail / repeats / large ticks etc.
+                // Therefore, they should be read at the time instant correspondent to the given node.
+                // This means that the tail should use bank 8 rather than 11.
+                Assert.AreEqual("Gameplay/soft-hitnormal11", ((ConvertSlider)hitObjects[4]).NodeSamples[0][0].LookupNames.First());
+                Assert.AreEqual("Gameplay/soft-hitnormal8", ((ConvertSlider)hitObjects[4]).NodeSamples[1][0].LookupNames.First());
             }
 
             static HitSampleInfo getTestableSampleInfo(HitObject hitObject) => hitObject.Samples[0];
@@ -1091,6 +1137,129 @@ namespace osu.Game.Tests.Beatmaps.Formats
             {
                 var hitObject = decoder.Decode(stream).HitObjects.Single();
                 Assert.That(hitObject.Samples.Select(s => s.Volume), Has.All.EqualTo(70));
+            }
+        }
+
+        [Test]
+        public void TestNewComboAfterBreak()
+        {
+            var decoder = new LegacyBeatmapDecoder { ApplyOffsets = false };
+
+            using (var resStream = TestResources.OpenResource("break-between-objects.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                var beatmap = decoder.Decode(stream);
+                Assert.That(((IHasCombo)beatmap.HitObjects[0]).NewCombo, Is.True);
+                Assert.That(((IHasCombo)beatmap.HitObjects[1]).NewCombo, Is.True);
+                Assert.That(((IHasCombo)beatmap.HitObjects[2]).NewCombo, Is.False);
+            }
+        }
+
+        /// <summary>
+        /// Test cases that involve a spinner between two hitobjects.
+        /// </summary>
+        [Test]
+        public void TestSpinnerNewComboBetweenObjects([Values("osu", "catch")] string rulesetName)
+        {
+            var decoder = new LegacyBeatmapDecoder { ApplyOffsets = false };
+
+            using (var resStream = TestResources.OpenResource("spinner-between-objects.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                Ruleset ruleset;
+
+                switch (rulesetName)
+                {
+                    case "osu":
+                        ruleset = new OsuRuleset();
+                        break;
+
+                    case "catch":
+                        ruleset = new CatchRuleset();
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(rulesetName), rulesetName, null);
+                }
+
+                var working = new TestWorkingBeatmap(decoder.Decode(stream));
+                var playable = working.GetPlayableBeatmap(ruleset.RulesetInfo, Array.Empty<Mod>());
+
+                // There's no good way to figure out these values other than to compare (in code) with osu!stable...
+
+                Assert.That(((IHasComboInformation)playable.HitObjects[0]).ComboIndexWithOffsets, Is.EqualTo(1));
+                Assert.That(((IHasComboInformation)playable.HitObjects[2]).ComboIndexWithOffsets, Is.EqualTo(2));
+                Assert.That(((IHasComboInformation)playable.HitObjects[3]).ComboIndexWithOffsets, Is.EqualTo(2));
+                Assert.That(((IHasComboInformation)playable.HitObjects[5]).ComboIndexWithOffsets, Is.EqualTo(3));
+                Assert.That(((IHasComboInformation)playable.HitObjects[6]).ComboIndexWithOffsets, Is.EqualTo(3));
+                Assert.That(((IHasComboInformation)playable.HitObjects[8]).ComboIndexWithOffsets, Is.EqualTo(4));
+                Assert.That(((IHasComboInformation)playable.HitObjects[9]).ComboIndexWithOffsets, Is.EqualTo(4));
+                Assert.That(((IHasComboInformation)playable.HitObjects[11]).ComboIndexWithOffsets, Is.EqualTo(5));
+                Assert.That(((IHasComboInformation)playable.HitObjects[12]).ComboIndexWithOffsets, Is.EqualTo(6));
+                Assert.That(((IHasComboInformation)playable.HitObjects[14]).ComboIndexWithOffsets, Is.EqualTo(7));
+                Assert.That(((IHasComboInformation)playable.HitObjects[15]).ComboIndexWithOffsets, Is.EqualTo(8));
+                Assert.That(((IHasComboInformation)playable.HitObjects[17]).ComboIndexWithOffsets, Is.EqualTo(9));
+            }
+        }
+
+        [Test]
+        public void TestSliderConversionWithCustomDistance([Values("taiko", "mania")] string rulesetName)
+        {
+            using (var resStream = TestResources.OpenResource("custom-slider-length.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                Ruleset ruleset;
+
+                switch (rulesetName)
+                {
+                    case "taiko":
+                        ruleset = new TaikoRuleset();
+                        break;
+
+                    case "mania":
+                        ruleset = new ManiaRuleset();
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(rulesetName), rulesetName, null);
+                }
+
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
+                var working = new TestWorkingBeatmap(decoder.Decode(stream));
+                IBeatmap beatmap = working.GetPlayableBeatmap(ruleset.RulesetInfo, Array.Empty<Mod>());
+
+                Assert.That(beatmap.HitObjects[0].GetEndTime(), Is.EqualTo(3153));
+            }
+        }
+
+        [Test]
+        public void TestBeatmapDifficultyIsClamped()
+        {
+            var decoder = new LegacyBeatmapDecoder { ApplyOffsets = false };
+
+            using (var resStream = TestResources.OpenResource("out-of-range-difficulties.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                var decoded = decoder.Decode(stream).Difficulty;
+                Assert.That(decoded.DrainRate, Is.EqualTo(10));
+                Assert.That(decoded.CircleSize, Is.EqualTo(10));
+                Assert.That(decoded.OverallDifficulty, Is.EqualTo(10));
+                Assert.That(decoded.ApproachRate, Is.EqualTo(10));
+                Assert.That(decoded.SliderMultiplier, Is.EqualTo(3.6));
+                Assert.That(decoded.SliderTickRate, Is.EqualTo(8));
+            }
+        }
+
+        [Test]
+        public void TestManiaBeatmapDifficultyCircleSizeClamp()
+        {
+            var decoder = new LegacyBeatmapDecoder { ApplyOffsets = false };
+
+            using (var resStream = TestResources.OpenResource("out-of-range-difficulties-mania.osu"))
+            using (var stream = new LineBufferedReader(resStream))
+            {
+                var decoded = decoder.Decode(stream).Difficulty;
+                Assert.That(decoded.CircleSize, Is.EqualTo(14));
             }
         }
     }

@@ -21,7 +21,7 @@ namespace osu.Game.Tests.Visual.Editing
 {
     public partial class TestSceneOpenEditorTimestamp : OsuGameTestScene
     {
-        private Editor editor => (Editor)Game.ScreenStack.CurrentScreen;
+        private Editor? editor => Game.ScreenStack.CurrentScreen as Editor;
         private EditorBeatmap editorBeatmap => editor.ChildrenOfType<EditorBeatmap>().Single();
         private EditorClock editorClock => editor.ChildrenOfType<EditorClock>().Single();
 
@@ -31,15 +31,15 @@ namespace osu.Game.Tests.Visual.Editing
             RulesetInfo rulesetInfo = new OsuRuleset().RulesetInfo;
 
             addStepClickLink("00:00:000", waitForSeek: false);
-            AddAssert("received 'must be in edit'",
+            AddUntilStep("received 'must be in edit'",
                 () => Game.Notifications.AllNotifications.Count(x => x.Text == EditorStrings.MustBeInEditorToHandleLinks),
                 () => Is.EqualTo(1));
 
-            AddStep("enter song select", () => Game.ChildrenOfType<ButtonSystem>().Single().OnSolo.Invoke());
+            AddStep("enter song select", () => Game.ChildrenOfType<ButtonSystem>().Single().OnSolo?.Invoke());
             AddUntilStep("entered song select", () => Game.ScreenStack.CurrentScreen is PlaySongSelect);
 
             addStepClickLink("00:00:000 (1)", waitForSeek: false);
-            AddAssert("received 'must be in edit'",
+            AddUntilStep("received 'must be in edit'",
                 () => Game.Notifications.AllNotifications.Count(x => x.Text == EditorStrings.MustBeInEditorToHandleLinks),
                 () => Is.EqualTo(2));
 
@@ -47,12 +47,12 @@ namespace osu.Game.Tests.Visual.Editing
             AddAssert("ruleset is osu!", () => editorBeatmap.BeatmapInfo.Ruleset.Equals(rulesetInfo));
 
             addStepClickLink("00:000", "invalid link", waitForSeek: false);
-            AddAssert("received 'failed to process'",
+            AddUntilStep("received 'failed to process'",
                 () => Game.Notifications.AllNotifications.Count(x => x.Text == EditorStrings.FailedToParseEditorLink),
                 () => Is.EqualTo(1));
 
             addStepClickLink("50000:00:000", "too long link", waitForSeek: false);
-            AddAssert("received 'failed to process'",
+            AddUntilStep("received 'failed to process'",
                 () => Game.Notifications.AllNotifications.Count(x => x.Text == EditorStrings.FailedToParseEditorLink),
                 () => Is.EqualTo(2));
         }
@@ -111,18 +111,18 @@ namespace osu.Game.Tests.Visual.Editing
         }
 
         private void addStepScreenModeTo(EditorScreenMode screenMode) =>
-            AddStep("change screen to " + screenMode, () => editor.Mode.Value = screenMode);
+            AddStep("change screen to " + screenMode, () => editor!.Mode.Value = screenMode);
 
         private void assertOnScreenAt(EditorScreenMode screen, double time)
         {
             AddAssert($"stayed on {screen} at {time}", () =>
-                editor.Mode.Value == screen
+                editor!.Mode.Value == screen
                 && editorClock.CurrentTime == time
             );
         }
 
         private void assertMovedScreenTo(EditorScreenMode screen, string text = "moved to") =>
-            AddAssert($"{text} {screen}", () => editor.Mode.Value == screen);
+            AddAssert($"{text} {screen}", () => editor!.Mode.Value == screen);
 
         private void setUpEditor(RulesetInfo ruleset)
         {
@@ -145,7 +145,7 @@ namespace osu.Game.Tests.Visual.Editing
                 ((PlaySongSelect)Game.ScreenStack.CurrentScreen)
                 .Edit(beatmapSet.Beatmaps.Last(beatmap => beatmap.Ruleset.Name == ruleset.Name))
             );
-            AddUntilStep("Wait for editor open", () => editor.ReadyForUse);
+            AddUntilStep("Wait for editor open", () => editor?.ReadyForUse == true);
         }
     }
 }
