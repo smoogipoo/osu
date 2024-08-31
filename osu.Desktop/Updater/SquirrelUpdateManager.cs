@@ -63,7 +63,7 @@ namespace osu.Desktop.Updater
                 if (localUserInfo?.IsPlaying.Value == true)
                     return false;
 
-                updateManager ??= new Squirrel.UpdateManager(new GithubSource(@"https://github.com/ppy/osu", github_token, false), @"osulazer");
+                updateManager ??= new Squirrel.UpdateManager(new GithubSource(@"https://github.com/smoogipoo/osu", github_token, false), @"osulazer");
 
                 var info = await updateManager.CheckForUpdate(!useDeltaPatching).ConfigureAwait(false);
 
