@@ -29,7 +29,7 @@ namespace osu.Desktop.Updater
 
         public VelopackUpdateManager()
         {
-            updateManager = new UpdateManager(new GithubSource(@"https://github.com/ppy/osu", null, false), new UpdateOptions
+            updateManager = new UpdateManager(new GithubSource(@"https://github.com/smoogipoo/osu", null, false), new UpdateOptions
             {
                 AllowVersionDowngrade = true,
             });
