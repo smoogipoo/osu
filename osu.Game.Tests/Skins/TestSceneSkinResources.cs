@@ -9,11 +9,9 @@ using Moq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering.Dummy;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using osu.Game.Audio;
@@ -91,7 +89,7 @@ namespace osu.Game.Tests.Skins
             return imported.PerformRead(skinInfo => skins.GetSkin(skinInfo));
         }
 
-        private class TestSkin : Skin
+        private class TestSkin : Skin, ISampleProvider
         {
             public const string SAMPLE_NAME = "test-sample";
 
@@ -100,11 +98,7 @@ namespace osu.Game.Tests.Skins
             {
             }
 
-            public override Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => throw new NotImplementedException();
-
-            public override IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => throw new NotImplementedException();
-
-            public override ISample GetSample(ISampleInfo sampleInfo) => Samples.AsNonNull().Get(SAMPLE_NAME);
+            public ISample? Get(ISampleInfo lookup) => Samples.AsNonNull().Get(SAMPLE_NAME);
         }
     }
 }

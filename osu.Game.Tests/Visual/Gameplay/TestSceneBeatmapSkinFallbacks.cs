@@ -121,15 +121,8 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private class TestOsuRuleset : OsuRuleset
         {
-            public override ISkin CreateSkinTransformer(ISkin skin, IBeatmap beatmap) => new TestOsuLegacySkinTransformer(skin);
-
-            private class TestOsuLegacySkinTransformer : OsuLegacySkinTransformer
-            {
-                public TestOsuLegacySkinTransformer(ISkin skin)
-                    : base(skin)
-                {
-                }
-            }
+            public override IComponentProvider CreateSkinComponentProvider(ISkin skin, IBeatmap beatmap)
+                => new OsuLegacySkinComponentProvider(skin);
         }
     }
 }

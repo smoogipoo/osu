@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Reflection;
 using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
@@ -75,7 +76,11 @@ namespace osu.Game.Skinning
 
         protected override void SkinChanged(ISkinSource skin)
         {
-            var retrieved = skin.GetDrawableComponent(ComponentLookup);
+            // Todo: This shouldn't exist. It's here because we don't have a generic.
+            MethodInfo getMethod = typeof(SkinExtensions).GetMethod(nameof(SkinExtensions.GetDrawableComponent), BindingFlags.Public | BindingFlags.Static)!
+                                                         .MakeGenericMethod(ComponentLookup.GetType());
+
+            var retrieved = (Drawable?)getMethod.Invoke(null, [skin, ComponentLookup]);
 
             if (retrieved == null)
             {

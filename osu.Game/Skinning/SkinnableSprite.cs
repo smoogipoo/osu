@@ -28,7 +28,8 @@ namespace osu.Game.Skinning
         [Resolved]
         private TextureStore textures { get; set; } = null!;
 
-        [SettingSource(typeof(SkinnableComponentStrings), nameof(SkinnableComponentStrings.SpriteName), nameof(SkinnableComponentStrings.SpriteNameDescription), SettingControlType = typeof(SpriteSelectorControl))]
+        [SettingSource(typeof(SkinnableComponentStrings), nameof(SkinnableComponentStrings.SpriteName), nameof(SkinnableComponentStrings.SpriteNameDescription),
+            SettingControlType = typeof(SpriteSelectorControl))]
         public Bindable<string> SpriteName { get; } = new Bindable<string>(string.Empty);
 
         [Resolved]
@@ -105,8 +106,8 @@ namespace osu.Game.Skinning
                 {
                     foreach (var skin in skins)
                     {
-                        if (skin is ISkinTransformer transformer && isUserSkin(transformer.Skin))
-                            return transformer.Skin;
+                        if (skin is RulesetTransformedSkin transformed && isUserSkin(transformed.OriginalSkin))
+                            return transformed.OriginalSkin;
 
                         if (isUserSkin(skin))
                             return skin;

@@ -4,8 +4,6 @@
 using System;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
@@ -16,7 +14,10 @@ namespace osu.Game.Skinning
     /// <summary>
     /// An <see cref="ISkin"/> that uses an underlying <see cref="IResourceStore{T}"/> with namespaces for resources retrieval.
     /// </summary>
-    public class ResourceStoreBackedSkin : ISkin, IDisposable
+    public class ResourceStoreBackedSkin : ISkinWithExternalComponents,
+                                           IDisposable,
+                                           ITextureProvider,
+                                           ISampleProvider
     {
         private readonly TextureStore textures;
         private readonly ISampleStore samples;
@@ -27,15 +28,14 @@ namespace osu.Game.Skinning
             samples = audio.GetSampleStore(new NamespacedResourceStore<byte[]>(resources, @"Samples"));
         }
 
-        public Drawable? GetDrawableComponent(ISkinComponentLookup lookup) => null;
+        public Texture? Get(string lookup, WrapMode wrapModeS, WrapMode wrapModeT)
+            => textures.Get(lookup, wrapModeS, wrapModeT);
 
-        public Texture? GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => textures.Get(componentName, wrapModeS, wrapModeT);
-
-        public ISample? GetSample(ISampleInfo sampleInfo)
+        public ISample? Get(ISampleInfo lookup)
         {
-            foreach (string? lookup in sampleInfo.LookupNames)
+            foreach (string? lookupName in lookup.LookupNames)
             {
-                ISample? sample = samples.Get(lookup);
+                ISample? sample = samples.Get(lookupName);
                 if (sample != null)
                     return sample;
             }
@@ -43,13 +43,7 @@ namespace osu.Game.Skinning
             return null;
         }
 
-        public IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)
-            where TLookup : notnull
-            where TValue : notnull
-        {
-            Skin.LogLookupDebug(this, lookup, Skin.LookupDebugType.Miss);
-            return null;
-        }
+        public IComponentProvider Components => this;
 
         public void Dispose()
         {

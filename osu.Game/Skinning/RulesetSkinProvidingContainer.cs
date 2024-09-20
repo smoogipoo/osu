@@ -108,11 +108,7 @@ namespace osu.Game.Skinning
             if (skin == null)
                 return null;
 
-            var rulesetTransformed = Ruleset.CreateSkinTransformer(skin, Beatmap);
-            if (rulesetTransformed != null)
-                return rulesetTransformed;
-
-            return skin;
+            return new RulesetTransformedSkin(skin, Beatmap, Ruleset);
         }
 
         protected override void Dispose(bool isDisposing)

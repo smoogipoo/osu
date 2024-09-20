@@ -207,12 +207,12 @@ namespace osu.Game.Rulesets
         public ModTouchDevice? GetTouchDeviceMod() => CreateMod<ModTouchDevice>();
 
         /// <summary>
-        /// Create a transformer which adds lookups specific to a ruleset to skin sources.
+        /// Creates the provider of lookup-specific resources from a skin.
         /// </summary>
-        /// <param name="skin">The source skin.</param>
-        /// <param name="beatmap">The current beatmap.</param>
-        /// <returns>A skin with a transformer applied, or null if no transformation is provided by this ruleset.</returns>
-        public virtual ISkin? CreateSkinTransformer(ISkin skin, IBeatmap beatmap) => null;
+        /// <param name="skin">The skin.</param>
+        /// <param name="beatmap">The beatmap.</param>
+        /// <returns>The component provider.</returns>
+        public virtual IComponentProvider CreateSkinComponentProvider(ISkin skin, IBeatmap beatmap) => new EmptyComponentProvider();
 
         protected Ruleset()
         {
@@ -406,5 +406,7 @@ namespace osu.Game.Rulesets
         /// Can be overridden to avoid showing scroll speed changes in the editor.
         /// </summary>
         public virtual bool EditorShowScrollSpeed => true;
+
+        private class EmptyComponentProvider : IComponentProvider;
     }
 }

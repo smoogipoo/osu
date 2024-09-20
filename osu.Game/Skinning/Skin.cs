@@ -11,14 +11,10 @@ using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.IO;
 using osu.Game.Rulesets;
@@ -26,7 +22,7 @@ using osu.Game.Screens.Play.HUD;
 
 namespace osu.Game.Skinning
 {
-    public abstract class Skin : IDisposable, ISkin
+    public abstract partial class Skin : IDisposable, ISkin
     {
         private readonly IStorageResourceProvider? resources;
 
@@ -48,16 +44,6 @@ namespace osu.Game.Skinning
 
         private readonly Dictionary<GlobalSkinnableContainers, SkinLayoutInfo> layoutInfos =
             new Dictionary<GlobalSkinnableContainers, SkinLayoutInfo>();
-
-        public abstract ISample? GetSample(ISampleInfo sampleInfo);
-
-        public Texture? GetTexture(string componentName) => GetTexture(componentName, default, default);
-
-        public abstract Texture? GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT);
-
-        public abstract IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)
-            where TLookup : notnull
-            where TValue : notnull;
 
         private readonly ResourceStore<byte[]> store = new ResourceStore<byte[]>();
 
@@ -178,36 +164,6 @@ namespace osu.Game.Skinning
                 layoutInfos[targetContainer.Lookup.Lookup] = layoutInfo = new SkinLayoutInfo();
 
             layoutInfo.Update(targetContainer.Lookup.Ruleset, ((ISerialisableDrawableContainer)targetContainer).CreateSerialisedInfo().ToArray());
-        }
-
-        public virtual Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
-        {
-            switch (lookup)
-            {
-                // This fallback is important for user skins which use SkinnableSprites.
-                case SkinnableSprite.SpriteComponentLookup sprite:
-                    return this.GetAnimation(sprite.LookupName, false, false, maxSize: sprite.MaxSize);
-
-                case UserSkinComponentLookup userLookup:
-                    switch (userLookup.Component)
-                    {
-                        case GlobalSkinnableContainerLookup containerLookup:
-                            // It is important to return null if the user has not configured this yet.
-                            // This allows skin transformers the opportunity to provide default components.
-                            if (!LayoutInfos.TryGetValue(containerLookup.Lookup, out var layoutInfo)) return null;
-                            if (!layoutInfo.TryGetDrawableInfo(containerLookup.Ruleset, out var drawableInfos)) return null;
-
-                            return new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                ChildrenEnumerable = drawableInfos.Select(i => i.CreateInstance())
-                            };
-                    }
-
-                    break;
-            }
-
-            return null;
         }
 
         #region Deserialisation & Migration

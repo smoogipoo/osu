@@ -66,24 +66,24 @@ namespace osu.Game.Rulesets.Mania
 
         public override IBeatmapVerifier CreateBeatmapVerifier() => new ManiaBeatmapVerifier();
 
-        public override ISkin? CreateSkinTransformer(ISkin skin, IBeatmap beatmap)
+        public override IComponentProvider CreateSkinComponentProvider(ISkin skin, IBeatmap beatmap)
         {
             switch (skin)
             {
                 case TrianglesSkin:
-                    return new ManiaTrianglesSkinTransformer(skin, beatmap);
+                    return new ManiaTrianglesSkinComponentProvider(beatmap);
 
                 case ArgonSkin:
-                    return new ManiaArgonSkinTransformer(skin, beatmap);
+                    return new ManiaArgonSkinComponentProvider(skin, beatmap);
 
                 case DefaultLegacySkin:
-                    return new ManiaClassicSkinTransformer(skin, beatmap);
+                    return new ManiaClassicSkinComponentProvider(skin, beatmap);
 
                 case LegacySkin:
-                    return new ManiaLegacySkinTransformer(skin, beatmap);
+                    return new ManiaLegacySkinComponentProvider(skin, beatmap);
             }
 
-            return null;
+            return base.CreateSkinComponentProvider(skin, beatmap);
         }
 
         public override IEnumerable<Mod> ConvertFromLegacyMods(LegacyMods mods)

@@ -224,13 +224,18 @@ namespace osu.Game.Skinning
 
         public event Action SourceChanged;
 
-        public Drawable GetDrawableComponent(ISkinComponentLookup lookup) => lookupWithFallback(s => s.GetDrawableComponent(lookup));
+        public Drawable GetDrawableComponent<TComponent>(TComponent lookup)
+            where TComponent : ISkinComponentLookup
+            => lookupWithFallback(s => s.GetDrawableComponent(lookup));
 
         public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => lookupWithFallback(s => s.GetTexture(componentName, wrapModeS, wrapModeT));
 
         public ISample GetSample(ISampleInfo sampleInfo) => lookupWithFallback(s => s.GetSample(sampleInfo));
 
-        public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => lookupWithFallback(s => s.GetConfig<TLookup, TValue>(lookup));
+        public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup)
+            where TLookup : notnull
+            where TValue : notnull
+            => lookupWithFallback(s => s.GetConfig<TLookup, TValue>(lookup));
 
         public ISkin FindProvider(Func<ISkin, bool> lookupFunction)
         {

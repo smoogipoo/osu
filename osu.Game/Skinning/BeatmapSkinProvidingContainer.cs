@@ -99,7 +99,7 @@ namespace osu.Game.Skinning
             currentSkin.BindValueChanged(_ =>
             {
                 bool userSkinIsLegacy = skins.CurrentSkin.Value is LegacySkin;
-                bool beatmapProvidingResources = skin is LegacySkinTransformer legacySkin && legacySkin.IsProvidingLegacyResources;
+                bool beatmapProvidingResources = skin is ILegacyComponentProvider legacy && legacy.IsProvidingLegacyResources;
 
                 // Some beatmaps provide a limited selection of skin elements to add some visual flair.
                 // In stable, these elements will take lookup priority over the selected skin (whether that be a user skin or default).

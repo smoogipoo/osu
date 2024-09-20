@@ -49,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                 Texture = skin?.GetTexture(lookup_name)?.WithMaximumSize(maxSize: OsuHitObject.OBJECT_DIMENSIONS * 2),
             };
 
-            textureIsDefaultSkin = skin is ISkinTransformer transformer && transformer.Skin is DefaultLegacySkin;
+            textureIsDefaultSkin = skin is RulesetTransformedSkin transformed && transformed.OriginalSkin is DefaultLegacySkin;
 
             drawableObject.ApplyCustomUpdateState += updateStateTransforms;
 

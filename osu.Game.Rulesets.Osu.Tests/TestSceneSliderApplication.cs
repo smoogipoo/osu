@@ -70,7 +70,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             AddStep("create slider", () =>
             {
                 var skin = skinManager.GetSkin(DefaultLegacySkin.CreateInfo());
-                var provider = Ruleset.Value.CreateInstance().CreateSkinTransformer(skin, Beatmap.Value.Beatmap);
+                var provider = new RulesetTransformedSkin(skin, Beatmap.Value.Beatmap, Ruleset.Value.CreateInstance());
 
                 Child = new SkinProvidingContainer(provider)
                 {

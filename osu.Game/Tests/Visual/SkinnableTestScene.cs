@@ -85,7 +85,7 @@ namespace osu.Game.Tests.Visual
             OutlineBox outlineBox;
             SkinProvidingContainer skinProvider;
 
-            ISkin provider = Ruleset.Value.CreateInstance().CreateSkinTransformer(skin, beatmap) ?? skin;
+            ISkin provider = new RulesetTransformedSkin(skin, beatmap, Ruleset.Value.CreateInstance());
 
             var children = new Container
             {
@@ -207,20 +207,20 @@ namespace osu.Game.Tests.Visual
                 this.extrapolateAnimations = extrapolateAnimations;
             }
 
-            public override Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
+            public override Texture Get(string lookup, WrapMode wrapModeS, WrapMode wrapModeT)
             {
-                var lookup = base.GetTexture(componentName, wrapModeS, wrapModeT);
+                var texture = base.Get(lookup, wrapModeS, wrapModeT);
 
-                if (lookup != null)
-                    return lookup;
+                if (texture != null)
+                    return texture;
 
                 // extrapolate frames to test longer animations
                 if (extrapolateAnimations)
                 {
-                    var match = Regex.Match(componentName, "-([0-9]*)");
+                    var match = Regex.Match(lookup, "-([0-9]*)");
 
                     if (match.Length > 0 && int.TryParse(match.Groups[1].Value, out int number) && number < 60)
-                        return base.GetTexture(componentName.Replace($"-{number}", $"-{number % 2}"), wrapModeS, wrapModeT);
+                        return base.Get(lookup.Replace($"-{number}", $"-{number % 2}"), wrapModeS, wrapModeT);
                 }
 
                 return null;

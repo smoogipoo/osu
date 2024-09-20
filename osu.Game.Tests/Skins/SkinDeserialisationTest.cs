@@ -5,11 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
-using osu.Game.Audio;
 using osu.Game.IO;
 using osu.Game.IO.Archives;
 using osu.Game.Screens.Menu;
@@ -174,12 +170,6 @@ namespace osu.Game.Tests.Skins
                 : base(skin, resources, fallbackStore, configurationFilename)
             {
             }
-
-            public override Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => throw new NotImplementedException();
-
-            public override IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => throw new NotImplementedException();
-
-            public override ISample GetSample(ISampleInfo sampleInfo) => throw new NotImplementedException();
         }
     }
 }

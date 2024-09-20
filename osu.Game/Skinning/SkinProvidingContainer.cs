@@ -114,7 +114,8 @@ namespace osu.Game.Skinning
             }
         }
 
-        public Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+        public Drawable? GetDrawableComponent<TComponent>(TComponent lookup)
+            where TComponent : ISkinComponentLookup
         {
             foreach (var (_, lookupWrapper) in skinSources)
             {
@@ -257,7 +258,8 @@ namespace osu.Game.Skinning
                 this.provider = provider;
             }
 
-            public Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
+            public Drawable? GetDrawableComponent<TComponent>(TComponent lookup)
+                where TComponent : ISkinComponentLookup
             {
                 if (provider.AllowDrawableLookup(lookup))
                     return skin.GetDrawableComponent(lookup);

@@ -77,7 +77,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 // shouldn't be required as GetTexture(string) calls GetTexture(string, WrapMode, WrapMode) by default,
                 // but moq doesn't handle that well, therefore explicitly requiring to use `CallBase`:
                 // https://github.com/moq/moq4/issues/972
-                skin.Setup(s => s.GetTexture(It.IsAny<string>())).CallBase();
+                skin.Setup(s => s.GetTexture(It.IsAny<string>(), default, default)).CallBase();
 
                 skin.Setup(s => s.GetTexture(It.IsIn(textureFilenames), It.IsAny<WrapMode>(), It.IsAny<WrapMode>()))
                     .Returns((string componentName, WrapMode _, WrapMode _) =>

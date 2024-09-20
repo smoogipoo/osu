@@ -15,7 +15,6 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.Objects.Drawables;
 using osu.Game.Rulesets.Catch.Skinning;
-using osu.Game.Rulesets.Catch.Skinning.Legacy;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
@@ -176,9 +175,10 @@ namespace osu.Game.Rulesets.Catch.Tests
 
         private Drawable setupSkinHierarchy(Drawable child, ISkin skin)
         {
-            var legacySkinProvider = new SkinProvidingContainer(skins.GetSkin(DefaultLegacySkin.CreateInfo()));
+            var legacySkin = skins.GetSkin(DefaultLegacySkin.CreateInfo());
+            var legacySkinProvider = new SkinProvidingContainer(skin);
             var testSkinProvider = new SkinProvidingContainer(skin);
-            var legacySkinTransformer = new SkinProvidingContainer(new CatchLegacySkinTransformer(testSkinProvider));
+            var legacySkinTransformer = new SkinProvidingContainer(new RulesetTransformedSkin(legacySkin, Beatmap.Value.Beatmap, Ruleset.Value.CreateInstance()));
 
             return legacySkinProvider
                 .WithChild(testSkinProvider

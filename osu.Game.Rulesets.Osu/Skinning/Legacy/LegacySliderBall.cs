@@ -42,7 +42,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         [BackgroundDependencyLoader]
         private void load()
         {
-            Vector2 maxSize = OsuLegacySkinTransformer.MAX_FOLLOW_CIRCLE_AREA_SIZE;
+            Vector2 maxSize = OsuLegacySkinComponentProvider.MAX_FOLLOW_CIRCLE_AREA_SIZE;
 
             var ballColour = skin.GetConfig<OsuSkinColour, Color4>(OsuSkinColour.SliderBall)?.Value ?? Color4.White;
             ballTextures = skin.GetTextures("sliderb", default, default, true, "", maxSize, out _);

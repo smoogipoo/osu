@@ -62,27 +62,27 @@ namespace osu.Game.Tests.Skins
             AddAssert("Check lookup is from correct source", () => requester.FindProvider(s => s.GetDrawableComponent(new TestSkinComponentLookup()) != null) == expected());
         }
 
-        public class UserSkinSource : LegacySkin
+        private class UserSkinSource : LegacySkin, IDrawableProvider<TestSkinComponentLookup>
         {
             public UserSkinSource()
                 : base(new SkinInfo(), null, null, string.Empty)
             {
             }
 
-            public override Drawable GetDrawableComponent(ISkinComponentLookup lookup)
+            public Drawable Get(TestSkinComponentLookup lookup)
             {
                 return new Container { Name = "user" };
             }
         }
 
-        public class BeatmapSkinSource : LegacyBeatmapSkin
+        private class BeatmapSkinSource : LegacyBeatmapSkin, IDrawableProvider<TestSkinComponentLookup>
         {
             public BeatmapSkinSource()
                 : base(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo, null)
             {
             }
 
-            public override Drawable GetDrawableComponent(ISkinComponentLookup lookup)
+            public Drawable Get(TestSkinComponentLookup lookup)
             {
                 return new Container { Name = "beatmap" };
             }
@@ -109,9 +109,6 @@ namespace osu.Game.Tests.Skins
             public ISkin FindProvider(Func<ISkin, bool> lookupFunction) => skin.FindProvider(lookupFunction);
         }
 
-        private class TestSkinComponentLookup : ISkinComponentLookup
-        {
-            public string LookupName => string.Empty;
-        }
+        private class TestSkinComponentLookup : ISkinComponentLookup;
     }
 }

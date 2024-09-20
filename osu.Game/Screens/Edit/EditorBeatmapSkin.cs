@@ -3,11 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Textures;
-using osu.Game.Audio;
 using osu.Game.Skinning;
 using osuTK.Graphics;
 
@@ -16,7 +13,7 @@ namespace osu.Game.Screens.Edit
     /// <summary>
     /// A beatmap skin which is being edited.
     /// </summary>
-    public class EditorBeatmapSkin : ISkin
+    public class EditorBeatmapSkin : ISkinWithExternalComponents
     {
         public event Action? BeatmapSkinChanged;
 
@@ -61,17 +58,6 @@ namespace osu.Game.Screens.Edit
             invokeSkinChanged();
         }
 
-        #region Delegated ISkin implementation
-
-        public Drawable? GetDrawableComponent(ISkinComponentLookup lookup) => Skin.GetDrawableComponent(lookup);
-        public Texture? GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => Skin.GetTexture(componentName, wrapModeS, wrapModeT);
-        public ISample? GetSample(ISampleInfo sampleInfo) => Skin.GetSample(sampleInfo);
-
-        public IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)
-            where TLookup : notnull
-            where TValue : notnull
-            => Skin.GetConfig<TLookup, TValue>(lookup);
-
-        #endregion
+        public IComponentProvider Components => Skin;
     }
 }

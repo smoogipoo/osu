@@ -50,18 +50,18 @@ namespace osu.Game.Rulesets.Taiko
 
         public override IBeatmapConverter CreateBeatmapConverter(IBeatmap beatmap) => new TaikoBeatmapConverter(beatmap, this);
 
-        public override ISkin? CreateSkinTransformer(ISkin skin, IBeatmap beatmap)
+        public override IComponentProvider CreateSkinComponentProvider(ISkin skin, IBeatmap beatmap)
         {
             switch (skin)
             {
                 case ArgonSkin:
-                    return new TaikoArgonSkinTransformer(skin);
+                    return new TaikoArgonSkinComponentProvider(skin);
 
                 case LegacySkin:
-                    return new TaikoLegacySkinTransformer(skin);
+                    return new TaikoLegacySkinComponentProvider(skin);
             }
 
-            return null;
+            return base.CreateSkinComponentProvider(skin, beatmap);
         }
 
         public const string SHORT_NAME = "taiko";

@@ -65,7 +65,7 @@ namespace osu.Game.Tests.Visual.Editing
         }
 
         /// <summary>
-        /// Ensures that the skin of the edited beatmap is properly wrapped in a <see cref="LegacySkinTransformer"/>.
+        /// Ensures that the skin of the edited beatmap is properly wrapped in a <see cref="RulesetTransformedSkin"/>.
         /// </summary>
         [Test]
         public void TestLegacyBeatmapSkinHasTransformer()
@@ -73,7 +73,7 @@ namespace osu.Game.Tests.Visual.Editing
             AddAssert("legacy beatmap skin has transformer", () =>
             {
                 var sources = this.ChildrenOfType<BeatmapSkinProvidingContainer>().First().AllSources;
-                return sources.OfType<LegacySkinTransformer>().Count(t => t.Skin == editorBeatmap.BeatmapSkin.AsNonNull().Skin) == 1;
+                return sources.OfType<RulesetTransformedSkin>().Count(t => t.OriginalSkin == editorBeatmap.BeatmapSkin.AsNonNull().Skin) == 1;
             });
         }
     }
