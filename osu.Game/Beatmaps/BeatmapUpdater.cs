@@ -74,7 +74,7 @@ namespace osu.Game.Beatmaps
 
                 var calculator = ruleset.CreateDifficultyCalculator(working);
 
-                beatmap.StarRating = calculator.Calculate().StarRating;
+                beatmap.StarRating = calculator.Calculate().Last().Attributes.StarRating;
                 beatmap.Length = working.Beatmap.CalculatePlayableLength();
                 beatmap.BPM = 60000 / working.Beatmap.GetMostCommonBeatLength();
                 beatmap.EndTimeObjectCount = working.Beatmap.HitObjects.Count(h => h is IHasDuration);

@@ -12,7 +12,6 @@ using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 
 namespace osu.Game.Rulesets.Catch.Difficulty
@@ -25,45 +24,41 @@ namespace osu.Game.Rulesets.Catch.Difficulty
 
         public override int Version => 20220701;
 
+        private Movement? movementSkill;
+
         public CatchDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
         {
         }
 
-        protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
+        protected override void Prepare(DifficultyCalculationContext context)
         {
-            if (beatmap.HitObjects.Count == 0)
-                return new CatchDifficultyAttributes { Mods = mods };
+            halfCatcherWidth = Catcher.CalculateCatchWidth(context.Beatmap.Difficulty) * 0.5f;
 
-            // this is the same as osu!, so there's potential to share the implementation... maybe
-            double preempt = IBeatmapDifficultyInfo.DifficultyRange(beatmap.Difficulty.ApproachRate, 1800, 1200, 450) / clockRate;
+            // For circle sizes above 5.5, reduce the catcher width further to simulate imperfect gameplay.
+            halfCatcherWidth *= 1 - Math.Max(0, context.Beatmap.Difficulty.CircleSize - 5.5f) * 0.0625f;
 
-            CatchDifficultyAttributes attributes = new CatchDifficultyAttributes
-            {
-                StarRating = Math.Sqrt(skills[0].DifficultyValue()) * difficulty_multiplier,
-                Mods = mods,
-                ApproachRate = preempt > 1200.0 ? -(preempt - 1800.0) / 120.0 : -(preempt - 1200.0) / 150.0 + 5.0,
-                MaxCombo = beatmap.GetMaxCombo(),
-            };
-
-            return attributes;
+            movementSkill = new Movement(context.Mods, halfCatcherWidth, context.RateAt(0));
         }
 
-        protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
+        protected override IEnumerable<DifficultyHitObject> EnumerateObjects(DifficultyCalculationContext context)
         {
-            CatchHitObject? lastObject = null;
-
             List<DifficultyHitObject> objects = new List<DifficultyHitObject>();
 
+            CatchHitObject? lastObject = null;
+            int maxCombo = 0;
+
             // In 2B beatmaps, it is possible that a normal Fruit is placed in the middle of a JuiceStream.
-            foreach (var hitObject in CatchBeatmap.GetPalpableObjects(beatmap.HitObjects))
+            foreach (var hitObject in CatchBeatmap.GetPalpableObjects(context.Beatmap.HitObjects))
             {
                 // We want to only consider fruits that contribute to the combo.
                 if (hitObject is Banana || hitObject is TinyDroplet)
                     continue;
 
+                maxCombo += GetComboIncrease(hitObject);
+
                 if (lastObject != null)
-                    objects.Add(new CatchDifficultyHitObject(hitObject, lastObject, clockRate, halfCatcherWidth, objects, objects.Count));
+                    objects.Add(new CatchDifficultyHitObject(hitObject, lastObject, context.RateAt(0), halfCatcherWidth, objects, objects.Count, maxCombo));
 
                 lastObject = hitObject;
             }
@@ -71,17 +66,28 @@ namespace osu.Game.Rulesets.Catch.Difficulty
             return objects;
         }
 
-        protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
+        protected override void ProcessSingle(DifficultyCalculationContext context, DifficultyHitObject hitObject)
         {
-            halfCatcherWidth = Catcher.CalculateCatchWidth(beatmap.Difficulty) * 0.5f;
+            movementSkill!.Process(hitObject);
+        }
 
-            // For circle sizes above 5.5, reduce the catcher width further to simulate imperfect gameplay.
-            halfCatcherWidth *= 1 - (Math.Max(0, beatmap.Difficulty.CircleSize - 5.5f) * 0.0625f);
+        protected override DifficultyAttributes GenerateAttributes(DifficultyCalculationContext context, DifficultyHitObject? hitObject)
+        {
+            if (hitObject is not CatchDifficultyHitObject)
+                return new CatchDifficultyAttributes { Mods = context.Mods };
 
-            return new Skill[]
+            // this is the same as osu!, so there's potential to share the implementation... maybe
+            double preempt = IBeatmapDifficultyInfo.DifficultyRange(context.Beatmap.Difficulty.ApproachRate, 1800, 1200, 450) / context.RateAt(0);
+
+            CatchDifficultyAttributes attributes = new CatchDifficultyAttributes
             {
-                new Movement(mods, halfCatcherWidth, clockRate),
+                StarRating = Math.Sqrt(movementSkill!.DifficultyValue()) * difficulty_multiplier,
+                Mods = context.Mods,
+                ApproachRate = preempt > 1200.0 ? -(preempt - 1800.0) / 120.0 : -(preempt - 1200.0) / 150.0 + 5.0,
+                MaxCombo = hitObject.MaxCombo,
             };
+
+            return attributes;
         }
 
         protected override Mod[] DifficultyAdjustmentMods => new Mod[]

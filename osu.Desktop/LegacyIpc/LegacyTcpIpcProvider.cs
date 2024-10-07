@@ -81,7 +81,7 @@ namespace osu.Desktop.LegacyIpc
 
                         return new LegacyIpcDifficultyCalculationResponse
                         {
-                            StarRating = ruleset.CreateDifficultyCalculator(beatmap).Calculate(mods).StarRating
+                            StarRating = ruleset.CreateDifficultyCalculator(beatmap).Calculate(mods).Last().Attributes.StarRating
                         };
                     }
                     catch

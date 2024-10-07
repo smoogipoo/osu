@@ -84,11 +84,26 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// </summary>
         public double HitWindowGreat { get; private set; }
 
+        /// <summary>
+        /// The total number of hitcircles at the current time.
+        /// </summary>
+        public int CircleCount { get; init; }
+
+        /// <summary>
+        /// The total number of sliders at the current time.
+        /// </summary>
+        public int SliderCount { get; init; }
+
+        /// <summary>
+        /// The total number of sliders at the current time.
+        /// </summary>
+        public int SpinnerCount { get; init; }
+
         private readonly OsuHitObject? lastLastObject;
         private readonly OsuHitObject lastObject;
 
-        public OsuDifficultyHitObject(HitObject hitObject, HitObject lastObject, HitObject? lastLastObject, double clockRate, List<DifficultyHitObject> objects, int index)
-            : base(hitObject, lastObject, clockRate, objects, index)
+        public OsuDifficultyHitObject(HitObject hitObject, HitObject lastObject, HitObject? lastLastObject, double clockRate, List<DifficultyHitObject> objects, int index, int maxCombo)
+            : base(hitObject, lastObject, clockRate, objects, index, maxCombo)
         {
             this.lastLastObject = lastLastObject as OsuHitObject;
             this.lastObject = (OsuHitObject)lastObject;

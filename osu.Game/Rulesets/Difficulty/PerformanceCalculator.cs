@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Game.Beatmaps;
@@ -24,7 +25,7 @@ namespace osu.Game.Rulesets.Difficulty
             => CreatePerformanceAttributes(score, attributes);
 
         public PerformanceAttributes Calculate(ScoreInfo score, IWorkingBeatmap beatmap)
-            => Calculate(score, Ruleset.CreateDifficultyCalculator(beatmap).Calculate(score.Mods));
+            => Calculate(score, Ruleset.CreateDifficultyCalculator(beatmap).Calculate(score.Mods).Last().Attributes);
 
         /// <summary>
         /// Creates <see cref="PerformanceAttributes"/> to describe a score's performance.

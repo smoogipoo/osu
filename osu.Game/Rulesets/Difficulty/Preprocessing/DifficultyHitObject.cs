@@ -46,6 +46,11 @@ namespace osu.Game.Rulesets.Difficulty.Preprocessing
         public readonly double EndTime;
 
         /// <summary>
+        /// The maximum combo at the current time.
+        /// </summary>
+        public readonly int MaxCombo;
+
+        /// <summary>
         /// Creates a new <see cref="DifficultyHitObject"/>.
         /// </summary>
         /// <param name="hitObject">The <see cref="HitObject"/> which this <see cref="DifficultyHitObject"/> wraps.</param>
@@ -53,7 +58,8 @@ namespace osu.Game.Rulesets.Difficulty.Preprocessing
         /// <param name="clockRate">The rate at which the gameplay clock is run at.</param>
         /// <param name="objects">The list of <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="index">The index of this <see cref="DifficultyHitObject"/> in <paramref name="objects"/> list.</param>
-        public DifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate, List<DifficultyHitObject> objects, int index)
+        /// <param name="maxCombo">The maximum combo at the current time.</param>
+        public DifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate, List<DifficultyHitObject> objects, int index, int maxCombo)
         {
             difficultyHitObjects = objects;
             Index = index;
@@ -62,6 +68,7 @@ namespace osu.Game.Rulesets.Difficulty.Preprocessing
             DeltaTime = (hitObject.StartTime - lastObject.StartTime) / clockRate;
             StartTime = hitObject.StartTime / clockRate;
             EndTime = hitObject.GetEndTime() / clockRate;
+            MaxCombo = maxCombo;
         }
 
         public DifficultyHitObject Previous(int backwardsIndex)

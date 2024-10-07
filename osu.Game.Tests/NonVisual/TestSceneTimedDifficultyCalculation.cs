@@ -10,7 +10,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.UI;
@@ -38,7 +37,7 @@ namespace osu.Game.Tests.NonVisual
                 }
             };
 
-            List<TimedDifficultyAttributes> attribs = new TestDifficultyCalculator(new TestWorkingBeatmap(beatmap)).CalculateTimed();
+            List<TimedDifficultyAttributes> attribs = new TestDifficultyCalculator(new TestWorkingBeatmap(beatmap)).Calculate().ToList();
 
             Assert.That(attribs.Count, Is.EqualTo(3));
             assertEquals(attribs[0], beatmap.HitObjects[0]);
@@ -69,7 +68,7 @@ namespace osu.Game.Tests.NonVisual
                 }
             };
 
-            List<TimedDifficultyAttributes> attribs = new TestDifficultyCalculator(new TestWorkingBeatmap(beatmap)).CalculateTimed();
+            List<TimedDifficultyAttributes> attribs = new TestDifficultyCalculator(new TestWorkingBeatmap(beatmap)).Calculate().ToList();
 
             Assert.That(attribs.Count, Is.EqualTo(3));
             assertEquals(attribs[0], beatmap.HitObjects[0]);
@@ -99,7 +98,7 @@ namespace osu.Game.Tests.NonVisual
                 }
             };
 
-            List<TimedDifficultyAttributes> attribs = new TestDifficultyCalculator(new TestWorkingBeatmap(beatmap)).CalculateTimed();
+            List<TimedDifficultyAttributes> attribs = new TestDifficultyCalculator(new TestWorkingBeatmap(beatmap)).Calculate().ToList();
 
             Assert.That(attribs.Count, Is.EqualTo(3));
             assertEquals(attribs[0], beatmap.HitObjects[0]);
@@ -167,44 +166,64 @@ namespace osu.Game.Tests.NonVisual
 
         private class TestDifficultyCalculator : DifficultyCalculator
         {
+            private readonly List<HitObject> processedObjects = new List<HitObject>();
+
             public TestDifficultyCalculator(IWorkingBeatmap beatmap)
                 : base(new TestRuleset().RulesetInfo, beatmap)
             {
             }
 
-            protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
-                => new TestDifficultyAttributes { Objects = beatmap.HitObjects.ToArray() };
+            protected override void Prepare(DifficultyCalculationContext context)
+            {
+            }
 
-            protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
+            protected override IEnumerable<DifficultyHitObject> EnumerateObjects(DifficultyCalculationContext context)
             {
                 List<DifficultyHitObject> objects = new List<DifficultyHitObject>();
 
-                foreach (var obj in beatmap.HitObjects.OfType<TestHitObject>())
+                int maxCombo = 0;
+                int countObjects = 0;
+
+                foreach (var obj in context.Beatmap.HitObjects.OfType<TestHitObject>())
                 {
+                    maxCombo += GetComboIncrease(obj);
+                    countObjects++;
+
                     if (!obj.Skip)
-                        objects.Add(new DifficultyHitObject(obj, obj, clockRate, objects, objects.Count));
+                        objects.Add(new TestDifficultyHitObject(obj, obj, context.RateAt(0), objects, objects.Count, maxCombo, countObjects));
 
                     foreach (var nested in obj.NestedHitObjects)
-                        objects.Add(new DifficultyHitObject(nested, nested, clockRate, objects, objects.Count));
+                        objects.Add(new TestDifficultyHitObject(nested, nested, context.RateAt(0), objects, objects.Count, maxCombo, countObjects));
                 }
 
                 return objects;
             }
 
-            protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate) => new Skill[] { new PassThroughSkill(mods) };
-
-            private class PassThroughSkill : Skill
+            protected override void ProcessSingle(DifficultyCalculationContext context, DifficultyHitObject hitObject)
             {
-                public PassThroughSkill(Mod[] mods)
-                    : base(mods)
-                {
-                }
+            }
 
-                public override void Process(DifficultyHitObject current)
-                {
-                }
+            protected override DifficultyAttributes GenerateAttributes(DifficultyCalculationContext context, DifficultyHitObject? hitObject)
+            {
+                if (hitObject is not TestDifficultyHitObject testObject)
+                    return new TestDifficultyAttributes { Mods = context.Mods };
 
-                public override double DifficultyValue() => 1;
+                return new TestDifficultyAttributes
+                {
+                    Mods = context.Mods,
+                    Objects = context.Beatmap.HitObjects.Take(testObject.CountObjects).ToArray()
+                };
+            }
+
+            private class TestDifficultyHitObject : DifficultyHitObject
+            {
+                public readonly int CountObjects;
+
+                public TestDifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate, List<DifficultyHitObject> objects, int index, int maxCombo, int countObjects)
+                    : base(hitObject, lastObject, clockRate, objects, index, maxCombo)
+                {
+                    CountObjects = countObjects;
+                }
             }
         }
 

@@ -8,17 +8,14 @@ using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Rulesets.Mania.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Mania.Difficulty.Skills;
 using osu.Game.Rulesets.Mania.MathUtils;
 using osu.Game.Rulesets.Mania.Mods;
 using osu.Game.Rulesets.Mania.Objects;
-using osu.Game.Rulesets.Mania.Scoring;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
-using osu.Game.Rulesets.Scoring;
 
 namespace osu.Game.Rulesets.Mania.Difficulty
 {
@@ -31,6 +28,9 @@ namespace osu.Game.Rulesets.Mania.Difficulty
 
         public override int Version => 20230817;
 
+        private Strain? strainSkill;
+        private double hitWindowGreat;
+
         public ManiaDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
         {
@@ -38,56 +38,80 @@ namespace osu.Game.Rulesets.Mania.Difficulty
             originalOverallDifficulty = beatmap.BeatmapInfo.Difficulty.OverallDifficulty;
         }
 
-        protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
+        protected override void Prepare(DifficultyCalculationContext context)
         {
-            if (beatmap.HitObjects.Count == 0)
-                return new ManiaDifficultyAttributes { Mods = mods };
+            strainSkill = new Strain(context.Mods, ((ManiaBeatmap)context.Beatmap).TotalColumns);
 
-            HitWindows hitWindows = new ManiaHitWindows();
-            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
-
-            ManiaDifficultyAttributes attributes = new ManiaDifficultyAttributes
+            if (isForCurrentRuleset)
             {
-                StarRating = skills[0].DifficultyValue() * difficulty_multiplier,
-                Mods = mods,
-                // In osu-stable mania, rate-adjustment mods don't affect the hit window.
-                // This is done the way it is to introduce fractional differences in order to match osu-stable for the time being.
-                GreatHitWindow = Math.Ceiling((int)(getHitWindow300(mods) * clockRate) / clockRate),
-                MaxCombo = beatmap.HitObjects.Sum(maxComboForObject),
-            };
+                double od = Math.Min(10.0, Math.Max(0, 10.0 - originalOverallDifficulty));
+                hitWindowGreat = applyModAdjustments(34 + 3 * od, context.Mods);
+            }
+            else if (Math.Round(originalOverallDifficulty) > 4)
+                hitWindowGreat = applyModAdjustments(34, context.Mods);
+            else
+                hitWindowGreat = applyModAdjustments(47, context.Mods);
 
-            return attributes;
+            static double applyModAdjustments(double value, Mod[] mods)
+            {
+                if (mods.Any(m => m is ManiaModHardRock))
+                    value /= 1.4;
+                else if (mods.Any(m => m is ManiaModEasy))
+                    value *= 1.4;
+
+                return value;
+            }
         }
 
-        private static int maxComboForObject(HitObject hitObject)
+        protected override IEnumerable<DifficultyHitObject> EnumerateObjects(DifficultyCalculationContext context)
         {
-            if (hitObject is HoldNote hold)
-                return 1 + (int)((hold.EndTime - hold.StartTime) / 100);
-
-            return 1;
-        }
-
-        protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
-        {
-            var sortedObjects = beatmap.HitObjects.ToArray();
-
-            LegacySortHelper<HitObject>.Sort(sortedObjects, Comparer<HitObject>.Create((a, b) => (int)Math.Round(a.StartTime) - (int)Math.Round(b.StartTime)));
-
             List<DifficultyHitObject> objects = new List<DifficultyHitObject>();
 
+            var sortedObjects = context.Beatmap.HitObjects.ToArray();
+            LegacySortHelper<HitObject>.Sort(sortedObjects, Comparer<HitObject>.Create((a, b) => (int)Math.Round(a.StartTime) - (int)Math.Round(b.StartTime)));
+
+            int maxCombo = 0;
+
             for (int i = 1; i < sortedObjects.Length; i++)
-                objects.Add(new ManiaDifficultyHitObject(sortedObjects[i], sortedObjects[i - 1], clockRate, objects, objects.Count));
+            {
+                maxCombo++;
+
+                if (sortedObjects[i] is HoldNote hold)
+                    maxCombo += (int)((hold.EndTime - hold.StartTime) / 100);
+
+                if (i < 1)
+                    continue;
+
+                objects.Add(new ManiaDifficultyHitObject(sortedObjects[i], sortedObjects[i - 1], context.RateAt(0), objects, objects.Count, maxCombo));
+            }
 
             return objects;
         }
 
-        // Sorting is done in CreateDifficultyHitObjects, since the full list of hitobjects is required.
-        protected override IEnumerable<DifficultyHitObject> SortObjects(IEnumerable<DifficultyHitObject> input) => input;
-
-        protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate) => new Skill[]
+        protected override void ProcessSingle(DifficultyCalculationContext context, DifficultyHitObject hitObject)
         {
-            new Strain(mods, ((ManiaBeatmap)Beatmap).TotalColumns)
-        };
+            strainSkill!.Process(hitObject);
+        }
+
+        protected override DifficultyAttributes GenerateAttributes(DifficultyCalculationContext context, DifficultyHitObject? hitObject)
+        {
+            if (hitObject is not ManiaDifficultyHitObject)
+                return new ManiaDifficultyAttributes { Mods = context.Mods };
+
+            double rate = context.RateAt(0);
+
+            ManiaDifficultyAttributes attributes = new ManiaDifficultyAttributes
+            {
+                StarRating = strainSkill!.DifficultyValue() * difficulty_multiplier,
+                Mods = context.Mods,
+                // In osu-stable mania, rate-adjustment mods don't affect the hit window.
+                // This is done the way it is to introduce fractional differences in order to match osu-stable for the time being.
+                GreatHitWindow = Math.Ceiling((int)(hitWindowGreat * rate) / rate),
+                MaxCombo = hitObject.MaxCombo
+            };
+
+            return attributes;
+        }
 
         protected override Mod[] DifficultyAdjustmentMods
         {

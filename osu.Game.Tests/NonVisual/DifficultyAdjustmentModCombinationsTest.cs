@@ -6,10 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Localisation;
-using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Utils;
 
@@ -215,27 +213,32 @@ namespace osu.Game.Tests.NonVisual
         private class TestLegacyDifficultyCalculator : DifficultyCalculator
         {
             public TestLegacyDifficultyCalculator(params Mod[] mods)
-                : base(null, null)
+                : base(null!, null!)
             {
                 DifficultyAdjustmentMods = mods;
             }
 
+            protected override void Prepare(DifficultyCalculationContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override IEnumerable<DifficultyHitObject> EnumerateObjects(DifficultyCalculationContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override void ProcessSingle(DifficultyCalculationContext context, DifficultyHitObject hitObject)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override DifficultyAttributes GenerateAttributes(DifficultyCalculationContext context, DifficultyHitObject? hitObject)
+            {
+                throw new NotImplementedException();
+            }
+
             protected override Mod[] DifficultyAdjustmentMods { get; }
-
-            protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }
