@@ -117,8 +117,8 @@ namespace osu.Game.Rulesets.Osu.Tests
                 {
                     new DrawableSliderHead(new SliderHeadCircle { StartTime = Time.Current, ClassicSliderBehaviour = classic }),
                     new DrawableSliderTick(new SliderTick { StartTime = Time.Current }),
-                    new DrawableSliderRepeat(new SliderRepeat(slider) { StartTime = Time.Current }),
-                    new DrawableSliderTail(new SliderTailCircle(slider) { StartTime = Time.Current, ClassicSliderBehaviour = classic }),
+                    new DrawableSliderRepeat(new SliderRepeat { Slider = slider, StartTime = Time.Current }),
+                    new DrawableSliderTail(new SliderTailCircle { Slider = slider, StartTime = Time.Current, ClassicSliderBehaviour = classic }),
                     new DrawableSlider(slider),
                 };
 

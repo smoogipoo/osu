@@ -242,6 +242,24 @@ namespace osu.Game.Rulesets.Objects
             return new HitSampleInfo(sampleName);
         }
 
+        public virtual void FreeAfterUse()
+        {
+            if (this is IHasComboInformation hasCombo)
+            {
+                foreach (HitObject hitObject in nestedHitObjects)
+                {
+                    if (hitObject is IHasComboInformation n)
+                    {
+                        n.ComboIndexBindable.UnbindFrom(hasCombo.ComboIndexBindable);
+                        n.ComboIndexWithOffsetsBindable.UnbindFrom(hasCombo.ComboIndexWithOffsetsBindable);
+                        n.IndexInCurrentComboBindable.UnbindFrom(hasCombo.IndexInCurrentComboBindable);
+                    }
+                }
+            }
+
+            nestedHitObjects.Clear();
+        }
+
         public override string ToString() => $"{GetType().ReadableName()} @ {StartTime}";
     }
 

@@ -180,47 +180,45 @@ namespace osu.Game.Rulesets.Osu.Objects
                 switch (e.Type)
                 {
                     case SliderEventType.Tick:
-                        AddNested(new SliderTick
-                        {
-                            SpanIndex = e.SpanIndex,
-                            SpanStartTime = e.SpanStartTime,
-                            StartTime = e.Time,
-                            Position = Position + Path.PositionAt(e.PathProgress),
-                            PathProgress = e.PathProgress,
-                            StackHeight = StackHeight,
-                        });
+                        SliderTick tick = BeatmapLoadContext.Current.Rent<SliderTick>();
+                        tick.SpanIndex = e.SpanIndex;
+                        tick.SpanStartTime = e.SpanStartTime;
+                        tick.StartTime = e.Time;
+                        tick.Position = Position + Path.PositionAt(e.PathProgress);
+                        tick.PathProgress = e.PathProgress;
+                        tick.StackHeight = StackHeight;
+                        AddNested(tick);
                         break;
 
                     case SliderEventType.Head:
-                        AddNested(HeadCircle = new SliderHeadCircle
-                        {
-                            StartTime = e.Time,
-                            Position = Position,
-                            StackHeight = StackHeight,
-                            ClassicSliderBehaviour = ClassicSliderBehaviour,
-                        });
+                        HeadCircle = BeatmapLoadContext.Current.Rent<SliderHeadCircle>();
+                        HeadCircle.StartTime = e.Time;
+                        HeadCircle.Position = Position;
+                        HeadCircle.StackHeight = StackHeight;
+                        HeadCircle.ClassicSliderBehaviour = ClassicSliderBehaviour;
+                        AddNested(HeadCircle);
                         break;
 
                     case SliderEventType.Tail:
-                        AddNested(TailCircle = new SliderTailCircle(this)
-                        {
-                            RepeatIndex = e.SpanIndex,
-                            StartTime = e.Time,
-                            Position = EndPosition,
-                            StackHeight = StackHeight,
-                            ClassicSliderBehaviour = ClassicSliderBehaviour,
-                        });
+                        TailCircle = BeatmapLoadContext.Current.Rent<SliderTailCircle>();
+                        TailCircle.Slider = this;
+                        TailCircle.RepeatIndex = e.SpanIndex;
+                        TailCircle.StartTime = e.Time;
+                        TailCircle.Position = EndPosition;
+                        TailCircle.StackHeight = StackHeight;
+                        TailCircle.ClassicSliderBehaviour = ClassicSliderBehaviour;
+                        AddNested(TailCircle);
                         break;
 
                     case SliderEventType.Repeat:
-                        AddNested(LastRepeat = new SliderRepeat(this)
-                        {
-                            RepeatIndex = e.SpanIndex,
-                            StartTime = StartTime + (e.SpanIndex + 1) * SpanDuration,
-                            Position = Position + Path.PositionAt(e.PathProgress),
-                            StackHeight = StackHeight,
-                            PathProgress = e.PathProgress,
-                        });
+                        LastRepeat = BeatmapLoadContext.Current.Rent<SliderRepeat>();
+                        LastRepeat!.Slider = this;
+                        LastRepeat.RepeatIndex = e.SpanIndex;
+                        LastRepeat.StartTime = StartTime + (e.SpanIndex + 1) * SpanDuration;
+                        LastRepeat.Position = Position + Path.PositionAt(e.PathProgress);
+                        LastRepeat.StackHeight = StackHeight;
+                        LastRepeat.PathProgress = e.PathProgress;
+                        AddNested(LastRepeat);
                         break;
                 }
             }

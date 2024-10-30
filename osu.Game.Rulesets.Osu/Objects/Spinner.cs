@@ -89,9 +89,21 @@ namespace osu.Game.Rulesets.Osu.Objects
 
                 double startTime = StartTime + (float)(i + 1) / totalSpins * Duration;
 
-                AddNested(i < SpinsRequiredForBonus
-                    ? new SpinnerTick { StartTime = startTime, SpinnerDuration = Duration }
-                    : new SpinnerBonusTick { StartTime = startTime, SpinnerDuration = Duration, Samples = new[] { CreateHitSampleInfo("spinnerbonus") } });
+                if (i < SpinsRequiredForBonus)
+                {
+                    SpinnerTick tick = BeatmapLoadContext.Current.Rent<SpinnerTick>();
+                    tick.StartTime = startTime;
+                    tick.SpinnerDuration = Duration;
+                    AddNested(tick);
+                }
+                else
+                {
+                    SpinnerBonusTick bonusTick = BeatmapLoadContext.Current.Rent<SpinnerBonusTick>();
+                    bonusTick.StartTime = startTime;
+                    bonusTick.SpinnerDuration = Duration;
+                    bonusTick.Samples = new[] { CreateHitSampleInfo("spinnerbonus") };
+                    AddNested(bonusTick);
+                }
             }
         }
 

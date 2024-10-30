@@ -14,12 +14,7 @@ namespace osu.Game.Rulesets.Osu.Objects
     /// </summary>
     public abstract class SliderEndCircle : HitCircle
     {
-        protected readonly Slider Slider;
-
-        protected SliderEndCircle(Slider slider)
-        {
-            Slider = slider;
-        }
+        public Slider Slider { get; set; } = new Slider();
 
         public int RepeatIndex { get; set; }
 

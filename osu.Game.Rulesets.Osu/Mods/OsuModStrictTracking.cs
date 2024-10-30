@@ -80,11 +80,6 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private class StrictTrackingSliderTailCircle : SliderTailCircle
         {
-            public StrictTrackingSliderTailCircle(Slider slider)
-                : base(slider)
-            {
-            }
-
             public override Judgement CreateJudgement() => new StrictTrackingTailJudgement();
         }
 
@@ -145,8 +140,9 @@ namespace osu.Game.Rulesets.Osu.Mods
                             break;
 
                         case SliderEventType.Tail:
-                            AddNested(TailCircle = new StrictTrackingSliderTailCircle(this)
+                            AddNested(TailCircle = new StrictTrackingSliderTailCircle
                             {
+                                Slider = this,
                                 RepeatIndex = e.SpanIndex,
                                 StartTime = e.Time,
                                 Position = EndPosition,
@@ -155,8 +151,9 @@ namespace osu.Game.Rulesets.Osu.Mods
                             break;
 
                         case SliderEventType.Repeat:
-                            AddNested(new SliderRepeat(this)
+                            AddNested(new SliderRepeat
                             {
+                                Slider = this,
                                 RepeatIndex = e.SpanIndex,
                                 StartTime = StartTime + (e.SpanIndex + 1) * SpanDuration,
                                 Position = Position + Path.PositionAt(e.PathProgress),
