@@ -62,7 +62,11 @@ namespace osu.Game.Beatmaps
         {
         }
 
-        IUser IBeatmapMetadataInfo.Author => Author;
+        IUser IBeatmapMetadataInfo.Author
+        {
+            get => Author;
+            set => Author = (RealmUser)value;
+        }
 
         public override string ToString() => this.GetDisplayTitle();
 

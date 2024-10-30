@@ -41,9 +41,29 @@ namespace osu.Game.Online.API.Requests.Responses
         [JsonProperty(@"difficulty_rating")]
         public double StarRating { get; set; }
 
-        public int EndTimeObjectCount => SliderCount + SpinnerCount;
+        public int EndTimeObjectCount
+        {
+            get => SliderCount + SpinnerCount;
+            set => throw new NotSupportedException();
+        }
 
-        public int TotalObjectCount => CircleCount + SliderCount + SpinnerCount;
+        public int TotalObjectCount
+        {
+            get => CircleCount + SliderCount + SpinnerCount;
+            set => throw new NotSupportedException();
+        }
+
+        public int[] Bookmarks
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public int BeatmapVersion
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
 
         [JsonProperty(@"drain")]
         public float DrainRate { get; set; }
@@ -105,24 +125,48 @@ namespace osu.Game.Online.API.Requests.Responses
 
         #region Implementation of IBeatmapInfo
 
-        public IBeatmapMetadataInfo Metadata => (BeatmapSet as IBeatmapSetInfo)?.Metadata ?? new BeatmapMetadata();
-
-        public IBeatmapDifficultyInfo Difficulty => new BeatmapDifficulty
+        public IBeatmapMetadataInfo Metadata
         {
-            DrainRate = DrainRate,
-            CircleSize = CircleSize,
-            ApproachRate = ApproachRate,
-            OverallDifficulty = OverallDifficulty
-        };
+            get => (BeatmapSet as IBeatmapSetInfo)?.Metadata ?? new BeatmapMetadata();
+            set => throw new NotSupportedException();
+        }
 
-        IBeatmapSetInfo? IBeatmapInfo.BeatmapSet => BeatmapSet;
+        public IBeatmapDifficultyInfo Difficulty
+        {
+            get => new BeatmapDifficulty
+            {
+                DrainRate = DrainRate,
+                CircleSize = CircleSize,
+                ApproachRate = ApproachRate,
+                OverallDifficulty = OverallDifficulty
+            };
+            set => throw new NotSupportedException();
+        }
 
-        public string MD5Hash => Checksum;
+        IBeatmapSetInfo? IBeatmapInfo.BeatmapSet
+        {
+            get => BeatmapSet;
+            set => throw new NotSupportedException();
+        }
 
-        public IRulesetInfo Ruleset => new APIRuleset { OnlineID = RulesetID };
+        public string MD5Hash
+        {
+            get => Checksum;
+            set => Checksum = value;
+        }
+
+        public IRulesetInfo Ruleset
+        {
+            get => new APIRuleset { OnlineID = RulesetID };
+            set => throw new NotSupportedException();
+        }
 
         [JsonIgnore]
-        public string Hash => throw new NotImplementedException();
+        public string Hash
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
 
         #endregion
 

@@ -6,6 +6,7 @@ using System.Linq;
 using Moq;
 using NUnit.Framework;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Edit.Checks;
 using osu.Game.Rulesets.Objects;
@@ -44,10 +45,10 @@ namespace osu.Game.Tests.Editing.Checks
         [Test]
         public void TestNoVideo()
         {
-            beatmap.BeatmapInfo.BeatmapSet?.Files.Clear();
+            if (beatmap.BeatmapInfo.BeatmapSet is IHasRealmFiles setWithFiles)
+                setWithFiles.Files.Clear();
 
             var issues = check.Run(getContext(null)).ToList();
-
             Assert.That(issues, Has.Count.EqualTo(0));
         }
 

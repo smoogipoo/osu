@@ -18,33 +18,33 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// The drain rate of the associated beatmap.
         /// </summary>
-        float DrainRate { get; }
+        float DrainRate { get; set; }
 
         /// <summary>
         /// The circle size of the associated beatmap.
         /// </summary>
-        float CircleSize { get; }
+        float CircleSize { get; set; }
 
         /// <summary>
         /// The overall difficulty of the associated beatmap.
         /// </summary>
-        float OverallDifficulty { get; }
+        float OverallDifficulty { get; set; }
 
         /// <summary>
         /// The approach rate of the associated beatmap.
         /// </summary>
-        float ApproachRate { get; }
+        float ApproachRate { get; set; }
 
         /// <summary>
         /// The base slider velocity of the associated beatmap.
         /// This was known as "SliderMultiplier" in the .osu format and stable editor.
         /// </summary>
-        double SliderMultiplier { get; }
+        double SliderMultiplier { get; set; }
 
         /// <summary>
         /// The slider tick rate of the associated beatmap.
         /// </summary>
-        double SliderTickRate { get; }
+        double SliderTickRate { get; set; }
 
         /// <summary>
         /// Maps a difficulty value [0, 10] to a two-piece linear range of values.

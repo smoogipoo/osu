@@ -15,53 +15,53 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// The user-specified name given to this beatmap.
         /// </summary>
-        string DifficultyName { get; }
+        string DifficultyName { get; set; }
 
         /// <summary>
         /// The metadata representing this beatmap. May be shared between multiple beatmaps.
         /// </summary>
-        IBeatmapMetadataInfo Metadata { get; }
+        IBeatmapMetadataInfo Metadata { get; set; }
 
         /// <summary>
         /// The difficulty settings for this beatmap.
         /// </summary>
-        IBeatmapDifficultyInfo Difficulty { get; }
+        IBeatmapDifficultyInfo Difficulty { get; set; }
 
         /// <summary>
         /// The beatmap set this beatmap is part of.
         /// </summary>
-        IBeatmapSetInfo? BeatmapSet { get; }
+        IBeatmapSetInfo? BeatmapSet { get; set; }
 
         /// <summary>
         /// The total length in milliseconds of this beatmap.
         /// </summary>
-        double Length { get; }
+        double Length { get; set; }
 
         /// <summary>
         /// The most common BPM of this beatmap.
         /// </summary>
-        double BPM { get; }
+        double BPM { get; set; }
 
         /// <summary>
         /// The SHA-256 hash representing this beatmap's contents.
         /// </summary>
-        string Hash { get; }
+        string Hash { get; set; }
 
         /// <summary>
         /// MD5 is kept for legacy support (matching against replays etc.).
         /// </summary>
-        string MD5Hash { get; }
+        string MD5Hash { get; set; }
 
         /// <summary>
         /// The ruleset this beatmap was made for.
         /// </summary>
-        IRulesetInfo Ruleset { get; }
+        IRulesetInfo Ruleset { get; set; }
 
         /// <summary>
         /// The basic star rating for this beatmap (with no mods applied).
         /// Defaults to -1 (meaning not-yet-calculated).
         /// </summary>
-        double StarRating { get; }
+        double StarRating { get; set; }
 
         /// <summary>
         /// The number of hitobjects in the beatmap with a distinct end time.
@@ -70,12 +70,16 @@ namespace osu.Game.Beatmaps
         /// <remarks>
         /// Canonically, these are hitobjects are either sliders or spinners.
         /// </remarks>
-        int EndTimeObjectCount { get; }
+        int EndTimeObjectCount { get; set; }
 
         /// <summary>
         /// The total number of hitobjects in the beatmap.
         /// Defaults to -1 (meaning not-yet-calculated).
         /// </summary>
-        int TotalObjectCount { get; }
+        int TotalObjectCount { get; set; }
+
+        int[] Bookmarks { get; set; }
+
+        int BeatmapVersion { get; set; }
     }
 }

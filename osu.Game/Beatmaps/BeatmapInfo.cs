@@ -254,10 +254,29 @@ namespace osu.Game.Beatmaps
                 score.BeatmapInfo = this;
         }
 
-        IBeatmapMetadataInfo IBeatmapInfo.Metadata => Metadata;
-        IBeatmapSetInfo? IBeatmapInfo.BeatmapSet => BeatmapSet;
-        IRulesetInfo IBeatmapInfo.Ruleset => Ruleset;
-        IBeatmapDifficultyInfo IBeatmapInfo.Difficulty => Difficulty;
+        IBeatmapMetadataInfo IBeatmapInfo.Metadata
+        {
+            get => Metadata;
+            set => Metadata = (BeatmapMetadata)value;
+        }
+
+        IBeatmapSetInfo? IBeatmapInfo.BeatmapSet
+        {
+            get => BeatmapSet;
+            set => BeatmapSet = (BeatmapSetInfo?)value;
+        }
+
+        IRulesetInfo IBeatmapInfo.Ruleset
+        {
+            get => Ruleset;
+            set => Ruleset = (RulesetInfo)value;
+        }
+
+        IBeatmapDifficultyInfo IBeatmapInfo.Difficulty
+        {
+            get => Difficulty;
+            set => Difficulty = (BeatmapDifficulty)value;
+        }
 
         #region Compatibility properties
 
@@ -278,7 +297,7 @@ namespace osu.Game.Beatmaps
         [Ignored]
         public int[] Bookmarks { get; set; } = Array.Empty<int>();
 
-        public int BeatmapVersion;
+        public int BeatmapVersion { get; set; }
 
         public BeatmapInfo Clone() => (BeatmapInfo)this.Detach().MemberwiseClone();
 

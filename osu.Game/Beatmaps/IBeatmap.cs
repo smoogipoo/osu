@@ -21,17 +21,17 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// This beatmap's info.
         /// </summary>
-        BeatmapInfo BeatmapInfo { get; set; }
+        IBeatmapInfo BeatmapInfo { get; set; }
 
         /// <summary>
         /// This beatmap's metadata.
         /// </summary>
-        BeatmapMetadata Metadata { get; }
+        IBeatmapMetadataInfo Metadata { get; set; }
 
         /// <summary>
         /// This beatmap's difficulty settings.
         /// </summary>
-        public BeatmapDifficulty Difficulty { get; set; }
+        IBeatmapDifficultyInfo Difficulty { get; set; }
 
         /// <summary>
         /// The control points in this beatmap.

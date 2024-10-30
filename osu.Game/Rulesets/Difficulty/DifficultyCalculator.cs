@@ -308,7 +308,7 @@ namespace osu.Game.Rulesets.Difficulty
 
             #region Delegated IBeatmap implementation
 
-            public BeatmapInfo BeatmapInfo
+            public IBeatmapInfo BeatmapInfo
             {
                 get => baseBeatmap.BeatmapInfo;
                 set => baseBeatmap.BeatmapInfo = value;
@@ -320,9 +320,13 @@ namespace osu.Game.Rulesets.Difficulty
                 set => baseBeatmap.ControlPointInfo = value;
             }
 
-            public BeatmapMetadata Metadata => baseBeatmap.Metadata;
+            public IBeatmapMetadataInfo Metadata
+            {
+                get => baseBeatmap.Metadata;
+                set => baseBeatmap.Metadata = value;
+            }
 
-            public BeatmapDifficulty Difficulty
+            public IBeatmapDifficultyInfo Difficulty
             {
                 get => baseBeatmap.Difficulty;
                 set => baseBeatmap.Difficulty = value;

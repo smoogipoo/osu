@@ -14,53 +14,53 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// The romanised title of this beatmap.
         /// </summary>
-        string Title { get; }
+        string Title { get; set; }
 
         /// <summary>
         /// The unicode title of this beatmap.
         /// </summary>
-        string TitleUnicode { get; }
+        string TitleUnicode { get; set; }
 
         /// <summary>
         /// The romanised artist of this beatmap.
         /// </summary>
-        string Artist { get; }
+        string Artist { get; set; }
 
         /// <summary>
         /// The unicode artist of this beatmap.
         /// </summary>
-        string ArtistUnicode { get; }
+        string ArtistUnicode { get; set; }
 
         /// <summary>
         /// The author of this beatmap.
         /// </summary>
-        IUser Author { get; }
+        IUser Author { get; set; }
 
         /// <summary>
         /// The source of this beatmap.
         /// </summary>
-        string Source { get; }
+        string Source { get; set; }
 
         /// <summary>
         /// The tags of this beatmap.
         /// </summary>
-        string Tags { get; }
+        string Tags { get; set; }
 
         /// <summary>
         /// The time in milliseconds to begin playing the track for preview purposes.
         /// If -1, the track should begin playing at 40% of its length.
         /// </summary>
-        int PreviewTime { get; }
+        int PreviewTime { get; set; }
 
         /// <summary>
         /// The filename of the audio file consumed by this beatmap.
         /// </summary>
-        string AudioFile { get; }
+        string AudioFile { get; set; }
 
         /// <summary>
         /// The filename of the background image file consumed by this beatmap.
         /// </summary>
-        string BackgroundFile { get; }
+        string BackgroundFile { get; set; }
 
         bool IEquatable<IBeatmapMetadataInfo>.Equals(IBeatmapMetadataInfo? other)
         {

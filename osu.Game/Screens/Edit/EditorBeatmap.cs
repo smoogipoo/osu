@@ -68,7 +68,7 @@ namespace osu.Game.Screens.Edit
         /// </summary>
         public readonly Bindable<HitObject> PlacementObject = new Bindable<HitObject>();
 
-        private readonly BeatmapInfo beatmapInfo;
+        private readonly IBeatmapInfo beatmapInfo;
         public readonly IBeatmap PlayableBeatmap;
 
         /// <summary>
@@ -160,15 +160,19 @@ namespace osu.Game.Screens.Edit
             return newControlPoints;
         }
 
-        public BeatmapInfo BeatmapInfo
+        public IBeatmapInfo BeatmapInfo
         {
             get => beatmapInfo;
             set => throw new InvalidOperationException($"Can't set {nameof(BeatmapInfo)} on {nameof(EditorBeatmap)}");
         }
 
-        public BeatmapMetadata Metadata => beatmapInfo.Metadata;
+        public IBeatmapMetadataInfo Metadata
+        {
+            get => beatmapInfo.Metadata;
+            set => beatmapInfo.Metadata = value;
+        }
 
-        public BeatmapDifficulty Difficulty
+        public IBeatmapDifficultyInfo Difficulty
         {
             get => PlayableBeatmap.Difficulty;
             set => PlayableBeatmap.Difficulty = value;

@@ -16,49 +16,30 @@ namespace osu.Game.Beatmaps
     public class Beatmap<T> : IBeatmap<T>
         where T : HitObject
     {
-        private BeatmapDifficulty difficulty = new BeatmapDifficulty();
-
-        public BeatmapDifficulty Difficulty
+        public IBeatmapInfo BeatmapInfo { get; set; } = new BeatmapInfo
         {
-            get => difficulty;
-            set
+            Metadata = new BeatmapMetadata
             {
-                difficulty = value;
+                Artist = @"Unknown",
+                Title = @"Unknown",
+                Author = { Username = @"Unknown Creator" },
+            },
+            DifficultyName = @"Normal",
+            Difficulty = new BeatmapDifficulty(),
+        };
 
-                beatmapInfo.Difficulty = difficulty.Clone();
-            }
-        }
-
-        private BeatmapInfo beatmapInfo;
-
-        public BeatmapInfo BeatmapInfo
+        public IBeatmapDifficultyInfo Difficulty
         {
-            get => beatmapInfo;
-            set
-            {
-                beatmapInfo = value;
-
-                Difficulty = beatmapInfo.Difficulty.Clone();
-            }
-        }
-
-        public Beatmap()
-        {
-            beatmapInfo = new BeatmapInfo
-            {
-                Metadata = new BeatmapMetadata
-                {
-                    Artist = @"Unknown",
-                    Title = @"Unknown",
-                    Author = { Username = @"Unknown Creator" },
-                },
-                DifficultyName = @"Normal",
-                Difficulty = Difficulty,
-            };
+            get => BeatmapInfo.Difficulty;
+            set => BeatmapInfo.Difficulty = value;
         }
 
         [JsonIgnore]
-        public BeatmapMetadata Metadata => BeatmapInfo.Metadata;
+        public IBeatmapMetadataInfo Metadata
+        {
+            get => BeatmapInfo.Metadata;
+            set => BeatmapInfo.Metadata = value;
+        }
 
         public ControlPointInfo ControlPointInfo { get; set; } = new ControlPointInfo();
 
@@ -119,7 +100,7 @@ namespace osu.Game.Beatmaps
 
         public Beatmap<T> Clone() => (Beatmap<T>)MemberwiseClone();
 
-        public override string ToString() => BeatmapInfo.ToString();
+        public override string ToString() => BeatmapInfo.ToString() ?? string.Empty;
     }
 
     public class Beatmap : Beatmap<HitObject>

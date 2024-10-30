@@ -751,7 +751,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                         Title = testCaseName
                     },
                     HitObjects = hitObjects,
-                    Difficulty = new BeatmapDifficulty
+                    Difficulty =
                     {
                         OverallDifficulty = 0,
                         SliderTickRate = 3
@@ -782,7 +782,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                     ScoreInfo =
                     {
                         Ruleset = new OsuRuleset().RulesetInfo,
-                        BeatmapInfo = playableBeatmap.BeatmapInfo,
+                        BeatmapInfo = (BeatmapInfo)playableBeatmap.BeatmapInfo,
                         Mods = mods.ToArray()
                     }
                 };

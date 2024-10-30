@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API.Requests.Responses;
@@ -51,8 +52,17 @@ namespace osu.Game.Rulesets.Scoring.Legacy
         /// </summary>
         public int TotalObjectCount { get; set; }
 
-        double IBeatmapDifficultyInfo.SliderMultiplier => 0;
-        double IBeatmapDifficultyInfo.SliderTickRate => 0;
+        double IBeatmapDifficultyInfo.SliderMultiplier
+        {
+            get => 0;
+            set => throw new NotSupportedException();
+        }
+
+        double IBeatmapDifficultyInfo.SliderTickRate
+        {
+            get => 0;
+            set => throw new NotSupportedException();
+        }
 
         public static LegacyBeatmapConversionDifficultyInfo FromAPIBeatmap(APIBeatmap apiBeatmap) => FromBeatmapInfo(apiBeatmap);
 
