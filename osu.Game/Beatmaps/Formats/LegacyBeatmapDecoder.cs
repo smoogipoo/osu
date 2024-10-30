@@ -162,7 +162,8 @@ namespace osu.Game.Beatmaps.Formats
         {
             if (hitObject is IHasRepeats hasRepeats)
             {
-                SampleControlPoint sampleControlPoint = (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(hitObject.StartTime + CONTROL_POINT_LENIENCY + 1) ?? SampleControlPoint.DEFAULT;
+                SampleControlPoint sampleControlPoint =
+                    (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(hitObject.StartTime + CONTROL_POINT_LENIENCY + 1) ?? SampleControlPoint.DEFAULT;
                 hitObject.Samples = hitObject.Samples.Select(o => sampleControlPoint.ApplyTo(o)).ToList();
 
                 for (int i = 0; i < hasRepeats.NodeSamples.Count; i++)
@@ -175,7 +176,8 @@ namespace osu.Game.Beatmaps.Formats
             }
             else
             {
-                SampleControlPoint sampleControlPoint = (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(hitObject.GetEndTime() + CONTROL_POINT_LENIENCY) ?? SampleControlPoint.DEFAULT;
+                SampleControlPoint sampleControlPoint =
+                    (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(hitObject.GetEndTime() + CONTROL_POINT_LENIENCY) ?? SampleControlPoint.DEFAULT;
                 hitObject.Samples = hitObject.Samples.Select(o => sampleControlPoint.ApplyTo(o)).ToList();
             }
         }

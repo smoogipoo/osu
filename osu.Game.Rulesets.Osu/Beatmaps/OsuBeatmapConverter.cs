@@ -34,43 +34,42 @@ namespace osu.Game.Rulesets.Osu.Beatmaps
             switch (original)
             {
                 case IHasPathWithRepeats curveData:
-                    return new Slider
-                    {
-                        StartTime = original.StartTime,
-                        Samples = original.Samples,
-                        Path = curveData.Path,
-                        NodeSamples = curveData.NodeSamples,
-                        RepeatCount = curveData.RepeatCount,
-                        Position = positionData?.Position ?? Vector2.Zero,
-                        NewCombo = comboData?.NewCombo ?? false,
-                        ComboOffset = comboData?.ComboOffset ?? 0,
-                        // prior to v8, speed multipliers don't adjust for how many ticks are generated over the same distance.
-                        // this results in more (or less) ticks being generated in <v8 maps for the same time duration.
-                        TickDistanceMultiplier = beatmap.BeatmapInfo.BeatmapVersion < 8 ? 1f / ((LegacyControlPointInfo)beatmap.ControlPointInfo).DifficultyPointAt(original.StartTime).SliderVelocity : 1,
-                        GenerateTicks = generateTicksData?.GenerateTicks ?? true,
-                        SliderVelocityMultiplier = sliderVelocityData?.SliderVelocityMultiplier ?? 1,
-                    }.Yield();
+                    Slider slider = BeatmapLoadContext.Current.Rent<Slider>();
+                    slider.StartTime = original.StartTime;
+                    slider.Samples = original.Samples;
+                    slider.Path = curveData.Path;
+                    slider.NodeSamples = curveData.NodeSamples;
+                    slider.RepeatCount = curveData.RepeatCount;
+                    slider.Position = positionData?.Position ?? Vector2.Zero;
+                    slider.NewCombo = comboData?.NewCombo ?? false;
+                    slider.ComboOffset = comboData?.ComboOffset ?? 0;
+                    // prior to v8, speed multipliers don't adjust for how many ticks are generated over the same distance.
+                    // this results in more (or less) ticks being generated in <v8 maps for the same time duration.
+                    slider.TickDistanceMultiplier = beatmap.BeatmapInfo.BeatmapVersion < 8
+                        ? 1f / ((LegacyControlPointInfo)beatmap.ControlPointInfo).DifficultyPointAt(original.StartTime).SliderVelocity
+                        : 1;
+                    slider.GenerateTicks = generateTicksData?.GenerateTicks ?? true;
+                    slider.SliderVelocityMultiplier = sliderVelocityData?.SliderVelocityMultiplier ?? 1;
+                    return slider.Yield();
 
                 case IHasDuration endTimeData:
-                    return new Spinner
-                    {
-                        StartTime = original.StartTime,
-                        Samples = original.Samples,
-                        EndTime = endTimeData.EndTime,
-                        Position = positionData?.Position ?? OsuPlayfield.BASE_SIZE / 2,
-                        NewCombo = comboData?.NewCombo ?? false,
-                        ComboOffset = comboData?.ComboOffset ?? 0,
-                    }.Yield();
+                    Spinner spinner = BeatmapLoadContext.Current.Rent<Spinner>();
+                    spinner.StartTime = original.StartTime;
+                    spinner.Samples = original.Samples;
+                    spinner.EndTime = endTimeData.EndTime;
+                    spinner.Position = positionData?.Position ?? OsuPlayfield.BASE_SIZE / 2;
+                    spinner.NewCombo = comboData?.NewCombo ?? false;
+                    spinner.ComboOffset = comboData?.ComboOffset ?? 0;
+                    return spinner.Yield();
 
                 default:
-                    return new HitCircle
-                    {
-                        StartTime = original.StartTime,
-                        Samples = original.Samples,
-                        Position = positionData?.Position ?? Vector2.Zero,
-                        NewCombo = comboData?.NewCombo ?? false,
-                        ComboOffset = comboData?.ComboOffset ?? 0,
-                    }.Yield();
+                    HitCircle circle = BeatmapLoadContext.Current.Rent<HitCircle>();
+                    circle.StartTime = original.StartTime;
+                    circle.Samples = original.Samples;
+                    circle.Position = positionData?.Position ?? Vector2.Zero;
+                    circle.NewCombo = comboData?.NewCombo ?? false;
+                    circle.ComboOffset = comboData?.ComboOffset ?? 0;
+                    return circle.Yield();
             }
         }
 
