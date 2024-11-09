@@ -32,7 +32,7 @@ env:
 jobs:
   environment:
     name: Setup environment
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout diffcalc-sheet-generator
         uses: actions/checkout@v4
@@ -141,7 +141,7 @@ jobs:
   scores:
     name: Setup scores
     needs: environment
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Query latest data
         id: query
@@ -174,7 +174,7 @@ jobs:
   beatmaps:
     name: Setup beatmaps
     needs: environment
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Query latest data
         id: query
@@ -206,7 +206,7 @@ jobs:
   generator:
     name: Run generator
     needs: [ environment, scores, beatmaps ]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 720
     outputs:
       target: ${{ steps.run.outputs.target }}
