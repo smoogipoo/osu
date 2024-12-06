@@ -72,6 +72,7 @@ namespace osu.Game
     /// for provide dependencies to test cases without interfering with them.
     /// </summary>
     [Cached(typeof(OsuGameBase))]
+    [Cached(typeof(IBeatSyncProvider))]
     public partial class OsuGameBase : Framework.Game, ICanAcceptFiles, IBeatSyncProvider
     {
 #if DEBUG

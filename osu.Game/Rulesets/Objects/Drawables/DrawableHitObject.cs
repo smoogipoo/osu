@@ -33,6 +33,7 @@ using osuTK.Graphics;
 namespace osu.Game.Rulesets.Objects.Drawables
 {
     [Cached(typeof(DrawableHitObject))]
+    [Cached(typeof(IAnimationTimeReference))]
     public abstract partial class DrawableHitObject : PoolableDrawableWithLifetime<HitObjectLifetimeEntry>, IAnimationTimeReference
     {
         /// <summary>

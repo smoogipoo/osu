@@ -42,6 +42,7 @@ namespace osu.Game.Rulesets.Edit
     /// Responsible for providing snapping and generally gluing components together.
     /// </summary>
     /// <typeparam name="TObject">The base type of supported objects.</typeparam>
+    [Cached(typeof(IPlacementHandler))]
     public abstract partial class HitObjectComposer<TObject> : HitObjectComposer, IPlacementHandler
         where TObject : HitObject
     {
@@ -601,6 +602,7 @@ namespace osu.Game.Rulesets.Edit
     /// Generally used to access certain methods without requiring a generic type for <see cref="HitObjectComposer{T}" />.
     /// </summary>
     [Cached]
+    [Cached(typeof(IPositionSnapProvider))]
     public abstract partial class HitObjectComposer : CompositeDrawable, IPositionSnapProvider
     {
         public const float TOOLBOX_CONTRACTED_SIZE_LEFT = 60;

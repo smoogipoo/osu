@@ -61,8 +61,10 @@ using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Edit
 {
-    [Cached(typeof(IBeatSnapProvider))]
     [Cached]
+    [Cached(typeof(IBeatSnapProvider))]
+    [Cached(typeof(IBeatSyncProvider))]
+    [Cached(typeof(ISamplePlaybackDisabler))]
     public partial class Editor : ScreenWithBeatmapBackground, IKeyBindingHandler<GlobalAction>, IKeyBindingHandler<PlatformAction>, IBeatSnapProvider, ISamplePlaybackDisabler, IBeatSyncProvider
     {
         /// <summary>

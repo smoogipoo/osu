@@ -3,11 +3,8 @@
 
 #nullable disable
 
-using osu.Framework.Allocation;
-
 namespace osu.Game.Online.Chat
 {
-    [Cached(typeof(IChannelPostTarget))]
     public interface IChannelPostTarget
     {
         /// <summary>

@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 
 namespace osu.Game.Configuration
@@ -13,7 +12,6 @@ namespace osu.Game.Configuration
     /// <remarks>
     /// More settings can be moved into this interface as required.
     /// </remarks>
-    [Cached]
     public interface IGameplaySettings
     {
         IBindable<float> ComboColourNormalisationAmount { get; }

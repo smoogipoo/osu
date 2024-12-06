@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Configuration.Tracking;
@@ -26,6 +27,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Configuration
 {
+    [Cached(typeof(IGameplaySettings))]
     public class OsuConfigManager : IniConfigManager<OsuSetting>, IGameplaySettings
     {
         public OsuConfigManager(Storage storage)

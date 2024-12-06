@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Allocation;
 using osu.Framework.Screens;
 using osu.Game.Screens.Menu;
 
@@ -14,7 +13,6 @@ namespace osu.Game.Screens
     /// <summary>
     /// Manages a global screen stack to allow nested components a guarantee of where work is executed.
     /// </summary>
-    [Cached]
     public interface IPerformFromScreenRunner
     {
         /// <summary>

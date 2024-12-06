@@ -23,6 +23,7 @@ namespace osu.Game.Online.Chat
     /// <summary>
     /// Manages everything channel related
     /// </summary>
+    [Cached(typeof(IChannelPostTarget))]
     public partial class ChannelManager : CompositeComponent, IChannelPostTarget
     {
         /// <summary>

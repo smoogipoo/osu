@@ -240,6 +240,7 @@ namespace osu.Game.Tests.Visual.Menus
         // interface mocks break hot reload, mocking this stub implementation instead works around it.
         // see: https://github.com/moq/moq4/issues/1252
         [UsedImplicitly]
+        [Cached(typeof(INotificationOverlay))]
         public class TestNotificationOverlay : INotificationOverlay
         {
             public virtual void Post(Notification notification)

@@ -29,6 +29,7 @@ using osu.Game.Screens.Edit.Components.TernaryButtons;
 
 namespace osu.Game.Rulesets.Edit
 {
+    [Cached(typeof(IDistanceSnapProvider))]
     public abstract partial class ComposerDistanceSnapProvider : Component, IDistanceSnapProvider, IScrollBindingHandler<GlobalAction>
     {
         private const float adjust_step = 0.1f;
@@ -262,7 +263,8 @@ namespace osu.Game.Rulesets.Edit
 
         public virtual float GetBeatSnapDistanceAt(HitObject referenceObject, bool useReferenceSliderVelocity = true)
         {
-            return (float)(100 * (useReferenceSliderVelocity && referenceObject is IHasSliderVelocity hasSliderVelocity ? hasSliderVelocity.SliderVelocityMultiplier : 1) * editorBeatmap.Difficulty.SliderMultiplier * 1
+            return (float)(100 * (useReferenceSliderVelocity && referenceObject is IHasSliderVelocity hasSliderVelocity ? hasSliderVelocity.SliderVelocityMultiplier : 1)
+                               * editorBeatmap.Difficulty.SliderMultiplier * 1
                            / beatSnapProvider.BeatDivisor);
         }
 

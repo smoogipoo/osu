@@ -35,6 +35,7 @@ using osuTK.Input;
 
 namespace osu.Game.Overlays.Mods
 {
+    [Cached(typeof(ISamplePlaybackDisabler))]
     public abstract partial class ModSelectOverlay : ShearedOverlayContainer, ISamplePlaybackDisabler, IKeyBindingHandler<PlatformAction>
     {
         public const int BUTTON_WIDTH = 200;

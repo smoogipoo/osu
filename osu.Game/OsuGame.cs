@@ -83,6 +83,10 @@ namespace osu.Game
     /// for initial components that are generally retrieved via DI.
     /// </summary>
     [Cached(typeof(OsuGame))]
+    [Cached(typeof(IPerformFromScreenRunner))]
+    [Cached(typeof(IOverlayManager))]
+    [Cached(typeof(ILocalUserPlayInfo))]
+    [Cached(typeof(ILinkHandler))]
     public partial class OsuGame : OsuGameBase, IKeyBindingHandler<GlobalAction>, ILocalUserPlayInfo, IPerformFromScreenRunner, IOverlayManager, ILinkHandler
     {
 #if DEBUG

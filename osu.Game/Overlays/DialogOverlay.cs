@@ -16,6 +16,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Game.Overlays
 {
+    [Cached(typeof(IDialogOverlay))]
     public partial class DialogOverlay : OsuFocusedOverlayContainer, IDialogOverlay
     {
         private readonly Container dialogContainer;

@@ -25,6 +25,7 @@ namespace osu.Game.Screens.Play
     /// <remarks>
     /// This is intended to be used as a single controller for gameplay, or as a reference source for other <see cref="GameplayClockContainer"/>s.
     /// </remarks>
+    [Cached(typeof(IBeatSyncProvider))]
     public partial class MasterGameplayClockContainer : GameplayClockContainer, IBeatSyncProvider
     {
         /// <summary>
@@ -187,7 +188,8 @@ namespace osu.Game.Screens.Play
                     }
                     else
                     {
-                        Logger.Log($"Playback discrepancy detected ({playbackDiscrepancyCount} of allowed {allowed_playback_discrepancies}): {elapsedGameplayClockTime:N1} vs {elapsedValidationTime:N1}");
+                        Logger.Log(
+                            $"Playback discrepancy detected ({playbackDiscrepancyCount} of allowed {allowed_playback_discrepancies}): {elapsedGameplayClockTime:N1} vs {elapsedValidationTime:N1}");
                     }
 
                     elapsedValidationTime = null;

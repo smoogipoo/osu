@@ -22,6 +22,7 @@ using osuTK.Input;
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {
     [Cached]
+    [Cached(typeof(IPositionSnapProvider))]
     public partial class Timeline : ZoomableScrollContainer, IPositionSnapProvider
     {
         private const float timeline_height = 80;

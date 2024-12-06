@@ -40,6 +40,7 @@ using osu.Game.Utils;
 namespace osu.Game.Overlays.SkinEditor
 {
     [Cached(typeof(SkinEditor))]
+    [Cached(typeof(IEditorChangeHandler))]
     public partial class SkinEditor : VisibilityContainer, ICanAcceptFiles, IKeyBindingHandler<PlatformAction>, IKeyBindingHandler<GlobalAction>, IEditorChangeHandler
     {
         public const double TRANSITION_DURATION = 300;

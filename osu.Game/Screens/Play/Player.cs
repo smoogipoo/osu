@@ -45,6 +45,8 @@ using osuTK.Graphics;
 namespace osu.Game.Screens.Play
 {
     [Cached]
+    [Cached(typeof(ISamplePlaybackDisabler))]
+    [Cached(typeof(ILocalUserPlayInfo))]
     public abstract partial class Player : ScreenWithBeatmapBackground, ISamplePlaybackDisabler, ILocalUserPlayInfo
     {
         /// <summary>

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 
@@ -13,6 +14,7 @@ namespace osu.Game.Screens.Edit
     /// <summary>
     /// Tracks changes to the <see cref="Editor"/>.
     /// </summary>
+    [Cached(typeof(IEditorChangeHandler))]
     public abstract partial class EditorChangeHandler : TransactionalCommitComponent, IEditorChangeHandler
     {
         public readonly Bindable<bool> CanUndo = new Bindable<bool>();

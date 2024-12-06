@@ -20,6 +20,7 @@ using osu.Game.Tests.Visual;
 namespace osu.Game.Tests.Database
 {
     [HeadlessTest]
+    [Cached(typeof(ILocalUserPlayInfo))]
     public partial class BackgroundDataStoreProcessorTests : OsuTestScene, ILocalUserPlayInfo
     {
         public IBindable<LocalUserPlayingState> PlayingState => isPlaying;

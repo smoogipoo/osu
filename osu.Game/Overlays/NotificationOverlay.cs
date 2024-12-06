@@ -27,6 +27,7 @@ using NotificationsStrings = osu.Game.Localisation.NotificationsStrings;
 
 namespace osu.Game.Overlays
 {
+    [Cached(typeof(INotificationOverlay))]
     public partial class NotificationOverlay : OsuFocusedOverlayContainer, INamedOverlayComponent, INotificationOverlay
     {
         public IconUsage Icon => OsuIcon.Notification;

@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Overlays.Notifications;
 
@@ -12,7 +11,6 @@ namespace osu.Game.Overlays
     /// <summary>
     /// An overlay which is capable of showing notifications to the user.
     /// </summary>
-    [Cached]
     public interface INotificationOverlay
     {
         /// <summary>

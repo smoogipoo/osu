@@ -20,6 +20,7 @@ using osu.Game.Screens.Edit.Compose.Components.Timeline;
 
 namespace osu.Game.Screens.Edit.Compose
 {
+    [Cached(typeof(IGameplaySettings))]
     public partial class ComposeScreen : EditorScreenWithTimeline, IGameplaySettings
     {
         [Resolved]

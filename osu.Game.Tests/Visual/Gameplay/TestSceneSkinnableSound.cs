@@ -149,6 +149,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         }
 
         [Cached(typeof(ISkinSource))]
+        [Cached(typeof(ISamplePlaybackDisabler))]
         private partial class TestSkinSourceContainer : Container, ISkinSource, ISamplePlaybackDisabler
         {
             [Resolved]
