@@ -132,12 +132,14 @@ namespace osu.Game.Beatmaps
             var localBeatmapInfo = beatmapInfo as BeatmapInfo;
             var localRulesetInfo = rulesetInfo as RulesetInfo;
 
-            // Difficulty can only be computed if the beatmap and ruleset are locally available.
-            if (localBeatmapInfo == null || localRulesetInfo == null)
-            {
-                // If not, fall back to the existing star difficulty (e.g. from an online source).
+            // Difficulty can only be computed if the beatmap and ruleset are locally available, but sometimes online-like models are provided
+            // that can take the form of either APIBeatmap/APIRuleset (interfaced models) or ferried via BeatmapInfo/RulesetInfo (e.g. due to ScoreInfo).
+            // We reliably detect both cases by applying special conditions, because:
+            // - Model.IsManaged can't be used as local models (e.g. in song select) are usually detached.
+            // - Model.IsValid can't be used as it's always true on unmanaged models.
+            // When this triggers, the beatmap's direct star rating is used since its true difficulty with ruleset and mods applied can't be computed.
+            if (localBeatmapInfo?.File == null || string.IsNullOrEmpty(localRulesetInfo?.InstantiationInfo))
                 return Task.FromResult<StarDifficulty?>(new StarDifficulty(beatmapInfo.StarRating, (beatmapInfo as IBeatmapOnlineInfo)?.MaxCombo ?? 0));
-            }
 
             return GetAsync(new DifficultyCacheLookup(localBeatmapInfo, localRulesetInfo, mods), cancellationToken);
         }
