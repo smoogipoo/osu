@@ -13,9 +13,11 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
+using osu.Game.Scoring;
 using osu.Game.Tests.Beatmaps.IO;
 using osu.Game.Tests.Visual;
 
@@ -122,8 +124,10 @@ namespace osu.Game.Tests.Beatmaps
         [Test]
         public void TestKeyDoesntEqualWithDifferentModSettings()
         {
-            var key1 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 }, new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.1 } } });
-            var key2 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 }, new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.9 } } });
+            var key1 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 },
+                new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.1 } } });
+            var key2 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 },
+                new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.9 } } });
 
             Assert.That(key1, Is.Not.EqualTo(key2));
             Assert.That(key1.GetHashCode(), Is.Not.EqualTo(key2.GetHashCode()));
@@ -132,8 +136,10 @@ namespace osu.Game.Tests.Beatmaps
         [Test]
         public void TestKeyEqualWithMatchingModSettings()
         {
-            var key1 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 }, new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.25 } } });
-            var key2 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 }, new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.25 } } });
+            var key1 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 },
+                new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.25 } } });
+            var key2 = new BeatmapDifficultyCache.DifficultyCacheLookup(new BeatmapInfo { ID = guid }, new RulesetInfo { OnlineID = 0 },
+                new Mod[] { new OsuModDoubleTime { SpeedChange = { Value = 1.25 } } });
 
             Assert.That(key1, Is.EqualTo(key2));
             Assert.That(key1.GetHashCode(), Is.EqualTo(key2.GetHashCode()));
@@ -160,6 +166,38 @@ namespace osu.Game.Tests.Beatmaps
             var actualBracket = StarDifficulty.GetDifficultyRating(starRating);
 
             Assert.AreEqual(expectedBracket, actualBracket);
+        }
+
+        /// <summary>
+        /// Tests that a custom provided <see cref="BeatmapInfo"/> falls back to the beatmap's <see cref="BeatmapInfo.StarRating">direct star rating</see>.
+        /// This may occur via <see cref="ScoreInfo"/> where the beatmap is sometimes an <see cref="SoloScoreInfo.ToScoreInfo(Mod[], IBeatmapInfo?)">online-like representation</see>.
+        /// </summary>
+        [Test]
+        public void TestExternalBeatmap()
+        {
+            const double expected_star_rating = 10;
+
+            BeatmapInfo externalBeatmap = new BeatmapInfo { StarRating = expected_star_rating };
+
+            AddAssert("beatmap's direct difficulty is used",
+                () => difficultyCache.GetDifficultyAsync(externalBeatmap).GetResultSafely()!.Value.Stars,
+                () => Is.EqualTo(expected_star_rating));
+        }
+
+        /// <summary>
+        /// Tests that a custom provided <see cref="RulesetInfo"/> falls back to the beatmap's <see cref="BeatmapInfo.StarRating">direct star rating</see>.
+        /// This may occur via <see cref="ScoreInfo"/> where the ruleset is sometimes an <see cref="SoloScoreInfo.ToScoreInfo(Mod[], IBeatmapInfo?)">online-like representation</see>.
+        /// </summary>
+        [Test]
+        public void TestExternalRuleset()
+        {
+            const double expected_star_rating = 10;
+
+            RulesetInfo externalRuleset = new RulesetInfo("osu", "osu", string.Empty, 0);
+
+            AddAssert("beatmap's direct difficulty is used",
+                () => difficultyCache.GetDifficultyAsync(importedSet.Beatmaps.First(), externalRuleset).GetResultSafely()!.Value.Stars,
+                () => Is.EqualTo(expected_star_rating));
         }
 
         private partial class TestBeatmapDifficultyCache : BeatmapDifficultyCache
