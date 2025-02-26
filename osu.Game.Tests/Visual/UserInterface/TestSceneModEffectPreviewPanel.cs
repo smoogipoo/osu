@@ -122,10 +122,10 @@ namespace osu.Game.Tests.Visual.UserInterface
 
         private partial class TestBeatmapDifficultyCache : BeatmapDifficultyCache
         {
-            public StarDifficulty? Difficulty { get; set; }
+            public StarDifficulty Difficulty { get; set; }
 
-            public override Task<StarDifficulty?> GetDifficultyAsync(IBeatmapInfo beatmapInfo, IRulesetInfo? rulesetInfo = null, IEnumerable<Mod>? mods = null,
-                                                                     CancellationToken cancellationToken = default)
+            public override Task<StarDifficulty> GetDifficultyAsync(IBeatmapInfo beatmapInfo, IRulesetInfo? rulesetInfo = null, IEnumerable<Mod>? mods = null,
+                                                                    CancellationToken cancellationToken = default)
                 => Task.FromResult(Difficulty);
         }
     }

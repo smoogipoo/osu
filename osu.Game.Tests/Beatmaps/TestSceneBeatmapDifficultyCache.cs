@@ -180,7 +180,7 @@ namespace osu.Game.Tests.Beatmaps
             BeatmapInfo externalBeatmap = new BeatmapInfo { StarRating = expected_star_rating };
 
             AddAssert("beatmap's direct difficulty is used",
-                () => difficultyCache.GetDifficultyAsync(externalBeatmap).GetResultSafely()!.Value.Stars,
+                () => difficultyCache.GetDifficultyAsync(externalBeatmap).GetResultSafely()!.Stars,
                 () => Is.EqualTo(expected_star_rating));
         }
 
@@ -196,7 +196,7 @@ namespace osu.Game.Tests.Beatmaps
             RulesetInfo externalRuleset = new RulesetInfo("osu", "osu", string.Empty, 0);
 
             AddAssert("beatmap's direct difficulty is used",
-                () => difficultyCache.GetDifficultyAsync(importedSet.Beatmaps.First(), externalRuleset).GetResultSafely()!.Value.Stars,
+                () => difficultyCache.GetDifficultyAsync(importedSet.Beatmaps.First(), externalRuleset).GetResultSafely()!.Stars,
                 () => Is.EqualTo(expected_star_rating));
         }
 

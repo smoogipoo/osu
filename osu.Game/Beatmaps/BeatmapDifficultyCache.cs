@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -64,6 +63,9 @@ namespace osu.Game.Beatmaps
         [Resolved]
         private Bindable<IReadOnlyList<Mod>> currentMods { get; set; } = null!;
 
+        [Resolved]
+        private RealmAccess realm { get; set; } = null!;
+
         private ModSettingChangeTracker? modSettingChangeTracker;
         private ScheduledDelegate? debouncedModSettingsChange;
 
@@ -88,9 +90,9 @@ namespace osu.Game.Beatmaps
             }, true);
         }
 
-        public void Invalidate(IBeatmapInfo beatmap)
+        public void Invalidate(BeatmapInfo beatmap)
         {
-            base.Invalidate(lookup => lookup.BeatmapInfo.Equals(beatmap));
+            base.Invalidate(lookup => lookup.Beatmap.Equals(beatmap.ID));
         }
 
         /// <summary>
@@ -116,32 +118,23 @@ namespace osu.Game.Beatmaps
         /// </summary>
         /// <param name="beatmapInfo">The <see cref="IBeatmapInfo"/> to get the difficulty of.</param>
         /// <param name="rulesetInfo">The <see cref="IRulesetInfo"/> to get the difficulty with.</param>
-        /// <param name="mods">The <see cref="Mod"/>s to get the difficulty with.</param>
+        /// <param name="mods">The <see cref="Mod"/>s to apply the difficulty with.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> which stops computing the star difficulty.</param>
-        /// <returns>
-        /// The requested <see cref="StarDifficulty"/>, if non-<see langword="null"/>.
-        /// A <see langword="null"/> return value indicates that the difficulty process failed or was interrupted early,
-        /// and as such there is no usable star difficulty value to be returned.
-        /// </returns>
-        public virtual Task<StarDifficulty?> GetDifficultyAsync(IBeatmapInfo beatmapInfo, IRulesetInfo? rulesetInfo = null,
-                                                                IEnumerable<Mod>? mods = null, CancellationToken cancellationToken = default)
+        public virtual async Task<StarDifficulty> GetDifficultyAsync(IBeatmapInfo beatmapInfo, IRulesetInfo? rulesetInfo = null,
+                                                                     IEnumerable<Mod>? mods = null, CancellationToken cancellationToken = default)
         {
             // In the case that the user hasn't given us a ruleset, use the beatmap's default ruleset.
             rulesetInfo ??= beatmapInfo.Ruleset;
 
-            var localBeatmapInfo = beatmapInfo as BeatmapInfo;
-            var localRulesetInfo = rulesetInfo as RulesetInfo;
+            // In case the provided models come from online sources, the local difficulty can not be computed.
+            if (beatmapInfo is not BeatmapInfo localBeatmap || rulesetInfo is not RulesetInfo localRuleset)
+                return getDirectDifficulty(beatmapInfo);
 
-            // Difficulty can only be computed if the beatmap and ruleset are locally available, but sometimes online-like models are provided
-            // that can take the form of either APIBeatmap/APIRuleset (interfaced models) or ferried via BeatmapInfo/RulesetInfo (e.g. due to ScoreInfo).
-            // We reliably detect both cases by applying special conditions, because:
-            // - Model.IsManaged can't be used as local models (e.g. in song select) are usually detached.
-            // - Model.IsValid can't be used as it's always true on unmanaged models.
-            // When this triggers, the beatmap's direct star rating is used since its true difficulty with ruleset and mods applied can't be computed.
-            if (localBeatmapInfo?.File == null || string.IsNullOrEmpty(localRulesetInfo?.InstantiationInfo))
-                return Task.FromResult<StarDifficulty?>(new StarDifficulty(beatmapInfo.StarRating, (beatmapInfo as IBeatmapOnlineInfo)?.MaxCombo ?? 0));
+            return await GetAsync(new DifficultyCacheLookup(localBeatmap, localRuleset, mods), cancellationToken).ConfigureAwait(false)
+                   ?? getDirectDifficulty(beatmapInfo);
 
-            return GetAsync(new DifficultyCacheLookup(localBeatmapInfo, localRulesetInfo, mods), cancellationToken);
+            static StarDifficulty getDirectDifficulty(IBeatmapInfo beatmap)
+                => new StarDifficulty(beatmap.StarRating, (beatmap as IBeatmapOnlineInfo)?.MaxCombo ?? 0);
         }
 
         protected override Task<StarDifficulty?> ComputeValueAsync(DifficultyCacheLookup lookup, CancellationToken cancellationToken = default)
@@ -221,10 +214,7 @@ namespace osu.Game.Beatmaps
                         if (cancellationToken.IsCancellationRequested)
                             return;
 
-                        StarDifficulty? starDifficulty = task.GetResultSafely();
-
-                        if (starDifficulty != null)
-                            bindable.Value = starDifficulty.Value;
+                        bindable.Value = task.GetResultSafely();
                     });
                 }, cancellationToken);
         }
@@ -235,67 +225,70 @@ namespace osu.Game.Beatmaps
         /// <param name="key">The <see cref="DifficultyCacheLookup"/> that defines the computation parameters.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The <see cref="StarDifficulty"/>.</returns>
-        private StarDifficulty? computeDifficulty(in DifficultyCacheLookup key, CancellationToken cancellationToken = default)
+        private StarDifficulty? computeDifficulty(DifficultyCacheLookup key, CancellationToken cancellationToken = default)
         {
-            // In the case that the user hasn't given us a ruleset, use the beatmap's default ruleset.
-            var beatmapInfo = key.BeatmapInfo;
-            var rulesetInfo = key.Ruleset;
-
-            try
+            return realm.Run<StarDifficulty?>(r =>
             {
-                var ruleset = rulesetInfo.CreateInstance();
-                Debug.Assert(ruleset != null);
+                BeatmapInfo? beatmapInfo = r.Find<BeatmapInfo>(key.Beatmap);
+                RulesetInfo? rulesetInfo = r.Find<RulesetInfo>(key.Ruleset);
 
-                PlayableCachedWorkingBeatmap workingBeatmap = new PlayableCachedWorkingBeatmap(beatmapManager.GetWorkingBeatmap(key.BeatmapInfo));
-                IBeatmap playableBeatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, key.OrderedMods, cancellationToken);
+                if (beatmapInfo == null || rulesetInfo == null)
+                    return null;
 
-                var difficulty = ruleset.CreateDifficultyCalculator(workingBeatmap).Calculate(key.OrderedMods, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var performanceCalculator = ruleset.CreatePerformanceCalculator();
-                if (performanceCalculator == null)
-                    return new StarDifficulty(difficulty, new PerformanceAttributes());
-
-                ScoreProcessor scoreProcessor = ruleset.CreateScoreProcessor();
-                scoreProcessor.Mods.Value = key.OrderedMods;
-                scoreProcessor.ApplyBeatmap(playableBeatmap);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                ScoreInfo perfectScore = new ScoreInfo(key.BeatmapInfo, ruleset.RulesetInfo)
+                try
                 {
-                    Passed = true,
-                    Accuracy = 1,
-                    Mods = key.OrderedMods,
-                    MaxCombo = scoreProcessor.MaximumCombo,
-                    Combo = scoreProcessor.MaximumCombo,
-                    TotalScore = scoreProcessor.MaximumTotalScore,
-                    Statistics = scoreProcessor.MaximumStatistics,
-                    MaximumStatistics = scoreProcessor.MaximumStatistics
-                };
+                    Ruleset ruleset = rulesetInfo.CreateInstance();
+                    PlayableCachedWorkingBeatmap workingBeatmap = new PlayableCachedWorkingBeatmap(beatmapManager.GetWorkingBeatmap(beatmapInfo));
+                    IBeatmap playableBeatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, key.OrderedMods, cancellationToken);
 
-                var performance = performanceCalculator.Calculate(perfectScore, difficulty);
-                cancellationToken.ThrowIfCancellationRequested();
+                    var difficulty = ruleset.CreateDifficultyCalculator(workingBeatmap).Calculate(key.OrderedMods, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                return new StarDifficulty(difficulty, performance);
-            }
-            catch (OperationCanceledException)
-            {
-                // no need to log, cancellations are expected as part of normal operation.
-                return null;
-            }
-            catch (BeatmapInvalidForRulesetException invalidForRuleset)
-            {
-                if (rulesetInfo.Equals(beatmapInfo.Ruleset))
-                    Logger.Error(invalidForRuleset, $"Failed to convert {beatmapInfo.OnlineID} to the beatmap's default ruleset ({beatmapInfo.Ruleset}).");
+                    var performanceCalculator = ruleset.CreatePerformanceCalculator();
+                    if (performanceCalculator == null)
+                        return new StarDifficulty(difficulty, new PerformanceAttributes());
 
-                return null;
-            }
-            catch (Exception unknownException)
-            {
-                Logger.Error(unknownException, "Failed to calculate beatmap difficulty");
+                    ScoreProcessor scoreProcessor = ruleset.CreateScoreProcessor();
+                    scoreProcessor.Mods.Value = key.OrderedMods;
+                    scoreProcessor.ApplyBeatmap(playableBeatmap);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                return null;
-            }
+                    ScoreInfo perfectScore = new ScoreInfo(beatmapInfo, rulesetInfo)
+                    {
+                        Passed = true,
+                        Accuracy = 1,
+                        Mods = key.OrderedMods,
+                        MaxCombo = scoreProcessor.MaximumCombo,
+                        Combo = scoreProcessor.MaximumCombo,
+                        TotalScore = scoreProcessor.MaximumTotalScore,
+                        Statistics = scoreProcessor.MaximumStatistics,
+                        MaximumStatistics = scoreProcessor.MaximumStatistics
+                    };
+
+                    var performance = performanceCalculator.Calculate(perfectScore, difficulty);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    return new StarDifficulty(difficulty, performance);
+                }
+                catch (OperationCanceledException)
+                {
+                    // no need to log, cancellations are expected as part of normal operation.
+                    return null;
+                }
+                catch (BeatmapInvalidForRulesetException invalidForRuleset)
+                {
+                    if (rulesetInfo.Equals(beatmapInfo.Ruleset))
+                        Logger.Error(invalidForRuleset, $"Failed to convert {beatmapInfo.OnlineID} to the beatmap's default ruleset ({beatmapInfo.Ruleset}).");
+
+                    return null;
+                }
+                catch (Exception unknownException)
+                {
+                    Logger.Error(unknownException, "Failed to calculate beatmap difficulty");
+
+                    return null;
+                }
+            });
         }
 
         protected override void Dispose(bool isDisposing)
@@ -310,30 +303,39 @@ namespace osu.Game.Beatmaps
 
         public readonly struct DifficultyCacheLookup : IEquatable<DifficultyCacheLookup>
         {
-            public readonly BeatmapInfo BeatmapInfo;
-            public readonly RulesetInfo Ruleset;
+            /// <summary>
+            /// The database beatmap <see cref="BeatmapInfo.ID">key</see>.
+            /// </summary>
+            public readonly Guid Beatmap;
+
+            /// <summary>
+            /// The database ruleset <see cref="RulesetInfo.ShortName">key</see>.
+            /// </summary>
+            public readonly string Ruleset;
+
+            /// <summary>
+            /// The mods to be applied.
+            /// </summary>
             public readonly Mod[] OrderedMods;
 
-            public DifficultyCacheLookup(BeatmapInfo beatmapInfo, RulesetInfo? ruleset, IEnumerable<Mod>? mods)
+            public DifficultyCacheLookup(BeatmapInfo beatmapInfo, RulesetInfo ruleset, IEnumerable<Mod>? mods)
             {
-                BeatmapInfo = beatmapInfo;
-                // In the case that the user hasn't given us a ruleset, use the beatmap's default ruleset.
-                Ruleset = ruleset ?? BeatmapInfo.Ruleset;
+                Beatmap = beatmapInfo.ID;
+                Ruleset = ruleset.ShortName;
                 OrderedMods = mods?.OrderBy(m => m.Acronym).Select(mod => mod.DeepClone()).ToArray() ?? Array.Empty<Mod>();
             }
 
             public bool Equals(DifficultyCacheLookup other)
-                => BeatmapInfo.Equals(other.BeatmapInfo)
-                   && Ruleset.Equals(other.Ruleset)
+                => Beatmap.Equals(other.Beatmap)
+                   && string.Equals(Ruleset, other.Ruleset, StringComparison.Ordinal)
                    && OrderedMods.SequenceEqual(other.OrderedMods);
 
             public override int GetHashCode()
             {
                 var hashCode = new HashCode();
 
-                hashCode.Add(BeatmapInfo.ID);
-                hashCode.Add(Ruleset.ShortName);
-
+                hashCode.Add(Beatmap);
+                hashCode.Add(Ruleset);
                 foreach (var mod in OrderedMods)
                     hashCode.Add(mod);
 

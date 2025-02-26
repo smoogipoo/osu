@@ -146,7 +146,7 @@ namespace osu.Game.Screens.Ranking.Expanded
                                 Spacing = new Vector2(5, 0),
                                 Children = new Drawable[]
                                 {
-                                    new StarRatingDisplay(beatmapDifficultyCache.GetDifficultyAsync(beatmap, score.Ruleset, score.Mods).GetResultSafely() ?? default)
+                                    new StarRatingDisplay(beatmapDifficultyCache.GetDifficultyAsync(beatmap, score.Ruleset, score.Mods).GetResultSafely())
                                     {
                                         Anchor = Anchor.CentreLeft,
                                         Origin = Anchor.CentreLeft
