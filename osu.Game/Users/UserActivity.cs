@@ -34,7 +34,7 @@ namespace osu.Game.Users
     [Union(41, typeof(EditingBeatmap))]
     [Union(42, typeof(ModdingBeatmap))]
     [Union(43, typeof(TestingBeatmap))]
-    public abstract class UserActivity
+    public abstract class UserActivity : IEquatable<UserActivity>
     {
         public abstract string GetStatus(bool hideIdentifiableInformation = false);
         public virtual string? GetDetails(bool hideIdentifiableInformation = false) => null;
@@ -47,10 +47,15 @@ namespace osu.Game.Users
         /// <param name="hideIdentifiableInformation"></param>
         public virtual int? GetBeatmapID(bool hideIdentifiableInformation = false) => null;
 
+        public abstract bool Equals(UserActivity? other);
+
         [MessagePackObject]
         public class ChoosingBeatmap : UserActivity
         {
             public override string GetStatus(bool hideIdentifiableInformation = false) => "Choosing a beatmap";
+
+            public override bool Equals(UserActivity? other)
+                => other is ChoosingBeatmap;
         }
 
         [MessagePackObject]
@@ -87,6 +92,13 @@ namespace osu.Game.Users
             public override string GetStatus(bool hideIdentifiableInformation = false) => RulesetPlayingVerb;
             public override string GetDetails(bool hideIdentifiableInformation = false) => BeatmapDisplayTitle;
             public override int? GetBeatmapID(bool hideIdentifiableInformation = false) => BeatmapID;
+
+            public override bool Equals(UserActivity? other)
+                => other is InGame otherInGame
+                   && BeatmapID == otherInGame.BeatmapID
+                   && string.Equals(BeatmapDisplayTitle, otherInGame.BeatmapDisplayTitle, StringComparison.Ordinal)
+                   && RulesetID == otherInGame.RulesetID
+                   && string.Equals(RulesetPlayingVerb, otherInGame.RulesetPlayingVerb, StringComparison.Ordinal);
         }
 
         [MessagePackObject]
@@ -99,6 +111,10 @@ namespace osu.Game.Users
 
             [SerializationConstructor]
             public InSoloGame() { }
+
+            public override bool Equals(UserActivity? other)
+                => other is InSoloGame
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
@@ -115,6 +131,10 @@ namespace osu.Game.Users
             }
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => $@"{base.GetStatus(hideIdentifiableInformation)} with others";
+
+            public override bool Equals(UserActivity? other)
+                => other is InMultiplayerGame
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
@@ -127,6 +147,10 @@ namespace osu.Game.Users
 
             [SerializationConstructor]
             public InPlaylistGame() { }
+
+            public override bool Equals(UserActivity? other)
+                => other is InPlaylistGame
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
@@ -141,6 +165,10 @@ namespace osu.Game.Users
             public TestingBeatmap() { }
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => "Testing a beatmap";
+
+            public override bool Equals(UserActivity? other)
+                => other is TestingBeatmap
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
@@ -172,6 +200,11 @@ namespace osu.Game.Users
                 // For now let's assume that showing the beatmap a user is editing could reveal unwanted information.
                 ? null
                 : BeatmapID;
+
+            public override bool Equals(UserActivity? other)
+                => other is EditingBeatmap otherEditingBeatmap
+                   && BeatmapID == otherEditingBeatmap.BeatmapID
+                   && string.Equals(BeatmapDisplayTitle, otherEditingBeatmap.BeatmapDisplayTitle, StringComparison.Ordinal);
         }
 
         [MessagePackObject]
@@ -187,6 +220,10 @@ namespace osu.Game.Users
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => "Modding a beatmap";
             public override Color4 GetAppropriateColour(OsuColour colours) => colours.PurpleDark;
+
+            public override bool Equals(UserActivity? other)
+                => other is ModdingBeatmap
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
@@ -217,6 +254,10 @@ namespace osu.Game.Users
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => hideIdentifiableInformation ? @"Watching a replay" : $@"Watching {PlayerName}'s replay";
             public override string? GetDetails(bool hideIdentifiableInformation = false) => BeatmapDisplayTitle;
+
+            public override bool Equals(UserActivity? other)
+                => other is WatchingReplay otherWatchingReplay
+                   && ScoreID == otherWatchingReplay.ScoreID;
         }
 
         [MessagePackObject]
@@ -231,6 +272,10 @@ namespace osu.Game.Users
             public SpectatingUser() { }
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => hideIdentifiableInformation ? @"Spectating a user" : $@"Spectating {PlayerName}";
+
+            public override bool Equals(UserActivity? other)
+                => other is SpectatingUser
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
@@ -245,12 +290,19 @@ namespace osu.Game.Users
             public SpectatingMultiplayerGame() { }
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => $"Watching others {base.GetStatus(hideIdentifiableInformation).ToLowerInvariant()}";
+
+            public override bool Equals(UserActivity? other)
+                => other is SpectatingMultiplayerGame
+                   && base.Equals(other);
         }
 
         [MessagePackObject]
         public class SearchingForLobby : UserActivity
         {
             public override string GetStatus(bool hideIdentifiableInformation = false) => @"Looking for a lobby";
+
+            public override bool Equals(UserActivity? other)
+                => other is SearchingForLobby;
         }
 
         [MessagePackObject]
@@ -276,6 +328,11 @@ namespace osu.Game.Users
             public override string? GetDetails(bool hideIdentifiableInformation = false) => hideIdentifiableInformation
                 ? null
                 : RoomName;
+
+            public override bool Equals(UserActivity? other)
+                => other is InLobby otherInLobby
+                   && RoomID == otherInLobby.RoomID
+                   && RoomName == otherInLobby.RoomName;
         }
     }
 }

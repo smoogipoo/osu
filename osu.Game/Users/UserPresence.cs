@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using MessagePack;
 
 namespace osu.Game.Users
@@ -11,7 +12,7 @@ namespace osu.Game.Users
     /// </summary>
     [Serializable]
     [MessagePackObject]
-    public struct UserPresence
+    public struct UserPresence : IEquatable<UserPresence>
     {
         /// <summary>
         /// The user's current activity.
@@ -24,5 +25,9 @@ namespace osu.Game.Users
         /// </summary>
         [Key(1)]
         public UserStatus Status { get; set; }
+
+        public bool Equals(UserPresence other)
+            => EqualityComparer<UserActivity>.Default.Equals(Activity, other.Activity)
+               && Status == other.Status;
     }
 }
