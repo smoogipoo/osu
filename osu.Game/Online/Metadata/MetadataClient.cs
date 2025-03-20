@@ -108,6 +108,10 @@ namespace osu.Game.Online.Metadata
 
         protected abstract Task EndWatchingUserPresenceInternal();
 
+        public abstract Task UserStatusUpdated(int userId, UserStatus status);
+
+        public abstract Task UserActivityUpdated(int userId, UserActivity? activity);
+
         public abstract Task UserPresenceUpdated(int userId, UserPresence? presence);
 
         public abstract Task FriendPresenceUpdated(int userId, UserPresence? presence);

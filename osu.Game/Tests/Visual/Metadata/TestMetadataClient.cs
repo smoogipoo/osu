@@ -46,6 +46,16 @@ namespace osu.Game.Tests.Visual.Metadata
             return Task.CompletedTask;
         }
 
+        public override Task UserStatusUpdated(int userId, UserStatus status)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task UserActivityUpdated(int userId, UserActivity? activity)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task UpdateActivity(UserActivity? activity)
         {
             localUserPresence = localUserPresence with { Activity = activity };

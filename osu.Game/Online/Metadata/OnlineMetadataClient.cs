@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -226,25 +227,51 @@ namespace osu.Game.Online.Metadata
             return connection.InvokeAsync(nameof(IMetadataServer.EndWatchingUserPresence));
         }
 
-        public override Task UserPresenceUpdated(int userId, UserPresence? presence)
+        public override Task UserStatusUpdated(int userId, UserStatus status)
         {
             Schedule(() =>
             {
-                if (presence?.Status != null)
-                {
-                    if (userId == api.LocalUser.Value.OnlineID)
-                        localUserPresence = presence.Value;
-                    else
-                        userPresences[userId] = presence.Value;
-                }
+                if (userId == api.LocalUser.Value.OnlineID)
+                    localUserPresence = localUserPresence with { Status = status };
                 else
-                {
-                    if (userId == api.LocalUser.Value.OnlineID)
-                        localUserPresence = default;
-                    else
-                        userPresences.Remove(userId);
-                }
+                    userPresences[userId] = userPresences.GetValueOrDefault(userId, new UserPresence()) with { Status = status };
             });
+
+            return Task.CompletedTask;
+        }
+
+        public override Task UserActivityUpdated(int userId, UserActivity? activity)
+        {
+            Schedule(() =>
+            {
+                if (userId == api.LocalUser.Value.OnlineID)
+                    localUserPresence = localUserPresence with { Activity = activity };
+                else
+                    userPresences[userId] = userPresences.GetValueOrDefault(userId, new UserPresence()) with { Activity = activity };
+            });
+
+            return Task.CompletedTask;
+        }
+
+        public override Task UserPresenceUpdated(int userId, UserPresence? presence)
+        {
+            // Schedule(() =>
+            // {
+            //     if (presence?.Status != null)
+            //     {
+            //         if (userId == api.LocalUser.Value.OnlineID)
+            //             localUserPresence = presence.Value;
+            //         else
+            //             userPresences[userId] = presence.Value;
+            //     }
+            //     else
+            //     {
+            //         if (userId == api.LocalUser.Value.OnlineID)
+            //             localUserPresence = default;
+            //         else
+            //             userPresences.Remove(userId);
+            //     }
+            // });
 
             return Task.CompletedTask;
         }
