@@ -26,6 +26,8 @@ namespace osu.Game.Users
         [Key(1)]
         public UserStatus Status { get; set; }
 
+        public bool ShouldBroadcast() => Status != UserStatus.Offline;
+
         public bool Equals(UserPresence other)
             => EqualityComparer<UserActivity>.Default.Equals(Activity, other.Activity)
                && Status == other.Status;

@@ -41,8 +41,5 @@ namespace osu.Game.Users
                     throw new ArgumentOutOfRangeException(nameof(userStatus), userStatus, "Unsupported user status");
             }
         }
-
-        public static bool ShouldBroadcastPresence(this UserStatus status)
-            => status != UserStatus.Offline;
     }
 }
