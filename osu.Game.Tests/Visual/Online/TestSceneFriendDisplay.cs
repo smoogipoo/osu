@@ -147,7 +147,7 @@ namespace osu.Game.Tests.Visual.Online
             AddStep("bring a friend online", () =>
             {
                 DummyAPIAccess api = (DummyAPIAccess)API;
-                metadataClient.FriendPresenceUpdated(api.Friends[0].TargetID, new UserPresence { Status = UserStatus.Online });
+                metadataClient.UserPresenceUpdated(api.Friends[0].TargetID, new UserPresence { Status = UserStatus.Online });
             });
 
             assertVisiblePanelCount<UserPanel>(1);
@@ -158,7 +158,7 @@ namespace osu.Game.Tests.Visual.Online
             AddStep("bring a friend online", () =>
             {
                 DummyAPIAccess api = (DummyAPIAccess)API;
-                metadataClient.FriendPresenceUpdated(api.Friends[1].TargetID, new UserPresence { Status = UserStatus.Online });
+                metadataClient.UserPresenceUpdated(api.Friends[1].TargetID, new UserPresence { Status = UserStatus.Online });
             });
 
             assertVisiblePanelCount<UserPanel>(1);
@@ -169,7 +169,7 @@ namespace osu.Game.Tests.Visual.Online
             AddStep("take friend offline", () =>
             {
                 DummyAPIAccess api = (DummyAPIAccess)API;
-                metadataClient.FriendPresenceUpdated(api.Friends[1].TargetID, null);
+                metadataClient.UserPresenceUpdated(api.Friends[1].TargetID, new UserPresence());
             });
             assertVisiblePanelCount<UserPanel>(1);
 

@@ -16,21 +16,10 @@ namespace osu.Game.Online.Metadata
         /// </summary>
         Task BeatmapSetsUpdated(BeatmapUpdates updates);
 
-        Task UserStatusUpdated(int userId, UserStatus status);
-
-        Task UserActivityUpdated(int userId, UserActivity? activity);
-
-        // Todo: Remove
         /// <summary>
         /// Delivers an update of the <see cref="UserPresence"/> of the user with the supplied <paramref name="userId"/>.
         /// </summary>
-        Task UserPresenceUpdated(int userId, UserPresence? status);
-
-        // Todo: Remove
-        /// <summary>
-        /// Delivers and update of the <see cref="UserPresence"/> of a friend with the supplied <paramref name="userId"/>.
-        /// </summary>
-        Task FriendPresenceUpdated(int userId, UserPresence? presence);
+        Task UserPresenceUpdated(int userId, UserPresence presence);
 
         /// <summary>
         /// Delivers an update of the current "daily challenge" status.

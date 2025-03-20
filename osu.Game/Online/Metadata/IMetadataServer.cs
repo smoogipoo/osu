@@ -32,7 +32,7 @@ namespace osu.Game.Online.Metadata
         /// <summary>
         /// Signals to the server that the current user's <see cref="UserStatus"/> has changed.
         /// </summary>
-        Task UpdateStatus(UserStatus? status);
+        Task UpdateStatus(UserStatus status);
 
         /// <summary>
         /// Signals to the server that the current user would like to begin receiving updates on other users' online presence.

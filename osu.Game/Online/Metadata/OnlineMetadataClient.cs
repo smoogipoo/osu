@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -26,9 +26,6 @@ namespace osu.Game.Online.Metadata
 
         public override IBindableDictionary<int, UserPresence> UserPresences => userPresences;
         private readonly BindableDictionary<int, UserPresence> userPresences = new BindableDictionary<int, UserPresence>();
-
-        public override IBindableDictionary<int, UserPresence> FriendPresences => friendPresences;
-        private readonly BindableDictionary<int, UserPresence> friendPresences = new BindableDictionary<int, UserPresence>();
 
         public override IBindable<DailyChallengeInfo?> DailyChallengeInfo => dailyChallengeInfo;
         private readonly Bindable<DailyChallengeInfo?> dailyChallengeInfo = new Bindable<DailyChallengeInfo?>();
@@ -65,8 +62,7 @@ namespace osu.Game.Online.Metadata
                     // this is kind of SILLY
                     // https://github.com/dotnet/aspnetcore/issues/15198
                     connection.On<BeatmapUpdates>(nameof(IMetadataClient.BeatmapSetsUpdated), ((IMetadataClient)this).BeatmapSetsUpdated);
-                    connection.On<int, UserPresence?>(nameof(IMetadataClient.UserPresenceUpdated), ((IMetadataClient)this).UserPresenceUpdated);
-                    connection.On<int, UserPresence?>(nameof(IMetadataClient.FriendPresenceUpdated), ((IMetadataClient)this).FriendPresenceUpdated);
+                    connection.On<int, UserPresence>(nameof(IMetadataClient.UserPresenceUpdated), ((IMetadataClient)this).UserPresenceUpdated);
                     connection.On<DailyChallengeInfo?>(nameof(IMetadataClient.DailyChallengeUpdated), ((IMetadataClient)this).DailyChallengeUpdated);
                     connection.On<MultiplayerRoomScoreSetEvent>(nameof(IMetadataClient.MultiplayerRoomScoreSet), ((IMetadataClient)this).MultiplayerRoomScoreSet);
                     connection.On(nameof(IStatefulUserHubClient.DisconnectRequested), ((IMetadataClient)this).DisconnectRequested);
@@ -108,7 +104,6 @@ namespace osu.Game.Online.Metadata
                 Schedule(() =>
                 {
                     userPresences.Clear();
-                    friendPresences.Clear();
                     dailyChallengeInfo.Value = null;
                     localUserPresence = default;
                 });
@@ -193,7 +188,7 @@ namespace osu.Game.Online.Metadata
             return connection.InvokeAsync(nameof(IMetadataServer.UpdateActivity), activity);
         }
 
-        public override Task UpdateStatus(UserStatus? status)
+        public override Task UpdateStatus(UserStatus status)
         {
             if (connector?.IsConnected.Value != true)
                 return Task.FromCanceled(new CancellationToken(true));
@@ -220,70 +215,36 @@ namespace osu.Game.Online.Metadata
 
             Logger.Log($@"{nameof(OnlineMetadataClient)} stopped watching user presence", LoggingTarget.Network);
 
-            // must be scheduled before any remote calls to avoid mis-ordering.
-            Schedule(() => userPresences.Clear());
+            // Clear all activities because we won't be receiving updates for them anymore.
+            // Must be scheduled before any remote calls to avoid mis-ordering.
+            Schedule(() =>
+            {
+                int[] userIds = userPresences.Keys.ToArray();
+
+                foreach (int id in userIds)
+                {
+                    if (userPresences[id].Activity != null)
+                        userPresences[id] = userPresences[id] with { Activity = null };
+                }
+            });
 
             Debug.Assert(connection != null);
             return connection.InvokeAsync(nameof(IMetadataServer.EndWatchingUserPresence));
         }
 
-        public override Task UserStatusUpdated(int userId, UserStatus status)
+        public override Task UserPresenceUpdated(int userId, UserPresence presence)
         {
             Schedule(() =>
             {
                 if (userId == api.LocalUser.Value.OnlineID)
-                    localUserPresence = localUserPresence with { Status = status };
+                    localUserPresence = presence;
                 else
-                    userPresences[userId] = userPresences.GetValueOrDefault(userId, new UserPresence()) with { Status = status };
-            });
-
-            return Task.CompletedTask;
-        }
-
-        public override Task UserActivityUpdated(int userId, UserActivity? activity)
-        {
-            Schedule(() =>
-            {
-                if (userId == api.LocalUser.Value.OnlineID)
-                    localUserPresence = localUserPresence with { Activity = activity };
-                else
-                    userPresences[userId] = userPresences.GetValueOrDefault(userId, new UserPresence()) with { Activity = activity };
-            });
-
-            return Task.CompletedTask;
-        }
-
-        public override Task UserPresenceUpdated(int userId, UserPresence? presence)
-        {
-            // Schedule(() =>
-            // {
-            //     if (presence?.Status != null)
-            //     {
-            //         if (userId == api.LocalUser.Value.OnlineID)
-            //             localUserPresence = presence.Value;
-            //         else
-            //             userPresences[userId] = presence.Value;
-            //     }
-            //     else
-            //     {
-            //         if (userId == api.LocalUser.Value.OnlineID)
-            //             localUserPresence = default;
-            //         else
-            //             userPresences.Remove(userId);
-            //     }
-            // });
-
-            return Task.CompletedTask;
-        }
-
-        public override Task FriendPresenceUpdated(int userId, UserPresence? presence)
-        {
-            Schedule(() =>
-            {
-                if (presence?.Status != null)
-                    friendPresences[userId] = presence.Value;
-                else
-                    friendPresences.Remove(userId);
+                {
+                    if (presence.Status == UserStatus.Offline)
+                        userPresences.Remove(userId);
+                    else
+                        userPresences[userId] = presence;
+                }
             });
 
             return Task.CompletedTask;

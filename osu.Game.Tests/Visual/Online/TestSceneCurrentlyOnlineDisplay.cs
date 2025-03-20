@@ -78,7 +78,7 @@ namespace osu.Game.Tests.Visual.Online
             AddStep("User finished playing", () => metadataClient.UserPresenceUpdated(streamingUser.Id, new UserPresence { Status = UserStatus.Online, Activity = new UserActivity.ChoosingBeatmap() }));
             AddAssert("Spectate button disabled", () => currentlyOnline.ChildrenOfType<PurpleRoundedButton>().First().Enabled.Value, () => Is.False);
 
-            AddStep("Remove playing user", () => metadataClient.UserPresenceUpdated(streamingUser.Id, null));
+            AddStep("Remove playing user", () => metadataClient.UserPresenceUpdated(streamingUser.Id, new UserPresence()));
             AddUntilStep("Panel no longer present", () => !currentlyOnline.ChildrenOfType<UserGridPanel>().Any());
             AddStep("End watching user presence", () => token.Dispose());
         }
@@ -95,7 +95,7 @@ namespace osu.Game.Tests.Visual.Online
 
             AddStep("User finished playing", () => metadataClient.UserPresenceUpdated(streamingUser.Id, new UserPresence { Status = UserStatus.Online, Activity = new UserActivity.ChoosingBeatmap() }));
             AddAssert("Spectate button disabled", () => currentlyOnline.ChildrenOfType<PurpleRoundedButton>().First().Enabled.Value, () => Is.False);
-            AddStep("Remove playing user", () => metadataClient.UserPresenceUpdated(streamingUser.Id, null));
+            AddStep("Remove playing user", () => metadataClient.UserPresenceUpdated(streamingUser.Id, new UserPresence()));
             AddStep("End watching user presence", () => token.Dispose());
         }
 

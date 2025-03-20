@@ -25,7 +25,7 @@ namespace osu.Game.Overlays.Dashboard.Friends
         [Resolved]
         private MetadataClient metadataClient { get; set; } = null!;
 
-        private readonly IBindableDictionary<int, UserPresence> friendPresences = new BindableDictionary<int, UserPresence>();
+        private readonly IBindableDictionary<int, UserPresence> userPresences = new BindableDictionary<int, UserPresence>();
         private readonly OverlayPanelDisplayStyle style;
         private readonly APIUser[] friends;
 
@@ -57,19 +57,20 @@ namespace osu.Game.Overlays.Dashboard.Friends
         {
             base.LoadComplete();
 
-            friendPresences.BindTo(metadataClient.FriendPresences);
-            friendPresences.BindCollectionChanged(onFriendPresencesChanged);
+            userPresences.BindTo(metadataClient.UserPresences);
+            userPresences.BindCollectionChanged(onUserPresencesChanged);
 
             SearchText.BindValueChanged(onSearchTextChanged, true);
             OnlineStream.BindValueChanged(onFriendsStreamChanged, true);
         }
 
-        private void onFriendPresencesChanged(object? sender, NotifyDictionaryChangedEventArgs<int, UserPresence> e)
+        private void onUserPresencesChanged(object? sender, NotifyDictionaryChangedEventArgs<int, UserPresence> e)
         {
             switch (e.Action)
             {
                 case NotifyDictionaryChangedAction.Add:
                 case NotifyDictionaryChangedAction.Remove:
+                    // Todo: Friends only
                     updatePanelVisibilities();
                     break;
             }
@@ -96,11 +97,11 @@ namespace osu.Game.Overlays.Dashboard.Friends
                         break;
 
                     case OnlineStatus.Online:
-                        panel.CanBeShown.Value = friendPresences.ContainsKey(panel.User.OnlineID);
+                        panel.CanBeShown.Value = userPresences.ContainsKey(panel.User.OnlineID);
                         break;
 
                     case OnlineStatus.Offline:
-                        panel.CanBeShown.Value = !friendPresences.ContainsKey(panel.User.OnlineID);
+                        panel.CanBeShown.Value = !userPresences.ContainsKey(panel.User.OnlineID);
                         break;
                 }
             }

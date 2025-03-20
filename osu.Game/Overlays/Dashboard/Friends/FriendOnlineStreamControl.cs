@@ -13,7 +13,7 @@ namespace osu.Game.Overlays.Dashboard.Friends
 {
     public partial class FriendOnlineStreamControl : OverlayStreamControl<OnlineStatus>
     {
-        private readonly IBindableDictionary<int, UserPresence> friendPresences = new BindableDictionary<int, UserPresence>();
+        private readonly IBindableDictionary<int, UserPresence> userPresences = new BindableDictionary<int, UserPresence>();
         private readonly IBindableList<APIRelation> apiFriends = new BindableList<APIRelation>();
         private readonly BindableInt countAll = new BindableInt();
         private readonly BindableInt countOnline = new BindableInt();
@@ -42,18 +42,19 @@ namespace osu.Game.Overlays.Dashboard.Friends
             apiFriends.BindTo(api.Friends);
             apiFriends.BindCollectionChanged((_, _) => updateCounts());
 
-            friendPresences.BindTo(metadataClient.FriendPresences);
-            friendPresences.BindCollectionChanged(onFriendPresencesChanged);
+            userPresences.BindTo(metadataClient.UserPresences);
+            userPresences.BindCollectionChanged(onUserPresencesChanged);
 
             updateCounts();
         }
 
-        private void onFriendPresencesChanged(object? sender, NotifyDictionaryChangedEventArgs<int, UserPresence> e)
+        private void onUserPresencesChanged(object? sender, NotifyDictionaryChangedEventArgs<int, UserPresence> e)
         {
             switch (e.Action)
             {
                 case NotifyDictionaryChangedAction.Add:
                 case NotifyDictionaryChangedAction.Remove:
+                    // Todo: Friends only.
                     updateCounts();
                     break;
             }
@@ -67,7 +68,7 @@ namespace osu.Game.Overlays.Dashboard.Friends
 
             foreach (var user in apiFriends)
             {
-                if (friendPresences.ContainsKey(user.TargetID))
+                if (userPresences.ContainsKey(user.TargetID))
                     countOnline.Value++;
                 else
                     countOffline.Value++;

@@ -37,7 +37,7 @@ namespace osu.Game.Online
         private readonly Bindable<bool> notifyOnFriendPresenceChange = new BindableBool();
 
         private readonly IBindableList<APIRelation> friends = new BindableList<APIRelation>();
-        private readonly IBindableDictionary<int, UserPresence> friendPresences = new BindableDictionary<int, UserPresence>();
+        private readonly IBindableDictionary<int, UserPresence> userPresences = new BindableDictionary<int, UserPresence>();
 
         private readonly HashSet<APIUser> onlineAlertQueue = new HashSet<APIUser>();
         private readonly HashSet<APIUser> offlineAlertQueue = new HashSet<APIUser>();
@@ -54,8 +54,8 @@ namespace osu.Game.Online
             friends.BindTo(api.Friends);
             friends.BindCollectionChanged(onFriendsChanged, true);
 
-            friendPresences.BindTo(metadataClient.FriendPresences);
-            friendPresences.BindCollectionChanged(onFriendPresenceChanged, true);
+            userPresences.BindTo(metadataClient.UserPresences);
+            userPresences.BindCollectionChanged(onUserPresencesChanged, true);
         }
 
         protected override void Update()
@@ -76,7 +76,7 @@ namespace osu.Game.Online
                         if (friend.TargetUser is not APIUser user)
                             continue;
 
-                        if (friendPresences.TryGetValue(friend.TargetID, out _))
+                        if (userPresences.TryGetValue(friend.TargetID, out _))
                             markUserOnline(user);
                     }
 
@@ -96,8 +96,10 @@ namespace osu.Game.Online
             }
         }
 
-        private void onFriendPresenceChanged(object? sender, NotifyDictionaryChangedEventArgs<int, UserPresence> e)
+        private void onUserPresencesChanged(object? sender, NotifyDictionaryChangedEventArgs<int, UserPresence> e)
         {
+            // Todo: Friends only.
+
             switch (e.Action)
             {
                 case NotifyDictionaryChangedAction.Add:

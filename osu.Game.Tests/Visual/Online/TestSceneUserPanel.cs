@@ -204,7 +204,7 @@ namespace osu.Game.Tests.Visual.Online
         private void setPresence(UserStatus status, UserActivity? activity, int? userId = null)
         {
             if (status == UserStatus.Offline)
-                metadataClient.UserPresenceUpdated(userId ?? panel.User.OnlineID, null);
+                metadataClient.UserPresenceUpdated(userId ?? panel.User.OnlineID, new UserPresence());
             else
                 metadataClient.UserPresenceUpdated(userId ?? panel.User.OnlineID, new UserPresence { Status = status, Activity = activity });
         }

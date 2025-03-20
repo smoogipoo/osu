@@ -23,6 +23,6 @@ namespace osu.Game.Users
         /// The user's current status.
         /// </summary>
         [Key(1)]
-        public UserStatus? Status { get; set; }
+        public UserStatus Status { get; set; }
     }
 }

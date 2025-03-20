@@ -90,19 +90,19 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddStep("make users 1-5 online", () =>
             {
                 for (int i = 1; i <= 5; i++)
-                    metadataClient.FriendPresenceUpdated(i, new UserPresence { Status = UserStatus.Online });
+                    metadataClient.UserPresenceUpdated(i, new UserPresence { Status = UserStatus.Online });
             });
 
             AddStep("make users 1-5 DnD", () =>
             {
                 for (int i = 1; i <= 5; i++)
-                    metadataClient.FriendPresenceUpdated(i, new UserPresence { Status = UserStatus.DoNotDisturb });
+                    metadataClient.UserPresenceUpdated(i, new UserPresence { Status = UserStatus.DoNotDisturb });
             });
 
             AddStep("make users 1-5 offline", () =>
             {
                 for (int i = 1; i <= 5; i++)
-                    metadataClient.FriendPresenceUpdated(i, null);
+                    metadataClient.UserPresenceUpdated(i, new UserPresence());
             });
         }
     }

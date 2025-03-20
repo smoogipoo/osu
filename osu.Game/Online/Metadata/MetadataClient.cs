@@ -50,11 +50,6 @@ namespace osu.Game.Online.Metadata
         public abstract IBindableDictionary<int, UserPresence> UserPresences { get; }
 
         /// <summary>
-        /// Dictionary keyed by user ID containing all of the <see cref="UserPresence"/> information about currently online friends received from the server.
-        /// </summary>
-        public abstract IBindableDictionary<int, UserPresence> FriendPresences { get; }
-
-        /// <summary>
         /// Attempts to retrieve the presence of a user.
         /// </summary>
         /// <param name="userId">The user ID.</param>
@@ -64,10 +59,7 @@ namespace osu.Game.Online.Metadata
             if (userId == api.LocalUser.Value.OnlineID)
                 return LocalUserPresence;
 
-            if (FriendPresences.TryGetValue(userId, out UserPresence presence))
-                return presence;
-
-            if (UserPresences.TryGetValue(userId, out presence))
+            if (UserPresences.TryGetValue(userId, out UserPresence presence))
                 return presence;
 
             return null;
@@ -75,7 +67,7 @@ namespace osu.Game.Online.Metadata
 
         public abstract Task UpdateActivity(UserActivity? activity);
 
-        public abstract Task UpdateStatus(UserStatus? status);
+        public abstract Task UpdateStatus(UserStatus status);
 
         private int userPresenceWatchCount;
 
@@ -108,13 +100,7 @@ namespace osu.Game.Online.Metadata
 
         protected abstract Task EndWatchingUserPresenceInternal();
 
-        public abstract Task UserStatusUpdated(int userId, UserStatus status);
-
-        public abstract Task UserActivityUpdated(int userId, UserActivity? activity);
-
-        public abstract Task UserPresenceUpdated(int userId, UserPresence? presence);
-
-        public abstract Task FriendPresenceUpdated(int userId, UserPresence? presence);
+        public abstract Task UserPresenceUpdated(int userId, UserPresence presence);
 
         private class UserPresenceWatchToken : IDisposable
         {
