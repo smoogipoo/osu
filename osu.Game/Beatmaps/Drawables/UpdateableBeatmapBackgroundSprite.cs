@@ -69,7 +69,7 @@ namespace osu.Game.Beatmaps.Drawables
             if (model is BeatmapInfo localModel)
                 return new BeatmapBackgroundSprite(beatmaps.GetWorkingBeatmap(localModel));
 
-            return new BeatmapBackgroundSprite(beatmaps.DefaultBeatmap);
+            return new OnlineBeatmapCoverSprite(model.OnlineID);
         }
     }
 }

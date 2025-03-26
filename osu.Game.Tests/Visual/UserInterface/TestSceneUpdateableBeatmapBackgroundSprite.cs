@@ -89,6 +89,29 @@ namespace osu.Game.Tests.Visual.UserInterface
                 AddStep("online (login first)", () => { });
         }
 
+        [TestCase(0)]
+        [TestCase(75)]
+        public void TestOnlineBeatmapLookup(int beatmapId)
+        {
+            if (api.IsLoggedIn)
+            {
+                TestUpdateableBeatmapBackgroundSprite background = null;
+
+                AddStep("load online beatmap", () =>
+                {
+                    Child = background = new TestUpdateableBeatmapBackgroundSprite
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Beatmap = { Value = new APIBeatmap { OnlineID = beatmapId } }
+                    };
+                });
+
+                AddUntilStep("wait for load", () => background.ContentLoaded);
+            }
+            else
+                AddStep("online (login first)", () => { });
+        }
+
         [Test]
         public void TestUnloadAndReload()
         {
