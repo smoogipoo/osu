@@ -3,12 +3,15 @@
 
 using System.Threading;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Screens;
-using osu.Game.Beatmaps.Drawables;
+using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Graphics.Backgrounds;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osuTK;
 using osuTK.Graphics;
@@ -18,7 +21,7 @@ namespace osu.Game.Screens.OnlinePlay.Components
     public abstract partial class OnlinePlayBackgroundScreen : BackgroundScreen
     {
         private CancellationTokenSource? cancellationSource;
-        private SpriteBackground? lastBackground;
+        private Background? lastBackground;
         private int? beatmapId;
 
         [BackgroundDependencyLoader]
@@ -47,11 +50,11 @@ namespace osu.Game.Screens.OnlinePlay.Components
             cancellationSource = new CancellationTokenSource();
 
             if (beatmapId == null)
-                switchBackground(new SpriteBackground(new DefaultBeatmapBackgroundSprite()));
+                switchBackground(new DefaultBackground());
             else
-                LoadComponentAsync(new OnlineBeatmapCoverSprite(beatmapId.Value), sprite => switchBackground(new SpriteBackground(sprite)), cancellationSource.Token);
+                LoadComponentAsync(new OnlineBeatmapBackground(beatmapId.Value), switchBackground, cancellationSource.Token);
 
-            void switchBackground(SpriteBackground newBackground)
+            void switchBackground(Background newBackground)
             {
                 float newDepth = 0;
 
@@ -84,16 +87,46 @@ namespace osu.Game.Screens.OnlinePlay.Components
             return result;
         }
 
-        private partial class SpriteBackground : Background
+        private partial class OnlineBeatmapBackground : Background
         {
-            private readonly Sprite sprite;
+            private readonly int beatmapId;
 
-            public SpriteBackground(Sprite sprite)
+            public OnlineBeatmapBackground(int beatmapId)
             {
-                this.sprite = sprite;
+                this.beatmapId = beatmapId;
             }
 
-            protected override Sprite CreateSprite() => sprite;
+            [BackgroundDependencyLoader]
+            private void load(BeatmapLookupCache lookupCache, LargeTextureStore textures, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    APIBeatmap? apiBeatmap = lookupCache.GetBeatmapAsync(beatmapId, cancellationToken).GetResultSafely();
+
+                    string? coverImage = apiBeatmap?.BeatmapSet?.Covers.Cover;
+
+                    if (coverImage != null)
+                        Texture = textures.Get(coverImage);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private class DefaultBackground : Background
+        {
+            [Resolved]
+            private BeatmapManager beatmapManager { get; set; } = null!;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Texture = beatmapManager.DefaultBeatmap.GetBackground();
+            }
+
+            public override bool Equals(Background? other)
+                => other is DefaultBackground;
         }
     }
 }
