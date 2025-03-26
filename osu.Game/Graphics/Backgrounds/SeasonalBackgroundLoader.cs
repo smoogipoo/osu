@@ -108,7 +108,7 @@ namespace osu.Game.Graphics.Backgrounds
         [BackgroundDependencyLoader]
         private void load(LargeTextureStore textures)
         {
-            Sprite.Texture = textures.Get(url) ?? textures.Get(fallback_texture_name);
+            Texture = textures.Get(url) ?? textures.Get(fallback_texture_name);
         }
 
         public override bool Equals(Background other)

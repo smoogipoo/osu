@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using osu.Framework.Allocation;
@@ -20,31 +18,57 @@ namespace osu.Game.Graphics.Backgrounds
     /// </summary>
     public partial class Background : CompositeDrawable, IEquatable<Background>
     {
-        public readonly Sprite Sprite;
-
+        private readonly Container spriteContainer;
         private readonly string textureName;
 
-        private BufferedContainer bufferedContainer;
+        private Sprite? sprite;
+        private BufferedContainer? bufferedContainer;
+        private Texture? texture;
 
         public Background(string textureName = @"")
         {
             this.textureName = textureName;
             RelativeSizeAxes = Axes.Both;
 
-            AddInternal(Sprite = new Sprite
+            InternalChild = spriteContainer = new Container
             {
-                RelativeSizeAxes = Axes.Both,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                FillMode = FillMode.Fill,
-            });
+                RelativeSizeAxes = Axes.Both
+            };
         }
 
         [BackgroundDependencyLoader]
         private void load(LargeTextureStore textures)
         {
-            if (!string.IsNullOrEmpty(textureName))
-                Sprite.Texture = textures.Get(textureName);
+            // Load the texture if a custom one is not provided.
+            Texture ??= string.IsNullOrEmpty(textureName) ? Texture : textures.Get(textureName);
+
+            spriteContainer.Child = sprite = CreateSprite().With(s =>
+            {
+                s.Anchor = Anchor.Centre;
+                s.Origin = Anchor.Centre;
+                s.RelativeSizeAxes = Axes.Both;
+                s.Size = Vector2.One;
+                s.FillMode = FillMode.Fill;
+
+                // Pass our texture on to the sprite, replacing any existing texture provided by the sprite itself.
+                // This implies the texture provided by this class will always override the one provided by the sprite.
+                if (Texture != null)
+                    s.Texture = Texture;
+            });
+
+            // Reference the sprite's final texture to keep states consistent.
+            Texture = sprite.Texture;
+        }
+
+        protected Texture? Texture
+        {
+            get => texture;
+            set
+            {
+                texture = value;
+                if (sprite != null)
+                    sprite.Texture = texture;
+            }
         }
 
         public Vector2 BlurSigma => Vector2.Divide(bufferedContainer?.BlurSigma ?? Vector2.Zero, blurScale);
@@ -57,13 +81,13 @@ namespace osu.Game.Graphics.Backgrounds
         {
             if (bufferedContainer == null && newBlurSigma != Vector2.Zero)
             {
-                RemoveInternal(Sprite, false);
+                RemoveInternal(spriteContainer, false);
 
                 AddInternal(bufferedContainer = new BufferedContainer(cachedFrameBuffer: true)
                 {
                     RelativeSizeAxes = Axes.Both,
                     RedrawOnScale = false,
-                    Child = Sprite
+                    Child = spriteContainer
                 });
             }
 
@@ -112,7 +136,12 @@ namespace osu.Game.Graphics.Backgrounds
             return MathF.Round(scale / 0.2f, MidpointRounding.AwayFromZero) * 0.2f;
         }
 
-        public virtual bool Equals(Background other)
+        /// <summary>
+        /// Creates the sprite for the background texture.
+        /// </summary>
+        protected virtual Sprite CreateSprite() => new Sprite();
+
+        public virtual bool Equals(Background? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;

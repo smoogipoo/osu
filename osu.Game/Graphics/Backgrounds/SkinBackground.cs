@@ -19,7 +19,7 @@ namespace osu.Game.Graphics.Backgrounds
         [BackgroundDependencyLoader]
         private void load()
         {
-            Sprite.Texture = skin.GetTexture("menu-background") ?? Sprite.Texture;
+            Texture = skin.GetTexture("menu-background") ?? Texture;
         }
 
         public override bool Equals(Background? other)

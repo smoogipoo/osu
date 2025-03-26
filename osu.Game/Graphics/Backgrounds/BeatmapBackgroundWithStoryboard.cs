@@ -8,6 +8,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Timing;
 using osu.Game.Beatmaps;
 using osu.Game.Overlays;
@@ -19,6 +20,7 @@ namespace osu.Game.Graphics.Backgrounds
 {
     public partial class BeatmapBackgroundWithStoryboard : BeatmapBackground
     {
+        private readonly Sprite backgroundSprite;
         private readonly InterpolatingFramedClock storyboardClock;
 
         private AudioContainer storyboardContainer = null!;
@@ -35,6 +37,7 @@ namespace osu.Game.Graphics.Backgrounds
             : base(beatmap, fallbackTextureName)
         {
             storyboardClock = new InterpolatingFramedClock();
+            backgroundSprite = new Sprite();
         }
 
         [BackgroundDependencyLoader]
@@ -48,6 +51,8 @@ namespace osu.Game.Graphics.Backgrounds
 
             LoadStoryboard(false);
         }
+
+        protected override Sprite CreateSprite() => backgroundSprite;
 
         public void LoadStoryboard(bool async = true)
         {
@@ -72,7 +77,7 @@ namespace osu.Game.Graphics.Backgrounds
             void finishLoad(DrawableStoryboard s)
             {
                 if (Beatmap.Storyboard.ReplacesBackground)
-                    Sprite.FadeOut(BackgroundScreen.TRANSITION_LENGTH, Easing.InQuint);
+                    backgroundSprite.FadeOut(BackgroundScreen.TRANSITION_LENGTH, Easing.InQuint);
 
                 storyboardContainer.FadeInFromZero(BackgroundScreen.TRANSITION_LENGTH, Easing.OutQuint);
                 storyboardContainer.Add(s);
@@ -92,7 +97,7 @@ namespace osu.Game.Graphics.Backgrounds
 
             drawableStoryboard = null;
 
-            Sprite.Alpha = 1f;
+            backgroundSprite.Alpha = 1f;
         }
 
         protected override void LoadComplete()
