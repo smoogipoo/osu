@@ -37,7 +37,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             };
         }
 
-        private static Drawable createCover(IBeatmapSetOnlineInfo onlineInfo) => new OnlineBeatmapSetCover(onlineInfo)
+        private static Drawable createCover(IBeatmapSetOnlineInfo onlineInfo) => new OnlineBeatmapSetCoverSprite(onlineInfo)
         {
             RelativeSizeAxes = Axes.Both,
             Anchor = Anchor.Centre,

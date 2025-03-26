@@ -322,7 +322,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     starRatingDisplay.Current.Value = star.NewValue.Value;
             }, true);
 
-            LoadComponentAsync(new OnlineBeatmapSetCover(beatmap.BeatmapSet as IBeatmapSetOnlineInfo)
+            LoadComponentAsync(new OnlineBeatmapSetCoverSprite(beatmap.BeatmapSet as IBeatmapSetOnlineInfo)
             {
                 RelativeSizeAxes = Axes.Both,
                 Anchor = Anchor.Centre,

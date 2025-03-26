@@ -32,7 +32,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 Masking = true,
             });
 
-            AddUntilStep("wait for load", () => this.ChildrenOfType<OnlineBeatmapSetCover>().SingleOrDefault()?.IsLoaded ?? false);
+            AddUntilStep("wait for load", () => this.ChildrenOfType<OnlineBeatmapSetCoverSprite>().SingleOrDefault()?.IsLoaded ?? false);
         }
 
         [Test]
@@ -87,7 +87,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 }
             });
 
-            var loadedCovers = covers.Where(c => c.ChildrenOfType<OnlineBeatmapSetCover>().SingleOrDefault()?.IsLoaded ?? false);
+            var loadedCovers = covers.Where(c => c.ChildrenOfType<OnlineBeatmapSetCoverSprite>().SingleOrDefault()?.IsLoaded ?? false);
 
             AddUntilStep("some loaded", () => loadedCovers.Any());
             AddStep("scroll to end", () => scroll.ScrollToEnd());
@@ -117,7 +117,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         public void TestCoverChangeOnNewBeatmap()
         {
             TestUpdateableOnlineBeatmapSetCover updateableCover = null;
-            OnlineBeatmapSetCover initialCover = null;
+            OnlineBeatmapSetCoverSprite initialCover = null;
 
             AddStep("setup cover", () => Child = updateableCover = new TestUpdateableOnlineBeatmapSetCover(0)
             {
@@ -127,13 +127,13 @@ namespace osu.Game.Tests.Visual.UserInterface
                 Alpha = 0.4f
             });
 
-            AddUntilStep("cover loaded", () => updateableCover.ChildrenOfType<OnlineBeatmapSetCover>().Any());
-            AddStep("store initial cover", () => initialCover = updateableCover.ChildrenOfType<OnlineBeatmapSetCover>().Single());
+            AddUntilStep("cover loaded", () => updateableCover.ChildrenOfType<OnlineBeatmapSetCoverSprite>().Any());
+            AddStep("store initial cover", () => initialCover = updateableCover.ChildrenOfType<OnlineBeatmapSetCoverSprite>().Single());
             AddUntilStep("wait for fade complete", () => initialCover.Alpha == 1);
 
             AddStep("switch beatmap",
                 () => updateableCover.OnlineInfo = createBeatmapWithCover("https://assets.ppy.sh/beatmaps/1079428/covers/cover.jpg"));
-            AddUntilStep("new cover loaded", () => updateableCover.ChildrenOfType<OnlineBeatmapSetCover>().Except(new[] { initialCover }).Any());
+            AddUntilStep("new cover loaded", () => updateableCover.ChildrenOfType<OnlineBeatmapSetCoverSprite>().Except(new[] { initialCover }).Any());
         }
 
         private static APIBeatmapSet createBeatmapWithCover(string coverUrl) => new APIBeatmapSet
@@ -173,7 +173,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             }
         }
 
-        private partial class TestOnlineBeatmapSetCover : OnlineBeatmapSetCover
+        private partial class TestOnlineBeatmapSetCover : OnlineBeatmapSetCoverSprite
         {
             private readonly int loadDelay;
 

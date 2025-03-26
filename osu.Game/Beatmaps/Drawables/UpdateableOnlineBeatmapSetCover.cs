@@ -59,7 +59,7 @@ namespace osu.Game.Beatmaps.Drawables
             if (model == null)
                 return null;
 
-            return new OnlineBeatmapSetCover(model, coverType)
+            return new OnlineBeatmapSetCoverSprite(model, coverType)
             {
                 RelativeSizeAxes = Axes.Both,
                 Anchor = Anchor.Centre,

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
@@ -10,13 +8,21 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Game.Beatmaps.Drawables
 {
+    /// <summary>
+    /// A <see cref="Sprite"/> that displays the cover image for a beatmap set.
+    /// </summary>
     [LongRunningLoad]
-    public partial class OnlineBeatmapSetCover : Sprite
+    public partial class OnlineBeatmapSetCoverSprite : Sprite
     {
         private readonly IBeatmapSetOnlineInfo set;
         private readonly BeatmapSetCoverType type;
 
-        public OnlineBeatmapSetCover(IBeatmapSetOnlineInfo set, BeatmapSetCoverType type = BeatmapSetCoverType.Cover)
+        /// <summary>
+        /// Creates a new <see cref="OnlineBeatmapSetCoverSprite"/>.
+        /// </summary>
+        /// <param name="set">The beatmap set to display the cover image.</param>
+        /// <param name="type">The type of cover image to display.</param>
+        public OnlineBeatmapSetCoverSprite(IBeatmapSetOnlineInfo set, BeatmapSetCoverType type = BeatmapSetCoverType.Cover)
         {
             ArgumentNullException.ThrowIfNull(set);
 
@@ -27,7 +33,7 @@ namespace osu.Game.Beatmaps.Drawables
         [BackgroundDependencyLoader]
         private void load(LargeTextureStore textures)
         {
-            string resource = null;
+            string? resource = null;
 
             switch (type)
             {
