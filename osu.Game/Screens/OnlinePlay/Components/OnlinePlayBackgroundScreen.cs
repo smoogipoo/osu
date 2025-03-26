@@ -5,8 +5,10 @@ using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Screens;
-using osu.Game.Beatmaps;
+using osu.Game.Beatmaps.Drawables;
+using osu.Game.Graphics.Backgrounds;
 using osu.Game.Online.Rooms;
 using osuTK;
 using osuTK.Graphics;
@@ -16,65 +18,57 @@ namespace osu.Game.Screens.OnlinePlay.Components
     public abstract partial class OnlinePlayBackgroundScreen : BackgroundScreen
     {
         private CancellationTokenSource? cancellationSource;
-        private PlaylistItemBackground? background;
+        private SpriteBackground? lastBackground;
+        private int? beatmapId;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            switchBackground(new PlaylistItemBackground(playlistItem));
+            loadNewBackground();
         }
-
-        private PlaylistItem? playlistItem;
 
         protected PlaylistItem? PlaylistItem
         {
-            get => playlistItem;
             set
             {
-                if (playlistItem == value)
+                if (beatmapId == value?.Beatmap.OnlineID)
                     return;
 
-                playlistItem = value;
+                beatmapId = value?.Beatmap.OnlineID;
 
-                if (LoadState > LoadState.Ready)
-                    updateBackground();
+                if (LoadState >= LoadState.Ready)
+                    loadNewBackground();
             }
         }
 
-        private void updateBackground()
+        private void loadNewBackground()
         {
-            Schedule(() =>
+            cancellationSource?.Cancel();
+            cancellationSource = new CancellationTokenSource();
+
+            if (beatmapId == null)
+                switchBackground(new SpriteBackground(new DefaultBeatmapBackgroundSprite()));
+            else
+                LoadComponentAsync(new OnlineBeatmapCoverSprite(beatmapId.Value), sprite => switchBackground(new SpriteBackground(sprite)), cancellationSource.Token);
+
+            void switchBackground(SpriteBackground newBackground)
             {
-                var beatmap = playlistItem?.Beatmap;
+                float newDepth = 0;
 
-                string? lastCover = (background?.Beatmap?.BeatmapSet as IBeatmapSetOnlineInfo)?.Covers.Cover;
-                string? newCover = (beatmap?.BeatmapSet as IBeatmapSetOnlineInfo)?.Covers.Cover;
+                if (lastBackground != null)
+                {
+                    newDepth = lastBackground.Depth + 1;
+                    lastBackground.FinishTransforms();
+                    lastBackground.FadeOut(250);
+                    lastBackground.Expire();
+                }
 
-                if (lastCover == newCover)
-                    return;
+                newBackground.Depth = newDepth;
+                newBackground.Colour = ColourInfo.GradientVertical(new Color4(0.1f, 0.1f, 0.1f, 1f), new Color4(0.4f, 0.4f, 0.4f, 1f));
+                newBackground.BlurTo(new Vector2(10));
 
-                cancellationSource?.Cancel();
-                LoadComponentAsync(new PlaylistItemBackground(playlistItem), switchBackground, (cancellationSource = new CancellationTokenSource()).Token);
-            });
-        }
-
-        private void switchBackground(PlaylistItemBackground newBackground)
-        {
-            float newDepth = 0;
-
-            if (background != null)
-            {
-                newDepth = background.Depth + 1;
-                background.FinishTransforms();
-                background.FadeOut(250);
-                background.Expire();
+                AddInternal(lastBackground = newBackground);
             }
-
-            newBackground.Depth = newDepth;
-            newBackground.Colour = ColourInfo.GradientVertical(new Color4(0.1f, 0.1f, 0.1f, 1f), new Color4(0.4f, 0.4f, 0.4f, 1f));
-            newBackground.BlurTo(new Vector2(10));
-
-            AddInternal(background = newBackground);
         }
 
         public override void OnSuspending(ScreenTransitionEvent e)
@@ -88,6 +82,18 @@ namespace osu.Game.Screens.OnlinePlay.Components
             bool result = base.OnExiting(e);
             this.MoveToX(0);
             return result;
+        }
+
+        private partial class SpriteBackground : Background
+        {
+            private readonly Sprite sprite;
+
+            public SpriteBackground(Sprite sprite)
+            {
+                this.sprite = sprite;
+            }
+
+            protected override Sprite CreateSprite() => sprite;
         }
     }
 }

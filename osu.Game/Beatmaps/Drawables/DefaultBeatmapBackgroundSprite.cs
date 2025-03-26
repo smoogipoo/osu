@@ -1,0 +1,22 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using osu.Framework.Allocation;
+using osu.Framework.Graphics.Sprites;
+
+namespace osu.Game.Beatmaps.Drawables
+{
+    public class DefaultBeatmapBackgroundSprite : Sprite
+    {
+        [Resolved]
+        private BeatmapManager beatmaps { get; set; } = null!;
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            var background = beatmaps.DefaultBeatmap.GetBackground();
+            if (background != null)
+                Texture = background;
+        }
+    }
+}
