@@ -13,6 +13,27 @@ namespace osu.Game.Tests.OnlinePlay
     [TestFixture]
     public class MultiplayerPlaylistItemTest
     {
+        private readonly Faker<MultiplayerPlaylistItem> faker;
+
+        public MultiplayerPlaylistItemTest()
+        {
+            faker = new Faker<MultiplayerPlaylistItem>()
+                    .StrictMode(true)
+                    .RuleFor(o => o.ID, f => f.Random.Long())
+                    .RuleFor(o => o.OwnerID, f => f.Random.Int())
+                    .RuleFor(o => o.BeatmapID, f => f.Random.Int())
+                    .RuleFor(o => o.BeatmapChecksum, f => f.Random.Hash())
+                    .RuleFor(o => o.RulesetID, f => f.Random.Int())
+                    .RuleFor(o => o.RequiredMods, f => f.Make(5, _ => new APIMod { Acronym = f.Random.String2(3) }))
+                    .RuleFor(o => o.AllowedMods, f => f.Make(5, _ => new APIMod { Acronym = f.Random.String2(3) }))
+                    .RuleFor(o => o.Expired, f => f.Random.Bool())
+                    .RuleFor(o => o.PlaylistOrder, f => f.Random.UShort())
+                    .RuleFor(o => o.PlayedAt, f => f.Date.RecentOffset())
+                    .RuleFor(o => o.StarRating, f => f.Random.Double())
+                    .RuleFor(o => o.Freestyle, f => f.Random.Bool());
+            faker.Generate();
+        }
+
         [SetUp]
         public void Setup()
         {
@@ -22,21 +43,6 @@ namespace osu.Game.Tests.OnlinePlay
         [Test]
         public void TestCloneMultiplayerPlaylistItem()
         {
-            var faker = new Faker<MultiplayerPlaylistItem>()
-                        .StrictMode(true)
-                        .RuleFor(o => o.ID, f => f.Random.Long())
-                        .RuleFor(o => o.OwnerID, f => f.Random.Int())
-                        .RuleFor(o => o.BeatmapID, f => f.Random.Int())
-                        .RuleFor(o => o.BeatmapChecksum, f => f.Random.Hash())
-                        .RuleFor(o => o.RulesetID, f => f.Random.Int())
-                        .RuleFor(o => o.RequiredMods, f => f.Make(5, _ => new APIMod { Acronym = f.Random.String2(3) }))
-                        .RuleFor(o => o.AllowedMods, f => f.Make(5, _ => new APIMod { Acronym = f.Random.String2(3) }))
-                        .RuleFor(o => o.Expired, f => f.Random.Bool())
-                        .RuleFor(o => o.PlaylistOrder, f => f.Random.UShort())
-                        .RuleFor(o => o.PlayedAt, f => f.Date.RecentOffset())
-                        .RuleFor(o => o.StarRating, f => f.Random.Double())
-                        .RuleFor(o => o.Freestyle, f => f.Random.Bool());
-
             for (int i = 0; i < 100; i++)
             {
                 MultiplayerPlaylistItem item = faker.Generate();
@@ -47,21 +53,6 @@ namespace osu.Game.Tests.OnlinePlay
         [Test]
         public void TestConstructFromAPIModel()
         {
-            var faker = new Faker<MultiplayerPlaylistItem>()
-                        .StrictMode(true)
-                        .RuleFor(o => o.ID, f => f.Random.Long())
-                        .RuleFor(o => o.OwnerID, f => f.Random.Int())
-                        .RuleFor(o => o.BeatmapID, f => f.Random.Int())
-                        .RuleFor(o => o.BeatmapChecksum, f => f.Random.Hash())
-                        .RuleFor(o => o.RulesetID, f => f.Random.Int())
-                        .RuleFor(o => o.RequiredMods, f => f.Make(5, _ => new APIMod { Acronym = f.Random.String2(3) }))
-                        .RuleFor(o => o.AllowedMods, f => f.Make(5, _ => new APIMod { Acronym = f.Random.String2(3) }))
-                        .RuleFor(o => o.Expired, f => f.Random.Bool())
-                        .RuleFor(o => o.PlaylistOrder, f => f.Random.UShort())
-                        .RuleFor(o => o.PlayedAt, f => f.Date.RecentOffset())
-                        .RuleFor(o => o.StarRating, f => f.Random.Double())
-                        .RuleFor(o => o.Freestyle, f => f.Random.Bool());
-
             for (int i = 0; i < 100; i++)
             {
                 MultiplayerPlaylistItem initialItem = faker.Generate();
