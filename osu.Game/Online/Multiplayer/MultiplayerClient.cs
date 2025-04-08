@@ -233,14 +233,7 @@ namespace osu.Game.Online.Multiplayer
 
                 Room = joinedRoom;
                 APIRoom = apiRoom;
-
-                APIRoom.RoomID = joinedRoom.RoomID;
-                APIRoom.ChannelId = joinedRoom.ChannelID;
-                APIRoom.Host = joinedRoom.Host?.User;
-                APIRoom.Playlist = joinedRoom.Playlist.Select(item => new PlaylistItem(item)).ToArray();
-                APIRoom.CurrentPlaylistItem = APIRoom.Playlist.Single(item => item.ID == joinedRoom.Settings.PlaylistItemId);
-                // The server will null out the end date upon the host joining the room, but the null value is never communicated to the client.
-                APIRoom.EndDate = null;
+                APIRoom.CopyFrom(new Room(Room));
 
                 Debug.Assert(LocalUser != null);
                 addUserToAPIRoom(LocalUser);
