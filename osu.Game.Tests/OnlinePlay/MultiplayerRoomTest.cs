@@ -25,6 +25,7 @@ namespace osu.Game.Tests.OnlinePlay
                     .RuleFor(o => o.Settings, f => new MultiplayerRoomSettings
                     {
                         Name = f.Random.String2(10),
+                        PlaylistItemId = 1,
                         AutoSkip = f.Random.Bool(),
                         AutoStartDuration = TimeSpan.FromSeconds(f.Random.UShort()),
                         MatchType = f.PickRandom<MatchType>(),
@@ -34,9 +35,9 @@ namespace osu.Game.Tests.OnlinePlay
                     .Ignore(o => o.Users)
                     .RuleFor(o => o.Host, f => new MultiplayerRoomUser(f.Random.Int()))
                     .Ignore(o => o.MatchState)
-                    .RuleFor(o => o.Playlist, f => f.Make(3, _ => new MultiplayerPlaylistItem
+                    .RuleFor(o => o.Playlist, f => f.Make(3, i => new MultiplayerPlaylistItem
                     {
-                        ID = f.Random.Long()
+                        ID = i
                     }))
                     .Ignore(o => o.ActiveCountdowns)
                     .RuleFor(o => o.ChannelID, f => f.Random.Int());
