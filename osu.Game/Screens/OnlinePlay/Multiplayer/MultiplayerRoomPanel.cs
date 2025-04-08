@@ -59,7 +59,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 return;
 
             ChangeSettingsButton.Alpha = client.IsHost ? 1 : 0;
-            SelectedItem.Value = new PlaylistItem(client.Room.CurrentPlaylistItem);
+
+            MultiplayerPlaylistItem? currentItem = client.Room.CurrentPlaylistItem;
+            SelectedItem.Value = currentItem != null ? new PlaylistItem(currentItem) : null;
         });
 
         protected override UpdateableBeatmapBackgroundSprite CreateBackground() => base.CreateBackground().With(d =>

@@ -79,7 +79,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             if (client.Room == null || client.LocalUser == null)
                 return;
 
-            MultiplayerPlaylistItem currentItem = client.Room.CurrentPlaylistItem;
+            MultiplayerPlaylistItem? currentItem = client.Room.CurrentPlaylistItem;
+            if (currentItem == null)
+                return;
+
             Ruleset ruleset = rulesets.GetRuleset(client.LocalUser.RulesetId ?? currentItem.RulesetID)!.CreateInstance();
             Mod[] allowedMods = currentItem.Freestyle
                 ? ruleset.AllMods.OfType<Mod>().Where(m => ModUtils.IsValidFreeModForMatchType(m, client.Room.Settings.MatchType)).ToArray()
@@ -106,7 +109,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             if (client.Room == null || client.LocalUser == null)
                 return [];
 
-            MultiplayerPlaylistItem currentItem = client.Room.CurrentPlaylistItem;
+            MultiplayerPlaylistItem? currentItem = client.Room.CurrentPlaylistItem;
+            if (currentItem == null)
+                return [];
+
             Ruleset ruleset = rulesets.GetRuleset(client.LocalUser.RulesetId ?? currentItem.RulesetID)!.CreateInstance();
             return currentItem.RequiredMods.Select(m => m.ToMod(ruleset)).Concat(base.ComputeActiveMods()).ToArray();
         }

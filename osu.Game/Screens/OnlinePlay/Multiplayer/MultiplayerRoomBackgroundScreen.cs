@@ -27,7 +27,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             if (client.Room == null)
                 return;
 
-            PlaylistItem = new PlaylistItem(client.Room.CurrentPlaylistItem);
+            MultiplayerPlaylistItem? currentItem = client.Room.CurrentPlaylistItem;
+            PlaylistItem = currentItem != null ? new PlaylistItem(currentItem) : null;
         });
 
         protected override void Dispose(bool isDisposing)

@@ -110,9 +110,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match.Playlist
                 firstPopulation = false;
             }
 
-            PlaylistItem? currentItem = client.Room == null ? null : new PlaylistItem(client.Room.CurrentPlaylistItem);
-            queueList.SelectedItem.Value = currentItem;
-            historyList.SelectedItem.Value = currentItem;
+            MultiplayerPlaylistItem? currentItem = client.Room?.CurrentPlaylistItem;
+            PlaylistItem? currentApiItem = currentItem != null ? new PlaylistItem(currentItem) : null;
+
+            queueList.SelectedItem.Value = currentApiItem;
+            historyList.SelectedItem.Value = currentApiItem;
         }
 
         private void playlistItemAdded(MultiplayerPlaylistItem item) => Scheduler.Add(() => addItemToLists(item));

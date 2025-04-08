@@ -206,7 +206,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
             readyButton.Enabled.Value = countdownButton.Enabled.Value =
                 client.Room.State != MultiplayerRoomState.Closed
-                && !client.Room.CurrentPlaylistItem.Expired
+                && client.Room.CurrentPlaylistItem?.Expired == false
                 && !operationInProgress.Value;
 
             // When the local user is the host and spectating the match, the ready button should be enabled only if any users are ready.

@@ -86,7 +86,7 @@ namespace osu.Game.Online.Multiplayer
         /// </summary>
         [IgnoreMember]
         [JsonIgnore]
-        public MultiplayerPlaylistItem CurrentPlaylistItem => Playlist.Single(item => item.ID == Settings.PlaylistItemId);
+        public MultiplayerPlaylistItem? CurrentPlaylistItem => Playlist.SingleOrDefault(item => item.ID == Settings.PlaylistItemId);
 
         /// <summary>
         /// Determines whether a user is able to add playlist items to this room.

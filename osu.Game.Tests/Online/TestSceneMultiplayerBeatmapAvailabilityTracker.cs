@@ -138,7 +138,7 @@ namespace osu.Game.Tests.Online
 
             AddStep("change item to not downloaded beatmap", () =>
             {
-                PlaylistItem newItem = new PlaylistItem(MultiplayerClient.ClientRoom!.CurrentPlaylistItem).With(beatmap: new Optional<IBeatmapInfo>(unavailableBeatmap));
+                PlaylistItem newItem = new PlaylistItem(MultiplayerClient.ClientRoom!.CurrentPlaylistItem!).With(beatmap: new Optional<IBeatmapInfo>(unavailableBeatmap));
                 MultiplayerClient.EditPlaylistItem(new MultiplayerPlaylistItem(newItem)).WaitSafely();
             });
 
@@ -146,7 +146,7 @@ namespace osu.Game.Tests.Online
 
             AddStep("change item to downloaded beatmap", () =>
             {
-                PlaylistItem newItem = new PlaylistItem(MultiplayerClient.ClientRoom!.CurrentPlaylistItem).With(beatmap: new Optional<IBeatmapInfo>(availableBeatmap));
+                PlaylistItem newItem = new PlaylistItem(MultiplayerClient.ClientRoom!.CurrentPlaylistItem!).With(beatmap: new Optional<IBeatmapInfo>(availableBeatmap));
                 MultiplayerClient.EditPlaylistItem(new MultiplayerPlaylistItem(newItem)).WaitSafely();
             });
 

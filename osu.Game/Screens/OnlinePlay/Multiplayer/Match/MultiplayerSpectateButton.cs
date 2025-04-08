@@ -130,12 +130,14 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             if (client.LocalUser?.State != MultiplayerUserState.Spectating)
                 return;
 
-            MultiplayerPlaylistItem item = client.Room.CurrentPlaylistItem;
+            MultiplayerPlaylistItem? currentItem = client.Room.CurrentPlaylistItem;
+            if (currentItem == null)
+                return;
 
             // In a perfect world we'd use BeatmapAvailability, but there's no event-driven flow for when a selection changes.
             // ie. if selection changes from "not downloaded" to another "not downloaded" we wouldn't get a value changed raised.
             beatmapLookupCache
-                .GetBeatmapAsync(item.BeatmapID, (downloadCheckCancellation = new CancellationTokenSource()).Token)
+                .GetBeatmapAsync(currentItem.BeatmapID, (downloadCheckCancellation = new CancellationTokenSource()).Token)
                 .ContinueWith(resolved => Schedule(() =>
                 {
                     var beatmapSet = resolved.GetResultSafely()?.BeatmapSet;

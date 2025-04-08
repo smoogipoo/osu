@@ -48,7 +48,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             if (client.Room == null || client.LocalUser == null)
                 return;
 
-            MultiplayerPlaylistItem currentItem = client.Room.CurrentPlaylistItem;
+            MultiplayerPlaylistItem? currentItem = client.Room.CurrentPlaylistItem;
+            if (currentItem == null)
+                return;
+
             Ruleset ruleset = rulesets.GetRuleset(client.LocalUser.RulesetId ?? currentItem.RulesetID)!.CreateInstance();
             Mod[] userMods = client.LocalUser.Mods.Select(m => m.ToMod(ruleset)).ToArray();
 

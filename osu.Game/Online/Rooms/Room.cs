@@ -358,6 +358,7 @@ namespace osu.Game.Online.Rooms
             AutoSkip = room.Settings.AutoSkip;
             Host = room.Host != null ? new APIUser { Id = room.Host.UserID } : null;
             Playlist = room.Playlist.Select(p => new PlaylistItem(p)).ToArray();
+            CurrentPlaylistItem = room.CurrentPlaylistItem != null ? new PlaylistItem(room.CurrentPlaylistItem) : null;
         }
 
         /// <summary>

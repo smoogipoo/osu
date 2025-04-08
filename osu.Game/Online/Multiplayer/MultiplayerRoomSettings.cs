@@ -42,6 +42,7 @@ namespace osu.Game.Online.Multiplayer
         public MultiplayerRoomSettings(Room room)
         {
             Name = room.Name;
+            PlaylistItemId = room.CurrentPlaylistItem?.ID ?? 0;
             Password = room.Password ?? string.Empty;
             MatchType = room.Type;
             QueueMode = room.QueueMode;
