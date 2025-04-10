@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 
 namespace osu.Game.Rulesets.Difficulty.Utils
 {
@@ -54,7 +53,14 @@ namespace osu.Game.Rulesets.Difficulty.Utils
         /// <param name="p">The value of <i>p</i> to calculate the norm for.</param>
         /// <param name="values">The coefficients of the vector.</param>
         /// <returns>The <i>p</i>-norm of the vector.</returns>
-        public static double Norm(double p, params double[] values) => Math.Pow(values.Sum(x => Math.Pow(x, p)), 1 / p);
+        public static double Norm(double p, params double[] values)
+        {
+            double sum = 0;
+            foreach (double x in values)
+                sum += Math.Pow(x, p);
+
+            return Math.Pow(sum, 1 / p);
+        }
 
         /// <summary>
         /// Calculates a Gaussian-based bell curve function (https://en.wikipedia.org/wiki/Gaussian_function)
