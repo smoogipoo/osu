@@ -112,6 +112,26 @@ namespace osu.Game.Beatmaps
         int BeatmapVersion { get; }
 
         /// <summary>
+        /// Finds the maximum achievable combo by hitting all <see cref="HitObjects"/>s in this beatmap.
+        /// </summary>
+        int GetMaxCombo()
+        {
+            int combo = 0;
+            foreach (var h in HitObjects)
+                addCombo(h, ref combo);
+            return combo;
+
+            static void addCombo(HitObject hitObject, ref int combo)
+            {
+                if (hitObject.Judgement.MaxResult.AffectsCombo())
+                    combo++;
+
+                foreach (var nested in hitObject.NestedHitObjects)
+                    addCombo(nested, ref combo);
+            }
+        }
+
+        /// <summary>
         /// Creates a shallow-clone of this beatmap and returns it.
         /// </summary>
         /// <returns>The shallow-cloned beatmap.</returns>
@@ -132,26 +152,6 @@ namespace osu.Game.Beatmaps
 
     public static class BeatmapExtensions
     {
-        /// <summary>
-        /// Finds the maximum achievable combo by hitting all <see cref="HitObject"/>s in a beatmap.
-        /// </summary>
-        public static int GetMaxCombo(this IBeatmap beatmap)
-        {
-            int combo = 0;
-            foreach (var h in beatmap.HitObjects)
-                addCombo(h, ref combo);
-            return combo;
-
-            static void addCombo(HitObject hitObject, ref int combo)
-            {
-                if (hitObject.Judgement.MaxResult.AffectsCombo())
-                    combo++;
-
-                foreach (var nested in hitObject.NestedHitObjects)
-                    addCombo(nested, ref combo);
-            }
-        }
-
         /// <summary>
         /// Find the total milliseconds between the first and last hittable objects.
         /// </summary>

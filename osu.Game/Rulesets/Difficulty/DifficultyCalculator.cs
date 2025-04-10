@@ -18,6 +18,7 @@ using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Utils;
 
 namespace osu.Game.Rulesets.Difficulty
@@ -126,7 +127,7 @@ namespace osu.Game.Rulesets.Difficulty
 
             foreach (var obj in Beatmap.HitObjects)
             {
-                progressiveBeatmap.HitObjects.Add(obj);
+                progressiveBeatmap.Add(obj);
 
                 while (currentIndex < difficultyObjects.Length && difficultyObjects[currentIndex].BaseObject.GetEndTime() <= obj.GetEndTime())
                 {
@@ -302,16 +303,33 @@ namespace osu.Game.Rulesets.Difficulty
         /// </summary>
         private class ProgressiveCalculationBeatmap : IBeatmap
         {
+            private readonly List<HitObject> hitObjects = new List<HitObject>();
             private readonly IBeatmap baseBeatmap;
+            private int maxCombo;
 
             public ProgressiveCalculationBeatmap(IBeatmap baseBeatmap)
             {
                 this.baseBeatmap = baseBeatmap;
             }
 
-            public readonly List<HitObject> HitObjects = new List<HitObject>();
+            public void Add(HitObject hitObject)
+            {
+                hitObjects.Add(hitObject);
+                addCombo(hitObject, ref maxCombo);
 
-            IReadOnlyList<HitObject> IBeatmap.HitObjects => HitObjects;
+                static void addCombo(HitObject hitObject, ref int combo)
+                {
+                    if (hitObject.Judgement.MaxResult.AffectsCombo())
+                        combo++;
+
+                    foreach (var nested in hitObject.NestedHitObjects)
+                        addCombo(nested, ref combo);
+                }
+            }
+
+            IReadOnlyList<HitObject> IBeatmap.HitObjects => hitObjects;
+
+            public int GetMaxCombo() => maxCombo;
 
             #region Delegated IBeatmap implementation
 
