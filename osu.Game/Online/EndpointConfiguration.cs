@@ -34,6 +34,11 @@ namespace osu.Game.Online
         public string? BeatmapSubmissionServiceUrl { get; set; }
 
         /// <summary>
+        /// The root URL for the service handling score attestation.
+        /// </summary>
+        public string? AttestationServiceUrl { get; set; }
+
+        /// <summary>
         /// The endpoint for the SignalR spectator server.
         /// </summary>
         public string SpectatorUrl { get; set; } = string.Empty;

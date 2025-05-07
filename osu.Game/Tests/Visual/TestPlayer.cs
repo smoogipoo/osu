@@ -69,7 +69,7 @@ namespace osu.Game.Tests.Visual
             return base.CreateTokenRequest();
         }
 
-        protected override APIRequest<MultiplayerScore> CreateSubmissionRequest(Score score, long token)
+        protected override SubmitScoreRequest CreateSubmissionRequest(Score score, long token)
         {
             SubmittedScore = score;
             return base.CreateSubmissionRequest(score, token);

@@ -4,18 +4,25 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
+using osu.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Online;
 using osu.Game.Online.API;
+using osu.Game.Online.Auth;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Online.Spectator;
@@ -48,7 +55,14 @@ namespace osu.Game.Screens.Play
         [CanBeNull]
         private UserStatisticsWatcher userStatisticsWatcher { get; set; }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
+        [Resolved]
+        private OsuConfigManager configManager { get; set; }
+
         private readonly object scoreSubmissionLock = new object();
+        private Bindable<string> attestationKey;
         private TaskCompletionSource<bool> scoreSubmissionSource;
 
         protected SubmittingPlayer(PlayerConfiguration configuration = null)
@@ -75,6 +89,13 @@ namespace osu.Game.Screens.Play
                 Anchor = Anchor.CentreRight,
                 Origin = Anchor.CentreRight,
             });
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            attestationKey = configManager.GetBindable<string>(OsuSetting.AttestationKey);
         }
 
         protected override GameplayClockContainer CreateGameplayClockContainer(WorkingBeatmap beatmap, double gameplayStart) => new MasterGameplayClockContainer(beatmap, gameplayStart)
@@ -288,7 +309,7 @@ namespace osu.Game.Screens.Play
         /// </summary>
         /// <param name="score">The score to be submitted.</param>
         /// <param name="token">The submission token.</param>
-        protected abstract APIRequest<MultiplayerScore> CreateSubmissionRequest(Score score, long token);
+        protected abstract SubmitScoreRequest CreateSubmissionRequest(Score score, long token);
 
         private Task submitScore(Score score)
         {
@@ -333,9 +354,9 @@ namespace osu.Game.Screens.Play
             }
 
             Logger.Log($"Beginning score submission (token:{token.Value})...");
-            var request = CreateSubmissionRequest(score, token.Value);
+            var submitRequest = CreateSubmissionRequest(score, token.Value);
 
-            request.Success += s =>
+            submitRequest.Success += s =>
             {
                 score.ScoreInfo.OnlineID = s.ID;
                 score.ScoreInfo.Position = s.Position;
@@ -344,14 +365,83 @@ namespace osu.Game.Screens.Play
                 Logger.Log($"Score submission completed! (token:{token.Value} id:{s.ID})");
             };
 
-            request.Failure += e =>
+            submitRequest.Failure += e =>
             {
                 Logger.Error(e, $"Failed to submit score (token:{token.Value}): {e.Message}");
                 scoreSubmissionSource.SetResult(false);
             };
 
-            api.Queue(request);
-            return scoreSubmissionSource.Task;
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    await attestSubmission(submitRequest).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, "Score attestation failed!");
+                }
+
+                api.Queue(submitRequest);
+                await scoreSubmissionSource.Task.ConfigureAwait(false);
+            });
+        }
+
+        private async Task attestSubmission(SubmitScoreRequest submitRequest)
+        {
+            IAttestationService service = host.CreateAttestationService();
+
+            if (service == null)
+            {
+                Logger.Log("Attestation not performed (no platform service).");
+                return;
+            }
+
+            Logger.Log("Attesting the score submission request...");
+
+            if (string.IsNullOrEmpty(attestationKey.Value))
+            {
+                Logger.Log("Initialising the client's attestation key...");
+                attestationKey.Value = await service.GenerateKey().ConfigureAwait(false);
+            }
+
+            // Initial challenge - this may be used to attest or assert, depending on what the server wants us to do.
+            AuthenticationChallenge challenge = await createChallenge(attestationKey.Value).ConfigureAwait(false);
+
+            if (challenge.MustAttest)
+            {
+                // Server wants us to attest, so we'll do that first.
+                Logger.Log("Submitting the attestation...");
+                byte[] attestation = await service.AttestKey(attestationKey.Value, challenge.Data).ConfigureAwait(false);
+                await api.PerformAsync(new SubmitAttestationRequest(attestationKey.Value, attestation)).ConfigureAwait(false);
+
+                // ... And then request a fresh challenge which should now be only for the purpose of asserting data.
+                challenge = await createChallenge(attestationKey.Value).ConfigureAwait(false);
+                Debug.Assert(!challenge.MustAttest, "Attestation should not be required immediately after being performed.");
+            }
+
+            // Serialise the score, which will form the data to be asserted.
+            byte[] scoreData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ScoreWithChallenge
+            {
+                Score = submitRequest.Score,
+                Challenge = challenge.Data
+            }, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            }));
+
+            // Assert the data.
+            Logger.Log("Submitting the assertion...");
+            byte[] assertion = await service.GenerateAssertion(attestationKey.Value, scoreData).ConfigureAwait(false);
+            await api.PerformAsync(new SubmitAssertionRequest(attestationKey.Value, scoreData, assertion)).ConfigureAwait(false);
+
+            async Task<AuthenticationChallenge> createChallenge(string key)
+            {
+                Logger.Log("Requesting an authentication challenge...");
+                var challengeReq = new CreateAuthenticationChallengeRequest(key);
+                await api.PerformAsync(challengeReq).ConfigureAwait(false);
+                return challengeReq.Response!;
+            }
         }
 
         protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score)

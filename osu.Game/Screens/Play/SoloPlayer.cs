@@ -53,7 +53,7 @@ namespace osu.Game.Screens.Play
 
         protected override bool ShouldExitOnTokenRetrievalFailure(Exception exception) => false;
 
-        protected override APIRequest<MultiplayerScore> CreateSubmissionRequest(Score score, long token)
+        protected override SubmitScoreRequest CreateSubmissionRequest(Score score, long token)
         {
             IBeatmapInfo beatmap = score.ScoreInfo.BeatmapInfo!;
 
