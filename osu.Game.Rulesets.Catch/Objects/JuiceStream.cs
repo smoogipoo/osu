@@ -85,6 +85,9 @@ namespace osu.Game.Rulesets.Catch.Objects
 
             foreach (var e in SliderEventGenerator.Generate(StartTime, SpanDuration, Velocity, TickDistance, Path.Distance, this.SpanCount(), cancellationToken))
             {
+                if (e.Type == SliderEventType.LegacyLastTick)
+                    continue;
+
                 // generate tiny droplets since the last point
                 if (lastEvent != null)
                 {
@@ -109,8 +112,6 @@ namespace osu.Game.Rulesets.Catch.Objects
                     }
                 }
 
-                // this also includes LastTick and this is used for TinyDroplet generation above.
-                // this means that the final segment of TinyDroplets are increasingly mistimed where LastTick is being applied.
                 lastEvent = e;
 
                 switch (e.Type)
