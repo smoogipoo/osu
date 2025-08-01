@@ -3,10 +3,12 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterfaceV2;
@@ -22,7 +24,7 @@ namespace osu.Game.Overlays.FirstRunSetup
         private SearchContainer<SettingsSection> searchContainer = null!;
 
         [BackgroundDependencyLoader]
-        private void load(OsuColour colours)
+        private void load(OsuColour colours, OsuConfigManager osuConfig)
         {
             Content.Children = new Drawable[]
             {
@@ -88,11 +90,13 @@ namespace osu.Game.Overlays.FirstRunSetup
                         new GraphicsSection(),
                         new OnlineSection(),
                         new MaintenanceSection(),
-                        new DebugSection()
                     },
                     SearchTerm = SettingsItem<bool>.CLASSIC_DEFAULT_SEARCH_TERM,
                 }
             };
+
+            if (DebugUtils.IsDebugBuild || osuConfig.Get<ReleaseStream>(OsuSetting.ReleaseStream) == ReleaseStream.Tachyon)
+                searchContainer.Add(new DebugSection());
         }
 
         private void applyClassic()

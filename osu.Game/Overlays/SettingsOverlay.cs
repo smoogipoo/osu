@@ -7,11 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Localisation;
@@ -28,9 +30,12 @@ namespace osu.Game.Overlays
         public LocalisableString Title => SettingsStrings.HeaderTitle;
         public LocalisableString Description => SettingsStrings.HeaderDescription;
 
+        [Resolved]
+        private OsuConfigManager osuConfig { get; set; } = null!;
+
         protected override IEnumerable<SettingsSection> CreateSections()
         {
-            return new List<SettingsSection>
+            var sections = new List<SettingsSection>
             {
                 // This list should be kept in sync with ScreenBehaviour.
                 new GeneralSection(),
@@ -43,8 +48,12 @@ namespace osu.Game.Overlays
                 new GraphicsSection(),
                 new OnlineSection(),
                 new MaintenanceSection(),
-                new DebugSection()
             };
+
+            if (DebugUtils.IsDebugBuild || osuConfig.Get<ReleaseStream>(OsuSetting.ReleaseStream) == ReleaseStream.Tachyon)
+                sections.Add(new DebugSection());
+
+            return sections;
         }
 
         private readonly List<SettingsSubPanel> subPanels = new List<SettingsSubPanel>();
