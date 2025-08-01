@@ -5,6 +5,7 @@ using System;
 using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -38,28 +39,31 @@ namespace osu.Game.Overlays.Settings.Sections.DebugSettings
                 }
             });
 
-            SettingsEnumDropdown<GCLatencyMode> latencyModeDropdown;
-            Add(latencyModeDropdown = new SettingsEnumDropdown<GCLatencyMode>
+            if (RuntimeInfo.IsDesktop)
             {
-                LabelText = "GC mode",
-            });
-
-            latencyModeDropdown.Current.BindValueChanged(mode =>
-            {
-                Logger.Log($"Changing latency mode: {mode.NewValue}");
-
-                switch (mode.NewValue)
+                SettingsEnumDropdown<GCLatencyMode> latencyModeDropdown;
+                Add(latencyModeDropdown = new SettingsEnumDropdown<GCLatencyMode>
                 {
-                    case GCLatencyMode.Default:
-                        // https://github.com/ppy/osu-framework/blob/1d5301018dfed1a28702be56e1d53c4835b199f2/osu.Framework/Platform/GameHost.cs#L703
-                        GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
-                        break;
+                    LabelText = "GC mode",
+                });
 
-                    case GCLatencyMode.Interactive:
-                        GCSettings.LatencyMode = System.Runtime.GCLatencyMode.Interactive;
-                        break;
-                }
-            });
+                latencyModeDropdown.Current.BindValueChanged(mode =>
+                {
+                    Logger.Log($"Changing latency mode: {mode.NewValue}");
+
+                    switch (mode.NewValue)
+                    {
+                        case GCLatencyMode.Default:
+                            // https://github.com/ppy/osu-framework/blob/1d5301018dfed1a28702be56e1d53c4835b199f2/osu.Framework/Platform/GameHost.cs#L703
+                            GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+                            break;
+
+                        case GCLatencyMode.Interactive:
+                            GCSettings.LatencyMode = System.Runtime.GCLatencyMode.Interactive;
+                            break;
+                    }
+                });
+            }
 
             if (DebugUtils.IsDebugBuild)
             {
