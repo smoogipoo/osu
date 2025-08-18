@@ -752,17 +752,24 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public override async Task ToggleMatchmakingQueue()
         {
             if (inMatchmakingQueue)
-                await ((IMultiplayerClient)this).MatchmakingQueueStatusChanged(null);
+                await ((IMultiplayerClient)this).MatchmakingQueueLeft();
             else
             {
-                await ((IMultiplayerClient)this).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.InQueue
-                {
-                    RoomSize = 8,
-                    PlayerCount = 1
-                });
+                await ((IMultiplayerClient)this).MatchmakingQueueJoined();
+                await ((IMultiplayerClient)this).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.Searching());
             }
 
             inMatchmakingQueue = !inMatchmakingQueue;
+        }
+
+        public override Task MatchmakingAcceptInvitation()
+        {
+            return Task.CompletedTask;
+        }
+
+        public override Task MatchmakingDeclineInvitation()
+        {
+            return Task.CompletedTask;
         }
 
         public override Task MatchmakingToggleSelection(long playlistItemId)

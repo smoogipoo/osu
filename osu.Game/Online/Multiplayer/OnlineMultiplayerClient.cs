@@ -72,7 +72,11 @@ namespace osu.Game.Online.Multiplayer
                     connection.On<MultiplayerPlaylistItem>(nameof(IMultiplayerClient.PlaylistItemChanged), ((IMultiplayerClient)this).PlaylistItemChanged);
                     connection.On(nameof(IStatefulUserHubClient.DisconnectRequested), ((IMultiplayerClient)this).DisconnectRequested);
 
-                    connection.On<MatchmakingQueueStatus?>(nameof(IMultiplayerClient.MatchmakingQueueStatusChanged), ((IMultiplayerClient)this).MatchmakingQueueStatusChanged);
+                    connection.On(nameof(IMultiplayerClient.MatchmakingQueueJoined), ((IMultiplayerClient)this).MatchmakingQueueJoined);
+                    connection.On(nameof(IMultiplayerClient.MatchmakingQueueLeft), ((IMultiplayerClient)this).MatchmakingQueueLeft);
+                    connection.On(nameof(IMultiplayerClient.MatchmakingRoomInvited), ((IMultiplayerClient)this).MatchmakingRoomInvited);
+                    connection.On<long>(nameof(IMultiplayerClient.MatchmakingRoomReady), ((IMultiplayerClient)this).MatchmakingRoomReady);
+                    connection.On<MatchmakingQueueStatus>(nameof(IMultiplayerClient.MatchmakingQueueStatusChanged), ((IMultiplayerClient)this).MatchmakingQueueStatusChanged);
                     connection.On<int, long>(nameof(IMultiplayerClient.MatchmakingSelectionToggled), ((IMultiplayerClient)this).MatchmakingSelectionToggled);
                 };
 
@@ -327,6 +331,24 @@ namespace osu.Game.Online.Multiplayer
 
             Debug.Assert(connection != null);
             return connection.InvokeAsync(nameof(IMultiplayerLoungeServer.ToggleMatchmakingQueue));
+        }
+
+        public override Task MatchmakingAcceptInvitation()
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+            return connection.InvokeAsync(nameof(IMultiplayerLoungeServer.MatchmakingAcceptInvitation));
+        }
+
+        public override Task MatchmakingDeclineInvitation()
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+            return connection.InvokeAsync(nameof(IMultiplayerLoungeServer.MatchmakingDeclineInvitation));
         }
 
         public override Task MatchmakingToggleSelection(long playlistItemId)

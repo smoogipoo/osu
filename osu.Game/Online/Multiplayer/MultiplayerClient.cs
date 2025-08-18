@@ -118,10 +118,12 @@ namespace osu.Game.Online.Multiplayer
 
         public event Action<MultiplayerRoomUser, MultiplayerUserState>? UserStateChanged;
 
-        public event Action<MatchmakingQueueStatus?>? MatchmakingQueueStatusChanged;
-
+        public event Action? MatchmakingQueueJoined;
+        public event Action? MatchmakingQueueLeft;
+        public event Action? MatchmakingRoomInvited;
+        public event Action<long>? MatchmakingRoomReady;
+        public event Action<MatchmakingQueueStatus>? MatchmakingQueueStatusChanged;
         public event Action<int, long>? MatchmakingSelectionToggled;
-
         public event Action<MatchRoomState>? MatchRoomStateChanged;
 
         /// <summary>
@@ -189,9 +191,13 @@ namespace osu.Game.Online.Multiplayer
         {
             IsConnected.BindValueChanged(connected => Scheduler.Add(() =>
             {
-                // clean up local room state on server disconnect.
-                if (!connected.NewValue && Room != null)
-                    LeaveRoom();
+                if (!connected.NewValue)
+                {
+                    if (Room != null)
+                        LeaveRoom();
+
+                    MatchmakingQueueLeft?.Invoke();
+                }
             }));
         }
 
@@ -1006,7 +1012,31 @@ namespace osu.Game.Online.Multiplayer
 
         public abstract Task ToggleMatchmakingQueue();
 
-        Task IMultiplayerClient.MatchmakingQueueStatusChanged(MatchmakingQueueStatus? status)
+        Task IMultiplayerClient.MatchmakingQueueJoined()
+        {
+            Scheduler.Add(() => MatchmakingQueueJoined?.Invoke());
+            return Task.CompletedTask;
+        }
+
+        Task IMultiplayerClient.MatchmakingQueueLeft()
+        {
+            Scheduler.Add(() => MatchmakingQueueLeft?.Invoke());
+            return Task.CompletedTask;
+        }
+
+        Task IMultiplayerClient.MatchmakingRoomInvited()
+        {
+            Scheduler.Add(() => MatchmakingRoomInvited?.Invoke());
+            return Task.CompletedTask;
+        }
+
+        Task IMultiplayerClient.MatchmakingRoomReady(long roomId)
+        {
+            Scheduler.Add(() => MatchmakingRoomReady?.Invoke(roomId));
+            return Task.CompletedTask;
+        }
+
+        Task IMultiplayerClient.MatchmakingQueueStatusChanged(MatchmakingQueueStatus status)
         {
             Scheduler.Add(() => MatchmakingQueueStatusChanged?.Invoke(status));
             return Task.CompletedTask;
@@ -1022,6 +1052,10 @@ namespace osu.Game.Online.Multiplayer
 
             return Task.CompletedTask;
         }
+
+        public abstract Task MatchmakingAcceptInvitation();
+
+        public abstract Task MatchmakingDeclineInvitation();
 
         public abstract Task MatchmakingToggleSelection(long playlistItemId);
 

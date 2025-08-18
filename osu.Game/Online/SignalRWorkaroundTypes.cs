@@ -50,8 +50,9 @@ namespace osu.Game.Online
             (typeof(UserActivity.PlayingDailyChallenge), typeof(UserActivity)),
 
             // matchmaking
-            (typeof(MatchmakingQueueStatus.InQueue), typeof(MatchmakingQueueStatus)),
-            (typeof(MatchmakingQueueStatus.FoundMatch), typeof(MatchmakingQueueStatus)),
+            (typeof(MatchmakingQueueStatus.Searching), typeof(MatchmakingQueueStatus)),
+            (typeof(MatchmakingQueueStatus.MatchFound), typeof(MatchmakingQueueStatus)),
+            (typeof(MatchmakingQueueStatus.JoiningMatch), typeof(MatchmakingQueueStatus)),
             (typeof(MatchmakingRoomState), typeof(MatchRoomState)),
             (typeof(MatchmakingStatusCountdown), typeof(MultiplayerCountdown))
         };

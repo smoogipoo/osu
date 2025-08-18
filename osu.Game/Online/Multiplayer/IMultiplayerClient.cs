@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using osu.Game.Online.API;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Rooms;
@@ -153,9 +152,30 @@ namespace osu.Game.Online.Multiplayer
         Task PlaylistItemChanged(MultiplayerPlaylistItem item);
 
         /// <summary>
+        /// The local user was joined to the matchmaking queue.
+        /// </summary>
+        /// <returns></returns>
+        Task MatchmakingQueueJoined();
+
+        /// <summary>
+        /// The local user was removed from the matchmaking queue.
+        /// </summary>
+        Task MatchmakingQueueLeft();
+
+        /// <summary>
+        /// The local user was invited to join a matchmaking room.
+        /// </summary>
+        Task MatchmakingRoomInvited();
+
+        /// <summary>
+        /// The local user was joined to a matchmaking room.
+        /// </summary>
+        Task MatchmakingRoomReady(long roomId);
+
+        /// <summary>
         /// The matchmaking status of the current user has changed.
         /// </summary>
-        Task MatchmakingQueueStatusChanged([CanBeNull] MatchmakingQueueStatus status);
+        Task MatchmakingQueueStatusChanged(MatchmakingQueueStatus status);
 
         /// <summary>
         /// A user has toggled their selection.

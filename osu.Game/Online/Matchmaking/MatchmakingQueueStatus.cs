@@ -6,34 +6,29 @@ using MessagePack;
 namespace osu.Game.Online.Matchmaking
 {
     [MessagePackObject]
-    [Union(0, typeof(InQueue))] // IMPORTANT: Add rules to SignalRUnionWorkaroundResolver for new derived types.
-    [Union(1, typeof(FoundMatch))]
+    [Union(0, typeof(Searching))] // IMPORTANT: Add rules to SignalRUnionWorkaroundResolver for new derived types.
+    [Union(1, typeof(MatchFound))]
+    [Union(2, typeof(JoiningMatch))]
     public abstract class MatchmakingQueueStatus
     {
         [MessagePackObject]
-        public class FoundMatch : MatchmakingQueueStatus
+        public class Searching : MatchmakingQueueStatus
         {
             /// <summary>
-            /// The ID of the room to join.
+            /// Whether the user was returned to the queue as a result of a player declining a previous invitation.
             /// </summary>
             [Key(0)]
-            public long RoomId { get; set; }
+            public bool ReturnedToQueue { get; set; }
         }
 
         [MessagePackObject]
-        public class InQueue : MatchmakingQueueStatus
+        public class MatchFound : MatchmakingQueueStatus
         {
-            /// <summary>
-            /// The number of players found.
-            /// </summary>
-            [Key(0)]
-            public int PlayerCount { get; set; }
+        }
 
-            /// <summary>
-            /// The total room size.
-            /// </summary>
-            [Key(1)]
-            public int RoomSize { get; set; }
+        [MessagePackObject]
+        public class JoiningMatch : MatchmakingQueueStatus
+        {
         }
     }
 }

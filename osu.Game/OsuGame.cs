@@ -1275,7 +1275,7 @@ namespace osu.Game
             {
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre
-            }, topMostOverlayContent.Add);
+            }, topMostOverlayContent.Add, true);
 
             Add(externalLinkOpener = new ExternalLinkOpener());
             Add(new MusicKeyBindingHandler());

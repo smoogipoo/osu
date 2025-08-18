@@ -7,12 +7,11 @@ using JetBrains.Annotations;
 using Moq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Screens;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.Rooms;
-using osu.Game.Rulesets.Osu;
 using osu.Game.Screens;
 using osu.Game.Screens.OnlinePlay.Matchmaking;
 using osu.Game.Tests.Visual.Multiplayer;
@@ -43,43 +42,32 @@ namespace osu.Game.Tests.Visual.Matchmaking
         [Test]
         public void TestChangeState()
         {
-            AddStep("out of queue", () => ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(null));
-
-            AddStep("in queue (1/8)", () => ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.InQueue
+            AddStep("searching", () =>
             {
-                PlayerCount = 1,
-                RoomSize = 8
-            }));
-
-            AddStep("in queue (4/8)", () => ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.InQueue
-            {
-                PlayerCount = 4,
-                RoomSize = 8
-            }));
-
-            AddStep("match found", () =>
-            {
-                Room room;
-
-                MultiplayerClient.AddServerSideRoom(room = new Room
-                {
-                    Name = "Test Room",
-                    Playlist =
-                    [
-                        new PlaylistItem(CreateAPIBeatmap())
-                        {
-                            RulesetID = new OsuRuleset().RulesetInfo.OnlineID
-                        }
-                    ]
-                }, API.LocalUser.Value);
-
-                ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.FoundMatch
-                {
-                    RoomId = room.RoomID!.Value
-                });
+                ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueJoined().WaitSafely();
+                ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.Searching()).WaitSafely();
             });
 
-            AddStep("out of queue", () => ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(null));
+            AddStep("found", () =>
+            {
+                ((IMultiplayerClient)MultiplayerClient).MatchmakingRoomInvited().WaitSafely();
+                ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.MatchFound()).WaitSafely();
+            });
+
+            AddStep("joining", () =>
+            {
+                ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.JoiningMatch()).WaitSafely();
+            });
+
+            AddStep("returned", () =>
+            {
+                ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.Searching
+                {
+                    ReturnedToQueue = true
+                }).WaitSafely();
+            });
+
+            AddStep("queue left", () => ((IMultiplayerClient)MultiplayerClient).MatchmakingQueueLeft().WaitSafely());
         }
 
         // interface mocks break hot reload, mocking this stub implementation instead works around it.

@@ -34,6 +34,19 @@ namespace osu.Game.Online.Multiplayer
         /// <exception cref="InvalidPasswordException">If the room provided password was incorrect.</exception>
         Task<MultiplayerRoom> JoinRoomWithPassword(long roomId, string password);
 
+        /// <summary>
+        /// Toggles the user's presence in the matchmaking queue.
+        /// </summary>
         Task ToggleMatchmakingQueue();
+
+        /// <summary>
+        /// Accepts a matchmaking room invitation.
+        /// </summary>
+        Task MatchmakingAcceptInvitation();
+
+        /// <summary>
+        /// Declines a matchmaking room invitation.
+        /// </summary>
+        Task MatchmakingDeclineInvitation();
     }
 }

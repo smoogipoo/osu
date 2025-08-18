@@ -3,15 +3,14 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 using osu.Framework.Screens;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
@@ -27,12 +26,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking
         [Resolved]
         private IPerformFromScreenRunner performer { get; set; } = null!;
 
-        private readonly Bindable<bool> isVisible = new Bindable<bool>();
-        private readonly IBindable<bool> isConnected = new Bindable<bool>();
+        private readonly Bindable<bool> canAcceptInvitation = new Bindable<bool>();
+
+        private Drawable statusContainer = null!;
+        private Drawable invitationButtons = null!;
         private SpriteText statusText = null!;
         private Drawable background = null!;
 
-        private MatchmakingQueueStatus? currentStatus;
+        private MatchmakingQueueStatus? lastStatus;
 
         public MatchmakingQueueBanner()
         {
@@ -57,13 +58,45 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Yellow
                     },
-                    statusText = new OsuSpriteText
+                    statusContainer = new FillFlowContainer
                     {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Margin = new MarginPadding(10),
-                        Colour = Color4.Black,
-                    }
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Horizontal,
+                        Children = new[]
+                        {
+                            statusText = new OsuSpriteText
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Margin = new MarginPadding(10),
+                                Colour = Color4.Black,
+                            },
+                            invitationButtons = new FillFlowContainer
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                AutoSizeAxes = Axes.Both,
+                                Direction = FillDirection.Horizontal,
+                                Children = new[]
+                                {
+                                    new IconButton
+                                    {
+                                        Icon = FontAwesome.Solid.Check,
+                                        IconColour = Color4.Green,
+                                        Action = acceptInvitation,
+                                        Enabled = { BindTarget = canAcceptInvitation }
+                                    },
+                                    new IconButton
+                                    {
+                                        Icon = FontAwesome.Solid.Times,
+                                        IconColour = Color4.Red,
+                                        Action = declineInvitation,
+                                        Enabled = { BindTarget = canAcceptInvitation }
+                                    }
+                                }
+                            }
+                        }
+                    },
                 }
             };
         }
@@ -72,81 +105,110 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking
         {
             base.LoadComplete();
 
-            isVisible.BindValueChanged(onIsVisibleChanged, true);
+            canAcceptInvitation.BindValueChanged(onCanAcceptInvitationChanged, true);
 
-            isConnected.BindTo(client.IsConnected);
-            isConnected.BindValueChanged(onIsConnectedChanged, true);
-
+            client.MatchmakingQueueJoined += onMatchmakingQueueJoined;
+            client.MatchmakingQueueLeft += onMatchmakingQueueLeft;
+            client.MatchmakingRoomInvited += onMatchmakingRoomInvited;
+            client.MatchmakingRoomReady += onMatchmakingRoomReady;
             client.MatchmakingQueueStatusChanged += onMatchmakingQueueStatusChanged;
-            onMatchmakingQueueStatusChanged(null);
+
+            Hide();
+            FinishTransforms();
         }
 
-        private void onIsVisibleChanged(ValueChangedEvent<bool> e)
+        private void acceptInvitation()
+        {
+            client.MatchmakingAcceptInvitation().FireAndForget();
+            canAcceptInvitation.Value = false;
+        }
+
+        private void declineInvitation()
+        {
+            client.MatchmakingDeclineInvitation().FireAndForget();
+            canAcceptInvitation.Value = false;
+        }
+
+        private void onCanAcceptInvitationChanged(ValueChangedEvent<bool> e)
         {
             if (e.NewValue)
-                statusText.BypassAutoSizeAxes = Axes.None;
+                invitationButtons.Show();
             else
-                statusText.BypassAutoSizeAxes = Axes.X;
+                invitationButtons.Hide();
         }
 
-        private void onIsConnectedChanged(ValueChangedEvent<bool> e) => Scheduler.Add(() =>
+        private void onMatchmakingQueueJoined() => Scheduler.Add(Show);
+
+        private void onMatchmakingQueueLeft() => Scheduler.Add(() =>
         {
-            if (!e.NewValue)
-                currentStatus = null;
+            // When joining the match, the final hide is handled by the room.
+            if (lastStatus is MatchmakingQueueStatus.JoiningMatch)
+                return;
+
+            Hide();
         });
 
-        private void onMatchmakingQueueStatusChanged(MatchmakingQueueStatus? status) => Scheduler.Add(() =>
+        private void onMatchmakingRoomInvited() => Scheduler.Add(() =>
         {
-            currentStatus = status;
+            canAcceptInvitation.Value = true;
+        });
 
-            if (status == null)
+        private void onMatchmakingRoomReady(long roomId) => Scheduler.Add(() =>
+        {
+            // Perform all actions from the menu, exiting any existing multiplayer/matchmaking screen.
+            performer.PerformFromScreen(_ =>
             {
-                Hide();
-                return;
-            }
+                // Now that we have a fresh slate, we can join the room.
+                client.JoinRoom(new Room { RoomID = roomId })
+                      .FireAndForget(() => Schedule(() =>
+                      {
+                          performer.PerformFromScreen(screen => screen.Push(new MatchmakingScreen(client.Room!)));
+                      }), _ => Hide());
+            });
+        });
 
-            Show();
+        private void onMatchmakingQueueStatusChanged(MatchmakingQueueStatus status) => Scheduler.Add(() =>
+        {
+            lastStatus = status;
 
             switch (status)
             {
-                case MatchmakingQueueStatus.InQueue inQueue:
+                case MatchmakingQueueStatus.Searching searching:
                     background.Colour = Color4.Yellow;
-                    statusText.Text = $"finding a match ({inQueue.PlayerCount} / {inQueue.RoomSize})...";
+                    statusText.Text = "finding a match...";
+
+                    if (searching.ReturnedToQueue)
+                        background.FlashColour(Color4.Red, 1000, Easing.OutQuint);
+
+                    // For the case that user is returned to the queue before clicking one of the acceptance buttons.
+                    canAcceptInvitation.Value = false;
                     break;
 
-                case MatchmakingQueueStatus.FoundMatch:
+                case MatchmakingQueueStatus.MatchFound:
                     background.Colour = Color4.LightBlue;
-                    statusText.Text = "match ready! click to join!";
+                    statusText.Text = "match ready!";
+                    break;
+
+                case MatchmakingQueueStatus.JoiningMatch:
+                    background.Colour = Color4.LightGreen;
+                    statusText.Text = "joining the match...";
+
+                    // This state is normally set by one of the button presses, but it's slightly complicated to emulate in tests.
+                    canAcceptInvitation.Value = false;
                     break;
             }
         });
 
-        protected override bool OnClick(ClickEvent e)
+        public override void Show()
         {
-            if (currentStatus is MatchmakingQueueStatus.FoundMatch found)
-            {
-                background.FlashColour(Color4.LightBlue.Lighten(0.5f), 100, Easing.OutQuint);
-
-                // Perform all actions from the menu, exiting any existing multiplayer/matchmaking screen.
-                performer.PerformFromScreen(_ =>
-                {
-                    // Now that we have a fresh slate, we can join the room.
-                    client.JoinRoom(new Room { RoomID = found.RoomId })
-                          .FireAndForget(() => Schedule(() => performer.PerformFromScreen(screen => screen.Push(new MatchmakingScreen(client.Room!)))));
-                });
-
-                // Immediately consume the status to ensure a secondary click doesn't attempt to re-join.
-                currentStatus = null;
-                Hide();
-                return true;
-            }
-
-            return false;
+            statusContainer.BypassAutoSizeAxes = Axes.None;
         }
 
-        public override void Show() => isVisible.Value = true;
-
-        public override void Hide() => isVisible.Value = false;
+        public override void Hide()
+        {
+            statusContainer.BypassAutoSizeAxes = Axes.Both;
+            canAcceptInvitation.Value = false;
+        }
 
         protected override void Dispose(bool isDisposing)
         {
