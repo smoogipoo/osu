@@ -166,8 +166,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
             if (state is not MatchmakingRoomState matchmakingState || matchmakingState.RoomStatus != MatchmakingRoomStatus.RoomEnd)
                 return;
 
-            placementText.Text = $"#{matchmakingState.Users[client.LocalUser!.UserID].Placement}";
-
             populateUserStatistics(matchmakingState);
             populateRoomStatistics(matchmakingState);
         });
@@ -176,14 +174,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
         {
             userStatistics.Clear();
 
+            if (state.Users[client.LocalUser!.UserID].Rounds.Count == 0)
+            {
+                placementText.Text = "-";
+                addStatistic("No rounds played");
+                return;
+            }
+
             int overallPlacement = state.Users[client.LocalUser!.UserID].Placement;
             int overallPoints = state.Users[client.LocalUser!.UserID].Points;
             int bestPlacement = state.Users[client.LocalUser!.UserID].Rounds.Min(r => r.Placement);
-            var accuracyPlacement = state.Users.Select(u => (user: u, avgAcc: u.Rounds.Average(r => r.Accuracy)))
+            var accuracyPlacement = state.Users.Select(u => (user: u, avgAcc: u.Rounds.Select(r => r.Accuracy).DefaultIfEmpty(0).Average()))
                                          .OrderByDescending(t => t.avgAcc)
                                          .Select((t, i) => (info: t, index: i))
                                          .Single(t => t.info.user.UserId == client.LocalUser!.UserID);
 
+            placementText.Text = $"#{state.Users[client.LocalUser!.UserID].Placement}";
             addStatistic($"#{overallPlacement} overall ({overallPoints}pts)");
             addStatistic($"#{bestPlacement} best placement");
             addStatistic($"#{accuracyPlacement.index + 1} accuracy ({accuracyPlacement.info.avgAcc.FormatAccuracy()})");
@@ -227,7 +233,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
 
                 long roundLowestScore = long.MaxValue;
 
-                foreach ((int userId, MatchmakingUser user) in state.Users.UserDictionary)
+                foreach (MatchmakingUser user in state.Users)
                 {
                     if (!user.Rounds.RoundsDictionary.TryGetValue(round, out MatchmakingRound? mmRound))
                         continue;
@@ -235,25 +241,25 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
                     if (mmRound.TotalScore > maxScore)
                     {
                         maxScore = mmRound.TotalScore;
-                        maxScoreUserId = userId;
+                        maxScoreUserId = user.UserId;
                     }
 
                     if (mmRound.Accuracy > maxAccuracy)
                     {
                         maxAccuracy = mmRound.Accuracy;
-                        maxAccuracyUserId = userId;
+                        maxAccuracyUserId = user.UserId;
                     }
 
                     if (mmRound.MaxCombo > maxCombo)
                     {
                         maxCombo = mmRound.MaxCombo;
-                        maxComboUserId = userId;
+                        maxComboUserId = user.UserId;
                     }
 
                     if (mmRound.TotalScore > roundHighestScore)
                     {
                         roundHighestScore = mmRound.TotalScore;
-                        roundHighestScoreUserId = userId;
+                        roundHighestScoreUserId = user.UserId;
                     }
 
                     if (mmRound.TotalScore < roundLowestScore)
@@ -275,11 +281,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
                 }
             }
 
-            foreach ((int userId, MatchmakingUser user) in state.Users.UserDictionary)
+            foreach (MatchmakingUser user in state.Users)
             {
                 int userBonusScore = 0;
 
-                foreach ((_, MatchmakingRound round) in user.Rounds.RoundsDictionary)
+                foreach (MatchmakingRound round in user.Rounds)
                 {
                     userBonusScore += round.Statistics.TryGetValue(HitResult.LargeBonus, out int bonus) ? bonus * 5 : 0;
                     userBonusScore += round.Statistics.TryGetValue(HitResult.SmallBonus, out bonus) ? bonus : 0;
@@ -288,7 +294,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
                 if (userBonusScore > maxBonusScore)
                 {
                     maxBonusScore = userBonusScore;
-                    maxBonusScoreUserId = userId;
+                    maxBonusScoreUserId = user.UserId;
                 }
             }
 
