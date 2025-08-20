@@ -16,6 +16,11 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.Matchmaking
     public class MatchmakingRoomState : MatchRoomState
     {
         /// <summary>
+        /// The number of points awarded for each placement position (index 0 = #1, index 7 = #8).
+        /// </summary>
+        private static readonly int[] placement_points = [8, 7, 6, 5, 4, 3, 2, 1];
+
+        /// <summary>
         /// The current room status.
         /// </summary>
         [Key(0)]
@@ -54,32 +59,43 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.Matchmaking
         }
 
         /// <summary>
-        /// Sets a score for the given user in the current round.
+        /// Sets scores for the current round, applying points and adjusting user placements.
         /// </summary>
-        /// <param name="userId">The user.</param>
-        /// <param name="placement"></param>
-        /// <param name="points"></param>
-        /// <param name="score"></param>
-        public void SetScore(int userId, int placement, int points, SoloScoreInfo score)
+        /// <remarks>
+        /// When applying points:
+        /// <list type="bullet">
+        ///   <item>Matching scores are considered to be placed in the lower-equal (e.g. two equal top scores would be considered "equal-second").</item>
+        ///   <item>Failed scores are considered to have passed the map.</item>
+        ///   <item>Missing scores are not considered.</item>
+        /// </list>
+        /// </remarks>
+        /// <param name="scores">The scores to apply.</param>
+        public void SetScores(SoloScoreInfo[] scores)
         {
-            MatchmakingUser mmUser = Users[userId];
-            mmUser.Points += points;
+            SoloScoreInfo[] orderedScores = scores.OrderByDescending(s => s.TotalScore).ToArray();
 
-            MatchmakingRound mmRound = mmUser.Rounds[Round];
-            mmRound.Placement = placement;
-            mmRound.TotalScore = score.TotalScore;
-            mmRound.Accuracy = score.Accuracy;
-            mmRound.MaxCombo = score.MaxCombo;
-            mmRound.Statistics = score.Statistics;
-        }
+            int placement = 0;
 
-        /// <summary>
-        /// Computes the aggregate user placements.
-        /// </summary>
-        public void ComputePlacements()
-        {
+            foreach (var scoreGroup in orderedScores.GroupBy(s => s.TotalScore))
+            {
+                placement += scoreGroup.Count();
+
+                foreach (var score in scoreGroup)
+                {
+                    MatchmakingUser mmUser = Users[score.UserID];
+                    mmUser.Points += placement_points[placement - 1];
+
+                    MatchmakingRound mmRound = mmUser.Rounds[Round];
+                    mmRound.Placement = placement;
+                    mmRound.TotalScore = score.TotalScore;
+                    mmRound.Accuracy = score.Accuracy;
+                    mmRound.MaxCombo = score.MaxCombo;
+                    mmRound.Statistics = score.Statistics;
+                }
+            }
+
             int i = 1;
-            foreach (var user in Users.UserDictionary.Values.Order(new MatchmakingUserComparer()))
+            foreach (var user in Users.Order(new MatchmakingUserComparer()))
                 user.Placement = i++;
         }
     }
