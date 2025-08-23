@@ -149,5 +149,9 @@ namespace osu.Game.Online.Multiplayer
         /// </summary>
         /// <param name="item">The changed item.</param>
         Task PlaylistItemChanged(MultiplayerPlaylistItem item);
+
+        Task LoungeRoomAdded(MultiplayerRoom room);
+
+        Task LoungeRoomRemoved(long roomId);
     }
 }

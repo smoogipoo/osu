@@ -112,6 +112,10 @@ namespace osu.Game.Online.Multiplayer
         /// </summary>
         public event Action? Disconnecting;
 
+        public event Action<MultiplayerRoom>? LoungeRoomAdded;
+
+        public event Action<long>? LoungeRoomRemoved;
+
         /// <summary>
         /// Whether the <see cref="MultiplayerClient"/> is currently connected.
         /// This is NOT thread safe and usage should be scheduled.
@@ -871,6 +875,22 @@ namespace osu.Game.Online.Multiplayer
                 RoomUpdated?.Invoke();
             });
 
+            return Task.CompletedTask;
+        }
+
+        public abstract Task JoinLounge();
+
+        public abstract Task LeaveLounge();
+
+        Task IMultiplayerClient.LoungeRoomAdded(MultiplayerRoom room)
+        {
+            Scheduler.Add(() => LoungeRoomAdded?.Invoke(room));
+            return Task.CompletedTask;
+        }
+
+        Task IMultiplayerClient.LoungeRoomRemoved(long roomId)
+        {
+            Scheduler.Add(() => LoungeRoomRemoved?.Invoke(roomId));
             return Task.CompletedTask;
         }
 

@@ -106,5 +106,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
             base.OpenNewRoom(room);
         }
+
+        protected override LoungeListingPoller CreatePoller(Action<Room[]> roomsReceived)
+            => new MultiplayerLoungeListingPoller { RoomsReceived = roomsReceived };
     }
 }

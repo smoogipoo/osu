@@ -99,11 +99,10 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
 
             InternalChildren = new Drawable[]
             {
-                listingPoller = new LoungeListingPoller
+                listingPoller = CreatePoller(onListingReceived).With(d =>
                 {
-                    RoomsReceived = onListingReceived,
-                    Filter = { BindTarget = filter }
-                },
+                    d.Filter.BindTarget = filter;
+                }),
                 popoverContainer = new PopoverContainer
                 {
                     Name = @"Rooms area",
@@ -437,6 +436,8 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
 
             Logger.Log($"Polling adjusted (listing: {listingPoller.TimeBetweenPolls.Value})");
         }
+
+        protected virtual LoungeListingPoller CreatePoller(Action<Room[]> roomsReceived) => new LoungeListingPoller { RoomsReceived = roomsReceived };
 
         protected abstract OsuButton CreateNewRoomButton();
 

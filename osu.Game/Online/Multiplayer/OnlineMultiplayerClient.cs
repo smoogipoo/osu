@@ -48,6 +48,8 @@ namespace osu.Game.Online.Multiplayer
                 {
                     // this is kind of SILLY
                     // https://github.com/dotnet/aspnetcore/issues/15198
+                    connection.On<MultiplayerRoom>(nameof(IMultiplayerClient.LoungeRoomAdded), ((IMultiplayerClient)this).LoungeRoomAdded);
+                    connection.On<long>(nameof(IMultiplayerClient.LoungeRoomRemoved), ((IMultiplayerClient)this).LoungeRoomRemoved);
                     connection.On<MultiplayerRoomState>(nameof(IMultiplayerClient.RoomStateChanged), ((IMultiplayerClient)this).RoomStateChanged);
                     connection.On<MultiplayerRoomUser>(nameof(IMultiplayerClient.UserJoined), ((IMultiplayerClient)this).UserJoined);
                     connection.On<MultiplayerRoomUser>(nameof(IMultiplayerClient.UserLeft), ((IMultiplayerClient)this).UserLeft);
@@ -300,6 +302,26 @@ namespace osu.Game.Online.Multiplayer
             Debug.Assert(connection != null);
 
             return connection.InvokeAsync(nameof(IMultiplayerServer.RemovePlaylistItem), playlistItemId);
+        }
+
+        public override Task JoinLounge()
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+
+            return connection.InvokeAsync(nameof(IMultiplayerServer.JoinLounge));
+        }
+
+        public override Task LeaveLounge()
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+
+            return connection.InvokeAsync(nameof(IMultiplayerServer.LeaveLounge));
         }
 
         public override Task DisconnectInternal()
