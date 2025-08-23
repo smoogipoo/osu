@@ -11,29 +11,48 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.Matchmaking
     /// </summary>
     public class MatchmakingUserComparer : Comparer<MatchmakingUser>
     {
+        private readonly int rounds;
+
+        public MatchmakingUserComparer(int rounds)
+        {
+            this.rounds = rounds;
+        }
+
         public override int Compare(MatchmakingUser? x, MatchmakingUser? y)
         {
             ArgumentNullException.ThrowIfNull(x);
             ArgumentNullException.ThrowIfNull(y);
 
-            // X appears later in the list if it has fewer points.
-            if (y.Points > x.Points)
-                return 1;
-
             // X appears earlier in the list if it has more points.
             if (x.Points > y.Points)
                 return -1;
 
+            // Y appears earlier in the list if it has more points.
+            if (y.Points > x.Points)
+                return 1;
+
             // Tiebreaker 1 (likely): From each user's point-of-view, their earliest and best placement.
-            for (int round = 1;; round++)
+            for (int r = 1; r <= rounds; r++)
             {
-                if (!x.Rounds.RoundsDictionary.TryGetValue(round, out MatchmakingRound? xRound))
-                    break;
+                MatchmakingRound? xRound;
+                x.Rounds.RoundsDictionary.TryGetValue(r, out xRound);
 
-                if (!y.Rounds.RoundsDictionary.TryGetValue(round, out MatchmakingRound? yRound))
-                    break;
+                MatchmakingRound? yRound;
+                y.Rounds.RoundsDictionary.TryGetValue(r, out yRound);
 
-                // X appears earlier in the list if it has a better placement, or later in the list if it has a worse placement.
+                // Nothing to do if both players haven't played this round.
+                if (xRound == null && yRound == null)
+                    continue;
+
+                // X appears later in the list if it hasn't played this round.
+                if (xRound == null)
+                    return 1;
+
+                // Y appears later in the list if it hasn't played this round.
+                if (yRound == null)
+                    return -1;
+
+                // X appears earlier in the list if it has a better placement in the round.
                 int compare = xRound.Placement.CompareTo(yRound.Placement);
                 if (compare != 0)
                     return compare;

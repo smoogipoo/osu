@@ -95,7 +95,7 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.Matchmaking
             }
 
             int i = 1;
-            foreach (var user in Users.Order(new MatchmakingUserComparer()))
+            foreach (var user in Users.Order(new MatchmakingUserComparer(Round)))
                 user.Placement = i++;
         }
     }
