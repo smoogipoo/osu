@@ -78,7 +78,8 @@ namespace osu.Game.Online.Multiplayer
                     connection.On<long>(nameof(IMultiplayerClient.MatchmakingRoomReady), ((IMultiplayerClient)this).MatchmakingRoomReady);
                     connection.On<MatchmakingLobbyStatus>(nameof(IMultiplayerClient.MatchmakingLobbyStatusChanged), ((IMultiplayerClient)this).MatchmakingLobbyStatusChanged);
                     connection.On<MatchmakingQueueStatus>(nameof(IMultiplayerClient.MatchmakingQueueStatusChanged), ((IMultiplayerClient)this).MatchmakingQueueStatusChanged);
-                    connection.On<int, long>(nameof(IMultiplayerClient.MatchmakingSelectionToggled), ((IMultiplayerClient)this).MatchmakingSelectionToggled);
+                    connection.On<int, long>(nameof(IMultiplayerClient.MatchmakingItemSelected), ((IMultiplayerClient)this).MatchmakingItemSelected);
+                    connection.On<int, long>(nameof(IMultiplayerClient.MatchmakingItemDeselected), ((IMultiplayerClient)this).MatchmakingItemDeselected);
                 };
 
                 IsConnected.BindTo(connector.IsConnected);

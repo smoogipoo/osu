@@ -48,7 +48,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
 
             selectionGrid.ItemSelected += item => client.MatchmakingToggleSelection(item.ID);
 
-            client.MatchmakingSelectionToggled += selectionToggled;
+            client.MatchmakingItemSelected += onItemSelected;
+            client.MatchmakingItemDeselected += onItemDeselected;
         }
 
         private void onItemAdded(MultiplayerPlaylistItem item) => Scheduler.Add(() => selectionGrid.AddItem(item));
@@ -59,11 +60,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
                 selectionGrid.RemoveItem(item.ID);
         });
 
-        private void selectionToggled(int userId, long itemId)
+        private void onItemSelected(int userId, long itemId)
         {
             var user = client.Room!.Users.First(it => it.UserID == userId).User!;
+            selectionGrid.SetUserSelection(user, itemId, true);
+        }
 
-            selectionGrid.SetUserSelection(user, itemId, isOwnUser: api.LocalUser.Value.Id == userId);
+        private void onItemDeselected(int userId, long itemId)
+        {
+            var user = client.Room!.Users.First(it => it.UserID == userId).User!;
+            selectionGrid.SetUserSelection(user, itemId, false);
         }
 
         private void onItemRemoved(long itemId) => Scheduler.Add(() => selectionGrid.RemoveItem(itemId));

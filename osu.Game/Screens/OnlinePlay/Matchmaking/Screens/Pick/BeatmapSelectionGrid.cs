@@ -7,10 +7,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Toolkit.HighPerformance;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using osu.Game.Graphics.Containers;
+using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osuTK;
@@ -29,8 +31,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
 
         public event Action<MultiplayerPlaylistItem>? ItemSelected;
 
+        [Resolved]
+        private IAPIProvider api { get; set; } = null!;
+
         private readonly Dictionary<long, BeatmapSelectionPanel> panelLookup = new Dictionary<long, BeatmapSelectionPanel>();
-        private readonly Dictionary<int, long> userSelection = new Dictionary<int, long>();
 
         private readonly PanelGridContainer panelGridContainer;
         private readonly Container<BeatmapSelectionPanel> rollContainer;
@@ -106,20 +110,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
             panelGridContainer.Remove(panel, true);
         }
 
-        public void SetUserSelection(APIUser user, long itemId, bool isOwnUser)
+        public void SetUserSelection(APIUser user, long itemId, bool selected)
         {
-            long? oldItemId = userSelection.TryGetValue(user.Id, out long id) ? id : null;
-
-            if (oldItemId == itemId)
+            if (!panelLookup.TryGetValue(itemId, out var panel))
                 return;
 
-            if (oldItemId != null && panelLookup.TryGetValue(oldItemId.Value, out var oldPanel))
-                oldPanel.RemoveUser(user.Id);
-
-            if (panelLookup.TryGetValue(itemId, out var newPanel))
-                newPanel.AddUser(user, isOwnUser);
-
-            userSelection[user.Id] = itemId;
+            if (selected)
+                panel.AddUser(user, user.Equals(api.LocalUser.Value));
+            else
+                panel.RemoveUser(user);
         }
 
         public void RollAndDisplayFinalBeatmap(long[] candidateItemIds, long finalItemId)

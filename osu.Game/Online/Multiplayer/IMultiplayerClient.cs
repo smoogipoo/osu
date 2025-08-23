@@ -186,8 +186,13 @@ namespace osu.Game.Online.Multiplayer
         Task MatchmakingQueueStatusChanged(MatchmakingQueueStatus status);
 
         /// <summary>
-        /// A user has toggled their selection.
+        /// The user has raised a candidate playlist item to be played.
         /// </summary>
-        Task MatchmakingSelectionToggled(int userId, long playlistItemId);
+        Task MatchmakingItemSelected(int userId, long playlistItemId);
+
+        /// <summary>
+        /// The user has removed a candidate playlist item.
+        /// </summary>
+        Task MatchmakingItemDeselected(int userId, long playlistItemId);
     }
 }

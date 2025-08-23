@@ -73,7 +73,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private int currentIndex;
         private long lastPlaylistItemId;
         private int lastCountdownId;
-        private bool inMatchmakingQueue;
+
+        private readonly Dictionary<int, long> matchmakingUserPicks = new Dictionary<int, long>();
 
         private readonly TestRoomRequestsHandler apiRequestHandler;
 
@@ -787,7 +788,19 @@ namespace osu.Game.Tests.Visual.Multiplayer
             => Task.CompletedTask;
 
         public async Task MatchmakingToggleUserSelection(int userId, long playlistItemId)
-            => await ((IMultiplayerClient)this).MatchmakingSelectionToggled(clone(userId), clone(playlistItemId)).ConfigureAwait(false);
+        {
+            if (matchmakingUserPicks.TryGetValue(userId, out long existingId))
+            {
+                if (existingId == playlistItemId)
+                    return;
+
+                await ((IMultiplayerClient)this).MatchmakingItemDeselected(clone(userId), clone(existingId)).ConfigureAwait(false);
+            }
+
+            matchmakingUserPicks[userId] = playlistItemId;
+
+            await ((IMultiplayerClient)this).MatchmakingItemSelected(clone(userId), clone(playlistItemId)).ConfigureAwait(false);
+        }
 
         #region API Room Handling
 
