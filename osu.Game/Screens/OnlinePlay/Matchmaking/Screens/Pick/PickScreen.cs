@@ -40,8 +40,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
             base.LoadComplete();
 
             client.ItemAdded += onItemAdded;
-            client.ItemChanged += onItemChanged;
-            client.ItemRemoved += onItemRemoved;
 
             foreach (var item in client.Room!.Playlist)
                 onItemAdded(item);
@@ -60,12 +58,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
             selectionGrid.AddItem(item);
         });
 
-        private void onItemChanged(MultiplayerPlaylistItem item) => Scheduler.Add(() =>
-        {
-            if (item.Expired)
-                selectionGrid.RemoveItem(item.ID);
-        });
-
         private void onItemSelected(int userId, long itemId)
         {
             var user = client.Room!.Users.First(it => it.UserID == userId).User!;
@@ -78,8 +70,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
             selectionGrid.SetUserSelection(user, itemId, false);
         }
 
-        private void onItemRemoved(long itemId) => Scheduler.Add(() => selectionGrid.RemoveItem(itemId));
-
         public void RollFinalBeatmap(long[] candidateItems, long finalItem) => selectionGrid.RollAndDisplayFinalBeatmap(candidateItems, finalItem);
 
         protected override void Dispose(bool isDisposing)
@@ -87,11 +77,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
             base.Dispose(isDisposing);
 
             if (client.IsNotNull())
-            {
                 client.ItemAdded -= onItemAdded;
-                client.ItemChanged -= onItemChanged;
-                client.ItemRemoved -= onItemRemoved;
-            }
         }
     }
 }
