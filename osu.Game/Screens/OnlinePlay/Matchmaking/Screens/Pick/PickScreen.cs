@@ -52,7 +52,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
             client.MatchmakingItemDeselected += onItemDeselected;
         }
 
-        private void onItemAdded(MultiplayerPlaylistItem item) => Scheduler.Add(() => selectionGrid.AddItem(item));
+        private void onItemAdded(MultiplayerPlaylistItem item) => Scheduler.Add(() =>
+        {
+            if (item.Expired)
+                return;
+
+            selectionGrid.AddItem(item);
+        });
 
         private void onItemChanged(MultiplayerPlaylistItem item) => Scheduler.Add(() =>
         {
