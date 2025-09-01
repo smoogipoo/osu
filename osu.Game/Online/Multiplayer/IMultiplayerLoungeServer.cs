@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
+using osu.Game.Online.Matchmaking;
 
 namespace osu.Game.Online.Multiplayer
 {
@@ -47,7 +48,7 @@ namespace osu.Game.Online.Multiplayer
         /// <summary>
         /// Joins the matchmaking queue, allowing the local user to get matched up with others.
         /// </summary>
-        Task JoinMatchmakingQueue();
+        Task JoinMatchmakingQueue(MatchmakingSettings settings);
 
         /// <summary>
         /// Leaves the matchmaking queue.

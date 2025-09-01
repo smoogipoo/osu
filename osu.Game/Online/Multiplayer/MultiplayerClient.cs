@@ -1036,7 +1036,7 @@ namespace osu.Game.Online.Multiplayer
 
         public abstract Task LeaveMatchmakingLobby();
 
-        public abstract Task JoinMatchmakingQueue();
+        public abstract Task JoinMatchmakingQueue(MatchmakingSettings settings);
 
         public abstract Task LeaveMatchmakingQueue();
 

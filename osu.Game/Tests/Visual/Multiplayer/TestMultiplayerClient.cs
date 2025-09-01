@@ -760,7 +760,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Task.CompletedTask;
         }
 
-        public override async Task JoinMatchmakingQueue()
+        public override async Task JoinMatchmakingQueue(MatchmakingSettings settings)
         {
             await ((IMultiplayerClient)this).MatchmakingQueueJoined().ConfigureAwait(false);
             await ((IMultiplayerClient)this).MatchmakingQueueStatusChanged(new MatchmakingQueueStatus.Searching()).ConfigureAwait(false);

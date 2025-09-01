@@ -10,6 +10,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
+using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Screens;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking
@@ -27,6 +28,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking
         [Resolved]
         private IPerformFromScreenRunner? performer { get; set; }
 
+        [Resolved]
+        private IBindable<RulesetInfo> ruleset { get; set; } = null!;
+
         private ProgressNotification? backgroundNotification;
         private Notification? readyNotification;
         private bool isBackgrounded;
@@ -40,6 +44,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking
             client.MatchmakingQueueLeft += onMatchmakingQueueLeft;
             client.MatchmakingRoomInvited += onMatchmakingRoomInvited;
             client.MatchmakingRoomReady += onMatchmakingRoomReady;
+
+            ruleset.BindValueChanged(_ => client.LeaveMatchmakingQueue().FireAndForget());
         }
 
         public void SearchInBackground()

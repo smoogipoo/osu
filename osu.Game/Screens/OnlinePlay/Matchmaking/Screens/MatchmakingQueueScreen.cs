@@ -22,6 +22,7 @@ using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
+using osu.Game.Rulesets;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
@@ -55,6 +56,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
 
         [Resolved]
         private UserLookupCache userLookupCache { get; set; } = null!;
+
+        [Resolved]
+        private IBindable<RulesetInfo> ruleset { get; set; } = null!;
 
         private readonly IBindable<MatchmakingScreenState> currentState = new Bindable<MatchmakingScreenState>();
         private CancellationTokenSource userLookupCancellation = new CancellationTokenSource();
@@ -221,7 +225,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
                                 LighterColour = colours.Blue1,
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Action = () => client.JoinMatchmakingQueue().FireAndForget(),
+                                Action = () => client.JoinMatchmakingQueue(new MatchmakingSettings { RulesetId = ruleset.Value.OnlineID }).FireAndForget(),
                                 Text = "Begin queueing",
                             }
                         }
