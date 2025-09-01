@@ -19,7 +19,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
 {
     public partial class MatchmakingIntroScreen : OsuScreen
     {
-        public override bool DisallowExternalBeatmapRulesetChanges => true;
+        public override bool DisallowExternalBeatmapRulesetChanges => false;
 
         public override bool? ApplyModTrackAdjustments => true;
 
