@@ -223,10 +223,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
                             {
                                 DarkerColour = colours.Blue2,
                                 LighterColour = colours.Blue1,
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
                                 Action = () => client.MatchmakingJoinQueue(new MatchmakingSettings { RulesetId = ruleset.Value.OnlineID }).FireAndForget(),
                                 Text = "Begin queueing",
+                            },
+                            new MatchmakingRulesetSelector
+                            {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
                             }
                         }
                     };
