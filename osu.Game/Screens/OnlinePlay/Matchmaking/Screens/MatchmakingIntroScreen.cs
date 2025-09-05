@@ -137,6 +137,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
             base.OnSuspending(e);
         }
 
+        public override bool OnExiting(ScreenExitEvent e)
+        {
+            if (base.OnExiting(e))
+                return true;
+
+            duckOperation?.Dispose();
+            return false;
+        }
+
         private void updateAnimationState()
         {
             if (animationBegan)
