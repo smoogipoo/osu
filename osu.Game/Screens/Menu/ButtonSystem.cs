@@ -112,7 +112,19 @@ namespace osu.Game.Screens.Menu
                 {
                     Padding = new MarginPadding { Right = WEDGE_WIDTH },
                 },
-                backButton = new MainMenuButton(ButtonSystemStrings.Back, @"back-to-top", OsuIcon.PrevCircle, new Color4(51, 58, 94, 255), (_, _) => State = ButtonSystemState.TopLevel)
+                backButton = new MainMenuButton(ButtonSystemStrings.Back, @"back-to-top", OsuIcon.PrevCircle, new Color4(51, 58, 94, 255), (_, _) =>
+                {
+                    switch (State)
+                    {
+                        case ButtonSystemState.Multi:
+                            State = ButtonSystemState.Play;
+                            break;
+
+                        default:
+                            State = ButtonSystemState.TopLevel;
+                            break;
+                    }
+                })
                 {
                     Padding = new MarginPadding { Right = WEDGE_WIDTH },
                     VisibleStateMin = ButtonSystemState.Play,
