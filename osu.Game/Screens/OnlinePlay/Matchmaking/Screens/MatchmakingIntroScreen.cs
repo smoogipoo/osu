@@ -37,9 +37,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
         [Resolved]
         private MusicController musicController { get; set; } = null!;
 
-        [Resolved]
-        private MatchmakingController controller { get; set; } = null!;
-
         private Sample? dateWindupSample;
         private Sample? dateImpactSample;
         private Sample? beatmapWindupSample;
