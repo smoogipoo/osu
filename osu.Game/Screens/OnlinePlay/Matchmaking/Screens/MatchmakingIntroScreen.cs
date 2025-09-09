@@ -40,8 +40,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
         [Resolved]
         private MatchmakingController controller { get; set; } = null!;
 
-        public override bool AllowUserExit => !ValidForResume;
-
         private Sample? dateWindupSample;
         private Sample? dateImpactSample;
         private Sample? beatmapWindupSample;
@@ -55,6 +53,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
         private IDisposable? duckOperation;
 
         protected override BackgroundScreen CreateBackground() => new MatchmakingIntroBackgroundScreen(colourProvider);
+
+        public MatchmakingIntroScreen()
+        {
+            ValidForResume = false;
+        }
 
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
@@ -123,14 +126,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
 
             updateAnimationState();
             playDateWindupSample();
-
-            controller.SearchInForeground();
         }
 
         public override void OnSuspending(ScreenTransitionEvent e)
         {
-            ValidForResume = false;
-
             duckOperation?.Dispose();
 
             this.FadeOut(800, Easing.OutQuint);
