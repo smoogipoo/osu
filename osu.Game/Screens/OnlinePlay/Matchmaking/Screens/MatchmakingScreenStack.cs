@@ -44,35 +44,31 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
             RelativeSizeAxes = Axes.Both;
             Padding = new MarginPadding(10);
 
-            InternalChild = new GridContainer
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                RowDimensions = new[] { new Dimension(), new Dimension(GridSizeMode.AutoSize) },
-                Content = new Drawable[][]
+                new GridContainer
                 {
-                    [
-                        new GridContainer
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            ColumnDimensions = new[] { new Dimension(), new Dimension(GridSizeMode.Absolute, 20), new Dimension(GridSizeMode.AutoSize) },
-                            Padding = new MarginPadding { Bottom = 20 },
-                            Content = new Drawable?[][]
+                    RelativeSizeAxes = Axes.Both,
+                    RowDimensions = new[] { new Dimension(), new Dimension(GridSizeMode.AutoSize) },
+                    Content = new Drawable[][]
+                    {
+                        [
+                            new Container
                             {
-                                [
-                                    screenStack = new ScreenStack(),
-                                    null,
-                                    panelList
-                                ]
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding { Bottom = 20 },
+                                Child = screenStack = new ScreenStack()
                             }
-                        }
-                    ],
-                    [
-                        new StageDisplay
-                        {
-                            RelativeSizeAxes = Axes.X
-                        }
-                    ]
-                }
+                        ],
+                        [
+                            new StageDisplay
+                            {
+                                RelativeSizeAxes = Axes.X
+                            }
+                        ]
+                    }
+                },
+                panelList
             };
         }
 
