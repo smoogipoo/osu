@@ -9,13 +9,26 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
 {
     public partial class IdleScreen : MatchmakingSubScreen
     {
+        [Resolved]
+        private PlayerPanelList? panelList { get; set; }
+
+        private GridPlayerPanelLayoutContainer panelLayout = null!;
+
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = new PlayerPanelList
+            InternalChild = panelLayout = new GridPlayerPanelLayoutContainer
             {
-                RelativeSizeAxes = Axes.Both
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.X
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            panelList?.SetLayout(panelLayout);
         }
 
         public override void OnEntering(ScreenTransitionEvent e)

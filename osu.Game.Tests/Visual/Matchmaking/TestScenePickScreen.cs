@@ -5,10 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Extensions;
+using osu.Framework.Graphics;
+using osu.Framework.Screens;
 using osu.Framework.Utils;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.MatchTypes.Matchmaking;
 using osu.Game.Online.Rooms;
+using osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick;
 using osu.Game.Tests.Visual.Multiplayer;
 
@@ -65,6 +70,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
             });
 
             WaitForJoined();
+            AddStep("set initial state", () => MultiplayerClient.ChangeMatchRoomState(new MatchmakingRoomState()).WaitSafely());
 
             AddStep("add users", () =>
             {
@@ -80,7 +86,24 @@ namespace osu.Game.Tests.Visual.Matchmaking
 
             PickScreen screen = null!;
 
-            AddStep("add screen", () => LoadScreen(screen = new PickScreen()));
+            AddStep("add screen", () =>
+            {
+                PlayerPanelList panelList = new PlayerPanelList
+                {
+                    RelativeSizeAxes = Axes.Both
+                };
+
+                Child = new DependencyProvidingContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    CachedDependencies = [(typeof(PlayerPanelList), panelList)],
+                    Children = new Drawable[]
+                    {
+                        new ScreenStack(screen = new PickScreen()),
+                        panelList
+                    }
+                };
+            });
 
             AddStep("select maps", () =>
             {

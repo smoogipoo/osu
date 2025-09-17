@@ -28,6 +28,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
 
             AddStep("join room", () => JoinRoom(CreateDefaultRoom()));
             WaitForJoined();
+            AddStep("set initial state", () => MultiplayerClient.ChangeMatchRoomState(new MatchmakingRoomState()).WaitSafely());
 
             AddStep("add list", () =>
             {
@@ -44,11 +45,25 @@ namespace osu.Game.Tests.Visual.Matchmaking
                     return (user, 0);
                 }).ToArray();
 
-                Child = new ScreenStack(new IdleScreen())
+                PlayerPanelList panelList = new PlayerPanelList
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(0.8f)
+                    RelativeSizeAxes = Axes.Both
+                };
+
+                Child = new DependencyProvidingContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    CachedDependencies = [(typeof(PlayerPanelList), panelList)],
+                    Children = new Drawable[]
+                    {
+                        new ScreenStack(new IdleScreen())
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(0.8f)
+                        },
+                        panelList
+                    }
                 };
             });
 

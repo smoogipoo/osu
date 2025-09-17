@@ -24,9 +24,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = panels = new Container<PlayerPanel>
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both
+                layout = new GridPlayerPanelLayoutContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.X
+                },
+                panels = new Container<PlayerPanel>
+                {
+                    RelativeSizeAxes = Axes.Both
+                }
             };
         }
 

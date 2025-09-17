@@ -22,7 +22,21 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
 
+        [Cached]
+        private readonly PlayerPanelList panelList;
+
         private ScreenStack screenStack = null!;
+
+        public MatchmakingScreenStack()
+        {
+            panelList = new PlayerPanelList
+            {
+                Horizontal = true,
+                RelativeSizeAxes = Axes.Y,
+                Width = 250,
+                Scale = new Vector2(0.8f),
+            };
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -47,13 +61,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
                                 [
                                     screenStack = new ScreenStack(),
                                     null,
-                                    new PlayerPanelList
-                                    {
-                                        Horizontal = true,
-                                        RelativeSizeAxes = Axes.Y,
-                                        Width = 250,
-                                        Scale = new Vector2(0.8f),
-                                    }
+                                    panelList
                                 ]
                             }
                         }

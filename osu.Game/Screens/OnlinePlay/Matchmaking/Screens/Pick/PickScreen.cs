@@ -8,32 +8,47 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
+using osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Pick
 {
     public partial class PickScreen : OsuScreen
     {
-        private BeatmapSelectionGrid selectionGrid = null!;
-
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
+
+        [Resolved]
+        private PlayerPanelList? panelList { get; set; }
+
+        private SplitPlayerPanelLayoutContainer panelLayout = null!;
+        private BeatmapSelectionGrid selectionGrid = null!;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = new Container
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Child = selectionGrid = new BeatmapSelectionGrid
+                panelLayout = new SplitPlayerPanelLayoutContainer
+                {
+                    RelativeSizeAxes = Axes.Both
+                },
+                new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                },
+                    Padding = new MarginPadding { Horizontal = PlayerPanel.SIZE_HORIZONTAL.X },
+                    Child = selectionGrid = new BeatmapSelectionGrid
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                }
             };
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            panelList?.SetLayout(panelLayout);
 
             client.ItemAdded += onItemAdded;
 

@@ -24,9 +24,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
 
+        [Resolved]
+        private PlayerPanelList? panelList { get; set; }
+
         private OsuSpriteText placementText = null!;
         private FillFlowContainer<UserStatisticPanel> userStatistics = null!;
         private FillFlowContainer<RoomStatisticPanel> roomStatistics = null!;
+        private GridPlayerPanelLayoutContainer panelLayout = null!;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -113,9 +117,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
                                         }
                                     },
                                     null,
-                                    new PlayerPanelList
+                                    panelLayout = new GridPlayerPanelLayoutContainer
                                     {
-                                        RelativeSizeAxes = Axes.Both
+                                        RelativeSizeAxes = Axes.X
                                     }
                                 ]
                             }
@@ -154,6 +158,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            panelList?.SetLayout(panelLayout);
 
             client.MatchRoomStateChanged += onRoomStateChanged;
 
