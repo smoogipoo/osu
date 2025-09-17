@@ -119,7 +119,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Results
                                     null,
                                     panelLayout = new GridPlayerPanelLayoutContainer
                                     {
-                                        RelativeSizeAxes = Axes.X
+                                        RelativeSizeAxes = Axes.Both
                                     }
                                 ]
                             }

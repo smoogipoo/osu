@@ -16,8 +16,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
 
-        public bool Horizontal { get; init; }
-
         private Container<PlayerPanel> panels = null!;
         private PlayerPanelLayoutContainer? layout;
 
@@ -28,9 +26,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
             {
                 layout = new GridPlayerPanelLayoutContainer
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.X
+                    RelativeSizeAxes = Axes.Both
                 },
                 panels = new Container<PlayerPanel>
                 {
@@ -63,11 +59,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
 
         private void onUserJoined(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
-            panels.Add(new PlayerPanel(user)
-            {
-                Horizontal = Horizontal
-            });
-
+            panels.Add(new PlayerPanel(user));
             updatePanelPositions();
         });
 

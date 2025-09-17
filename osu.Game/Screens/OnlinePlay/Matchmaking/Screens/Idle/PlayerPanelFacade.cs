@@ -22,6 +22,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         public PlayerPanelFacade(bool horizontal)
         {
             Horizontal = horizontal;
+
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
             Size = horizontal ? PlayerPanel.SIZE_HORIZONTAL : PlayerPanel.SIZE_VERTICAL;
         }
     }

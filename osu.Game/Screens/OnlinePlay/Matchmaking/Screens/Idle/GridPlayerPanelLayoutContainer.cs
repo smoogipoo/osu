@@ -13,14 +13,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
 
         public GridPlayerPanelLayoutContainer()
         {
-            AutoSizeAxes = Axes.Y;
-
             InternalChild = panels = new FillFlowContainer<PlayerPanelFacade>
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
+                RelativeSizeAxes = Axes.Both,
                 Spacing = new Vector2(20, 5)
             };
         }
@@ -29,6 +26,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         {
             while (index >= panels.Count)
                 panels.Add(new PlayerPanelFacade(false));
+
             return panels[index];
         }
     }

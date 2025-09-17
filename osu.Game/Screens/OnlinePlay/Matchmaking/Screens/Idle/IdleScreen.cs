@@ -19,9 +19,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         {
             InternalChild = panelLayout = new GridPlayerPanelLayoutContainer
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.X
+                RelativeSizeAxes = Axes.Both
             };
         }
 

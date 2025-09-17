@@ -50,6 +50,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         }
 
         private bool horizontal;
+        private bool isAnimatingToFacade;
         private PlayerPanelFacade? facade;
 
         public PlayerPanel(MultiplayerRoomUser user)
@@ -143,21 +144,46 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         {
             this.facade = facade;
             Horizontal = facade.Horizontal;
+            isAnimatingToFacade = true;
         }
 
         protected override void Update()
         {
             base.Update();
 
-            if (facade != null)
-            {
-                Vector2 targetPos = facade.ToSpaceOfOtherDrawable(Vector2.Zero, Parent!);
+            var targetPos = getFinalPosition();
+            var targetSize = getFinalSize();
 
-                Position = new Vector2(
-                    (float)Interpolation.DampContinuously(Position.X, targetPos.X, 60, Time.Elapsed),
-                    (float)Interpolation.DampContinuously(Position.Y, targetPos.Y, 60, Time.Elapsed)
-                );
-            }
+            double duration = isAnimatingToFacade ? 60 : 0;
+
+            Position = new Vector2(
+                (float)Interpolation.DampContinuously(Position.X, targetPos.X, duration, Time.Elapsed),
+                (float)Interpolation.DampContinuously(Position.Y, targetPos.Y, duration, Time.Elapsed)
+            );
+
+            Size = new Vector2(
+                (float)Interpolation.DampContinuously(Size.X, targetSize.X, duration, Time.Elapsed),
+                (float)Interpolation.DampContinuously(Size.Y, targetSize.Y, duration, Time.Elapsed)
+            );
+
+            // If we don't track the animating state, the animation will also occur when resizing the window.
+            isAnimatingToFacade &= !Precision.AlmostEquals(Size, targetSize, 0.5f);
+        }
+
+        private Vector2 getFinalPosition()
+        {
+            if (facade == null)
+                return Position;
+
+            return Parent!.ToLocalSpace(facade.ScreenSpaceDrawQuad.TopLeft);
+        }
+
+        private Vector2 getFinalSize()
+        {
+            if (facade == null)
+                return Horizontal ? SIZE_HORIZONTAL : SIZE_VERTICAL;
+
+            return Parent!.ToLocalSpace(facade.ScreenSpaceDrawQuad.BottomRight) - Parent!.ToLocalSpace(facade.ScreenSpaceDrawQuad.TopLeft);
         }
 
         private Vector2 avatarPosition => horizontal ? new Vector2(50) : new Vector2(75, 50);
@@ -167,8 +193,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
             double duration = instant ? 0 : 1000;
 
             avatar.MoveTo(avatarPosition, duration, Easing.OutPow10);
-            this.ResizeTo(horizontal ? SIZE_HORIZONTAL : SIZE_VERTICAL, duration, Easing.OutPow10);
-
             rankText.MoveTo(horizontal ? new Vector2(-40, -10) : new Vector2(-70, 0), duration, Easing.OutPow10);
             username.MoveTo(horizontal ? new Vector2(0, -46) : new Vector2(0, -86), duration, Easing.OutPow10);
             scoreText.MoveTo(horizontal ? new Vector2(0, -16) : new Vector2(0, -56), duration, Easing.OutPow10);

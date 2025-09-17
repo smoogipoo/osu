@@ -31,10 +31,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens
         {
             panelList = new PlayerPanelList
             {
-                Horizontal = true,
-                RelativeSizeAxes = Axes.Y,
-                Width = 250,
-                Scale = new Vector2(0.8f),
+                RelativeSizeAxes = Axes.Both
             };
         }
 
