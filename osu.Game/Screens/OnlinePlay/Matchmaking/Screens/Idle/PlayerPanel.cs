@@ -6,6 +6,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API;
@@ -18,6 +19,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
 {
     public partial class PlayerPanel : UserPanel
     {
+        public static readonly Vector2 SIZE_VERTICAL = new Vector2(150, 200);
+        public static readonly Vector2 SIZE_HORIZONTAL = new Vector2(250, 100);
+
         public readonly MultiplayerRoomUser RoomUser;
 
         [Resolved]
@@ -46,6 +50,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
         }
 
         private bool horizontal;
+        private PlayerPanelFacade? facade;
 
         public PlayerPanel(MultiplayerRoomUser user)
             : base(user.User!)
@@ -134,6 +139,27 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
             }
         }
 
+        public void SetFacade(PlayerPanelFacade facade)
+        {
+            this.facade = facade;
+            Horizontal = facade.Horizontal;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (facade != null)
+            {
+                Vector2 targetPos = facade.ToSpaceOfOtherDrawable(Vector2.Zero, Parent!);
+
+                Position = new Vector2(
+                    (float)Interpolation.DampContinuously(Position.X, targetPos.X, 60, Time.Elapsed),
+                    (float)Interpolation.DampContinuously(Position.Y, targetPos.Y, 60, Time.Elapsed)
+                );
+            }
+        }
+
         private Vector2 avatarPosition => horizontal ? new Vector2(50) : new Vector2(75, 50);
 
         private void updateLayout(bool instant)
@@ -141,7 +167,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
             double duration = instant ? 0 : 1000;
 
             avatar.MoveTo(avatarPosition, duration, Easing.OutPow10);
-            this.ResizeTo(horizontal ? new Vector2(250, 100) : new Vector2(150, 200), duration, Easing.OutPow10);
+            this.ResizeTo(horizontal ? SIZE_HORIZONTAL : SIZE_VERTICAL, duration, Easing.OutPow10);
 
             rankText.MoveTo(horizontal ? new Vector2(-40, -10) : new Vector2(-70, 0), duration, Easing.OutPow10);
             username.MoveTo(horizontal ? new Vector2(0, -46) : new Vector2(0, -86), duration, Easing.OutPow10);

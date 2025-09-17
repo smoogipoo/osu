@@ -8,7 +8,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.Matchmaking;
-using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
 {
@@ -19,17 +18,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
 
         public bool Horizontal { get; init; }
 
-        private FillFlowContainer<PlayerPanel> panels = null!;
+        private Container<PlayerPanel> panels = null!;
+        private PlayerPanelLayoutContainer? layout;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = panels = new FillFlowContainer<PlayerPanel>
+            InternalChild = panels = new Container<PlayerPanel>
             {
-                RelativeSizeAxes = Axes.Both,
-                Spacing = new Vector2(20, 5),
-                LayoutEasing = Easing.InOutQuint,
-                LayoutDuration = 500
+                RelativeSizeAxes = Axes.Both
             };
         }
 
@@ -49,34 +46,44 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Screens.Idle
             }
         }
 
+        public void SetLayout(PlayerPanelLayoutContainer layout)
+        {
+            this.layout = layout;
+            updatePanelPositions();
+        }
+
         private void onUserJoined(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
             panels.Add(new PlayerPanel(user)
             {
-                Horizontal = Horizontal,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
+                Horizontal = Horizontal
             });
+
+            updatePanelPositions();
         });
 
         private void onUserLeft(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
             panels.Single(p => p.RoomUser.Equals(user)).Expire();
+            updatePanelPositions();
         });
 
-        private void onRoomStateChanged(MatchRoomState? state) => Scheduler.Add(() =>
+        private void onRoomStateChanged(MatchRoomState? state)
+            => Scheduler.Add(updatePanelPositions);
+
+        private void updatePanelPositions()
         {
-            if (state is not MatchmakingRoomState matchmakingState)
+            if (client.Room?.MatchState is not MatchmakingRoomState matchmakingState)
                 return;
 
-            foreach (var panel in panels)
-            {
-                if (matchmakingState.Users.UserDictionary.TryGetValue(panel.User.Id, out MatchmakingUser? user))
-                    panels.SetLayoutPosition(panel, user.Placement);
-                else
-                    panels.SetLayoutPosition(panel, float.MaxValue);
-            }
-        });
+            if (layout == null)
+                return;
+
+            PlayerPanel[] orderedPanels = panels.OrderBy(p => matchmakingState.Users[p.RoomUser.UserID].Placement).ToArray();
+
+            for (int i = 0; i < orderedPanels.Length; i++)
+                orderedPanels[i].SetFacade(layout.GetFacade(i, orderedPanels.Length));
+        }
 
         protected override void Dispose(bool isDisposing)
         {
