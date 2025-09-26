@@ -1743,6 +1743,12 @@ namespace osu.Game
                     Toolbar.Show();
 
                 skinEditor.SetTarget(osuScreen);
+
+                // Visibility update delayed until the screen is loaded (and thus entered), so that the screen footer visibility may be updated first.
+                if (osuScreen.IsLoaded)
+                    backButtonVisibility.BindTo(newScreen.BackButtonVisibility);
+                else
+                    osuScreen.OnLoadComplete += _ => backButtonVisibility.BindTo(newScreen.BackButtonVisibility);
             }
         }
 

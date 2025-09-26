@@ -297,6 +297,9 @@ namespace osu.Game.Screens
             }
             else
             {
+                // the legacy back button should never display while the new footer is in use, as it contains its own local back button.
+                BackButtonVisibility.Value = false;
+
                 Footer.SetButtons(buttons);
                 Footer.Show();
             }
