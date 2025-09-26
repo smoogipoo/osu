@@ -122,8 +122,6 @@ namespace osu.Game.Screens.SelectV2
 
         public override bool? ApplyModTrackAdjustments => true;
 
-        public override bool ShowFooter => true;
-
         private Sample? errorSample;
 
         [Resolved]
@@ -324,7 +322,7 @@ namespace osu.Game.Screens.SelectV2
         /// </summary>
         protected abstract void OnStart();
 
-        public override IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => new ScreenFooterButton[]
+        protected override ScreenFooterButton[] CreateFooterButtons() => new ScreenFooterButton[]
         {
             new FooterButtonMods(modSelectOverlay)
             {

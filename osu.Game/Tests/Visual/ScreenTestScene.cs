@@ -9,7 +9,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Logging;
-using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
@@ -61,14 +60,13 @@ namespace osu.Game.Tests.Visual
                 },
             });
 
-            Stack.ScreenPushed += (oldScreen, newScreen) =>
+            Stack.ScreenPushed += (_, newScreen) =>
             {
-                updateFooter(oldScreen, newScreen);
                 Logger.Log($"{nameof(ScreenTestScene)} screen changed → {newScreen}");
             };
-            Stack.ScreenExited += (oldScreen, newScreen) =>
+
+            Stack.ScreenExited += (_, newScreen) =>
             {
-                updateFooter(oldScreen, newScreen);
                 Logger.Log($"{nameof(ScreenTestScene)} screen changed ← {newScreen}");
             };
         }
@@ -94,39 +92,6 @@ namespace osu.Game.Tests.Visual
                 Stack.Exit();
                 return false;
             });
-        }
-
-        private void updateFooter(IScreen? _, IScreen? newScreen)
-        {
-            if (newScreen is OsuScreen osuScreen && osuScreen.ShowFooter)
-            {
-                Footer.Show();
-
-                if (osuScreen.IsLoaded)
-                    updateFooterButtons();
-                else
-                {
-                    // ensure the current buttons are immediately disabled on screen change (so they can't be pressed).
-                    Footer.SetButtons(Array.Empty<ScreenFooterButton>());
-
-                    osuScreen.OnLoadComplete += _ => updateFooterButtons();
-                }
-
-                void updateFooterButtons()
-                {
-                    var buttons = osuScreen.CreateFooterButtons();
-
-                    osuScreen.LoadComponentsAgainstScreenDependencies(buttons);
-
-                    Footer.SetButtons(buttons);
-                    Footer.Show();
-                }
-            }
-            else
-            {
-                Footer.Hide();
-                Footer.SetButtons(Array.Empty<ScreenFooterButton>());
-            }
         }
 
         #region IOverlayManager

@@ -1729,7 +1729,7 @@ namespace osu.Game
             }
 
             // Bind to new screen.
-            if (newScreen != null)
+            if (newScreen is OsuScreen osuScreen)
             {
                 OverlayActivationMode.BindTo(newScreen.OverlayActivationMode);
                 configUserActivity.BindTo(newScreen.Activity);
@@ -1742,46 +1742,7 @@ namespace osu.Game
                 else
                     Toolbar.Show();
 
-                var newOsuScreen = (OsuScreen)newScreen;
-
-                if (newScreen.ShowFooter)
-                {
-                    // the legacy back button should never display while the new footer is in use, as it
-                    // contains its own local back button.
-                    ((BindableBool)backButtonVisibility).Value = false;
-
-                    BackButton.Hide();
-                    ScreenFooter.Show();
-
-                    if (newOsuScreen.IsLoaded)
-                        updateFooterButtons();
-                    else
-                    {
-                        // ensure the current buttons are immediately disabled on screen change (so they can't be pressed).
-                        ScreenFooter.SetButtons(Array.Empty<ScreenFooterButton>());
-
-                        newOsuScreen.OnLoadComplete += _ => updateFooterButtons();
-                    }
-
-                    void updateFooterButtons()
-                    {
-                        var buttons = newScreen.CreateFooterButtons();
-
-                        newOsuScreen.LoadComponentsAgainstScreenDependencies(buttons);
-
-                        ScreenFooter.SetButtons(buttons);
-                        ScreenFooter.Show();
-                    }
-                }
-                else
-                {
-                    backButtonVisibility.BindTo(newScreen.BackButtonVisibility);
-
-                    ScreenFooter.SetButtons(Array.Empty<ScreenFooterButton>());
-                    ScreenFooter.Hide();
-                }
-
-                skinEditor.SetTarget(newOsuScreen);
+                skinEditor.SetTarget(osuScreen);
             }
         }
 

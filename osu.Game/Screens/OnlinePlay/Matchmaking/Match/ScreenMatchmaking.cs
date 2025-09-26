@@ -26,6 +26,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
 using osu.Game.Rulesets;
+using osu.Game.Screens.Footer;
 using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match.Gameplay;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
@@ -47,8 +48,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
         public override bool? ApplyModTrackAdjustments => true;
 
         public override bool DisallowExternalBeatmapRulesetChanges => true;
-
-        public override bool ShowFooter => true;
 
         [Cached(typeof(OnlinePlayBeatmapAvailabilityTracker))]
         private readonly OnlinePlayBeatmapAvailabilityTracker beatmapAvailabilityTracker = new MultiplayerBeatmapAvailabilityTracker();
@@ -351,6 +350,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
             client.ChangeState(MultiplayerUserState.Idle);
         }
+
+        protected override ScreenFooterButton[] CreateFooterButtons() => [];
 
         protected override void Dispose(bool isDisposing)
         {

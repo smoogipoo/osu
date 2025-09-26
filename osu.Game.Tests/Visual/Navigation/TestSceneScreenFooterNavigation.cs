@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -56,12 +55,10 @@ namespace osu.Game.Tests.Visual.Navigation
 
         private partial class TestScreenOne : OsuScreen
         {
-            public override bool ShowFooter => true;
-
             [Cached]
             private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Blue);
 
-            public override IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => new[]
+            protected override ScreenFooterButton[] CreateFooterButtons() => new[]
             {
                 new ScreenFooterButton { Text = "Button One" },
             };
@@ -69,12 +66,10 @@ namespace osu.Game.Tests.Visual.Navigation
 
         private partial class TestScreenTwo : OsuScreen
         {
-            public override bool ShowFooter => true;
-
             [Cached]
             private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Blue);
 
-            public override IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => new[]
+            protected override ScreenFooterButton[] CreateFooterButtons() => new[]
             {
                 new ScreenFooterButton { Text = "Button Two" },
             };
@@ -82,12 +77,14 @@ namespace osu.Game.Tests.Visual.Navigation
 
         private partial class TestScreen : OsuScreen
         {
-            public override bool ShowFooter { get; }
+            private readonly bool footer;
 
             public TestScreen(bool footer)
             {
-                ShowFooter = footer;
+                this.footer = footer;
             }
+
+            protected override ScreenFooterButton[]? CreateFooterButtons() => footer ? [] : null;
         }
     }
 }

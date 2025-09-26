@@ -39,8 +39,6 @@ namespace osu.Game.Screens
 
         public virtual bool AllowUserExit => true;
 
-        public virtual bool ShowFooter => false;
-
         public virtual bool AllowExternalScreenChange => false;
 
         public virtual bool HideOverlaysOnEnter => false;
@@ -117,8 +115,6 @@ namespace osu.Game.Screens
 
         internal void CreateLeasedDependencies(IReadOnlyDependencyContainer dependencies) => createDependencies(dependencies);
 
-        internal void LoadComponentsAgainstScreenDependencies(IEnumerable<Drawable> components) => LoadComponents(components);
-
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
             if (screenDependencies == null)
@@ -179,6 +175,7 @@ namespace osu.Game.Screens
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
             Activity.Value ??= InitialActivity;
         }
 
@@ -207,6 +204,8 @@ namespace osu.Game.Screens
                 musicController.ApplyModTrackAdjustments = modTrackAdjustmentStateAtSuspend.Value;
             if (globalMusicControlStateAtSuspend != null)
                 musicController.AllowTrackControl.Value = globalMusicControlStateAtSuspend.Value;
+
+            setFooterButtons();
 
             base.OnResuming(e);
         }
@@ -239,6 +238,9 @@ namespace osu.Game.Screens
             }
 
             background = backgroundStack?.CurrentScreen as BackgroundScreen;
+
+            setFooterButtons();
+
             base.OnEntering(e);
         }
 
@@ -281,6 +283,25 @@ namespace osu.Game.Screens
             logo.Ripple = true;
         }
 
+        private void setFooterButtons()
+        {
+            if (Footer == null)
+                return;
+
+            ScreenFooterButton[] buttons = CreateFooterButtons();
+
+            if (buttons == null)
+            {
+                Footer.SetButtons([]);
+                Footer.Hide();
+            }
+            else
+            {
+                Footer.SetButtons(buttons);
+                Footer.Show();
+            }
+        }
+
         private void applyArrivingDefaults(bool isResuming)
         {
             logo?.AppendAnimatingAction(() =>
@@ -319,7 +340,10 @@ namespace osu.Game.Screens
         /// </summary>
         protected virtual BackgroundScreen CreateBackground() => null;
 
-        public virtual IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => Array.Empty<ScreenFooterButton>();
+        /// <summary>
+        /// Buttons to be added to the game's footer toolbar.
+        /// </summary>
+        protected virtual ScreenFooterButton[] CreateFooterButtons() => null;
 
         public virtual bool OnBackButton() => false;
     }

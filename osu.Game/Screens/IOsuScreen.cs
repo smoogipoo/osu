@@ -1,14 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
-using osu.Game.Screens.Footer;
 using osu.Game.Users;
 
 namespace osu.Game.Screens
@@ -30,15 +28,6 @@ namespace osu.Game.Screens
         /// and the back button is hidden from this screen by the initial state of <see cref="BackButtonVisibility"/> being set to hidden.
         /// </remarks>
         bool AllowUserExit { get; }
-
-        /// <summary>
-        /// Whether a footer (and a back button) should be displayed underneath the screen.
-        /// </summary>
-        /// <remarks>
-        /// Temporarily, the footer's own back button is shown regardless of whether <see cref="BackButtonVisibility"/> is set to hidden.
-        /// This will be corrected as the footer becomes used more commonly.
-        /// </remarks>
-        bool ShowFooter { get; }
 
         /// <summary>
         /// Whether a top-level component should be allowed to exit the current screen to, for example,
@@ -97,11 +86,6 @@ namespace osu.Game.Screens
         Bindable<WorkingBeatmap> Beatmap { get; }
 
         Bindable<RulesetInfo> Ruleset { get; }
-
-        /// <summary>
-        /// Buttons to be added to the game's footer toolbar.
-        /// </summary>
-        IReadOnlyList<ScreenFooterButton> CreateFooterButtons();
 
         /// <summary>
         /// Whether mod track adjustments should be applied on entering this screen.
