@@ -344,8 +344,13 @@ namespace osu.Game.Screens
         protected virtual BackgroundScreen CreateBackground() => null;
 
         /// <summary>
-        /// Buttons to be added to the game's footer toolbar.
+        /// Shows or hides the game's footer with the given buttons.
         /// </summary>
+        /// <remarks>
+        /// Temporarily, the footer's own back button is shown regardless of whether <see cref="BackButtonVisibility"/> is set to hidden.
+        /// This will be corrected as the footer becomes used more commonly.
+        /// </remarks>
+        [CanBeNull]
         protected virtual ScreenFooterButton[] CreateFooterButtons() => null;
 
         public virtual bool OnBackButton() => false;
