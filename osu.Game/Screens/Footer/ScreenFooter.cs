@@ -14,6 +14,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Threading;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;
@@ -25,6 +26,8 @@ namespace osu.Game.Screens.Footer
     public partial class ScreenFooter : OverlayContainer
     {
         public ScreenBackButton BackButton { get; private set; } = null!;
+
+        public BackButton LegacyBackButton { get; private set; } = null!;
 
         /// <summary>
         /// Called when logo tracking begins, intended to bring the osu! logo to the frontmost visually.
@@ -47,14 +50,17 @@ namespace osu.Game.Screens.Footer
         public override bool UpdateSubTreeMasking() => false;
 
         private readonly List<OverlayContainer> overlays = new List<OverlayContainer>();
+        private readonly BackReceptor? receptor;
 
         private Box background = null!;
+        private Container footerContent = null!;
         private FillFlowContainer<ScreenFooterButton> buttonsFlow = null!;
         private Container footerContentContainer = null!;
         private Container<ScreenFooterButton> hiddenButtonsContainer = null!;
 
         private LogoTrackingContainer logoTrackingContainer = null!;
         private IDisposable? logoTracking;
+        private bool allowBackButton;
 
         // TODO: This has some weird update logic local in this class, but it only works for overlay containers.
         // This is not what we want. The footer is to be displayed on *screens* with different colour schemes.
@@ -66,6 +72,8 @@ namespace osu.Game.Screens.Footer
 
         public ScreenFooter(BackReceptor? receptor = null)
         {
+            this.receptor = receptor;
+
             RelativeSizeAxes = Axes.X;
             Height = HEIGHT;
             Anchor = Anchor.BottomLeft;
@@ -82,66 +90,87 @@ namespace osu.Game.Screens.Footer
         {
             InternalChildren = new Drawable[]
             {
-                background = new Box
+                LegacyBackButton = new BackButton(receptor)
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = colourProvider.Background5
+                    Anchor = Anchor.BottomLeft,
+                    Origin = Anchor.BottomLeft,
+                    Action = () => BackButtonPressed?.Invoke(),
                 },
-                new GridContainer
+                footerContent = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = OsuGame.SCREEN_EDGE_MARGIN + ScreenBackButton.BUTTON_WIDTH + padding },
-                    ColumnDimensions = new[]
-                    {
-                        new Dimension(GridSizeMode.AutoSize),
-                        new Dimension(),
-                    },
-                    Content = new[]
-                    {
-                        new Drawable[]
+                    Children =
+                    [
+                        background = new Box
                         {
-                            buttonsFlow = new FillFlowContainer<ScreenFooterButton>
-                            {
-                                Anchor = Anchor.BottomLeft,
-                                Origin = Anchor.BottomLeft,
-                                Y = ScreenFooterButton.CORNER_RADIUS,
-                                Direction = FillDirection.Horizontal,
-                                Spacing = new Vector2(7, 0),
-                                AutoSizeAxes = Axes.Both,
-                            },
-                            footerContentContainer = new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Y = -OsuGame.SCREEN_EDGE_MARGIN,
-                            },
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = colourProvider.Background5
                         },
-                    }
-                },
-                BackButton = new ScreenBackButton
-                {
-                    Margin = new MarginPadding { Bottom = OsuGame.SCREEN_EDGE_MARGIN, Left = OsuGame.SCREEN_EDGE_MARGIN },
-                    Anchor = Anchor.BottomLeft,
-                    Origin = Anchor.BottomLeft,
-                    Action = onBackPressed,
-                },
-                hiddenButtonsContainer = new Container<ScreenFooterButton>
-                {
-                    Margin = new MarginPadding { Left = OsuGame.SCREEN_EDGE_MARGIN + ScreenBackButton.BUTTON_WIDTH + padding },
-                    Y = ScreenFooterButton.CORNER_RADIUS,
-                    Anchor = Anchor.BottomLeft,
-                    Origin = Anchor.BottomLeft,
-                    AutoSizeAxes = Axes.Both,
-                },
-                (logoTrackingContainer = new LogoTrackingContainer
-                {
-                    RelativeSizeAxes = Axes.Both,
-                }).WithChild(logoTrackingContainer.LogoFacade.With(f =>
-                {
-                    f.Anchor = Anchor.BottomRight;
-                    f.Origin = Anchor.Centre;
-                    f.Position = new Vector2(-76, -36);
-                })),
+                        new GridContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding { Left = OsuGame.SCREEN_EDGE_MARGIN + ScreenBackButton.BUTTON_WIDTH + padding },
+                            ColumnDimensions = new[]
+                            {
+                                new Dimension(GridSizeMode.AutoSize),
+                                new Dimension(),
+                            },
+                            Content = new[]
+                            {
+                                new Drawable[]
+                                {
+                                    buttonsFlow = new FillFlowContainer<ScreenFooterButton>
+                                    {
+                                        Anchor = Anchor.BottomLeft,
+                                        Origin = Anchor.BottomLeft,
+                                        Y = ScreenFooterButton.CORNER_RADIUS,
+                                        Direction = FillDirection.Horizontal,
+                                        Spacing = new Vector2(7, 0),
+                                        AutoSizeAxes = Axes.Both,
+                                    },
+                                    footerContentContainer = new Container
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Y = -OsuGame.SCREEN_EDGE_MARGIN,
+                                    },
+                                },
+                            }
+                        },
+                        BackButton = new ScreenBackButton
+                        {
+                            Margin = new MarginPadding { Bottom = OsuGame.SCREEN_EDGE_MARGIN, Left = OsuGame.SCREEN_EDGE_MARGIN },
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.BottomLeft,
+                            Action = onBackPressed,
+                        },
+                        hiddenButtonsContainer = new Container<ScreenFooterButton>
+                        {
+                            Margin = new MarginPadding { Left = OsuGame.SCREEN_EDGE_MARGIN + ScreenBackButton.BUTTON_WIDTH + padding },
+                            Y = ScreenFooterButton.CORNER_RADIUS,
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.BottomLeft,
+                            AutoSizeAxes = Axes.Both,
+                        },
+                        (logoTrackingContainer = new LogoTrackingContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        }).WithChild(logoTrackingContainer.LogoFacade.With(f =>
+                        {
+                            f.Anchor = Anchor.BottomRight;
+                            f.Origin = Anchor.Centre;
+                            f.Position = new Vector2(-76, -36);
+                        })),
+                    ]
+                }
             };
+        }
+
+        private void updateBackButtonVisibility()
+        {
+            if (State.Value == Visibility.Visible || !AllowBackButton)
+                LegacyBackButton.Hide();
+            else
+                LegacyBackButton.Show();
         }
 
         private ScheduledDelegate? changeLogoDepthDelegate;
@@ -167,8 +196,10 @@ namespace osu.Game.Screens.Footer
         {
             buttonsFlow.FadeIn(transition_duration / 4, Easing.OutQuint);
 
-            this.MoveToY(0, transition_duration, Easing.OutQuint)
-                .FadeIn();
+            footerContent.MoveToY(0, transition_duration, Easing.OutQuint)
+                         .FadeIn();
+
+            updateBackButtonVisibility();
         }
 
         protected override void PopOut()
@@ -177,9 +208,21 @@ namespace osu.Game.Screens.Footer
             // (see FooterButtonMods).
             buttonsFlow.FadeOut(transition_duration, Easing.OutQuint);
 
-            this.MoveToY(ScreenFooterButton.HEIGHT, transition_duration, Easing.OutQuint)
-                .Then()
-                .FadeOut();
+            footerContent.MoveToY(ScreenFooterButton.HEIGHT, transition_duration, Easing.OutQuint)
+                         .Then()
+                         .FadeOut();
+
+            updateBackButtonVisibility();
+        }
+
+        public bool AllowBackButton
+        {
+            get => allowBackButton;
+            set
+            {
+                allowBackButton = value;
+                updateBackButtonVisibility();
+            }
         }
 
         public void SetButtons(IReadOnlyList<ScreenFooterButton> buttons)

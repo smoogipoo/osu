@@ -189,18 +189,12 @@ namespace osu.Game
         /// </summary>
         public readonly IBindable<OverlayActivation> OverlayActivationMode = new Bindable<OverlayActivation>();
 
-        /// <summary>
-        /// Whether the back button is currently displayed.
-        /// </summary>
-        private readonly IBindable<bool> backButtonVisibility = new BindableBool();
-
         IBindable<LocalUserPlayingState> ILocalUserPlayInfo.PlayingState => UserPlayingState;
 
         protected readonly Bindable<LocalUserPlayingState> UserPlayingState = new Bindable<LocalUserPlayingState>();
 
         protected OsuScreenStack ScreenStack;
 
-        protected BackButton BackButton;
         protected ScreenFooter ScreenFooter;
 
         protected SettingsOverlay Settings;
@@ -1132,12 +1126,6 @@ namespace osu.Game
                             {
                                 backReceptor = new ScreenFooter.BackReceptor(),
                                 ScreenStack = new OsuScreenStack { RelativeSizeAxes = Axes.Both },
-                                BackButton = new BackButton(backReceptor)
-                                {
-                                    Anchor = Anchor.BottomLeft,
-                                    Origin = Anchor.BottomLeft,
-                                    Action = handleBackButton,
-                                },
                                 logoContainer = new Container { RelativeSizeAxes = Axes.Both },
                                 // TODO: what is this? why is this?
                                 // TODO: this is being screen scaled even though it's probably AN OVERLAY.
@@ -1322,14 +1310,6 @@ namespace osu.Game
             OverlayActivationMode.ValueChanged += mode =>
             {
                 if (mode.NewValue != OverlayActivation.All) CloseAllOverlays();
-            };
-
-            backButtonVisibility.ValueChanged += visible =>
-            {
-                if (visible.NewValue)
-                    BackButton.Show();
-                else
-                    BackButton.Hide();
             };
 
             // Importantly, this should be run after binding PostNotification to the import handlers so they can present the import after game startup.
@@ -1723,7 +1703,6 @@ namespace osu.Game
 
             if (current != null)
             {
-                backButtonVisibility.UnbindFrom(current.BackButtonVisibility);
                 OverlayActivationMode.UnbindFrom(current.OverlayActivationMode);
                 configUserActivity.UnbindFrom(current.Activity);
             }
@@ -1743,12 +1722,6 @@ namespace osu.Game
                     Toolbar.Show();
 
                 skinEditor.SetTarget(osuScreen);
-
-                // Visibility update delayed until the screen is loaded (and thus entered), so that the screen footer visibility may be updated first.
-                if (osuScreen.IsLoaded)
-                    backButtonVisibility.BindTo(newScreen.BackButtonVisibility);
-                else
-                    osuScreen.OnLoadComplete += _ => backButtonVisibility.BindTo(newScreen.BackButtonVisibility);
             }
         }
 

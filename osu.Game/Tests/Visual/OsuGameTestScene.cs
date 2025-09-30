@@ -18,7 +18,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Graphics.Cursor;
-using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
 using osu.Game.Online.Spectator;
 using osu.Game.Overlays;
@@ -129,8 +128,6 @@ namespace osu.Game.Tests.Visual
             public RealmAccess Realm => Dependencies.Get<RealmAccess>();
 
             public new GlobalCursorDisplay GlobalCursorDisplay => base.GlobalCursorDisplay;
-
-            public new BackButton BackButton => base.BackButton;
 
             public new BeatmapManager BeatmapManager => base.BeatmapManager;
 

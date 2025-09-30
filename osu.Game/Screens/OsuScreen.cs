@@ -61,10 +61,6 @@ namespace osu.Game.Screens
         /// </summary>
         protected virtual bool InitialBackButtonVisibility => AllowUserExit;
 
-        public readonly Bindable<bool> BackButtonVisibility;
-
-        IBindable<bool> IOsuScreen.BackButtonVisibility => BackButtonVisibility;
-
         public virtual bool CursorVisible => true;
 
         protected new OsuGameBase Game => base.Game as OsuGameBase;
@@ -163,7 +159,6 @@ namespace osu.Game.Screens
             Origin = Anchor.Centre;
 
             OverlayActivationMode = new Bindable<OverlayActivation>(InitialOverlayActivationMode);
-            BackButtonVisibility = new Bindable<bool>(InitialBackButtonVisibility);
         }
 
         [BackgroundDependencyLoader(true)]
@@ -297,12 +292,11 @@ namespace osu.Game.Screens
             }
             else
             {
-                // the legacy back button should never display while the new footer is in use, as it contains its own local back button.
-                BackButtonVisibility.Value = false;
-
                 Footer.SetButtons(buttons);
                 Footer.Show();
             }
+
+            Footer.AllowBackButton = InitialBackButtonVisibility;
         }
 
         private void applyArrivingDefaults(bool isResuming)

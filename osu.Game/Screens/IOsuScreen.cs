@@ -67,13 +67,6 @@ namespace osu.Game.Screens
         IBindable<OverlayActivation> OverlayActivationMode { get; }
 
         /// <summary>
-        /// Whether the back button should be displayed in this screen.
-        /// Note that this property is ignored when <see cref="ShowFooter"/> is <c>true</c>.
-        /// </summary>
-        // todo: make this work with footer.
-        IBindable<bool> BackButtonVisibility { get; }
-
-        /// <summary>
         /// The current <see cref="UserActivity"/> for this screen.
         /// </summary>
         Bindable<UserActivity> Activity { get; }

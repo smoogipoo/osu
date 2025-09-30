@@ -34,23 +34,23 @@ namespace osu.Game.Tests.Visual.Navigation
         {
             PushAndConfirm(() => new TestScreen(false));
             AddAssert("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
-            AddAssert("old back button shown", () => Game.BackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddAssert("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
 
             PushAndConfirm(() => new TestScreen(true));
             AddAssert("footer shown", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Visible));
-            AddAssert("old back button hidden", () => Game.BackButton.State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("old back button hidden", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Hidden));
 
             PushAndConfirm(() => new TestScreen(false));
             AddAssert("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
-            AddAssert("back button shown", () => Game.BackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddAssert("back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
 
             AddStep("exit screen", () => Game.ScreenStack.Exit());
             AddAssert("footer shown", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Visible));
-            AddAssert("old back button hidden", () => Game.BackButton.State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("old back button hidden", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Hidden));
 
             AddStep("exit screen", () => Game.ScreenStack.Exit());
             AddAssert("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
-            AddAssert("old back button shown", () => Game.BackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddAssert("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
         }
 
         private partial class TestScreenOne : OsuScreen
