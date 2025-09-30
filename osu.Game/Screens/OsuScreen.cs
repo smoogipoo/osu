@@ -200,8 +200,6 @@ namespace osu.Game.Screens
             if (globalMusicControlStateAtSuspend != null)
                 musicController.AllowTrackControl.Value = globalMusicControlStateAtSuspend.Value;
 
-            setFooterButtons();
-
             base.OnResuming(e);
         }
 
@@ -234,7 +232,11 @@ namespace osu.Game.Screens
 
             background = backgroundStack?.CurrentScreen as BackgroundScreen;
 
-            setFooterButtons();
+            Footer?.PushState(new ScreenFooterState
+            {
+                AllowBackButton = InitialBackButtonVisibility,
+                Buttons = CreateFooterButtons()
+            });
 
             base.OnEntering(e);
         }
@@ -258,6 +260,8 @@ namespace osu.Game.Screens
             if (ownedBackground != null && backgroundStack?.CurrentScreen == ownedBackground)
                 backgroundStack?.Exit();
 
+            Footer?.PopState();
+
             return false;
         }
 
@@ -276,27 +280,6 @@ namespace osu.Game.Screens
 
             logo.Triangles = true;
             logo.Ripple = true;
-        }
-
-        private void setFooterButtons()
-        {
-            if (Footer == null)
-                return;
-
-            ScreenFooterButton[] buttons = CreateFooterButtons();
-
-            if (buttons == null)
-            {
-                Footer.SetButtons([]);
-                Footer.Hide();
-            }
-            else
-            {
-                Footer.SetButtons(buttons);
-                Footer.Show();
-            }
-
-            Footer.AllowBackButton = InitialBackButtonVisibility;
         }
 
         private void applyArrivingDefaults(bool isResuming)

@@ -60,7 +60,6 @@ namespace osu.Game.Screens.Footer
 
         private LogoTrackingContainer logoTrackingContainer = null!;
         private IDisposable? logoTracking;
-        private bool allowBackButton;
 
         // TODO: This has some weird update logic local in this class, but it only works for overlay containers.
         // This is not what we want. The footer is to be displayed on *screens* with different colour schemes.
@@ -165,14 +164,6 @@ namespace osu.Game.Screens.Footer
             };
         }
 
-        private void updateBackButtonVisibility()
-        {
-            if (State.Value == Visibility.Visible || !AllowBackButton)
-                LegacyBackButton.Hide();
-            else
-                LegacyBackButton.Show();
-        }
-
         private ScheduledDelegate? changeLogoDepthDelegate;
 
         public void StartTrackingLogo(OsuLogo logo, float duration = 0, Easing easing = Easing.None)
@@ -215,14 +206,47 @@ namespace osu.Game.Screens.Footer
             updateBackButtonVisibility();
         }
 
+        private readonly Stack<ScreenFooterState> stateStack = new Stack<ScreenFooterState>([new ScreenFooterState()]);
+
+        public void PushState(ScreenFooterState state)
+        {
+            stateStack.Push(state);
+
+            state.StateChanged += onStateChanged;
+            onStateChanged(state);
+        }
+
+        public void PopState()
+        {
+            ScreenFooterState state = stateStack.Pop();
+
+            state.StateChanged -= onStateChanged;
+            onStateChanged(stateStack.Peek());
+        }
+
+        private void onStateChanged(ScreenFooterState state)
+        {
+            if (stateStack.Peek() != state)
+                return;
+
+            if (state.Buttons == null)
+            {
+                SetButtons([]);
+                Hide();
+            }
+            else
+            {
+                SetButtons(state.Buttons);
+                Show();
+            }
+
+            updateBackButtonVisibility();
+        }
+
         public bool AllowBackButton
         {
-            get => allowBackButton;
-            set
-            {
-                allowBackButton = value;
-                updateBackButtonVisibility();
-            }
+            get => stateStack.Peek().AllowBackButton;
+            set => stateStack.Peek().AllowBackButton = value;
         }
 
         public void SetButtons(IReadOnlyList<ScreenFooterButton> buttons)
@@ -244,14 +268,15 @@ namespace osu.Game.Screens.Footer
                 hiddenButtonsContainer.Add(oldButton);
 
                 if (buttons.Count > 0)
-                    makeButtonDisappearToRight(oldButton, i, oldButtons.Length, true);
+                    makeButtonDisappearToRight(oldButton, i, oldButtons.Length);
                 else
-                    makeButtonDisappearToBottom(oldButton, i, oldButtons.Length, true);
+                    makeButtonDisappearToBottom(oldButton, i, oldButtons.Length);
             }
 
             for (int i = 0; i < buttons.Count; i++)
             {
                 var newButton = buttons[i];
+                newButton.Enabled.Value = true;
 
                 if (newButton.Overlay != null)
                 {
@@ -259,20 +284,33 @@ namespace osu.Game.Screens.Footer
                     overlays.Add(newButton.Overlay);
                 }
 
-                Debug.Assert(!newButton.IsLoaded);
+                hiddenButtonsContainer.Remove(newButton, false);
                 buttonsFlow.Add(newButton);
 
                 int index = i;
 
                 // ensure transforms are added after LoadComplete to not be aborted by the FinishTransforms call.
-                newButton.OnLoadComplete += _ =>
+                if (newButton.IsLoaded)
+                    showButton();
+                else
+                    newButton.OnLoadComplete += _ => showButton();
+
+                void showButton()
                 {
                     if (oldButtons.Length > 0)
                         makeButtonAppearFromLeft(newButton, index, buttons.Count, 240);
                     else
                         makeButtonAppearFromBottom(newButton, index);
-                };
+                }
             }
+        }
+
+        private void updateBackButtonVisibility()
+        {
+            if (State.Value == Visibility.Visible || !AllowBackButton)
+                LegacyBackButton.Hide();
+            else
+                LegacyBackButton.Show();
         }
 
         public ShearedOverlayContainer? ActiveOverlay { get; private set; }
@@ -305,7 +343,7 @@ namespace osu.Game.Screens.Footer
                 buttonsFlow.Remove(button, false);
                 hiddenButtonsContainer.Add(button);
 
-                makeButtonDisappearToBottom(button, 0, 0, false);
+                makeButtonDisappearToBottom(button, 0, 0);
             }
 
             updateColourScheme(overlay.ColourProvider.Hue);
@@ -369,11 +407,11 @@ namespace osu.Game.Screens.Footer
         private void makeButtonAppearFromBottom(ScreenFooterButton button, int index)
             => button.AppearFromBottom(index * delay_per_button);
 
-        private void makeButtonDisappearToRight(ScreenFooterButton button, int index, int count, bool expire)
-            => button.DisappearToRight((count - index) * delay_per_button, expire);
+        private void makeButtonDisappearToRight(ScreenFooterButton button, int index, int count)
+            => button.DisappearToRight((count - index) * delay_per_button);
 
-        private void makeButtonDisappearToBottom(ScreenFooterButton button, int index, int count, bool expire)
-            => button.DisappearToBottom((count - index) * delay_per_button, expire);
+        private void makeButtonDisappearToBottom(ScreenFooterButton button, int index, int count)
+            => button.DisappearToBottom((count - index) * delay_per_button);
 
         private void showOverlay(OverlayContainer overlay)
         {
