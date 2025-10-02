@@ -311,14 +311,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         public override bool OnExiting(ScreenExitEvent e)
         {
-            if (base.OnExiting(e))
-                return true;
-
             if (exitConfirmed)
             {
                 client.LeaveRoom().FireAndForget();
                 return false;
             }
+
+            if (base.OnExiting(e))
+                return true;
 
             if (dialogOverlay.CurrentDialog is ConfirmDialog confirmDialog)
                 confirmDialog.PerformOkAction();
