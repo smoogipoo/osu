@@ -23,7 +23,7 @@ using osuTK;
 
 namespace osu.Game.Screens.Footer
 {
-    public partial class ScreenFooter : OverlayContainer
+    public partial class ScreenFooter : VisibilityContainer
     {
         public ScreenBackButton BackButton { get; private set; } = null!;
 
@@ -205,6 +205,12 @@ namespace osu.Game.Screens.Footer
 
             updateBackButtonVisibility();
         }
+
+        // The footer is always visible in some form.
+        public override bool PropagateNonPositionalInputSubTree => true;
+
+        // The footer is always visible in some form.
+        public override bool PropagatePositionalInputSubTree => true;
 
         private readonly Stack<FooterState> stateStack = new Stack<FooterState>([new FooterState()]);
         private FooterState currentState => stateStack.Peek();
