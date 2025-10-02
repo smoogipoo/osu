@@ -206,50 +206,85 @@ namespace osu.Game.Screens.Footer
             updateBackButtonVisibility();
         }
 
-        private readonly Stack<ScreenFooterState> stateStack = new Stack<ScreenFooterState>([new ScreenFooterState()]);
+        private readonly Stack<FooterState> stateStack = new Stack<FooterState>([new FooterState()]);
+        private FooterState currentState => stateStack.Peek();
 
-        public void PushState(ScreenFooterState state)
+        /// <summary>
+        /// Pushes a new footer state. Used to isolate <see cref="ShowBackButton"/> and <see cref="SetButtons"/> between screens.
+        /// </summary>
+        /// <param name="buttons">The initial visible buttons.</param>
+        /// <param name="showBackButton">The initial back button visibility.</param>
+        public void PushState(ScreenFooterButton[]? buttons = null, bool showBackButton = true)
         {
-            stateStack.Push(state);
+            stateStack.Push(new FooterState
+            {
+                Buttons = buttons,
+                ShowBackButton = showBackButton
+            });
 
-            state.StateChanged += onStateChanged;
-            onStateChanged(state);
+            updateButtons();
+            updateBackButtonVisibility();
         }
 
+        /// <summary>
+        /// Pops a footer state.
+        /// </summary>
         public void PopState()
         {
-            ScreenFooterState state = stateStack.Pop();
+            if (stateStack.Count == 1)
+                throw new InvalidOperationException("Can not pop the only footer state.");
 
-            state.StateChanged -= onStateChanged;
-            onStateChanged(stateStack.Peek());
+            stateStack.Pop();
+
+            updateButtons();
+            updateBackButtonVisibility();
         }
 
-        private void onStateChanged(ScreenFooterState state)
+        /// <summary>
+        /// Shows or hides the back button.
+        /// </summary>
+        public bool ShowBackButton
         {
-            if (stateStack.Peek() != state)
-                return;
-
-            if (state.Buttons == null)
+            set
             {
-                SetButtons([]);
+                stateStack.Peek().ShowBackButton = value;
+                updateBackButtonVisibility();
+            }
+        }
+
+        /// <summary>
+        /// Adjusts the visible buttons.
+        /// </summary>
+        /// <param name="buttons">The buttons. A <c>null</c> value indicates the footer should be hidden.</param>
+        public void SetButtons(ScreenFooterButton[]? buttons)
+        {
+            stateStack.Peek().Buttons = buttons;
+            updateButtons();
+        }
+
+        private void updateButtons()
+        {
+            if (currentState.Buttons == null)
+            {
+                replaceButtons([]);
                 Hide();
             }
             else
             {
-                SetButtons(state.Buttons);
+                replaceButtons(currentState.Buttons);
                 Show();
             }
-
-            updateBackButtonVisibility();
         }
 
-        public bool AllowBackButton
+        private void updateBackButtonVisibility()
         {
-            get => stateStack.Peek().AllowBackButton;
-            set => stateStack.Peek().AllowBackButton = value;
+            if (State.Value == Visibility.Visible || !currentState.ShowBackButton)
+                LegacyBackButton.Hide();
+            else
+                LegacyBackButton.Show();
         }
 
-        public void SetButtons(IReadOnlyList<ScreenFooterButton> buttons)
+        private void replaceButtons(ScreenFooterButton[] buttons)
         {
             temporarilyHiddenButtons.Clear();
             overlays.Clear();
@@ -267,13 +302,13 @@ namespace osu.Game.Screens.Footer
                 buttonsFlow.Remove(oldButton, false);
                 hiddenButtonsContainer.Add(oldButton);
 
-                if (buttons.Count > 0)
+                if (buttons.Length > 0)
                     makeButtonDisappearToRight(oldButton, i, oldButtons.Length);
                 else
                     makeButtonDisappearToBottom(oldButton, i, oldButtons.Length);
             }
 
-            for (int i = 0; i < buttons.Count; i++)
+            for (int i = 0; i < buttons.Length; i++)
             {
                 var newButton = buttons[i];
                 newButton.Enabled.Value = true;
@@ -298,19 +333,11 @@ namespace osu.Game.Screens.Footer
                 void showButton()
                 {
                     if (oldButtons.Length > 0)
-                        makeButtonAppearFromLeft(newButton, index, buttons.Count, 240);
+                        makeButtonAppearFromLeft(newButton, index, buttons.Length, 240);
                     else
                         makeButtonAppearFromBottom(newButton, index);
                 }
             }
-        }
-
-        private void updateBackButtonVisibility()
-        {
-            if (State.Value == Visibility.Visible || !AllowBackButton)
-                LegacyBackButton.Hide();
-            else
-                LegacyBackButton.Show();
         }
 
         public ShearedOverlayContainer? ActiveOverlay { get; private set; }

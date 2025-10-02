@@ -442,7 +442,7 @@ namespace osu.Game.Screens.Edit.Submission
             exitAllowed = true;
 
             if (Footer != null)
-                Footer.AllowBackButton = true;
+                Footer.ShowBackButton = true;
         }
 
         protected override void Update()

@@ -516,7 +516,7 @@ namespace osu.Game.Screens.Play
             if (QuickRestart)
             {
                 if (Footer != null)
-                    Footer.AllowBackButton = false;
+                    Footer.ShowBackButton = false;
 
                 // A quick restart starts by triggering a fade to black
                 AddInternal(quickRestartBlackLayer = new Box
@@ -541,7 +541,7 @@ namespace osu.Game.Screens.Play
                 quickRestartBackButtonRestore = Scheduler.AddDelayed(() =>
                 {
                     if (Footer != null)
-                        Footer.AllowBackButton = true;
+                        Footer.ShowBackButton = true;
                 }, quick_restart_initial_delay);
             }
             else
