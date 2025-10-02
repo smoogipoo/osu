@@ -946,7 +946,11 @@ namespace osu.Game.Screens.SelectV2
 
                     updateBackgroundDim();
 
-                    Footer?.Hide();
+                    if (Footer != null)
+                    {
+                        Footer.ShowBackButton = false;
+                        Footer.Hide();
+                    }
                 }, 200);
             }
 
@@ -974,7 +978,11 @@ namespace osu.Game.Screens.SelectV2
                 skinnableContent.ScaleTo(1, 500, Easing.OutQuint);
                 skinnableContent.FadeIn(500, Easing.OutQuint);
 
-                Footer?.Show();
+                if (Footer != null)
+                {
+                    Footer.ShowBackButton = true;
+                    Footer.Show();
+                }
             }
 
             revealingBackground.Cancel();
