@@ -30,8 +30,6 @@ namespace osu.Game.Screens.Footer
         public const int HEIGHT = 75;
         protected const int BUTTON_WIDTH = 116;
 
-        public override bool DisposeOnDeathRemoval => false;
-
         public Bindable<Visibility> OverlayState = new Bindable<Visibility>();
 
         [Resolved]
@@ -238,8 +236,6 @@ namespace osu.Game.Screens.Footer
                    .Delay(delay)
                    .MoveToX(0f, 240, Easing.OutCubic)
                    .FadeIn(240, Easing.OutCubic);
-
-            LifetimeEnd = double.MaxValue;
         }
 
         public void AppearFromBottom(double delay)
@@ -250,28 +246,28 @@ namespace osu.Game.Screens.Footer
                    .Delay(delay)
                    .MoveToY(0f, 240, Easing.OutCubic)
                    .FadeIn(240, Easing.OutCubic);
-
-            LifetimeEnd = double.MaxValue;
         }
 
-        public void DisappearToRight(double delay)
+        public void DisappearToRight(double delay, bool expire)
         {
             Content.FinishTransforms();
             Content.Delay(delay)
                    .FadeOut(240, Easing.InOutCubic)
                    .MoveToX(300f, 360, Easing.InOutCubic);
 
-            LifetimeEnd = Content.LatestTransformEndTime;
+            if (expire)
+                this.Delay(Content.LatestTransformEndTime - Time.Current).Expire();
         }
 
-        public void DisappearToBottom(double delay)
+        public void DisappearToBottom(double delay, bool expire)
         {
             Content.FinishTransforms();
             Content.Delay(delay)
                    .FadeOut(240, Easing.InOutCubic)
                    .MoveToY(100f, 240, Easing.InOutCubic);
 
-            LifetimeEnd = Content.LatestTransformEndTime;
+            if (expire)
+                this.Delay(Content.LatestTransformEndTime - Time.Current).Expire();
         }
     }
 }

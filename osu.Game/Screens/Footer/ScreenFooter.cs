@@ -218,13 +218,13 @@ namespace osu.Game.Screens.Footer
         /// <summary>
         /// Pushes a new footer state. Used to isolate <see cref="ShowBackButton"/> and <see cref="SetButtons"/> between screens.
         /// </summary>
-        /// <param name="buttons">The initial visible buttons.</param>
+        /// <param name="createButtonsFunc">A function to create the buttons.</param>
         /// <param name="showBackButton">The initial back button visibility.</param>
-        public void PushState(ScreenFooterButton[]? buttons = null, bool showBackButton = true)
+        public void PushState(Func<ScreenFooterButton[]?>? createButtonsFunc = null, bool showBackButton = true)
         {
             stateStack.Push(new FooterState
             {
-                Buttons = buttons,
+                CreateButtons = createButtonsFunc,
                 ShowBackButton = showBackButton
             });
 
@@ -261,23 +261,25 @@ namespace osu.Game.Screens.Footer
         /// <summary>
         /// Adjusts the visible buttons.
         /// </summary>
-        /// <param name="buttons">The buttons. A <c>null</c> value indicates the footer should be hidden.</param>
-        public void SetButtons(ScreenFooterButton[]? buttons)
+        /// <param name="createButtonsFunc">A function to create the buttons. A <c>null</c> value indicates the footer should be hidden.</param>
+        public void SetButtons(Func<ScreenFooterButton[]?> createButtonsFunc)
         {
-            stateStack.Peek().Buttons = buttons;
+            stateStack.Peek().CreateButtons = createButtonsFunc;
             updateButtons();
         }
 
         private void updateButtons()
         {
-            if (currentState.Buttons == null)
+            ScreenFooterButton[]? newButtons = currentState.CreateButtons?.Invoke();
+
+            if (newButtons == null)
             {
                 replaceButtons([]);
                 Hide();
             }
             else
             {
-                replaceButtons(currentState.Buttons);
+                replaceButtons(newButtons);
                 Show();
             }
         }
@@ -309,15 +311,14 @@ namespace osu.Game.Screens.Footer
                 hiddenButtonsContainer.Add(oldButton);
 
                 if (buttons.Length > 0)
-                    makeButtonDisappearToRight(oldButton, i, oldButtons.Length);
+                    makeButtonDisappearToRight(oldButton, i, oldButtons.Length, true);
                 else
-                    makeButtonDisappearToBottom(oldButton, i, oldButtons.Length);
+                    makeButtonDisappearToBottom(oldButton, i, oldButtons.Length, true);
             }
 
             for (int i = 0; i < buttons.Length; i++)
             {
                 var newButton = buttons[i];
-                newButton.Enabled.Value = true;
 
                 if (newButton.Overlay != null)
                 {
@@ -325,24 +326,19 @@ namespace osu.Game.Screens.Footer
                     overlays.Add(newButton.Overlay);
                 }
 
-                hiddenButtonsContainer.Remove(newButton, false);
+                Debug.Assert(!newButton.IsLoaded);
                 buttonsFlow.Add(newButton);
 
                 int index = i;
 
                 // ensure transforms are added after LoadComplete to not be aborted by the FinishTransforms call.
-                if (newButton.IsLoaded)
-                    showButton();
-                else
-                    newButton.OnLoadComplete += _ => showButton();
-
-                void showButton()
+                newButton.OnLoadComplete += _ =>
                 {
                     if (oldButtons.Length > 0)
                         makeButtonAppearFromLeft(newButton, index, buttons.Length, 240);
                     else
                         makeButtonAppearFromBottom(newButton, index);
-                }
+                };
             }
         }
 
@@ -376,7 +372,7 @@ namespace osu.Game.Screens.Footer
                 buttonsFlow.Remove(button, false);
                 hiddenButtonsContainer.Add(button);
 
-                makeButtonDisappearToBottom(button, 0, 0);
+                makeButtonDisappearToBottom(button, 0, 0, false);
             }
 
             updateColourScheme(overlay.ColourProvider.Hue);
@@ -440,11 +436,11 @@ namespace osu.Game.Screens.Footer
         private void makeButtonAppearFromBottom(ScreenFooterButton button, int index)
             => button.AppearFromBottom(index * delay_per_button);
 
-        private void makeButtonDisappearToRight(ScreenFooterButton button, int index, int count)
-            => button.DisappearToRight((count - index) * delay_per_button);
+        private void makeButtonDisappearToRight(ScreenFooterButton button, int index, int count, bool expire)
+            => button.DisappearToRight((count - index) * delay_per_button, expire);
 
-        private void makeButtonDisappearToBottom(ScreenFooterButton button, int index, int count)
-            => button.DisappearToBottom((count - index) * delay_per_button);
+        private void makeButtonDisappearToBottom(ScreenFooterButton button, int index, int count, bool expire)
+            => button.DisappearToBottom((count - index) * delay_per_button, expire);
 
         private void showOverlay(OverlayContainer overlay)
         {

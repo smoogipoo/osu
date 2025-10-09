@@ -232,7 +232,7 @@ namespace osu.Game.Screens
 
             background = backgroundStack?.CurrentScreen as BackgroundScreen;
 
-            Footer?.PushState(CreateFooterButtons(), InitialBackButtonVisibility);
+            Footer?.PushState(CreateFooterButtons, InitialBackButtonVisibility);
 
             base.OnEntering(e);
         }
