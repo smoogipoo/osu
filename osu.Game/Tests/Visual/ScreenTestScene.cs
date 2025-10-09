@@ -37,8 +37,11 @@ namespace osu.Game.Tests.Visual
 
         protected ScreenTestScene()
         {
+            ScreenFooter.BackReceptor backReceptor;
+
             base.Content.AddRange(new Drawable[]
             {
+                backReceptor = new ScreenFooter.BackReceptor(),
                 Stack = new OsuScreenStack
                 {
                     Name = nameof(ScreenTestScene),
@@ -50,7 +53,10 @@ namespace osu.Game.Tests.Visual
                     Children = new Drawable[]
                     {
                         content = new Container { RelativeSizeAxes = Axes.Both },
-                        Footer = new ScreenFooter(),
+                        Footer = new ScreenFooter(backReceptor)
+                        {
+                            BackButtonPressed = () => Stack.Exit()
+                        }
                     }
                 },
                 overlayContent = new Container
