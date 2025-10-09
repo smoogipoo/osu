@@ -313,12 +313,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
         {
             if (exitConfirmed)
             {
+                if (base.OnExiting(e))
+                {
+                    exitConfirmed = false;
+                    return true;
+                }
+
                 client.LeaveRoom().FireAndForget();
                 return false;
             }
-
-            if (base.OnExiting(e))
-                return true;
 
             if (dialogOverlay.CurrentDialog is ConfirmDialog confirmDialog)
                 confirmDialog.PerformOkAction();
