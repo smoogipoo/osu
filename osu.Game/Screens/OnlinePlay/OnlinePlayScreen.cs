@@ -115,6 +115,8 @@ namespace osu.Game.Screens.OnlinePlay
                 Lounge.OnEntering(e);
             else
                 Lounge.MakeCurrent();
+
+            base.OnEntering(e);
         }
 
         public override void OnResuming(ScreenTransitionEvent e)
@@ -145,6 +147,8 @@ namespace osu.Game.Screens.OnlinePlay
             // to work around this, do not proxy suspend to screens that haven't loaded yet.
             if ((screenStack.CurrentScreen as Drawable)?.IsLoaded == true)
                 screenStack.CurrentScreen.OnSuspending(e);
+
+            base.OnSuspending(e);
         }
 
         public override bool OnExiting(ScreenExitEvent e)
