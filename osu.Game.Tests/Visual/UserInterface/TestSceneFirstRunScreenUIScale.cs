@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Screens;
 using osu.Game.Database;
 using osu.Game.Overlays;
@@ -22,7 +24,11 @@ namespace osu.Game.Tests.Visual.UserInterface
         {
             AddStep("load screen", () =>
             {
-                Child = new ScreenStack(new ScreenUIScale());
+                Child = new PopoverContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new ScreenStack(new ScreenUIScale())
+                };
             });
         }
     }

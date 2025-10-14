@@ -11,7 +11,6 @@ using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
@@ -186,11 +185,7 @@ namespace osu.Game.Overlays.FirstRunSetup
                                 Children = new Drawable[]
                                 {
                                     stack = new OsuScreenStack(),
-                                    new PopoverContainer
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Child = footer
-                                    },
+                                    footer,
                                     logo,
                                 },
                             },

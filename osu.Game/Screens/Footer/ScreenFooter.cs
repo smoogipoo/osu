@@ -216,15 +216,16 @@ namespace osu.Game.Screens.Footer
         private FooterState currentState => stateStack.Peek();
 
         /// <summary>
-        /// Pushes a new footer state. Used to isolate <see cref="ShowBackButton"/> and <see cref="SetButtons"/> between screens.
+        /// Pushes a new set of footer buttons.
+        /// The state can be further adjusted by <see cref="ShowBackButton"/> and <see cref="SetButtons"/>.
         /// </summary>
-        /// <param name="createButtonsFunc">A function to create the buttons.</param>
-        /// <param name="showBackButton">The initial back button visibility.</param>
-        public void PushState(Func<ScreenFooterButton[]?>? createButtonsFunc = null, bool showBackButton = true)
+        /// <param name="createButtons">A function to create the buttons. A <c>null</c> value indicates the footer should be hidden.</param>
+        /// <param name="showBackButton">The back button visibility.</param>
+        public void PushButtons(Func<ScreenFooterButton[]?>? createButtons = null, bool showBackButton = true)
         {
             stateStack.Push(new FooterState
             {
-                CreateButtons = createButtonsFunc,
+                CreateButtons = createButtons,
                 ShowBackButton = showBackButton
             });
 
@@ -233,9 +234,9 @@ namespace osu.Game.Screens.Footer
         }
 
         /// <summary>
-        /// Pops a footer state.
+        /// Pops the current set of footer buttons, displaying the previously visible set.
         /// </summary>
-        public void PopState()
+        public void PopButtons()
         {
             if (stateStack.Count == 1)
                 throw new InvalidOperationException("Can not pop the only footer state.");
@@ -247,25 +248,25 @@ namespace osu.Game.Screens.Footer
         }
 
         /// <summary>
+        /// Adjusts the visible buttons.
+        /// </summary>
+        /// <param name="createButtonsFunc">A function to create the buttons. A <c>null</c> value indicates the footer should be hidden.</param>
+        public void SetButtons(Func<ScreenFooterButton[]?>? createButtonsFunc)
+        {
+            currentState.CreateButtons = createButtonsFunc;
+            updateButtons();
+        }
+
+        /// <summary>
         /// Shows or hides the back button.
         /// </summary>
         public bool ShowBackButton
         {
             set
             {
-                stateStack.Peek().ShowBackButton = value;
+                currentState.ShowBackButton = value;
                 updateBackButtonVisibility();
             }
-        }
-
-        /// <summary>
-        /// Adjusts the visible buttons.
-        /// </summary>
-        /// <param name="createButtonsFunc">A function to create the buttons. A <c>null</c> value indicates the footer should be hidden.</param>
-        public void SetButtons(Func<ScreenFooterButton[]?> createButtonsFunc)
-        {
-            stateStack.Peek().CreateButtons = createButtonsFunc;
-            updateButtons();
         }
 
         private void updateButtons()
@@ -488,6 +489,12 @@ namespace osu.Game.Screens.Footer
             public void OnReleased(KeyBindingReleaseEvent<GlobalAction> e)
             {
             }
+        }
+
+        private class FooterState
+        {
+            public Func<ScreenFooterButton[]?>? CreateButtons { get; set; }
+            public bool ShowBackButton { get; set; }
         }
     }
 }

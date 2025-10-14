@@ -170,7 +170,6 @@ namespace osu.Game.Screens
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
             Activity.Value ??= InitialActivity;
         }
 
@@ -232,7 +231,7 @@ namespace osu.Game.Screens
 
             background = backgroundStack?.CurrentScreen as BackgroundScreen;
 
-            Footer?.PushState(CreateFooterButtons, InitialBackButtonVisibility);
+            Footer?.PushButtons(CreateFooterButtons, InitialBackButtonVisibility);
 
             base.OnEntering(e);
         }
@@ -256,7 +255,7 @@ namespace osu.Game.Screens
             if (ownedBackground != null && backgroundStack?.CurrentScreen == ownedBackground)
                 backgroundStack?.Exit();
 
-            Footer?.PopState();
+            Footer?.PopButtons();
 
             return false;
         }
@@ -320,8 +319,11 @@ namespace osu.Game.Screens
         /// Shows or hides the game's footer with the given buttons.
         /// </summary>
         /// <remarks>
-        /// Temporarily, the footer's own back button is shown regardless of whether <see cref="BackButtonVisibility"/> is set to hidden.
-        /// This will be corrected as the footer becomes used more commonly.
+        /// <list type="bullet">
+        /// <item>A <c>null</c> value hides the footer and shows the legacy back button based on the value of <see cref="InitialBackButtonVisibility"/>.</item>
+        /// <item>An empty array shows the footer with only a back button, irrespective of <see cref="InitialBackButtonVisibility"/>.</item>
+        /// <item>Any other array shows the footer with a back button and the requested buttons.</item>
+        /// </list>
         /// </remarks>
         [CanBeNull]
         protected virtual ScreenFooterButton[] CreateFooterButtons() => null;
