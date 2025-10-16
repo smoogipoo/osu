@@ -33,7 +33,7 @@ namespace osu.Game.Tests.Visual
         protected DialogOverlay DialogOverlay { get; private set; }
 
         [Cached]
-        protected ScreenFooter Footer { get; private set; }
+        protected ScreenFooter ScreenFooter { get; private set; }
 
         protected ScreenTestScene()
         {
@@ -53,9 +53,12 @@ namespace osu.Game.Tests.Visual
                     Children = new Drawable[]
                     {
                         content = new Container { RelativeSizeAxes = Axes.Both },
-                        Footer = new ScreenFooter(backReceptor)
+                        new ScreenStackFooter(Stack)
                         {
-                            BackButtonPressed = () => Stack.Exit()
+                            Footer = ScreenFooter = new ScreenFooter(backReceptor)
+                            {
+                                BackButtonPressed = () => Stack.Exit()
+                            }
                         }
                     }
                 },

@@ -1138,12 +1138,15 @@ namespace osu.Game
                                 {
                                     Depth = -1,
                                     RelativeSizeAxes = Axes.Both,
-                                    Child = ScreenFooter = new ScreenFooter(backReceptor)
+                                    Child = new ScreenStackFooter(ScreenStack)
                                     {
-                                        // TODO: this is really really weird and should not exist.
-                                        RequestLogoInFront = inFront => ScreenContainer.ChangeChildDepth(logoContainer, inFront ? float.MinValue : 0),
-                                        BackButtonPressed = handleBackButton
-                                    },
+                                        Footer = ScreenFooter = new ScreenFooter(backReceptor)
+                                        {
+                                            // TODO: this is really really weird and should not exist.
+                                            RequestLogoInFront = inFront => ScreenContainer.ChangeChildDepth(logoContainer, inFront ? float.MinValue : 0),
+                                            BackButtonPressed = handleBackButton
+                                        }
+                                    }
                                 },
                             }
                         },

@@ -31,7 +31,6 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
 using osu.Game.Rulesets;
-using osu.Game.Screens.Footer;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match;
 using osuTK;
 
@@ -42,6 +41,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
     /// </summary>
     public partial class ScreenQueue : OsuScreen
     {
+        public override bool ShowFooter => true;
+
         private Container mainContent = null!;
 
         private MatchmakingScreenState state;
@@ -444,8 +445,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
             }
         }
-
-        protected override ScreenFooterButton[] CreateFooterButtons() => [];
 
         protected override void Dispose(bool isDisposing)
         {

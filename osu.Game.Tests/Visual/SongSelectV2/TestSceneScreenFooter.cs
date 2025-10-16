@@ -49,7 +49,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
                 },
             };
 
-            screenFooter.SetButtons(() => new ScreenFooterButton[]
+            screenFooter.SetButtons(new ScreenFooterButton[]
             {
                 new FooterButtonMods(modOverlay) { Current = SelectedMods },
                 new FooterButtonRandom(),
@@ -77,7 +77,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
         [Test]
         public void TestButtonsOut()
         {
-            AddStep("clear buttons", () => screenFooter.SetButtons(() => []));
+            AddStep("clear buttons", () => screenFooter.SetButtons([]));
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
         [Test]
         public void TestReplaceButtons()
         {
-            AddStep("replace buttons", () => screenFooter.SetButtons(() => new[]
+            AddStep("replace buttons", () => screenFooter.SetButtons(new[]
             {
                 new ScreenFooterButton { Text = "One", Action = () => { } },
                 new ScreenFooterButton { Text = "Two", Action = () => { } },
@@ -100,7 +100,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             TestShearedOverlayContainer externalOverlay = null!;
 
             AddStep("add overlay", () => contentContainer.Add(externalOverlay = new TestShearedOverlayContainer()));
-            AddStep("set buttons", () => screenFooter.SetButtons(() => new[]
+            AddStep("set buttons", () => screenFooter.SetButtons(new[]
             {
                 new ScreenFooterButton(externalOverlay)
                 {
@@ -128,7 +128,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             TestShearedOverlayContainer externalOverlay = null!;
 
             AddStep("hide footer", () => screenFooter.Hide());
-            AddStep("remove buttons", () => screenFooter.SetButtons(() => null));
+            AddStep("remove buttons", () => screenFooter.SetButtons([]));
 
             AddStep("add external overlay", () => contentContainer.Add(externalOverlay = new TestShearedOverlayContainer()));
             AddStep("show external overlay", () => externalOverlay.Show());
@@ -158,7 +158,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             TestShearedOverlayContainer externalOverlay = null!;
 
             AddStep("hide footer", () => screenFooter.Hide());
-            AddStep("remove buttons", () => screenFooter.SetButtons(() => null));
+            AddStep("remove buttons", () => screenFooter.SetButtons([]));
 
             AddStep("add external overlay", () => contentContainer.Add(externalOverlay = new TestShearedOverlayContainer()));
             AddStep("show external overlay", () => externalOverlay.Show());
@@ -202,7 +202,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             TestShearedOverlayContainer externalOverlay = null!;
 
             AddStep("add overlay", () => contentContainer.Add(externalOverlay = new TestShearedOverlayContainer()));
-            AddStep("set buttons", () => screenFooter.SetButtons(() => new[]
+            AddStep("set buttons", () => screenFooter.SetButtons(new[]
             {
                 new ScreenFooterButton(externalOverlay)
                 {

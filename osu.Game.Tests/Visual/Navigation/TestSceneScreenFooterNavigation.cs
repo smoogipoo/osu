@@ -55,52 +55,81 @@ namespace osu.Game.Tests.Visual.Navigation
             AddAssert("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
         }
 
+        /// <summary>
+        /// Tests pushing and exiting subscreens that have footers.
+        /// </summary>
         [Test]
-        public void TestSubScreenFooter()
+        public void TestPushAndExitSubScreens()
         {
             TestScreenWithSubScreen screen = null!;
 
-            // 1: New parent screen (button: 1)
             PushAndConfirm(() => screen = new TestScreenWithSubScreen());
+            AddAssert("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("push sub screen", () => screen.PushSubScreen(new TestScreenOne()));
             AddUntilStep("button one shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
 
-            // 2: New sub screen (button: 2)
             AddStep("push sub screen", () => screen.PushSubScreen(new TestScreenTwo()));
             AddUntilStep("button two shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button Two"));
 
-            // 3: New sub screen (button: legacy back)
-            AddStep("push sub screen with legacy back button", () => screen.PushSubScreen(new TestScreen(false)));
-            AddUntilStep("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
-            AddUntilStep("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
-
-            // 4: New parent screen (button: 1)
-            PushAndConfirm(() => new TestScreenOne());
-            AddUntilStep("footer shown", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddStep("exit sub screen", () => screen.ExitSubScreen());
             AddUntilStep("button one shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
 
-            // Exit parent screen (show buttons from 3)
-            AddStep("exit parent screen", () => Game.ScreenStack.Exit());
-            AddUntilStep("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
-            AddUntilStep("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddStep("exit sub screen", () => screen.ExitSubScreen());
+            AddAssert("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("old back button shown", () => screenFooter.LegacyBackButton.State.Value, () => Is.EqualTo(Visibility.Visible));
+        }
 
-            // Exit sub screen (show buttons from 2)
-            AddStep("exit subscreen", () => screen.ExitSubScreen());
+        /// <summary>
+        /// Tests pushing a new parenting screen while the footer is displayed from a subscreen.
+        /// </summary>
+        [Test]
+        public void TestPushParentScreenDuringSubScreen()
+        {
+            TestScreenWithSubScreen screen = null!;
+
+            PushAndConfirm(() => screen = new TestScreenWithSubScreen());
+            AddStep("push sub screen", () => screen.PushSubScreen(new TestScreenOne()));
+            AddUntilStep("button one shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
+
+            PushAndConfirm(() => new TestScreenTwo());
             AddUntilStep("button two shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button Two"));
 
-            // Exit sub screen (show buttons from 1)
-            AddStep("exit subscreen", () => screen.ExitSubScreen());
+            AddStep("exit parent screen", () => Game.ScreenStack.Exit());
+            AddUntilStep("button one shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
+        }
+
+        /// <summary>
+        /// Tests pushing a new subscreen after a new parenting screen has been pushed.
+        /// </summary>
+        [Test]
+        public void TestPushSubScreenWhileNotCurrent()
+        {
+            TestScreenWithSubScreen screen = null!;
+
+            PushAndConfirm(() => screen = new TestScreenWithSubScreen());
+            AddStep("push sub screen", () => screen.PushSubScreen(new TestScreenOne()));
             AddUntilStep("button one shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
 
+            PushAndConfirm(() => new TestScreenOne());
+            AddUntilStep("button one shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
+
+            AddStep("push sub screen", () => screen.PushSubScreen(new TestScreenTwo()));
+            AddUntilStep("button one still shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button One"));
+
             AddStep("exit parent screen", () => Game.ScreenStack.Exit());
-            AddAssert("footer hidden", () => screenFooter.State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddUntilStep("button two shown", () => screenFooter.ChildrenOfType<ScreenFooterButton>().First().Text.ToString(), () => Is.EqualTo("Button Two"));
         }
 
         private partial class TestScreenOne : OsuScreen
         {
+            public override bool ShowFooter => true;
+
             [Cached]
             private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Blue);
 
-            protected override ScreenFooterButton[] CreateFooterButtons() => new[]
+            public override ScreenFooterButton[] CreateFooterButtons() => new[]
             {
                 new ScreenFooterButton { Text = "Button One" },
             };
@@ -108,10 +137,12 @@ namespace osu.Game.Tests.Visual.Navigation
 
         private partial class TestScreenTwo : OsuScreen
         {
+            public override bool ShowFooter => true;
+
             [Cached]
             private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Blue);
 
-            protected override ScreenFooterButton[] CreateFooterButtons() => new[]
+            public override ScreenFooterButton[] CreateFooterButtons() => new[]
             {
                 new ScreenFooterButton { Text = "Button Two" },
             };
@@ -119,38 +150,29 @@ namespace osu.Game.Tests.Visual.Navigation
 
         private partial class TestScreen : OsuScreen
         {
-            private readonly bool footer;
+            public override bool ShowFooter { get; }
 
             public TestScreen(bool footer)
             {
-                this.footer = footer;
+                ShowFooter = footer;
             }
-
-            protected override ScreenFooterButton[]? CreateFooterButtons() => footer ? [] : null;
         }
 
-        private partial class TestScreenWithSubScreen : OsuScreen
+        private partial class TestScreenWithSubScreen : OsuScreen, IHasSubScreenStack
         {
-            private readonly ScreenStack stack;
+            public ScreenStack SubScreenStack { get; }
 
             public TestScreenWithSubScreen()
             {
-                InternalChild = stack = new ScreenStack
+                InternalChild = SubScreenStack = new ScreenStack
                 {
                     RelativeSizeAxes = Axes.Both
                 };
             }
 
-            public void PushSubScreen(IScreen screen) => stack.Push(screen);
+            public void PushSubScreen(IScreen screen) => SubScreenStack.Push(screen);
 
-            public void ExitSubScreen() => stack.Exit();
-
-            public IScreen CurrentSubScreen => stack.CurrentScreen;
-
-            protected override ScreenFooterButton[] CreateFooterButtons() => new[]
-            {
-                new ScreenFooterButton { Text = "Button One" },
-            };
+            public void ExitSubScreen() => SubScreenStack.Exit();
         }
     }
 }

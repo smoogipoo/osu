@@ -189,8 +189,6 @@ namespace osu.Game.Screens.Footer
 
             footerContent.MoveToY(0, transition_duration, Easing.OutQuint)
                          .FadeIn();
-
-            updateBackButtonVisibility();
         }
 
         protected override void PopOut()
@@ -202,8 +200,6 @@ namespace osu.Game.Screens.Footer
             footerContent.MoveToY(ScreenFooterButton.HEIGHT, transition_duration, Easing.OutQuint)
                          .Then()
                          .FadeOut();
-
-            updateBackButtonVisibility();
         }
 
         // The footer is always visible in some form.
@@ -212,88 +208,10 @@ namespace osu.Game.Screens.Footer
         // The footer is always visible in some form.
         public override bool PropagatePositionalInputSubTree => true;
 
-        private readonly Stack<FooterState> stateStack = new Stack<FooterState>([new FooterState()]);
-        private FooterState currentState => stateStack.Peek();
-
-        /// <summary>
-        /// Pushes a new set of footer buttons.
-        /// The state can be further adjusted by <see cref="ShowBackButton"/> and <see cref="SetButtons"/>.
-        /// </summary>
-        /// <param name="createButtons">A function to create the buttons. A <c>null</c> value indicates the footer should be hidden.</param>
-        /// <param name="showBackButton">The back button visibility.</param>
-        public void PushButtons(Func<ScreenFooterButton[]?>? createButtons = null, bool showBackButton = true)
-        {
-            stateStack.Push(new FooterState
-            {
-                CreateButtons = createButtons,
-                ShowBackButton = showBackButton
-            });
-
-            updateButtons();
-            updateBackButtonVisibility();
-        }
-
-        /// <summary>
-        /// Pops the current set of footer buttons, displaying the previously visible set.
-        /// </summary>
-        public void PopButtons()
-        {
-            if (stateStack.Count == 1)
-                throw new InvalidOperationException("Can not pop the only footer state.");
-
-            stateStack.Pop();
-
-            updateButtons();
-            updateBackButtonVisibility();
-        }
-
         /// <summary>
         /// Adjusts the visible buttons.
         /// </summary>
-        /// <param name="createButtonsFunc">A function to create the buttons. A <c>null</c> value indicates the footer should be hidden.</param>
-        public void SetButtons(Func<ScreenFooterButton[]?>? createButtonsFunc)
-        {
-            currentState.CreateButtons = createButtonsFunc;
-            updateButtons();
-        }
-
-        /// <summary>
-        /// Shows or hides the back button.
-        /// </summary>
-        public bool ShowBackButton
-        {
-            set
-            {
-                currentState.ShowBackButton = value;
-                updateBackButtonVisibility();
-            }
-        }
-
-        private void updateButtons()
-        {
-            ScreenFooterButton[]? newButtons = currentState.CreateButtons?.Invoke();
-
-            if (newButtons == null)
-            {
-                replaceButtons([]);
-                Hide();
-            }
-            else
-            {
-                replaceButtons(newButtons);
-                Show();
-            }
-        }
-
-        private void updateBackButtonVisibility()
-        {
-            if (State.Value == Visibility.Visible || !currentState.ShowBackButton)
-                LegacyBackButton.Hide();
-            else
-                LegacyBackButton.Show();
-        }
-
-        private void replaceButtons(ScreenFooterButton[] buttons)
+        public void SetButtons(ScreenFooterButton[] buttons)
         {
             temporarilyHiddenButtons.Clear();
             overlays.Clear();
@@ -489,12 +407,6 @@ namespace osu.Game.Screens.Footer
             public void OnReleased(KeyBindingReleaseEvent<GlobalAction> e)
             {
             }
-        }
-
-        private class FooterState
-        {
-            public Func<ScreenFooterButton[]?>? CreateButtons { get; set; }
-            public bool ShowBackButton { get; set; }
         }
     }
 }

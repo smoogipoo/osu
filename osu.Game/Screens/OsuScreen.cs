@@ -39,6 +39,8 @@ namespace osu.Game.Screens
 
         public virtual bool AllowUserExit => true;
 
+        public virtual bool ShowFooter => false;
+
         public virtual bool AllowExternalScreenChange => false;
 
         public virtual bool HideOverlaysOnEnter => false;
@@ -60,6 +62,10 @@ namespace osu.Game.Screens
         /// The initial visibility state of the back button when this screen is entered for the first time.
         /// </summary>
         protected virtual bool InitialBackButtonVisibility => AllowUserExit;
+
+        public readonly Bindable<bool> BackButtonVisibility;
+
+        IBindable<bool> IOsuScreen.BackButtonVisibility => BackButtonVisibility;
 
         public virtual bool CursorVisible => true;
 
@@ -159,6 +165,7 @@ namespace osu.Game.Screens
             Origin = Anchor.Centre;
 
             OverlayActivationMode = new Bindable<OverlayActivation>(InitialOverlayActivationMode);
+            BackButtonVisibility = new Bindable<bool>(InitialBackButtonVisibility);
         }
 
         [BackgroundDependencyLoader(true)]
@@ -231,8 +238,6 @@ namespace osu.Game.Screens
 
             background = backgroundStack?.CurrentScreen as BackgroundScreen;
 
-            Footer?.PushButtons(CreateFooterButtons, InitialBackButtonVisibility);
-
             base.OnEntering(e);
         }
 
@@ -254,8 +259,6 @@ namespace osu.Game.Screens
 
             if (ownedBackground != null && backgroundStack?.CurrentScreen == ownedBackground)
                 backgroundStack?.Exit();
-
-            Footer?.PopButtons();
 
             return false;
         }
@@ -315,18 +318,7 @@ namespace osu.Game.Screens
         /// </summary>
         protected virtual BackgroundScreen CreateBackground() => null;
 
-        /// <summary>
-        /// Shows or hides the game's footer with the given buttons.
-        /// </summary>
-        /// <remarks>
-        /// <list type="bullet">
-        /// <item>A <c>null</c> value hides the footer and shows the legacy back button based on the value of <see cref="InitialBackButtonVisibility"/>.</item>
-        /// <item>An empty array shows the footer with only a back button, irrespective of <see cref="InitialBackButtonVisibility"/>.</item>
-        /// <item>Any other array shows the footer with a back button and the requested buttons.</item>
-        /// </list>
-        /// </remarks>
-        [CanBeNull]
-        protected virtual ScreenFooterButton[] CreateFooterButtons() => null;
+        public virtual ScreenFooterButton[] CreateFooterButtons() => [];
 
         public virtual bool OnBackButton() => false;
     }

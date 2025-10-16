@@ -84,7 +84,6 @@ namespace osu.Game.Screens.Edit.Submission
         private Live<BeatmapSetInfo>? importedSet;
 
         private Sample completedSample = null!;
-        private bool exitAllowed;
 
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
@@ -438,10 +437,7 @@ namespace osu.Game.Screens.Edit.Submission
 
         private void allowExit()
         {
-            exitAllowed = true;
-
-            if (Footer != null)
-                Footer.ShowBackButton = true;
+            BackButtonVisibility.Value = true;
         }
 
         protected override void Update()
@@ -458,7 +454,7 @@ namespace osu.Game.Screens.Edit.Submission
         public override bool OnExiting(ScreenExitEvent e)
         {
             // We probably want a method of cancelling in the future…
-            if (!exitAllowed)
+            if (!BackButtonVisibility.Value)
                 return true;
 
             if (importedSet != null)

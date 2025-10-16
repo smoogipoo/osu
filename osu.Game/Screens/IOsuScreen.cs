@@ -7,6 +7,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
+using osu.Game.Screens.Footer;
 using osu.Game.Users;
 
 namespace osu.Game.Screens
@@ -28,6 +29,15 @@ namespace osu.Game.Screens
         /// and the back button is hidden from this screen by the initial state of <see cref="BackButtonVisibility"/> being set to hidden.
         /// </remarks>
         bool AllowUserExit { get; }
+
+        /// <summary>
+        /// Whether a footer (and a back button) should be displayed underneath the screen.
+        /// </summary>
+        /// <remarks>
+        /// Temporarily, the footer's own back button is shown regardless of whether <see cref="BackButtonVisibility"/> is set to hidden.
+        /// This will be corrected as the footer becomes used more commonly.
+        /// </remarks>
+        bool ShowFooter { get; }
 
         /// <summary>
         /// Whether a top-level component should be allowed to exit the current screen to, for example,
@@ -67,6 +77,13 @@ namespace osu.Game.Screens
         IBindable<OverlayActivation> OverlayActivationMode { get; }
 
         /// <summary>
+        /// Whether the back button should be displayed in this screen.
+        /// Note that this property is ignored when <see cref="ShowFooter"/> is <c>true</c>.
+        /// </summary>
+        // todo: make this work with footer.
+        IBindable<bool> BackButtonVisibility { get; }
+
+        /// <summary>
         /// The current <see cref="UserActivity"/> for this screen.
         /// </summary>
         Bindable<UserActivity> Activity { get; }
@@ -79,6 +96,11 @@ namespace osu.Game.Screens
         Bindable<WorkingBeatmap> Beatmap { get; }
 
         Bindable<RulesetInfo> Ruleset { get; }
+
+        /// <summary>
+        /// Buttons to be added to the game's footer toolbar.
+        /// </summary>
+        ScreenFooterButton[] CreateFooterButtons();
 
         /// <summary>
         /// Whether mod track adjustments should be applied on entering this screen.
