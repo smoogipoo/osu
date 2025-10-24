@@ -40,6 +40,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
     /// <summary>
     /// The main matchmaking screen which houses a custom <see cref="ScreenStack"/> through the life cycle of a single session.
     /// </summary>
+    [Cached]
     public partial class ScreenMatchmaking : OsuScreen, IPreviewTrackOwner
     {
         /// <summary>
@@ -230,19 +231,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
             if (item.Expired)
                 return;
 
-            RulesetInfo ruleset = rulesets.GetRuleset(item.RulesetID)!;
-            Ruleset rulesetInstance = ruleset.CreateInstance();
-
-            // Update global gameplay state to correspond to the new selection.
-            // Retrieve the corresponding local beatmap, since we can't directly use the playlist's beatmap info
-            var localBeatmap = beatmapManager.QueryBeatmap($@"{nameof(BeatmapInfo.OnlineID)} == $0 AND {nameof(BeatmapInfo.MD5Hash)} == {nameof(BeatmapInfo.OnlineMD5Hash)}", item.BeatmapID);
-
-            if (localBeatmap != null)
+            if (ApplyPlaylistItem(item))
             {
-                Beatmap.Value = beatmapManager.GetWorkingBeatmap(localBeatmap);
-                Ruleset.Value = ruleset;
-                Mods.Value = item.RequiredMods.Select(m => m.ToMod(rulesetInstance)).ToArray();
-
                 // Notify the server that the beatmap has been set and that we are ready to start gameplay.
                 if (client.LocalUser!.State == MultiplayerUserState.Idle)
                     client.ChangeState(MultiplayerUserState.Ready).FireAndForget();
@@ -255,6 +245,29 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
             }
 
             client.ChangeBeatmapAvailability(beatmapAvailabilityTracker.Availability.Value).FireAndForget();
+        }
+
+        /// <summary>
+        /// Attempts to set the global beatmap from the given playlist item.
+        /// </summary>
+        /// <param name="item">The playlist item.</param>
+        /// <returns><c>true</c> if the beatmap exists locally and was set, <c>false</c> otherwise.</returns>
+        public bool ApplyPlaylistItem(MultiplayerPlaylistItem item)
+        {
+            RulesetInfo ruleset = rulesets.GetRuleset(item.RulesetID)!;
+            Ruleset rulesetInstance = ruleset.CreateInstance();
+
+            // Update global gameplay state to correspond to the new selection.
+            // Retrieve the corresponding local beatmap, since we can't directly use the playlist's beatmap info
+            var localBeatmap = beatmapManager.QueryBeatmap($@"{nameof(BeatmapInfo.OnlineID)} == $0 AND {nameof(BeatmapInfo.MD5Hash)} == {nameof(BeatmapInfo.OnlineMD5Hash)}", item.BeatmapID);
+            if (localBeatmap == null)
+                return false;
+
+            Beatmap.Value = beatmapManager.GetWorkingBeatmap(localBeatmap);
+            Ruleset.Value = ruleset;
+            Mods.Value = item.RequiredMods.Select(m => m.ToMod(rulesetInstance)).ToArray();
+
+            return true;
         }
 
         private void onLoadRequested() => Scheduler.Add(() =>

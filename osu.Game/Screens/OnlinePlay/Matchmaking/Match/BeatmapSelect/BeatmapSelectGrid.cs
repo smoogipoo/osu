@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Utils;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osuTK;
 
@@ -32,6 +33,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
         private const float panel_spacing = 4;
 
         public event Action<MultiplayerPlaylistItem>? ItemSelected;
+
+        [Resolved]
+        private ScreenMatchmaking? matchmakingScreen { get; set; }
+
+        [Resolved]
+        private MultiplayerClient client { get; set; } = null!;
 
         private readonly Dictionary<long, BeatmapSelectPanel> panelLookup = new Dictionary<long, BeatmapSelectPanel>();
 
@@ -330,6 +337,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
                          .ScaleTo(1.5f, 1000, Easing.OutExpo);
 
                     resultSample?.Play();
+
+                    applyPlaylistItem(finalItem);
                 });
             }
         }
@@ -339,6 +348,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
             // TODO: display special animation in this case
 
             PresentRolledBeatmap(finalItem);
+        }
+
+        private void applyPlaylistItem(long playlistItemId)
+        {
+            MultiplayerPlaylistItem? item = client.Room?.Playlist.SingleOrDefault(item => item.ID == playlistItemId);
+
+            if (item == null)
+                return;
+
+            matchmakingScreen?.ApplyPlaylistItem(item);
         }
 
         private partial class PanelGridContainer : FillFlowContainer<BeatmapSelectPanel>
