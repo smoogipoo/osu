@@ -23,17 +23,21 @@ namespace osu.Game.Online.Matchmaking
         [Key(3)]
         public string Name { get; set; } = string.Empty;
 
+        [Key(4)]
+        public int LobbySize { get; set; }
+
         public bool Equals(MatchmakingPool? other)
             => other != null
                && Id == other.Id
                && RulesetId == other.RulesetId
                && Variant == other.Variant
-               && Name == other.Name;
+               && Name == other.Name
+               && LobbySize == other.LobbySize;
 
         public override bool Equals(object? obj)
             => obj is MatchmakingPool other && Equals(other);
 
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
-        public override int GetHashCode() => HashCode.Combine(Id, RulesetId, Variant, Name);
+        public override int GetHashCode() => HashCode.Combine(Id, RulesetId, Variant, Name, LobbySize);
     }
 }
