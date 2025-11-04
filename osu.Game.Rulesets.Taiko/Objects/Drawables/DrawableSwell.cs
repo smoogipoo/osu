@@ -156,6 +156,24 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
             }
         }
 
+        protected override void UpdateInitialTransforms()
+        {
+            base.UpdateInitialTransforms();
+
+            // For objects scrolling extremely slowly, they will be alive and active but should always be hidden until close to their start time.
+            using (BeginAbsoluteSequence(double.MinValue))
+                this.FadeOut();
+        }
+
+        protected override void UpdateStartTimeStateTransforms()
+        {
+            base.UpdateStartTimeStateTransforms();
+
+            // https://github.com/peppy/osu-stable-reference/blob/f9e58b4864a10f801393199e7652b2192c7342c3/osu!/GameplayElements/HitObjects/Osu/SpinnerOsu.cs#L78
+            using (BeginDelayedSequence(-HitObject.TimeFadeIn))
+                this.FadeInFromZero(HitObject.TimeFadeIn);
+        }
+
         protected override void UpdateHitStateTransforms(ArmedState state)
         {
             base.UpdateHitStateTransforms(state);
