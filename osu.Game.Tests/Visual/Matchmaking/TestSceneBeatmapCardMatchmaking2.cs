@@ -5,12 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
+using osu.Game.Beatmaps.Drawables.Cards.Buttons;
+using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Cursor;
@@ -19,8 +24,13 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.BeatmapSet;
 using osu.Game.Resources.Localisation.Web;
+using osu.Game.Rulesets;
+using osu.Game.Rulesets.Difficulty;
+using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.Ranking;
 using osu.Game.Tests.Visual.Multiplayer;
+using osu.Game.Utils;
 using osuTK;
 
 namespace osu.Game.Tests.Visual.Matchmaking
@@ -66,7 +76,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
 
         private class BeatmapCardMatchmaking2 : CompositeDrawable
         {
-            private static readonly Vector2 size = new Vector2(350, 100);
+            private readonly Vector2 size = new Vector2(400, 85);
 
             [Resolved]
             private OverlayColourProvider colourProvider { get; set; } = null!;
@@ -74,7 +84,8 @@ namespace osu.Game.Tests.Visual.Matchmaking
             private readonly APIBeatmap beatmap;
 
             private Drawable beatmapInfoDisplay = null!;
-            private Drawable beatmapStatisticsDisplay = null!;
+            private FillFlowContainer beatmapStatisticsDisplay = null!;
+            private Drawable playButton = null!;
             private FillFlowContainer<UserTagControl.DrawableUserTag> tagsContainer = null!;
 
             public BeatmapCardMatchmaking2(APIBeatmap beatmap)
@@ -89,6 +100,10 @@ namespace osu.Game.Tests.Visual.Matchmaking
             [BackgroundDependencyLoader]
             private void load()
             {
+                FillFlowContainer leftIconArea = null!;
+                FillFlowContainer titleBadgeArea = null!;
+                GridContainer artistContainer = null!;
+
                 InternalChildren = new Drawable[]
                 {
                     new BeatmapCardContentBackground(beatmap.BeatmapSet!, true)
@@ -109,20 +124,67 @@ namespace osu.Game.Tests.Visual.Matchmaking
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Direction = FillDirection.Vertical,
-                                Alpha = 0,
                                 Children = new Drawable[]
                                 {
-                                    new TruncatingSpriteText
+                                    new GridContainer
                                     {
-                                        Text = new RomanisableString(beatmap.BeatmapSet!.TitleUnicode, beatmap.BeatmapSet!.Title),
-                                        Font = OsuFont.Default.With(size: 18f, weight: FontWeight.SemiBold),
                                         RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        ColumnDimensions = new[]
+                                        {
+                                            new Dimension(),
+                                            new Dimension(GridSizeMode.AutoSize),
+                                        },
+                                        RowDimensions = new[]
+                                        {
+                                            new Dimension(GridSizeMode.AutoSize)
+                                        },
+                                        Content = new[]
+                                        {
+                                            new Drawable[]
+                                            {
+                                                new TruncatingSpriteText
+                                                {
+                                                    Text = new RomanisableString(beatmap.BeatmapSet!.TitleUnicode, beatmap.BeatmapSet.Title),
+                                                    Font = OsuFont.Default.With(size: 18f, weight: FontWeight.SemiBold),
+                                                    RelativeSizeAxes = Axes.X,
+                                                },
+                                                titleBadgeArea = new FillFlowContainer
+                                                {
+                                                    Anchor = Anchor.BottomRight,
+                                                    Origin = Anchor.BottomRight,
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Direction = FillDirection.Horizontal,
+                                                }
+                                            }
+                                        }
                                     },
-                                    new TruncatingSpriteText
+                                    artistContainer = new GridContainer
                                     {
-                                        Text = createArtistText(),
-                                        Font = OsuFont.Default.With(size: 14f, weight: FontWeight.SemiBold),
                                         RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        ColumnDimensions = new[]
+                                        {
+                                            new Dimension(),
+                                            new Dimension(GridSizeMode.AutoSize)
+                                        },
+                                        RowDimensions = new[]
+                                        {
+                                            new Dimension(GridSizeMode.AutoSize)
+                                        },
+                                        Content = new[]
+                                        {
+                                            new[]
+                                            {
+                                                new TruncatingSpriteText
+                                                {
+                                                    Text = BeatmapsetsStrings.ShowDetailsByArtist(new RomanisableString(beatmap.BeatmapSet.ArtistUnicode, beatmap.BeatmapSet.Artist)),
+                                                    Font = OsuFont.Default.With(size: 14f, weight: FontWeight.SemiBold),
+                                                    RelativeSizeAxes = Axes.X,
+                                                },
+                                                Empty()
+                                            },
+                                        }
                                     },
                                     new LinkFlowContainer(s =>
                                     {
@@ -137,64 +199,19 @@ namespace osu.Game.Tests.Visual.Matchmaking
                                     }),
                                 }
                             },
+                            playButton = new PlayButton(beatmap.BeatmapSet)
+                            {
+                                Anchor = Anchor.CentreRight,
+                                Origin = Anchor.CentreRight,
+                                Size = new Vector2(size.Y, size.Y),
+                                Alpha = 0
+                            },
                             beatmapStatisticsDisplay = new FillFlowContainer
                             {
                                 AutoSizeAxes = Axes.Both,
                                 Direction = FillDirection.Horizontal,
-                                Spacing = new Vector2(10),
-                                Children = new Drawable[]
-                                {
-                                    new GridContainer
-                                    {
-                                        AutoSizeAxes = Axes.Both,
-                                        ColumnDimensions =
-                                        [
-                                            new Dimension(GridSizeMode.AutoSize),
-                                            new Dimension(GridSizeMode.AutoSize)
-                                        ],
-                                        RowDimensions =
-                                        [
-                                            new Dimension(GridSizeMode.AutoSize),
-                                            new Dimension(GridSizeMode.AutoSize)
-                                        ],
-                                        Content = new Drawable[][]
-                                        {
-                                            [
-                                                new OsuSpriteText { Text = "Circle Size", Font = OsuFont.Default.With(size: 14), Margin = new MarginPadding { Right = 10 } },
-                                                new OsuSpriteText { Text = "4.3" }
-                                            ],
-                                            [
-                                                new OsuSpriteText { Text = "Approach Rate", Font = OsuFont.Default.With(size: 14), Margin = new MarginPadding { Right = 10 } },
-                                                new OsuSpriteText { Text = "9.6" }
-                                            ]
-                                        }
-                                    },
-                                    new GridContainer
-                                    {
-                                        AutoSizeAxes = Axes.Both,
-                                        ColumnDimensions =
-                                        [
-                                            new Dimension(GridSizeMode.AutoSize),
-                                            new Dimension(GridSizeMode.AutoSize)
-                                        ],
-                                        RowDimensions =
-                                        [
-                                            new Dimension(GridSizeMode.AutoSize),
-                                            new Dimension(GridSizeMode.AutoSize)
-                                        ],
-                                        Content = new Drawable[][]
-                                        {
-                                            [
-                                                new OsuSpriteText { Text = "Accuracy", Font = OsuFont.Default.With(size: 14), Margin = new MarginPadding { Right = 10 } },
-                                                new OsuSpriteText { Text = "8.6" }
-                                            ],
-                                            [
-                                                new OsuSpriteText { Text = "HP Drain", Font = OsuFont.Default.With(size: 14), Margin = new MarginPadding { Right = 10 } },
-                                                new OsuSpriteText { Text = "4.6" }
-                                            ]
-                                        }
-                                    },
-                                }
+                                Spacing = new Vector2(20),
+                                Alpha = 0
                             },
                             new FillFlowContainer
                             {
@@ -214,6 +231,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
                                         Direction = FillDirection.Horizontal,
                                         Scale = new Vector2(0.75f),
                                         Spacing = new Vector2(6),
+                                        Alpha = 0
                                     },
                                     new FillFlowContainer
                                     {
@@ -244,15 +262,119 @@ namespace osu.Game.Tests.Visual.Matchmaking
                     }
                 };
 
-                updateStatistics();
-                updateTags();
+                // if (beatmap.BeatmapSet.HasVideo)
+                //     leftIconArea.Add(new VideoIconPill { IconSize = new Vector2(16) });
+                //
+                // if (beatmap.BeatmapSet.HasStoryboard)
+                //     leftIconArea.Add(new StoryboardIconPill { IconSize = new Vector2(16) });
+
+                if (beatmap.BeatmapSet.FeaturedInSpotlight)
+                {
+                    titleBadgeArea.Add(new SpotlightBeatmapBadge
+                    {
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                        Margin = new MarginPadding { Left = 4 }
+                    });
+                }
+
+                if (beatmap.BeatmapSet.HasExplicitContent)
+                {
+                    titleBadgeArea.Add(new ExplicitContentBeatmapBadge
+                    {
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                        Margin = new MarginPadding { Left = 4 }
+                    });
+                }
+
+                if (beatmap.BeatmapSet.TrackId != null)
+                {
+                    artistContainer.Content[0][1] = new FeaturedArtistBeatmapBadge
+                    {
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                        Margin = new MarginPadding { Left = 4 }
+                    };
+                }
+
+                loadStatistics();
+                loadTags();
             }
 
-            private void updateStatistics()
+            private void loadStatistics()
             {
+                Ruleset ruleset = new OsuRuleset();
+                Mod[] mods = [];
+                double rate = ModUtils.CalculateRateWithMods(mods);
+
+                foreach (var attribute in ruleset.GetBeatmapAttributesForDisplay(beatmap, mods).Chunk(2))
+                    beatmapStatisticsDisplay.Add(createGrid(attribute.Select(createTextAttribute).ToArray()));
+
+                beatmapStatisticsDisplay.Add(createGrid(
+                [
+                    createIconAttribute(OsuIcon.Clock, FormatUtils.RoundBPM(beatmap.BPM, rate).ToLocalisableString()),
+                    createIconAttribute(OsuIcon.Metronome, beatmap.HitLength.ToFormattedDuration()),
+                ]));
+
+                GridContainer createGrid(Drawable[][] content) => new GridContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    ColumnDimensions =
+                    [
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.AutoSize)
+                    ],
+                    RowDimensions =
+                    [
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.AutoSize)
+                    ],
+                    Content = content.ToArray()
+                };
+
+                Drawable[] createIconAttribute(IconUsage icon, LocalisableString value) =>
+                [
+                    new SpriteIcon
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Icon = icon,
+                        Colour = colourProvider.Content2,
+                        Size = new Vector2(OsuFont.Style.Caption2.Size),
+                        Margin = new MarginPadding { Right = 3 }
+                    },
+                    new OsuSpriteText
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Text = value,
+                        Font = OsuFont.Style.Caption1
+                    }
+                ];
+
+                Drawable[] createTextAttribute(RulesetBeatmapAttribute attribute) =>
+                [
+                    new OsuSpriteText
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Text = attribute.Label,
+                        Font = OsuFont.Style.Caption1,
+                        Margin = new MarginPadding { Right = 10 },
+                        Colour = colourProvider.Content2
+                    },
+                    new OsuSpriteText
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Text = attribute.AdjustedValue.ToLocalisableString(),
+                        Font = OsuFont.Style.Caption1,
+                    }
+                ];
             }
 
-            private void updateTags()
+            private void loadTags()
             {
                 if (beatmap.TopTags == null || beatmap.TopTags.Length == 0 || beatmap.BeatmapSet!.RelatedTags == null)
                     return;
@@ -271,10 +393,25 @@ namespace osu.Game.Tests.Visual.Matchmaking
                     tagsContainer.Add(new UserTagControl.DrawableUserTag(new UserTag(tag)));
             }
 
-            private LocalisableString createArtistText()
+            protected override bool OnHover(HoverEvent e)
             {
-                var romanisableArtist = new RomanisableString(beatmap.BeatmapSet!.ArtistUnicode, beatmap.BeatmapSet!.Artist);
-                return BeatmapsetsStrings.ShowDetailsByArtist(romanisableArtist);
+                const double animation_duration = 400;
+
+                beatmapInfoDisplay.FadeOut(animation_duration, Easing.OutPow10);
+                beatmapStatisticsDisplay.FadeIn(animation_duration, Easing.OutPow10);
+                playButton.FadeIn(animation_duration, Easing.OutPow10);
+                tagsContainer.FadeIn(animation_duration, Easing.OutPow10);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                const double animation_duration = 400;
+
+                beatmapInfoDisplay.FadeIn(animation_duration, Easing.OutPow10);
+                beatmapStatisticsDisplay.FadeOut(animation_duration, Easing.OutPow10);
+                playButton.FadeOut(animation_duration, Easing.OutPow10);
+                tagsContainer.FadeOut(animation_duration, Easing.OutPow10);
             }
         }
     }
