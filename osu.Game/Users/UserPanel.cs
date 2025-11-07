@@ -180,6 +180,11 @@ namespace osu.Game.Users
                                 multiplayerClient!.InvitePlayer(User.Id);
                         }));
                     }
+
+                    items.Add(new OsuMenuItem("Challenge", MenuItemType.Standard, () =>
+                    {
+                        multiplayerClient!.MatchmakingIssueChallenge(1, User.Id);
+                    }));
                 }
 
                 return items.ToArray();

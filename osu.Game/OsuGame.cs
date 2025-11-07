@@ -1270,6 +1270,14 @@ namespace osu.Game
             Add(new OnlineStatusNotifier(() => ScreenStack.CurrentScreen));
             Add(new FriendPresenceNotifier());
 
+            Add(new ChallengeOverlay
+            {
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+                Depth = float.MinValue,
+                Size = new Vector2(300, 300)
+            });
+
             // side overlays which cancel each other.
             var singleDisplaySideOverlays = new OverlayContainer[] { Settings, Notifications, FirstRunOverlay };
 

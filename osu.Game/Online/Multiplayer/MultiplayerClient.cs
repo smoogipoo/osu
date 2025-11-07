@@ -131,6 +131,8 @@ namespace osu.Game.Online.Multiplayer
         public event Action<int, long>? MatchmakingItemDeselected;
         public event Action<MatchRoomState>? MatchRoomStateChanged;
 
+        public event Action<int>? MatchmakingChallengeIssued;
+
         public event Action<int>? UserVotedToSkipIntro;
         public event Action? VoteToSkipIntroPassed;
 
@@ -1141,6 +1143,7 @@ namespace osu.Game.Online.Multiplayer
         {
             Scheduler.Add(() =>
             {
+                MatchmakingChallengeIssued?.Invoke(userId);
             });
 
             return Task.CompletedTask;
