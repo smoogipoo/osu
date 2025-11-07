@@ -81,6 +81,8 @@ namespace osu.Game.Online.Multiplayer
                     connection.On<MatchmakingQueueStatus>(nameof(IMatchmakingClient.MatchmakingQueueStatusChanged), ((IMatchmakingClient)this).MatchmakingQueueStatusChanged);
                     connection.On<int, long>(nameof(IMatchmakingClient.MatchmakingItemSelected), ((IMatchmakingClient)this).MatchmakingItemSelected);
                     connection.On<int, long>(nameof(IMatchmakingClient.MatchmakingItemDeselected), ((IMatchmakingClient)this).MatchmakingItemDeselected);
+                    connection.On<int, int>(nameof(IMatchmakingClient.MatchmakingChallengeIssued), ((IMatchmakingClient)this).MatchmakingChallengeIssued);
+                    connection.On<int>(nameof(IMatchmakingClient.MatchmakingChallengeDeclined), ((IMatchmakingClient)this).MatchmakingChallengeDeclined);
 
                     connection.On(nameof(IStatefulUserHubClient.DisconnectRequested), ((IMultiplayerClient)this).DisconnectRequested);
                 };
@@ -412,6 +414,33 @@ namespace osu.Game.Online.Multiplayer
 
             Debug.Assert(connection != null);
             return connection.InvokeAsync(nameof(IMatchmakingServer.MatchmakingSkipToNextStage));
+        }
+
+        public override Task MatchmakingIssueChallenge(int poolId, int userId)
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+            return connection.InvokeAsync(nameof(IMatchmakingServer.MatchmakingIssueChallenge), poolId, userId);
+        }
+
+        public override Task MatchmakingAcceptChallenge(int userId)
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+            return connection.InvokeAsync(nameof(IMatchmakingServer.MatchmakingAcceptChallenge), userId);
+        }
+
+        public override Task MatchmakingDeclineChallenge(int userId)
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+            return connection.InvokeAsync(nameof(IMatchmakingServer.MatchmakingDeclineChallenge), userId);
         }
 
         protected override void Dispose(bool isDisposing)

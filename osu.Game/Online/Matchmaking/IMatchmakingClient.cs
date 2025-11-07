@@ -53,5 +53,9 @@ namespace osu.Game.Online.Matchmaking
         /// <param name="userId">The notifying user.</param>
         /// <param name="playlistItemId">The playlist item candidate removed, or -1 as a special value that indicates a random selection.</param>
         Task MatchmakingItemDeselected(int userId, long playlistItemId);
+
+        Task MatchmakingChallengeIssued(int poolId, int userId);
+
+        Task MatchmakingChallengeDeclined(int userId);
     }
 }

@@ -52,5 +52,11 @@ namespace osu.Game.Online.Matchmaking
         /// Debug only - skips to the next stage of the matchmaking room.
         /// </summary>
         Task MatchmakingSkipToNextStage();
+
+        Task MatchmakingIssueChallenge(int poolId, int userId);
+
+        Task MatchmakingAcceptChallenge(int userId);
+
+        Task MatchmakingDeclineChallenge(int userId);
     }
 }

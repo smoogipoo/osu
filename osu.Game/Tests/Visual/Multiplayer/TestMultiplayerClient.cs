@@ -831,6 +831,21 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public override Task MatchmakingSkipToNextStage()
             => Task.CompletedTask;
 
+        public override Task MatchmakingIssueChallenge(int poolId, int userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task MatchmakingAcceptChallenge(int userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task MatchmakingDeclineChallenge(int userId)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task MatchmakingToggleUserSelection(int userId, long playlistItemId)
         {
             if (matchmakingUserPicks.TryGetValue(userId, out long existingId))

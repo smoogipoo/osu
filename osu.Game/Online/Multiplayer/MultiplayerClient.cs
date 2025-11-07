@@ -1137,6 +1137,24 @@ namespace osu.Game.Online.Multiplayer
             return Task.CompletedTask;
         }
 
+        Task IMatchmakingClient.MatchmakingChallengeIssued(int poolId, int userId)
+        {
+            Scheduler.Add(() =>
+            {
+            });
+
+            return Task.CompletedTask;
+        }
+
+        Task IMatchmakingClient.MatchmakingChallengeDeclined(int userId)
+        {
+            Scheduler.Add(() =>
+            {
+            });
+
+            return Task.CompletedTask;
+        }
+
         public abstract Task<MatchmakingPool[]> GetMatchmakingPools();
 
         public abstract Task MatchmakingJoinLobby();
@@ -1154,6 +1172,12 @@ namespace osu.Game.Online.Multiplayer
         public abstract Task MatchmakingToggleSelection(long playlistItemId);
 
         public abstract Task MatchmakingSkipToNextStage();
+
+        public abstract Task MatchmakingIssueChallenge(int poolId, int userId);
+
+        public abstract Task MatchmakingAcceptChallenge(int userId);
+
+        public abstract Task MatchmakingDeclineChallenge(int userId);
 
         private partial class MultiplayerInvitationNotification : UserAvatarNotification
         {
