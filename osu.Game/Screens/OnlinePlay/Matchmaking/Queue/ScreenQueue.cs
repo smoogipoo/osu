@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -21,6 +22,7 @@ using osu.Framework.Screens;
 using osu.Framework.Threading;
 using osu.Game.Database;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
@@ -36,6 +38,188 @@ using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {
+    public partial class ChallengeList : CompositeDrawable
+    {
+        [Resolved]
+        private QueueController controller { get; set; } = null!;
+
+        [Resolved]
+        private OverlayColourProvider colourProvider { get; set; } = null!;
+
+        private readonly BindableList<int> activeChallenges = new BindableList<int>();
+
+        private FillFlowContainer<ChallengeRow> rows = null!;
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            InternalChildren = new Drawable[]
+            {
+                new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Masking = true,
+                    CornerRadius = 10,
+                    Child = new Box
+                    {
+                        Colour = colourProvider.Background3,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                },
+                new OsuSpriteText
+                {
+                    Anchor = Anchor.TopCentre,
+                    Origin = Anchor.TopCentre,
+                    Text = "Challenges",
+                    Margin = new MarginPadding { Top = 5 }
+                },
+                new GridContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding
+                    {
+                        Top = 30,
+                        Bottom = 10,
+                        Horizontal = 10,
+                    },
+                    RowDimensions =
+                    [
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension()
+                    ],
+                    Content = new[]
+                    {
+                        new Drawable[]
+                        {
+                            new Container
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Children = new Drawable[]
+                                {
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        Text = "Name",
+                                        Font = OsuFont.Default.With(size: 14f),
+                                        Colour = colourProvider.Content2
+                                    },
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Text = "Rating",
+                                        Font = OsuFont.Default.With(size: 14f),
+                                        Colour = colourProvider.Content2
+                                    }
+                                }
+                            }
+                        },
+                        new Drawable[]
+                        {
+                            new Container
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Padding = new MarginPadding { Vertical = 5 },
+                                Child = new Box
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Height = 2
+                                }
+                            }
+                        },
+                        new Drawable[]
+                        {
+                            new OsuScrollContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Child = rows = new FillFlowContainer<ChallengeRow>
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            activeChallenges.BindTo(controller.ActiveChallenges);
+            activeChallenges.BindCollectionChanged(onActiveChallengesChanged, true);
+
+            activeChallenges.Add(1);
+        }
+
+        private void onActiveChallengesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    foreach (int userId in e.NewItems!.OfType<int>())
+                        rows.Add(new ChallengeRow(userId));
+                    break;
+
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (int userId in e.NewItems!.OfType<int>())
+                        rows.RemoveAll(u => u.UserId == userId, true);
+                    break;
+            }
+        }
+
+        private class ChallengeRow : CompositeDrawable
+        {
+            public readonly int UserId;
+
+            [Resolved]
+            private UserLookupCache userLookupCache { get; set; } = null!;
+
+            [Resolved]
+            private OsuColour colours { get; set; } = null!;
+
+            private OsuSpriteText nameText = null!;
+
+            public ChallengeRow(int userId)
+            {
+                UserId = userId;
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                InternalChildren = new Drawable[]
+                {
+                    nameText = new OsuSpriteText
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Text = "Username"
+                    },
+                    new ShearedButton(height: 16f)
+                    {
+                        Anchor = Anchor.CentreRight,
+                        Origin = Anchor.CentreRight,
+                        Text = "Accept",
+                        TextSize = 14f,
+                        DarkerColour = colours.Green4,
+                        LighterColour = colours.Green2,
+                        Action = () => { }
+                    },
+                };
+            }
+        }
+    }
+
     /// <summary>
     /// The initial screen that users arrive at when preparing for a quick play session.
     /// </summary>
@@ -109,6 +293,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Scale = new Vector2(3),
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
+                },
+                new ChallengeList
+                {
+                    RelativePositionAxes = Axes.Y,
+                    Y = 0.25f,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    Size = new Vector2(250, 150)
                 },
                 new Container
                 {

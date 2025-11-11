@@ -82,7 +82,6 @@ namespace osu.Game.Online.Multiplayer
                     connection.On<int, long>(nameof(IMatchmakingClient.MatchmakingItemSelected), ((IMatchmakingClient)this).MatchmakingItemSelected);
                     connection.On<int, long>(nameof(IMatchmakingClient.MatchmakingItemDeselected), ((IMatchmakingClient)this).MatchmakingItemDeselected);
                     connection.On<int, int>(nameof(IMatchmakingClient.MatchmakingChallengeIssued), ((IMatchmakingClient)this).MatchmakingChallengeIssued);
-                    connection.On<int>(nameof(IMatchmakingClient.MatchmakingChallengeDeclined), ((IMatchmakingClient)this).MatchmakingChallengeDeclined);
 
                     connection.On(nameof(IStatefulUserHubClient.DisconnectRequested), ((IMultiplayerClient)this).DisconnectRequested);
                 };

@@ -31,6 +31,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
     {
         public readonly Bindable<ScreenQueue.MatchmakingScreenState> CurrentState = new Bindable<ScreenQueue.MatchmakingScreenState>();
 
+        public readonly BindableList<int> ActiveChallenges = new BindableList<int>();
+
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
 
@@ -52,6 +54,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             client.MatchmakingQueueLeft += onMatchmakingQueueLeft;
             client.MatchmakingRoomInvited += onMatchmakingRoomInvited;
             client.MatchmakingRoomReady += onMatchmakingRoomReady;
+            client.MatchmakingChallengeIssued += onChallengeIssued;
+            client.MatchmakingChallengeCancelled += onChallengeCancelled;
         }
 
         public void SearchInBackground()
@@ -119,6 +123,17 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                   }));
         });
 
+        private void onChallengeIssued(int challengerUserId) => Scheduler.Add(() =>
+        {
+            if (!ActiveChallenges.Contains(challengerUserId))
+                ActiveChallenges.Add(challengerUserId);
+        });
+
+        private void onChallengeCancelled(int challengerUserId) => Scheduler.Add(() =>
+        {
+            ActiveChallenges.Remove(challengerUserId);
+        });
+
         private void postNotification()
         {
             if (backgroundNotification != null)
@@ -148,6 +163,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 client.MatchmakingQueueLeft -= onMatchmakingQueueLeft;
                 client.MatchmakingRoomInvited -= onMatchmakingRoomInvited;
                 client.MatchmakingRoomReady -= onMatchmakingRoomReady;
+                client.MatchmakingChallengeIssued -= onChallengeIssued;
+                client.MatchmakingChallengeCancelled -= onChallengeCancelled;
             }
         }
 

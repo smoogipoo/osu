@@ -56,6 +56,6 @@ namespace osu.Game.Online.Matchmaking
 
         Task MatchmakingChallengeIssued(int poolId, int userId);
 
-        Task MatchmakingChallengeDeclined(int userId);
+        Task MatchmakingChallengeCancelled(int userId);
     }
 }
