@@ -154,8 +154,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
             activeChallenges.BindTo(controller.ActiveChallenges);
             activeChallenges.BindCollectionChanged(onActiveChallengesChanged, true);
-
-            activeChallenges.Add(1);
         }
 
         private void onActiveChallengesChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -184,7 +182,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             [Resolved]
             private OsuColour colours { get; set; } = null!;
 
-            private OsuSpriteText nameText = null!;
+            [Resolved]
+            private MultiplayerClient client { get; set; } = null!;
 
             public ChallengeRow(int userId)
             {
@@ -197,13 +196,21 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             [BackgroundDependencyLoader]
             private void load()
             {
+                APIUser user = userLookupCache.GetUserAsync(UserId).GetResultSafely()!;
+
                 InternalChildren = new Drawable[]
                 {
-                    nameText = new OsuSpriteText
+                    new OsuSpriteText
                     {
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
-                        Text = "Username"
+                        Text = user.Username
+                    },
+                    new OsuSpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = "1234"
                     },
                     new ShearedButton(height: 16f)
                     {
@@ -213,7 +220,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         TextSize = 14f,
                         DarkerColour = colours.Green4,
                         LighterColour = colours.Green2,
-                        Action = () => { }
+                        Action = () =>
+                        {
+                            client.MatchmakingAcceptChallenge(UserId);
+                            Expire();
+                        }
                     },
                 };
             }

@@ -39,9 +39,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [Resolved]
         private INotificationOverlay? notifications { get; set; }
 
-        [Resolved]
-        private IPerformFromScreenRunner? performer { get; set; }
-
         private BackgroundQueueNotification? backgroundNotification;
         private bool isBackgrounded;
 
@@ -114,8 +111,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         private void onMatchmakingRoomReady(long roomId, string password) => Scheduler.Add(() =>
         {
-            performer?.PerformFromScreen(s => s.Push(new ScreenIntro()));
-
             client.JoinRoom(new Room { RoomID = roomId }, password)
                   .FireAndForget(() => Scheduler.Add(() =>
                   {

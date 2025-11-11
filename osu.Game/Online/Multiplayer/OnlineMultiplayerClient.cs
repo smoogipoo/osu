@@ -433,15 +433,6 @@ namespace osu.Game.Online.Multiplayer
             return connection.InvokeAsync(nameof(IMatchmakingServer.MatchmakingAcceptChallenge), userId);
         }
 
-        public override Task MatchmakingDeclineChallenge(int userId)
-        {
-            if (!IsConnected.Value)
-                return Task.CompletedTask;
-
-            Debug.Assert(connection != null);
-            return connection.InvokeAsync(nameof(IMatchmakingServer.MatchmakingDeclineChallenge), userId);
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);

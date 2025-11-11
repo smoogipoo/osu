@@ -841,11 +841,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
             throw new NotImplementedException();
         }
 
-        public override Task MatchmakingDeclineChallenge(int userId)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task MatchmakingToggleUserSelection(int userId, long playlistItemId)
         {
             if (matchmakingUserPicks.TryGetValue(userId, out long existingId))

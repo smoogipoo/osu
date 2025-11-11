@@ -1182,8 +1182,6 @@ namespace osu.Game.Online.Multiplayer
 
         public abstract Task MatchmakingAcceptChallenge(int userId);
 
-        public abstract Task MatchmakingDeclineChallenge(int userId);
-
         private partial class MultiplayerInvitationNotification : UserAvatarNotification
         {
             protected override IconUsage CloseButtonIcon => FontAwesome.Solid.Times;
