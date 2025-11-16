@@ -166,7 +166,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
-                    foreach (int userId in e.NewItems!.OfType<int>())
+                    foreach (int userId in e.OldItems!.OfType<int>())
                         rows.RemoveAll(u => u.UserId == userId, true);
                     break;
             }
@@ -184,6 +184,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
             [Resolved]
             private MultiplayerClient client { get; set; } = null!;
+
+            [Resolved]
+            private QueueController controller { get; set; } = null!;
 
             public ChallengeRow(int userId)
             {
@@ -222,8 +225,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         LighterColour = colours.Green2,
                         Action = () =>
                         {
+                            controller.ActiveChallenges.Remove(UserId);
                             client.MatchmakingAcceptChallenge(UserId);
-                            Expire();
                         }
                     },
                 };

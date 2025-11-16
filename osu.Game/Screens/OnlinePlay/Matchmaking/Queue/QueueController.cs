@@ -39,6 +39,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [Resolved]
         private INotificationOverlay? notifications { get; set; }
 
+        [Resolved]
+        private IPerformFromScreenRunner? performer { get; set; }
+
         private BackgroundQueueNotification? backgroundNotification;
         private bool isBackgrounded;
 
@@ -102,6 +105,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         {
             CurrentState.Value = ScreenQueue.MatchmakingScreenState.PendingAccept;
 
+            postNotification();
+
             if (backgroundNotification != null)
             {
                 backgroundNotification.State = ProgressNotificationState.Completed;
@@ -122,6 +127,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         {
             if (!ActiveChallenges.Contains(challengerUserId))
                 ActiveChallenges.Add(challengerUserId);
+
+            notifications?.Post(new SimpleNotification
+            {
+                Text = $"{challengerUserId} has challenged you to a duel!",
+                Activated = () =>
+                {
+                    performer?.PerformFromScreen(s => s.Push(new ScreenIntro()));
+                    return true;
+                }
+            });
         });
 
         private void onChallengeCancelled(int challengerUserId) => Scheduler.Add(() =>
