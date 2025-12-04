@@ -15,7 +15,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
         {
             base.SetUpSteps();
 
-            RevealableRankedPlayCardItem[] items = Enumerable.Range(0, 5).Select(id => new RevealableRankedPlayCardItem(new RankedPlayCardItem())
+            RevealedRankedPlayCardItem[] items = Enumerable.Range(0, 5).Select(id => new RevealedRankedPlayCardItem(new RankedPlayCardItem())
             {
                 PlaylistItem =
                 {

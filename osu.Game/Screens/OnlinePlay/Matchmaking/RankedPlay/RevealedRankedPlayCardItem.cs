@@ -7,12 +7,12 @@ using osu.Game.Online.Rooms;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
-    public class RevealableRankedPlayCardItem
+    public class RevealedRankedPlayCardItem
     {
         public readonly Bindable<MultiplayerPlaylistItem?> PlaylistItem = new Bindable<MultiplayerPlaylistItem?>();
         public readonly RankedPlayCardItem Card;
 
-        public RevealableRankedPlayCardItem(RankedPlayCardItem card)
+        public RevealedRankedPlayCardItem(RankedPlayCardItem card)
         {
             Card = card;
         }

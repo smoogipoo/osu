@@ -13,7 +13,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public partial class RankedPlayScreen : OsuScreen
     {
-        private readonly Dictionary<RankedPlayCardItem, RevealableRankedPlayCardItem> cards = [];
+        private readonly Dictionary<RankedPlayCardItem, RevealedRankedPlayCardItem> cards = [];
         private readonly MultiplayerRoom room;
 
         public RankedPlayScreen(MultiplayerRoom room)
@@ -53,12 +53,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             }
         });
 
-        private RevealableRankedPlayCardItem getOrAddCard(RankedPlayCardItem item)
+        private RevealedRankedPlayCardItem getOrAddCard(RankedPlayCardItem item)
         {
             if (cards.TryGetValue(item, out var revealable))
                 return revealable;
 
-            return cards[item] = new RevealableRankedPlayCardItem(item);
+            return cards[item] = new RevealedRankedPlayCardItem(item);
         }
 
         protected override void Dispose(bool isDisposing)

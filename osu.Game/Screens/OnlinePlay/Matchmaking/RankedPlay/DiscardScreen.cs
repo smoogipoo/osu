@@ -23,7 +23,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
-    public partial class DiscardScreen(RevealableRankedPlayCardItem[] hand) : RankedPlaySubScreen
+    public partial class DiscardScreen(RevealedRankedPlayCardItem[] hand) : RankedPlaySubScreen
     {
         private Container<Card> cardFlow = null!;
         private OsuButton discardButton = null!;
@@ -199,7 +199,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             while (cards.Count < 5)
             {
-                var newCard = new Card(new RevealableRankedPlayCardItem(new RankedPlayCardItem()))
+                var newCard = new Card(new RevealedRankedPlayCardItem(new RankedPlayCardItem()))
                 {
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
@@ -278,11 +278,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public partial class Card : CompositeDrawable
         {
-            public readonly RevealableRankedPlayCardItem Item;
+            public readonly RevealedRankedPlayCardItem Item;
 
             private readonly Drawable content;
 
-            public Card(RevealableRankedPlayCardItem item)
+            public Card(RevealedRankedPlayCardItem item)
             {
                 Item = item;
                 Size = new Vector2(150, 250);
