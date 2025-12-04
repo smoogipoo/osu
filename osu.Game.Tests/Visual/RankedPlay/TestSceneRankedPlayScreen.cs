@@ -14,7 +14,6 @@ using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Tests.Visual.Multiplayer;
-using RankedPlayCard = osu.Game.Online.Multiplayer.MatchTypes.RankedPlay.RankedPlayCard;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {
@@ -34,21 +33,6 @@ namespace osu.Game.Tests.Visual.RankedPlay
             });
 
             WaitForJoined();
-
-            AddStep("set cards", () =>
-            {
-                MultiplayerClient.ChangeMatchLocalUserState(new RankedPlayUserState
-                {
-                    Hand = Enumerable.Range(0, 5).Select(id => new RankedPlayCard
-                    {
-                        Item = new MultiplayerPlaylistItem
-                        {
-                            ID = id,
-                            BeatmapID = id
-                        }
-                    }).ToArray()
-                }).WaitSafely();
-            });
 
             AddStep("join users", () =>
             {

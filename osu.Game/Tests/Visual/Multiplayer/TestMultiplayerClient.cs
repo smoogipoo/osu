@@ -127,7 +127,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     break;
 
                 case RankedPlayRoomState:
-                    user.MatchState = new RankedPlayUserState();
+                    user.MatchState = new RankedPlayUserState { Hand = Enumerable.Range(0, 5).Select(_ => new RankedPlayCardItem()).ToArray() };
                     ((IMultiplayerClient)this).MatchUserStateChanged(clone(user.UserID), clone(user.MatchState)).WaitSafely();
                     break;
             }
@@ -639,7 +639,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                     foreach (var user in ServerRoom.Users)
                     {
-                        user.MatchState = new RankedPlayUserState();
+                        user.MatchState = new RankedPlayUserState { Hand = Enumerable.Range(0, 5).Select(_ => new RankedPlayCardItem()).ToArray() };
                         await ((IMultiplayerClient)this).MatchUserStateChanged(clone(user.UserID), clone(user.MatchState)).ConfigureAwait(false);
                     }
 
@@ -799,17 +799,6 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             ServerRoom.MatchState = state;
             await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom.MatchState)).ConfigureAwait(false);
-        }
-
-        public Task ChangeMatchLocalUserState(MatchUserState state)
-            => ChangeMatchUserState(api.LocalUser.Value.OnlineID, state);
-
-        public async Task ChangeMatchUserState(int userId, MatchUserState state)
-        {
-            Debug.Assert(ServerRoom != null);
-
-            ServerRoom.Users.Single(u => u.UserID == userId).MatchState = state;
-            await ((IMultiplayerClient)this).MatchUserStateChanged(userId, clone(state)).ConfigureAwait(false);
         }
 
         public override Task DiscardCards(RankedPlayCardItem[] cards)
