@@ -20,6 +20,6 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// The cards in this user's hand.
         /// </summary>
         [Key(1)]
-        public RankedPlayCard[] Hand { get; set; } = [];
+        public RankedPlayCardItem[] Hand { get; set; } = [];
     }
 }

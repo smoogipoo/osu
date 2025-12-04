@@ -33,17 +33,5 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// </summary>
         [Key(3)]
         public int ActivePlayerIndex { get; set; }
-
-        /// <summary>
-        /// The deck of cards.
-        /// </summary>
-        [Key(4)]
-        public RankedPlayCard[] Deck { get; set; } = [];
-
-        /// <summary>
-        /// The card played by the active player.
-        /// </summary>
-        [Key(5)]
-        public RankedPlayCard? PlayedCard { get; set; }
     }
 }

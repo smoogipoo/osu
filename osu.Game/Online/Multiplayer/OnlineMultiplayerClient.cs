@@ -84,7 +84,10 @@ namespace osu.Game.Online.Multiplayer
                     connection.On<int, long>(nameof(IMatchmakingClient.MatchmakingItemSelected), ((IMatchmakingClient)this).MatchmakingItemSelected);
                     connection.On<int, long>(nameof(IMatchmakingClient.MatchmakingItemDeselected), ((IMatchmakingClient)this).MatchmakingItemDeselected);
 
-                    connection.On<RankedPlayCard, MultiplayerPlaylistItem>(nameof(IRankedPlayClient.RankedPlayCardRevealed), ((IRankedPlayClient)this).RankedPlayCardRevealed);
+                    connection.On<int, RankedPlayCardItem>(nameof(IRankedPlayClient.RankedPlayCardAdded), ((IRankedPlayClient)this).RankedPlayCardAdded);
+                    connection.On<int, RankedPlayCardItem>(nameof(IRankedPlayClient.RankedPlayCardRemoved), ((IRankedPlayClient)this).RankedPlayCardRemoved);
+                    connection.On<RankedPlayCardItem, MultiplayerPlaylistItem>(nameof(IRankedPlayClient.RankedPlayCardRevealed), ((IRankedPlayClient)this).RankedPlayCardRevealed);
+                    connection.On<RankedPlayCardItem>(nameof(IRankedPlayClient.RankedPlayCardPlayed), ((IRankedPlayClient)this).RankedPlayCardPlayed);
 
                     connection.On(nameof(IStatefulUserHubClient.DisconnectRequested), ((IMultiplayerClient)this).DisconnectRequested);
                 };
@@ -337,24 +340,24 @@ namespace osu.Game.Online.Multiplayer
             return connector.Disconnect();
         }
 
-        public override Task<RankedPlayDiscardResponse> DiscardCards(RankedPlayCard[] cards)
-        {
-            if (!IsConnected.Value)
-                return Task.FromResult(new RankedPlayDiscardResponse());
-
-            Debug.Assert(connection != null);
-
-            return connection.InvokeAsync<RankedPlayDiscardResponse>(nameof(IRankedPlayServer.DiscardCards), cards);
-        }
-
-        public override Task PlayCard(RankedPlayCard card)
+        public override Task DiscardCards(RankedPlayCardItem[] cards)
         {
             if (!IsConnected.Value)
                 return Task.CompletedTask;
 
             Debug.Assert(connection != null);
 
-            return connection.InvokeAsync<RankedPlayDiscardResponse>(nameof(IRankedPlayServer.PlayCard), card);
+            return connection.InvokeAsync(nameof(IRankedPlayServer.DiscardCards), cards);
+        }
+
+        public override Task PlayCard(RankedPlayCardItem card)
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+
+            return connection.InvokeAsync(nameof(IRankedPlayServer.PlayCard), card);
         }
 
         public override Task<MatchmakingPool[]> GetMatchmakingPools(MatchmakingPoolType type)

@@ -812,12 +812,12 @@ namespace osu.Game.Tests.Visual.Multiplayer
             await ((IMultiplayerClient)this).MatchUserStateChanged(userId, clone(state)).ConfigureAwait(false);
         }
 
-        public override Task<RankedPlayDiscardResponse> DiscardCards(RankedPlayCard[] cards)
+        public override Task DiscardCards(RankedPlayCardItem[] cards)
         {
-            return Task.FromResult(new RankedPlayDiscardResponse());
+            return Task.CompletedTask;
         }
 
-        public override Task PlayCard(RankedPlayCard card)
+        public override Task PlayCard(RankedPlayCardItem card)
         {
             return Task.CompletedTask;
         }
@@ -920,7 +920,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             await StartCountdown(new RankedPlayStageCountdown
             {
                 Stage = stage,
-                TimeRemaining = TimeSpan.FromSeconds(stage == RankedPlayStage.CardSelect ? 30 : 10)
+                TimeRemaining = TimeSpan.FromSeconds(stage == RankedPlayStage.CardPlay ? 30 : 10)
             }).ConfigureAwait(false);
         }
 

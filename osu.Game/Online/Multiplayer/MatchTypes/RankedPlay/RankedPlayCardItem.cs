@@ -4,14 +4,12 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using MessagePack;
-using osu.Game.Online.Matchmaking;
-using osu.Game.Online.Rooms;
 
 namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
 {
     [Serializable]
     [MessagePackObject]
-    public class RankedPlayCard : IEquatable<RankedPlayCard>
+    public class RankedPlayCardItem : IEquatable<RankedPlayCardItem>
     {
         /// <summary>
         /// A unique identifier for this card.
@@ -19,20 +17,11 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         [Key(0)]
         public Guid ID { get; set; } = Guid.NewGuid();
 
-        /// <summary>
-        /// The playlist item which this card corresponds to.
-        /// </summary>
-        /// <remarks>
-        /// Not serialised - revealed to clients via <see cref="IMatchmakingClient.RankedPlayCardRevealed"/>.
-        /// </remarks>
-        [IgnoreMember]
-        public MultiplayerPlaylistItem? Item { get; set; }
-
-        public bool Equals(RankedPlayCard? other)
+        public bool Equals(RankedPlayCardItem? other)
             => other != null && ID.Equals(other.ID);
 
         public override bool Equals(object? obj)
-            => obj is RankedPlayCard other && Equals(other);
+            => obj is RankedPlayCardItem other && Equals(other);
 
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()

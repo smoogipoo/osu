@@ -137,7 +137,10 @@ namespace osu.Game.Online.Multiplayer
         public event Action<int, long>? MatchmakingItemDeselected;
         public event Action<MatchRoomState>? MatchRoomStateChanged;
 
-        public event Action<RankedPlayCard>? RankedPlayCardRevealed;
+        public event Action<int, RankedPlayCardItem>? RankedPlayCardAdded;
+        public event Action<int, RankedPlayCardItem>? RankedPlayCardRemoved;
+        public event Action<RankedPlayCardItem, MultiplayerPlaylistItem>? RankedPlayCardRevealed;
+        public event Action<RankedPlayCardItem>? RankedPlayCardPlayed;
 
         public event Action<int>? UserVotedToSkipIntro;
         public event Action? VoteToSkipIntroPassed;
@@ -1145,41 +1148,48 @@ namespace osu.Game.Online.Multiplayer
             return Task.CompletedTask;
         }
 
-        public abstract Task<RankedPlayDiscardResponse> DiscardCards(RankedPlayCard[] cards);
+        public abstract Task DiscardCards(RankedPlayCardItem[] cards);
 
-        public abstract Task PlayCard(RankedPlayCard card);
+        public abstract Task PlayCard(RankedPlayCardItem card);
 
-        Task IRankedPlayClient.RankedPlayCardRevealed(RankedPlayCard card, MultiplayerPlaylistItem item)
+        Task IRankedPlayClient.RankedPlayCardAdded(int userId, RankedPlayCardItem card)
         {
             Scheduler.Add(() =>
             {
-                card.Item = item;
+                RankedPlayCardAdded?.Invoke(userId, card);
+                RoomUpdated?.Invoke();
+            });
 
-                Debug.Assert(Room != null);
+            return Task.CompletedTask;
+        }
 
-                foreach (var user in Room.Users)
-                {
-                    RankedPlayUserState userState = (RankedPlayUserState)user.MatchState!;
+        Task IRankedPlayClient.RankedPlayCardRemoved(int userId, RankedPlayCardItem card)
+        {
+            Scheduler.Add(() =>
+            {
+                RankedPlayCardRemoved?.Invoke(userId, card);
+                RoomUpdated?.Invoke();
+            });
 
-                    foreach (var userCard in userState.Hand)
-                    {
-                        if (userCard.Equals(card))
-                            userCard.Item = item;
-                    }
-                }
+            return Task.CompletedTask;
+        }
 
-                RankedPlayRoomState roomState = (RankedPlayRoomState)Room.MatchState!;
+        Task IRankedPlayClient.RankedPlayCardRevealed(RankedPlayCardItem card, MultiplayerPlaylistItem item)
+        {
+            Scheduler.Add(() =>
+            {
+                RankedPlayCardRevealed?.Invoke(card, item);
+                RoomUpdated?.Invoke();
+            });
 
-                foreach (var deckCard in roomState.Deck)
-                {
-                    if (deckCard.Equals(card))
-                        deckCard.Item = item;
-                }
+            return Task.CompletedTask;
+        }
 
-                if (roomState.PlayedCard?.Equals(card) == true)
-                    roomState.PlayedCard.Item = item;
-
-                RankedPlayCardRevealed?.Invoke(card);
+        Task IRankedPlayClient.RankedPlayCardPlayed(RankedPlayCardItem card)
+        {
+            Scheduler.Add(() =>
+            {
+                RankedPlayCardPlayed?.Invoke(card);
                 RoomUpdated?.Invoke();
             });
 

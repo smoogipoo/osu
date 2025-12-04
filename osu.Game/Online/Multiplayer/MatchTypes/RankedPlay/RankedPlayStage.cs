@@ -28,12 +28,12 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// <summary>
         /// The active user is selecting a card to play.
         /// </summary>
-        CardSelect,
+        CardPlay,
 
         /// <summary>
         /// The active user has made a selection, both players should now start downloading it.
         /// </summary>
-        FinishSelection,
+        FinishCardPlay,
 
         /// <summary>
         /// Period of time before gameplay starts.

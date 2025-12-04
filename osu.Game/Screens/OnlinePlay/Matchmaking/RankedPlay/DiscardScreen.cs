@@ -17,12 +17,13 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
+using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
-    public partial class DiscardScreen(Online.Multiplayer.MatchTypes.RankedPlay.RankedPlayCard[] hand) : RankedPlaySubScreen
+    public partial class DiscardScreen(RevealableRankedPlayCardItem[] hand) : RankedPlaySubScreen
     {
         private Container<Card> cardFlow = null!;
         private OsuButton discardButton = null!;
@@ -198,7 +199,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             while (cards.Count < 5)
             {
-                var newCard = new Card(new Online.Multiplayer.MatchTypes.RankedPlay.RankedPlayCard())
+                var newCard = new Card(new RevealableRankedPlayCardItem(new RankedPlayCardItem()))
                 {
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
@@ -277,11 +278,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public partial class Card : CompositeDrawable
         {
-            public readonly Online.Multiplayer.MatchTypes.RankedPlay.RankedPlayCard Item;
+            public readonly RevealableRankedPlayCardItem Item;
 
             private readonly Drawable content;
 
-            public Card(Online.Multiplayer.MatchTypes.RankedPlay.RankedPlayCard item)
+            public Card(RevealableRankedPlayCardItem item)
             {
                 Item = item;
                 Size = new Vector2(150, 250);
@@ -318,13 +319,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Text = $"Card Id {item.ID}",
+                                    Text = $"Card Id {item.Card.ID}",
                                 },
                                 new OsuSpriteText
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Text = $"Beatmap Id {item.Item?.BeatmapID}",
+                                    Text = $"Beatmap Id {item.PlaylistItem.Value?.ID}",
                                 }
                             ]
                         }
