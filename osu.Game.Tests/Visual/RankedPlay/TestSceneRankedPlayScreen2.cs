@@ -94,14 +94,36 @@ namespace osu.Game.Tests.Visual.RankedPlay
 
             AddStep("click discard button", () =>
             {
-                InputManager.MoveMouseTo(screen.DiscardButton);
+                InputManager.MoveMouseTo(screen.ActionButton);
+                InputManager.Click(MouseButton.Left);
+            });
+        }
+
+        [Test]
+        public void TestPlayStage()
+        {
+            AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay).WaitSafely());
+
+            for (int i = 0; i < 3; i++)
+            {
+                int i2 = i;
+                AddStep($"click card {i2}", () =>
+                {
+                    InputManager.MoveMouseTo(this.ChildrenOfType<Card>().ElementAt(i2));
+                    InputManager.Click(MouseButton.Left);
+                });
+            }
+
+            AddStep("click play button", () =>
+            {
+                InputManager.MoveMouseTo(screen.ActionButton);
                 InputManager.Click(MouseButton.Left);
             });
         }
 
         public partial class RankedPlayScreen2 : OsuScreen
         {
-            public ShearedButton DiscardButton { get; }
+            public ShearedButton ActionButton { get; }
 
             [Resolved]
             private MultiplayerClient client { get; set; } = null!;
@@ -116,14 +138,13 @@ namespace osu.Game.Tests.Visual.RankedPlay
             {
                 InternalChildren = new Drawable[]
                 {
-                    DiscardButton = new ShearedButton(width: 150)
+                    ActionButton = new ShearedButton(width: 150)
                     {
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
-                        Text = "Discard",
                         Y = -100,
                         Alpha = 0,
-                        Action = onDiscardClicked,
+                        Action = onActionClicked,
                         Enabled = { Value = false }
                     },
                     stageText = new OsuSpriteText
@@ -169,7 +190,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
                 if (state is not RankedPlayRoomState rankedPlayState)
                     return;
 
-                DiscardButton.Hide();
+                ActionButton.Hide();
                 localUserHand.AllowSelection.Value = false;
 
                 switch (rankedPlayState.Stage)
@@ -177,11 +198,23 @@ namespace osu.Game.Tests.Visual.RankedPlay
                     case RankedPlayStage.CardDiscard:
                         stageText.Text = "Discard Phase";
 
-                        DiscardButton.Show();
-                        DiscardButton.Enabled.Value = true;
+                        ActionButton.Show();
+                        ActionButton.Text = "Discard";
+                        ActionButton.Enabled.Value = true;
 
                         localUserHand.AllowSelection.Value = true;
                         localUserHand.SelectionLength = int.MaxValue;
+                        break;
+
+                    case RankedPlayStage.CardPlay:
+                        stageText.Text = "Play Phase";
+
+                        ActionButton.Show();
+                        ActionButton.Text = "Play";
+                        ActionButton.Enabled.Value = true;
+
+                        localUserHand.AllowSelection.Value = true;
+                        localUserHand.SelectionLength = 1;
                         break;
                 }
             }
@@ -214,16 +247,36 @@ namespace osu.Game.Tests.Visual.RankedPlay
                 getRevealedCard(card).PlaylistItem.Value = item;
             }
 
-            private void onDiscardClicked()
+            private void onActionClicked()
             {
-                var selection = localUserHand.CurrentSelection.ToArray();
+                RankedPlayCardItem[] selection = localUserHand.CurrentSelection.ToArray();
 
-                DiscardButton.Hide();
-                DiscardButton.Enabled.Value = false;
+                bool finished = false;
 
-                localUserHand.AllowSelection.Value = false;
+                switch (((RankedPlayRoomState)client.Room!.MatchState!).Stage)
+                {
+                    case RankedPlayStage.CardDiscard:
+                        client.DiscardCards(selection).FireAndForget();
+                        finished = true;
+                        break;
 
-                client.DiscardCards(selection).FireAndForget();
+                    case RankedPlayStage.CardPlay:
+                        if (selection.Length > 0)
+                        {
+                            client.PlayCard(selection.First()).FireAndForget();
+                            finished = true;
+                        }
+
+                        break;
+                }
+
+                if (finished)
+                {
+                    ActionButton.Hide();
+                    ActionButton.Enabled.Value = false;
+
+                    localUserHand.AllowSelection.Value = false;
+                }
             }
 
             private RevealedRankedPlayCardItem getRevealedCard(RankedPlayCardItem card)
@@ -263,7 +316,14 @@ namespace osu.Game.Tests.Visual.RankedPlay
                     AllowSelection = { BindTarget = AllowSelection },
                 };
 
-                card.Selected.BindValueChanged(onCardSelected, true);
+                card.Selected.BindValueChanged(e =>
+                {
+                    if (!e.NewValue)
+                        return;
+
+                    while (CurrentSelection.Count() > SelectionLength)
+                        cards.First(c => c != card && c.Selected.Value).Selected.Value = false;
+                }, true);
 
                 cards.Add(card);
             }
@@ -271,15 +331,6 @@ namespace osu.Game.Tests.Visual.RankedPlay
             public void RemoveCard(RevealedRankedPlayCardItem item)
             {
                 cards.RemoveAll(c => c.Item.Card.Equals(item.Card), true);
-            }
-
-            private void onCardSelected(ValueChangedEvent<bool> e)
-            {
-                if (SelectionLength == 0)
-                    return;
-
-                while (CurrentSelection.Count() >= SelectionLength)
-                    cards.First(c => c.Selected.Value).Selected.Value = false;
             }
         }
 
