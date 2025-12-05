@@ -90,7 +90,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             switch (rankedPlayState.Stage)
             {
                 case RankedPlayStage.CardDiscard:
-                    stageText.Text = "Discard Phase";
+                    stageText.Text = "discard beatmaps from your hand";
 
                     ActionButton.Show();
                     ActionButton.Text = "Discard";
@@ -101,14 +101,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     break;
 
                 case RankedPlayStage.CardPlay:
-                    stageText.Text = "Play Phase";
+                    bool isActivePlayer = client.Room!.Users[rankedPlayState.ActivePlayerIndex].Equals(client.LocalUser);
 
-                    ActionButton.Show();
-                    ActionButton.Text = "Play";
-                    ActionButton.Enabled.Value = true;
+                    if (isActivePlayer)
+                    {
+                        stageText.Text = "play a card from your hand!";
 
-                    localUserHand.AllowSelection.Value = true;
-                    localUserHand.SelectionLength = 1;
+                        ActionButton.Show();
+                        ActionButton.Text = "Play";
+                        ActionButton.Enabled.Value = isActivePlayer;
+
+                        localUserHand.AllowSelection.Value = true;
+                        localUserHand.SelectionLength = 1;
+                    }
+                    else
+                        stageText.Text = "waiting for the other player to play a card...";
+
                     break;
             }
         }
