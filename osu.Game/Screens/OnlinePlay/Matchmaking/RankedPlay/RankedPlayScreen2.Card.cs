@@ -20,14 +20,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             public readonly Bindable<bool> AllowSelection = new Bindable<bool>();
             public readonly BindableBool Selected = new BindableBool();
 
-            public readonly RevealableCardItem Item;
+            public readonly RankedPlayCardWithPlaylistItem Item;
 
             private readonly Bindable<MultiplayerPlaylistItem?> playlistItem = new Bindable<MultiplayerPlaylistItem?>();
 
             private readonly Box background;
             private readonly OsuSpriteText beatmapIdText;
 
-            public Card(RevealableCardItem item)
+            public Card(RankedPlayCardWithPlaylistItem item)
             {
                 Item = item;
 
@@ -53,7 +53,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Text = $"ID: {item.Item.ID.GetHashCode()}"
+                                Text = $"ID: {item.Card.ID.GetHashCode()}"
                             },
                             beatmapIdText = new OsuSpriteText
                             {

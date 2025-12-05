@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
@@ -71,7 +70,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private MusicController music { get; set; } = null!;
 
         private readonly MultiplayerRoom room;
-        private readonly Dictionary<RankedPlayCardItem, RevealableCardItem> revealedCards = [];
 
         private readonly Container<Card> playedCardContainer;
         private readonly OsuSpriteText stageText;
@@ -138,13 +136,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             client.RankedPlayCardAdded += onRankedPlayCardAdded;
             client.RankedPlayCardRemoved += onRankedPlayCardRemoved;
             client.RankedPlayCardPlayed += onRankedPlayCardPlayed;
-            client.RankedPlayCardRevealed += onRankedPlayCardRevealed;
 
             beatmapAvailabilityTracker.Availability.BindValueChanged(onBeatmapAvailabilityChanged, true);
 
             var localUserState = (RankedPlayUserState)client.LocalUser!.MatchState!;
             foreach (var card in localUserState.Hand)
-                localUserHand.AddCard(getRevealedCard(card));
+                localUserHand.AddCard(client.GetCardWithPlaylistItem(card));
         }
 
         private void onRoomUpdated()
@@ -227,35 +224,30 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             }
         }
 
-        private void onRankedPlayCardAdded(int userId, RankedPlayCardItem card)
+        private void onRankedPlayCardAdded(int userId, RankedPlayCardWithPlaylistItem card)
         {
             if (userId == client.LocalUser!.UserID)
-                localUserHand.AddCard(getRevealedCard(card));
+                localUserHand.AddCard(card);
         }
 
-        private void onRankedPlayCardRemoved(int userId, RankedPlayCardItem card)
+        private void onRankedPlayCardRemoved(int userId, RankedPlayCardWithPlaylistItem card)
         {
-            if (playedCardContainer.FirstOrDefault()?.Item.Item.Equals(card) == true)
+            if (playedCardContainer.FirstOrDefault()?.Item.Equals(card) == true)
                 playedCardContainer.Clear();
 
             if (userId == client.LocalUser!.UserID)
-                localUserHand.RemoveCard(getRevealedCard(card));
+                localUserHand.RemoveCard(card);
         }
 
-        private void onRankedPlayCardPlayed(RankedPlayCardItem card)
+        private void onRankedPlayCardPlayed(RankedPlayCardWithPlaylistItem card)
         {
-            localUserHand.RemoveCard(getRevealedCard(card));
+            localUserHand.RemoveCard(card);
 
-            playedCardContainer.Child = new Card(getRevealedCard(card))
+            playedCardContainer.Child = new Card(card)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
             };
-        }
-
-        private void onRankedPlayCardRevealed(RankedPlayCardItem card, MultiplayerPlaylistItem item)
-        {
-            getRevealedCard(card).PlaylistItem.Value = item;
         }
 
         private void onBeatmapAvailabilityChanged(ValueChangedEvent<BeatmapAvailability> e) => Scheduler.Add(() =>
@@ -304,14 +296,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                 localUserHand.AllowSelection.Value = false;
             }
-        }
-
-        private RevealableCardItem getRevealedCard(RankedPlayCardItem card)
-        {
-            if (revealedCards.TryGetValue(card, out var existing))
-                return existing;
-
-            return revealedCards[card] = new RevealableCardItem(card);
         }
 
         private void updateGameplayState()

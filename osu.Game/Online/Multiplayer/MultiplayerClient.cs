@@ -25,6 +25,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Utils;
 
 namespace osu.Game.Online.Multiplayer
@@ -137,10 +138,9 @@ namespace osu.Game.Online.Multiplayer
         public event Action<int, long>? MatchmakingItemDeselected;
         public event Action<MatchRoomState>? MatchRoomStateChanged;
 
-        public event Action<int, RankedPlayCardItem>? RankedPlayCardAdded;
-        public event Action<int, RankedPlayCardItem>? RankedPlayCardRemoved;
-        public event Action<RankedPlayCardItem, MultiplayerPlaylistItem>? RankedPlayCardRevealed;
-        public event Action<RankedPlayCardItem>? RankedPlayCardPlayed;
+        public event Action<int, RankedPlayCardWithPlaylistItem>? RankedPlayCardAdded;
+        public event Action<int, RankedPlayCardWithPlaylistItem>? RankedPlayCardRemoved;
+        public event Action<RankedPlayCardWithPlaylistItem>? RankedPlayCardPlayed;
 
         public event Action<int>? UserVotedToSkipIntro;
         public event Action? VoteToSkipIntroPassed;
@@ -208,6 +208,7 @@ namespace osu.Game.Online.Multiplayer
         protected Room? APIRoom { get; private set; }
 
         private readonly Queue<Action> pendingRequests = new Queue<Action>();
+        private readonly Dictionary<RankedPlayCardItem, RankedPlayCardWithPlaylistItem> cardsWithPlaylistItems = [];
 
         [BackgroundDependencyLoader]
         private void load()
@@ -345,6 +346,7 @@ namespace osu.Game.Online.Multiplayer
                 APIRoom = null;
                 Room = null;
                 PlayingUserIds.Clear();
+                cardsWithPlaylistItems.Clear();
 
                 RoomUpdated?.Invoke();
             });
@@ -1156,7 +1158,7 @@ namespace osu.Game.Online.Multiplayer
         {
             Scheduler.Add(() =>
             {
-                RankedPlayCardAdded?.Invoke(userId, card);
+                RankedPlayCardAdded?.Invoke(userId, GetCardWithPlaylistItem(card));
                 RoomUpdated?.Invoke();
             });
 
@@ -1167,7 +1169,7 @@ namespace osu.Game.Online.Multiplayer
         {
             Scheduler.Add(() =>
             {
-                RankedPlayCardRemoved?.Invoke(userId, card);
+                RankedPlayCardRemoved?.Invoke(userId, GetCardWithPlaylistItem(card));
                 RoomUpdated?.Invoke();
             });
 
@@ -1178,7 +1180,7 @@ namespace osu.Game.Online.Multiplayer
         {
             Scheduler.Add(() =>
             {
-                RankedPlayCardRevealed?.Invoke(card, item);
+                GetCardWithPlaylistItem(card).PlaylistItem.Value = item;
                 RoomUpdated?.Invoke();
             });
 
@@ -1189,11 +1191,19 @@ namespace osu.Game.Online.Multiplayer
         {
             Scheduler.Add(() =>
             {
-                RankedPlayCardPlayed?.Invoke(card);
+                RankedPlayCardPlayed?.Invoke(GetCardWithPlaylistItem(card));
                 RoomUpdated?.Invoke();
             });
 
             return Task.CompletedTask;
+        }
+
+        public RankedPlayCardWithPlaylistItem GetCardWithPlaylistItem(RankedPlayCardItem card)
+        {
+            if (cardsWithPlaylistItems.TryGetValue(card, out var existing))
+                return existing;
+
+            return cardsWithPlaylistItems[card] = new RankedPlayCardWithPlaylistItem(card);
         }
 
         public abstract Task<MatchmakingPool[]> GetMatchmakingPools(MatchmakingPoolType type);

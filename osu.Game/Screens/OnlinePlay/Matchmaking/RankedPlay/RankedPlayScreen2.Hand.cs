@@ -30,9 +30,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             }
 
             public IEnumerable<RankedPlayCardItem> CurrentSelection
-                => cards.Where(c => c.Selected.Value).Select(c => c.Item.Item);
+                => cards.Where(c => c.Selected.Value).Select(c => c.Item.Card);
 
-            public void AddCard(RevealableCardItem item)
+            public void AddCard(RankedPlayCardWithPlaylistItem item)
             {
                 var card = new Card(item)
                 {
@@ -53,9 +53,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 cards.Add(card);
             }
 
-            public void RemoveCard(RevealableCardItem item)
+            public void RemoveCard(RankedPlayCardWithPlaylistItem item)
             {
-                cards.RemoveAll(c => c.Item.Item.Equals(item.Item), true);
+                cards.RemoveAll(c => c.Item.Card.Equals(item.Card), true);
             }
         }
     }
