@@ -801,14 +801,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
             await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom.MatchState)).ConfigureAwait(false);
         }
 
-        public override Task DiscardCards(RankedPlayCardItem[] cards)
+        public override async Task DiscardCards(RankedPlayCardItem[] cards)
         {
-            return Task.CompletedTask;
+            foreach (var card in cards)
+                await RankedPlayRemoveCard(card);
+
+            foreach (var _ in cards)
+                await RankedPlayAddCard(new RankedPlayCardItem());
         }
 
-        public override Task PlayCard(RankedPlayCardItem card)
+        public override async Task PlayCard(RankedPlayCardItem card)
         {
-            return Task.CompletedTask;
+            await ((IRankedPlayClient)this).RankedPlayCardPlayed(clone(card)).ConfigureAwait(false);
         }
 
         public override Task<MatchmakingPool[]> GetMatchmakingPools(MatchmakingPoolType type)
@@ -892,6 +896,48 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 Stage = stage,
                 TimeRemaining = TimeSpan.FromSeconds(stage == MatchmakingStage.UserBeatmapSelect ? 30 : 10)
             }).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Adds a card for the local user.
+        /// </summary>
+        public Task RankedPlayAddCard(RankedPlayCardItem card)
+            => RankedPlayAddUserCard(api.LocalUser.Value.OnlineID, card);
+
+        /// <summary>
+        /// Adds a card for the given user.
+        /// </summary>
+        public async Task RankedPlayAddUserCard(int userId, RankedPlayCardItem card)
+        {
+            var userState = (RankedPlayUserState)ServerRoom!.Users.Single(u => u.UserID == userId).MatchState!;
+            userState.Hand = userState.Hand.Concat([card]).ToArray();
+            await ((IMultiplayerClient)this).MatchUserStateChanged(userId, clone(userState)).ConfigureAwait(false);
+            await ((IRankedPlayClient)this).RankedPlayCardAdded(userId, clone(card));
+        }
+
+        /// <summary>
+        /// Removes a card from the local user.
+        /// </summary>
+        public Task RankedPlayRemoveCard(RankedPlayCardItem card)
+            => RankedPlayRemoveUserCard(api.LocalUser.Value.OnlineID, card);
+
+        /// <summary>
+        /// Removes a card for the given user.
+        /// </summary>
+        public async Task RankedPlayRemoveUserCard(int userId, RankedPlayCardItem card)
+        {
+            var userState = (RankedPlayUserState)ServerRoom!.Users.Single(u => u.UserID == userId).MatchState!;
+            userState.Hand = userState.Hand.Except([card]).ToArray();
+            await ((IMultiplayerClient)this).MatchUserStateChanged(userId, clone(userState)).ConfigureAwait(false);
+            await ((IRankedPlayClient)this).RankedPlayCardRemoved(userId, clone(card));
+        }
+
+        /// <summary>
+        /// Reveals a card.
+        /// </summary>
+        public async Task RankedPlayRevealCard(RankedPlayCardItem card, MultiplayerPlaylistItem item)
+        {
+            await ((IRankedPlayClient)this).RankedPlayCardRevealed(clone(card), clone(item));
         }
 
         public async Task RankedPlayChangeStage(RankedPlayStage stage, Action<RankedPlayRoomState>? prepare = null)
