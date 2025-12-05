@@ -25,7 +25,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("join room", () => JoinRoom(CreateDefaultRoom(MatchType.RankedPlay)));
             WaitForJoined();
 
-            AddStep("load screen", () => LoadScreen(screen = new RankedPlayScreen2()));
+            AddStep("load screen", () => LoadScreen(screen = new RankedPlayScreen2(MultiplayerClient.ClientRoom!)));
         }
 
         [Test]

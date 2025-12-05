@@ -32,6 +32,7 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
 using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
@@ -445,7 +446,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     };
 
                     using (BeginDelayedSequence(2000))
-                        Schedule(() => this.Push(new ScreenMatchmaking(client.Room!)));
+                    {
+                        Schedule(() =>
+                        {
+                            switch (poolType)
+                            {
+                                case MatchmakingPoolType.QuickPlay:
+                                    this.Push(new ScreenMatchmaking(client.Room!));
+                                    break;
+
+                                case MatchmakingPoolType.RankedPlay:
+                                    this.Push(new RankedPlayScreen2(client.Room!));
+                                    break;
+                            }
+                        });
+                    }
+
                     break;
 
                 default:
