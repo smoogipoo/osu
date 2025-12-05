@@ -804,10 +804,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public override async Task DiscardCards(RankedPlayCardItem[] cards)
         {
             foreach (var card in cards)
-                await RankedPlayRemoveCard(card);
+                await RankedPlayRemoveCard(card).ConfigureAwait(false);
 
             foreach (var _ in cards)
-                await RankedPlayAddCard(new RankedPlayCardItem());
+                await RankedPlayAddCard(new RankedPlayCardItem()).ConfigureAwait(false);
         }
 
         public override async Task PlayCard(RankedPlayCardItem card)
@@ -912,7 +912,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             var userState = (RankedPlayUserState)ServerRoom!.Users.Single(u => u.UserID == userId).MatchState!;
             userState.Hand = userState.Hand.Concat([card]).ToArray();
             await ((IMultiplayerClient)this).MatchUserStateChanged(userId, clone(userState)).ConfigureAwait(false);
-            await ((IRankedPlayClient)this).RankedPlayCardAdded(userId, clone(card));
+            await ((IRankedPlayClient)this).RankedPlayCardAdded(userId, clone(card)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -929,7 +929,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             var userState = (RankedPlayUserState)ServerRoom!.Users.Single(u => u.UserID == userId).MatchState!;
             userState.Hand = userState.Hand.Except([card]).ToArray();
             await ((IMultiplayerClient)this).MatchUserStateChanged(userId, clone(userState)).ConfigureAwait(false);
-            await ((IRankedPlayClient)this).RankedPlayCardRemoved(userId, clone(card));
+            await ((IRankedPlayClient)this).RankedPlayCardRemoved(userId, clone(card)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -937,7 +937,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         /// </summary>
         public async Task RankedPlayRevealCard(RankedPlayCardItem card, MultiplayerPlaylistItem item)
         {
-            await ((IRankedPlayClient)this).RankedPlayCardRevealed(clone(card), clone(item));
+            await ((IRankedPlayClient)this).RankedPlayCardRevealed(clone(card), clone(item)).ConfigureAwait(false);
         }
 
         public async Task RankedPlayChangeStage(RankedPlayStage stage, Action<RankedPlayRoomState>? prepare = null)
