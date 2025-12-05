@@ -40,7 +40,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
                 {
                     User = new APIUser
                     {
-                        Username = "Other User"
+                        Username = $"Other User"
                     }
                 });
             });

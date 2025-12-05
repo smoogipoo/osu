@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
-using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Tests.Visual.Matchmaking;
@@ -15,17 +14,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
         {
             base.SetUpSteps();
 
-            RevealedRankedPlayCardItem[] items = Enumerable.Range(0, 5).Select(id => new RevealedRankedPlayCardItem(new RankedPlayCardItem())
-            {
-                PlaylistItem =
-                {
-                    Value = new MultiplayerPlaylistItem
-                    {
-                        ID = id,
-                        BeatmapID = id
-                    }
-                }
-            }).ToArray();
+            MultiplayerPlaylistItem[] items = Enumerable.Range(0, 5).Select(id => new MultiplayerPlaylistItem { ID = id, BeatmapID = id }).ToArray();
 
             AddStep("add screen", () => Child = new DiscardScreen(items));
         }

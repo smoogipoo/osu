@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -13,7 +12,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public partial class RankedPlayScreen : OsuScreen
     {
-        private readonly Dictionary<RankedPlayCardItem, RevealedRankedPlayCardItem> cards = [];
         private readonly MultiplayerRoom room;
 
         public RankedPlayScreen(MultiplayerRoom room)
@@ -29,15 +27,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             base.LoadComplete();
 
             client.MatchRoomStateChanged += onMatchRoomStateChanged;
-            client.RankedPlayCardRevealed += onRankedPlayCardRevealed;
-
             onMatchRoomStateChanged(client.Room!.MatchState);
         }
-
-        private void onRankedPlayCardRevealed(RankedPlayCardItem card, MultiplayerPlaylistItem item) => Scheduler.Add(() =>
-        {
-            getOrAddCard(card).PlaylistItem.Value = item;
-        });
 
         private void onMatchRoomStateChanged(MatchRoomState? state) => Scheduler.Add(() =>
         {
@@ -47,19 +38,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             switch (rankedPlayState.Stage)
             {
                 case RankedPlayStage.CardDiscard:
-                    RankedPlayUserState userState = (RankedPlayUserState)client.LocalUser!.MatchState!;
-                    InternalChild = new DiscardScreen(userState.Hand.Select(getOrAddCard).ToArray());
+                    InternalChild = new DiscardScreen(Enumerable.Range(0, 5).Select(i => new MultiplayerPlaylistItem
+                    {
+                        ID = i,
+                        BeatmapID = i
+                    }).ToArray());
                     break;
             }
         });
-
-        private RevealedRankedPlayCardItem getOrAddCard(RankedPlayCardItem item)
-        {
-            if (cards.TryGetValue(item, out var revealable))
-                return revealable;
-
-            return cards[item] = new RevealedRankedPlayCardItem(item);
-        }
 
         protected override void Dispose(bool isDisposing)
         {
