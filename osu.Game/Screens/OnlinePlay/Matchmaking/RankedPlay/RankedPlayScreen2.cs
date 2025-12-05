@@ -38,7 +38,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     Origin = Anchor.BottomRight,
                     Y = -100,
                     Alpha = 0,
-                    Action = onActionClicked,
+                    Action = onActionButtonClicked,
                     Enabled = { Value = false }
                 },
                 stageText = new OsuSpriteText
@@ -141,7 +141,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             getRevealedCard(card).PlaylistItem.Value = item;
         }
 
-        private void onActionClicked()
+        private void onActionButtonClicked()
         {
             RankedPlayCardItem[] selection = localUserHand.CurrentSelection.ToArray();
 
