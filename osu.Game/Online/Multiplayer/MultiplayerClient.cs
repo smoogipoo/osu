@@ -1156,7 +1156,7 @@ namespace osu.Game.Online.Multiplayer
 
         Task IRankedPlayClient.RankedPlayCardAdded(int userId, RankedPlayCardItem card)
         {
-            Scheduler.Add(() =>
+            handleRoomRequest(() =>
             {
                 RankedPlayCardAdded?.Invoke(userId, GetCardWithPlaylistItem(card));
                 RoomUpdated?.Invoke();
@@ -1167,7 +1167,7 @@ namespace osu.Game.Online.Multiplayer
 
         Task IRankedPlayClient.RankedPlayCardRemoved(int userId, RankedPlayCardItem card)
         {
-            Scheduler.Add(() =>
+            handleRoomRequest(() =>
             {
                 RankedPlayCardRemoved?.Invoke(userId, GetCardWithPlaylistItem(card));
                 RoomUpdated?.Invoke();
@@ -1178,7 +1178,7 @@ namespace osu.Game.Online.Multiplayer
 
         Task IRankedPlayClient.RankedPlayCardRevealed(RankedPlayCardItem card, MultiplayerPlaylistItem item)
         {
-            Scheduler.Add(() =>
+            handleRoomRequest(() =>
             {
                 GetCardWithPlaylistItem(card).PlaylistItem.Value = item;
                 RoomUpdated?.Invoke();
@@ -1189,7 +1189,7 @@ namespace osu.Game.Online.Multiplayer
 
         Task IRankedPlayClient.RankedPlayCardPlayed(RankedPlayCardItem card)
         {
-            Scheduler.Add(() =>
+            handleRoomRequest(() =>
             {
                 RankedPlayCardPlayed?.Invoke(GetCardWithPlaylistItem(card));
                 RoomUpdated?.Invoke();
