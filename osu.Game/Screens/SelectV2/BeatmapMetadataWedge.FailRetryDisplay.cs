@@ -21,7 +21,7 @@ namespace osu.Game.Screens.SelectV2
 {
     public partial class BeatmapMetadataWedge
     {
-        private partial class FailRetryDisplay : CompositeDrawable
+        public partial class FailRetryDisplay : CompositeDrawable
         {
             private readonly GraphDrawable retriesGraph;
             private readonly GraphDrawable failsGraph;
