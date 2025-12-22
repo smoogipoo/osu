@@ -19,6 +19,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Online;
+using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
@@ -46,6 +47,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
+
+        [Resolved]
+        private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
         private BeatmapManager beatmapManager { get; set; } = null!;
@@ -167,20 +171,20 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 opponentCards.Remove(card);
             };
 
-            var ownUser = client.LocalUser!.User!;
-            var opponent = client.Room!.Users.First(it => it.UserID != ownUser.Id).User!;
+            int localUserId = api.LocalUser.Value.OnlineID;
+            int opponentUserId = ((RankedPlayRoomState)client.Room.MatchState!).Users.Keys.Single(it => it != localUserId);
 
             AddRangeInternal([
                 new RankedPlayCornerPiece(RankedPlayColourScheme.Blue, Anchor.BottomLeft)
                 {
-                    Child = new RankedPlayUserDisplay(client.LocalUser!.User!, Anchor.BottomLeft, RankedPlayColourScheme.Blue)
+                    Child = new RankedPlayUserDisplay(localUserId, Anchor.BottomLeft, RankedPlayColourScheme.Blue)
                     {
                         RelativeSizeAxes = Axes.Both,
                     }
                 },
                 new RankedPlayCornerPiece(RankedPlayColourScheme.Red, Anchor.TopRight)
                 {
-                    Child = new RankedPlayUserDisplay(opponent, Anchor.TopRight, RankedPlayColourScheme.Red)
+                    Child = new RankedPlayUserDisplay(opponentUserId, Anchor.TopRight, RankedPlayColourScheme.Red)
                     {
                         RelativeSizeAxes = Axes.Both,
                     }
