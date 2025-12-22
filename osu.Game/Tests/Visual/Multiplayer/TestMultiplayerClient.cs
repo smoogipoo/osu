@@ -941,7 +941,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 await ((IRankedPlayClient)this).RankedPlayCardAdded(userId, clone(card)).ConfigureAwait(false);
             }
 
-            await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom!.MatchState));
+            await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom!.MatchState)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -963,7 +963,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 await ((IRankedPlayClient)this).RankedPlayCardRemoved(userId, clone(card)).ConfigureAwait(false);
             }
 
-            await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom!.MatchState));
+            await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom!.MatchState)).ConfigureAwait(false);
         }
 
         /// <summary>
