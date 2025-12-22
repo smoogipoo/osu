@@ -49,10 +49,10 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
 
             for (int i = 0; i < 3; i++)
-                AddStep("add card", () => MultiplayerClient.RankedPlayAddCard(new RankedPlayCardItem()).WaitSafely());
+                AddStep("add card", () => MultiplayerClient.RankedPlayAddCards([new RankedPlayCardItem()]).WaitSafely());
 
             for (int i = 0; i < 3; i++)
-                AddStep("remove card", () => MultiplayerClient.RankedPlayRemoveCard(hand => hand[0]).WaitSafely());
+                AddStep("remove card", () => MultiplayerClient.RankedPlayRemoveCards(hand => [hand[0]]).WaitSafely());
         }
 
         [Test]

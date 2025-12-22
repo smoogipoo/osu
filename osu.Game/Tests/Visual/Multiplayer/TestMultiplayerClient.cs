@@ -822,13 +822,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
         public async Task DiscardUserCards(int userId, Func<RankedPlayCardItem[], IEnumerable<RankedPlayCardItem>> selector)
         {
-            RankedPlayCardItem[] discarded = selector(((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.ToArray()).ToArray();
+            RankedPlayUserInfo info = ((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId];
+            RankedPlayCardItem[] cards = selector(info.Hand.ToArray()).ToArray();
 
-            foreach (var card in discarded)
-                await RankedPlayRemoveUserCard(userId, _ => card).ConfigureAwait(false);
-
-            foreach (var _ in discarded)
-                await RankedPlayAddCard(clone(new RankedPlayCardItem())).ConfigureAwait(false);
+            await RankedPlayRemoveUserCards(userId, _ => cards).ConfigureAwait(false);
+            await RankedPlayAddUserCards(userId, Enumerable.Range(0, cards.Length).Select(_ => new RankedPlayCardItem()).ToArray()).ConfigureAwait(false);
         }
 
         public override Task PlayCard(RankedPlayCardItem card)
@@ -929,34 +927,43 @@ namespace osu.Game.Tests.Visual.Multiplayer
         /// <summary>
         /// Adds a card to the local user's hand.
         /// </summary>
-        public Task RankedPlayAddCard(RankedPlayCardItem card)
-            => RankedPlayAddUserCard(api.LocalUser.Value.OnlineID, card);
+        public Task RankedPlayAddCards(RankedPlayCardItem[] cards)
+            => RankedPlayAddUserCards(api.LocalUser.Value.OnlineID, cards);
 
         /// <summary>
         /// Adds a card to the given user's hand.
         /// </summary>
-        public async Task RankedPlayAddUserCard(int userId, RankedPlayCardItem card)
+        public async Task RankedPlayAddUserCards(int userId, RankedPlayCardItem[] cards)
         {
-            ((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.Add(card);
+            foreach (var card in cards)
+            {
+                ((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.Add(card);
+                await ((IRankedPlayClient)this).RankedPlayCardAdded(userId, clone(card)).ConfigureAwait(false);
+            }
+
             await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom!.MatchState));
-            await ((IRankedPlayClient)this).RankedPlayCardAdded(userId, clone(card)).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Removes a card from the local user's hand.
         /// </summary>
-        public Task RankedPlayRemoveCard(Func<RankedPlayCardItem[], RankedPlayCardItem> selector)
-            => RankedPlayRemoveUserCard(api.LocalUser.Value.OnlineID, selector);
+        public Task RankedPlayRemoveCards(Func<RankedPlayCardItem[], RankedPlayCardItem[]> selector)
+            => RankedPlayRemoveUserCards(api.LocalUser.Value.OnlineID, selector);
 
         /// <summary>
         /// Removes a card from the given user's hand.
         /// </summary>
-        public async Task RankedPlayRemoveUserCard(int userId, Func<RankedPlayCardItem[], RankedPlayCardItem> selector)
+        public async Task RankedPlayRemoveUserCards(int userId, Func<RankedPlayCardItem[], RankedPlayCardItem[]> selector)
         {
-            RankedPlayCardItem card = selector(((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.ToArray());
-            ((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.Remove(card);
+            RankedPlayCardItem[] cards = selector(((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.ToArray());
+
+            foreach (var card in cards)
+            {
+                ((RankedPlayRoomState)ServerRoom!.MatchState!).Users[userId].Hand.Remove(card);
+                await ((IRankedPlayClient)this).RankedPlayCardRemoved(userId, clone(card)).ConfigureAwait(false);
+            }
+
             await ((IMultiplayerClient)this).MatchRoomStateChanged(clone(ServerRoom!.MatchState));
-            await ((IRankedPlayClient)this).RankedPlayCardRemoved(userId, clone(card)).ConfigureAwait(false);
         }
 
         /// <summary>
