@@ -292,8 +292,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     break;
 
                 case RankedPlayStage.CardPlay:
-                    bool isActivePlayer = client.Room!.Users[rankedPlayState.ActivePlayerIndex].Equals(client.LocalUser);
-
+                    bool isActivePlayer = rankedPlayState.ActiveUserId == client.LocalUser?.UserID;
                     ShowScreen(isActivePlayer ? new PickScreen() : new OpponentPickScreen());
                     break;
 
