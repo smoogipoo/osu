@@ -123,7 +123,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
         [Test]
         public void TestPlayStage()
         {
-            AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay).WaitSafely());
+            AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = API.LocalUser.Value.OnlineID).WaitSafely());
 
             for (int i = 0; i < 3; i++)
             {
