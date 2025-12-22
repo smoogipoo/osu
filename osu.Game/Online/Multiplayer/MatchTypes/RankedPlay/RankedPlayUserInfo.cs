@@ -2,13 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using MessagePack;
 
 namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
 {
     [Serializable]
     [MessagePackObject]
-    public class RankedPlayUserState : MatchUserState
+    public class RankedPlayUserInfo
     {
         /// <summary>
         /// The current life points.
@@ -20,6 +21,6 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// The cards in this user's hand.
         /// </summary>
         [Key(1)]
-        public RankedPlayCardItem[] Hand { get; set; } = [];
+        public List<RankedPlayCardItem> Hand { get; set; } = [];
     }
 }

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using MessagePack;
 
 namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
@@ -33,5 +34,8 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// </summary>
         [Key(3)]
         public int ActivePlayerIndex { get; set; }
+
+        [Key(4)]
+        public Dictionary<int, RankedPlayUserInfo> Users { get; set; } = [];
     }
 }

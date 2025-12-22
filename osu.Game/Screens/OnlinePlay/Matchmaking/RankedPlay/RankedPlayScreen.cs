@@ -139,13 +139,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             beatmapAvailabilityTracker.Availability.BindValueChanged(onBeatmapAvailabilityChanged, true);
 
-            foreach (var user in client.Room!.Users)
+            var roomState = (RankedPlayRoomState)client.Room!.MatchState!;
+
+            foreach ((int userId, RankedPlayUserInfo userInfo) in roomState.Users)
             {
-                var cardOwner = getCardOwner(user.UserID);
+                var cardOwner = getCardOwner(userId);
 
-                var localUserState = (RankedPlayUserState)user.MatchState!;
-
-                foreach (var item in localUserState.Hand)
+                foreach (var item in userInfo.Hand)
                 {
                     var facade = cardOwner == CardOwner.Player ? hiddenPlayerCardFacade : hiddenOpponentCardFacade;
 

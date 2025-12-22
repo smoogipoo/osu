@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -105,10 +104,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
         private void onRoomUpdated()
         {
-            if (client.Room?.Users.FirstOrDefault(it => it.UserID == user.Id)?.MatchState is not RankedPlayUserState matchState)
+            var roomState = (RankedPlayRoomState?)client.Room?.MatchState;
+
+            if (roomState == null)
                 return;
 
-            Health.Value = matchState.Life;
+            Health.Value = roomState.Users[user.Id].Life;
         }
 
         protected override void Dispose(bool isDisposing)
