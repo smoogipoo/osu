@@ -81,7 +81,7 @@ namespace osu.Game.Screens.SelectV2
                 failsGraph.Colour = colours.DarkOrange2;
             }
 
-            private partial class GraphDrawable : Drawable
+            public partial class GraphDrawable : Drawable
             {
                 private readonly float[] displayedData = new float[100];
 

@@ -2,7 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -14,12 +17,15 @@ using osu.Game.Beatmaps.Drawables;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
+using osu.Game.Rulesets;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.SelectV2;
 using osuTK;
 using osuTK.Graphics;
@@ -61,9 +67,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 {
                     new Dimension(GridSizeMode.Absolute, 100),
                     new Dimension(GridSizeMode.Absolute, 10),
-                    new Dimension(GridSizeMode.Absolute, 300),
+                    new Dimension(GridSizeMode.AutoSize),
                     new Dimension(GridSizeMode.Absolute, 10),
-                    new Dimension(GridSizeMode.Absolute, 100)
+                    new Dimension(GridSizeMode.AutoSize)
                 },
                 Content = new[]
                 {
@@ -76,7 +82,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     {
                         new GridContainer
                         {
-                            RelativeSizeAxes = Axes.Both,
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            RowDimensions = new[]
+                            {
+                                new Dimension(GridSizeMode.AutoSize)
+                            },
                             ColumnDimensions = new[]
                             {
                                 new Dimension(),
@@ -89,7 +100,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                 {
                                     statisticsWedge = new StatisticsWedge
                                     {
-                                        RelativeSizeAxes = Axes.Both
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft
                                     },
                                     null,
                                     new GridContainer
@@ -128,7 +140,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            RelativeSizeAxes = Axes.Both,
                             Width = 0.7f
                         }
                     }
@@ -265,15 +276,86 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public partial class StatisticsWedge : CompositeDrawable
         {
+            [Resolved]
+            private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
+
+            [Resolved]
+            private IBindable<RulesetInfo> ruleset { get; set; } = null!;
+
+            [Resolved]
+            private IBindable<IReadOnlyList<Mod>> mods { get; set; } = null!;
+
+            public StatisticsWedge()
+            {
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+
+                Masking = true;
+                CornerRadius = 5;
+            }
+
             [BackgroundDependencyLoader]
             private void load()
             {
-                Masking = true;
-                CornerRadius = 5;
+                IBeatmap playableBeatmap = beatmap.Value.GetPlayableBeatmap(ruleset.Value);
+                Ruleset rulesetInstance = ruleset.Value.CreateInstance();
+                List<BeatmapTitleWedge.StatisticDifficulty.Data> statistics = [];
 
-                InternalChild = new WedgeBackground
+                foreach (var stat in playableBeatmap.GetStatistics()
+                                                    .Select(s => new BeatmapTitleWedge.StatisticDifficulty.Data(s.Name, s.BarDisplayLength ?? 0, s.BarDisplayLength ?? 0, 1, s.Content)))
                 {
-                    RelativeSizeAxes = Axes.Both
+                    statistics.Add(stat);
+                }
+
+                foreach (var stat in rulesetInstance.GetBeatmapAttributesForDisplay(beatmap.Value.BeatmapInfo, mods.Value)
+                                                    .Select(a => new BeatmapTitleWedge.StatisticDifficulty.Data(a)))
+                {
+                    statistics.Add(stat);
+                }
+
+                List<Dimension> rowDimensions = [];
+                List<Drawable?[]?> rowContents = [];
+
+                foreach (var row in statistics.Chunk(3))
+                {
+                    if (rowContents.Count > 0)
+                    {
+                        rowDimensions.Add(new Dimension(GridSizeMode.Absolute, 10));
+                        rowContents.Add(null);
+                    }
+
+                    List<Drawable?> thisRow = [];
+
+                    foreach (var cell in row)
+                    {
+                        thisRow.Add(new UnshearingWrapper(new BeatmapTitleWedge.StatisticDifficulty
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Value = cell
+                        }));
+                    }
+
+                    while (thisRow.Count < 3)
+                        thisRow.Add(null);
+
+                    rowDimensions.Add(new Dimension(GridSizeMode.AutoSize));
+                    rowContents.Add(thisRow.ToArray());
+                }
+
+                InternalChildren = new Drawable[]
+                {
+                    new WedgeBackground
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    },
+                    new GridContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding(16),
+                        RowDimensions = rowDimensions.ToArray(),
+                        Content = rowContents.ToArray()
+                    }
                 };
             }
         }
@@ -297,101 +379,68 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
+
+                CornerRadius = 5;
+                Masking = true;
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                InternalChild = new ShearAligningWrapper(new Container
+                InternalChildren = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    CornerRadius = 5,
-                    Masking = true,
-                    Children = new Drawable[]
+                    new WedgeBackground(),
+                    new FillFlowContainer
                     {
-                        new WedgeBackground(),
-                        new Container
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding(16),
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(5),
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Shear = -OsuGame.SHEAR,
-                            Padding = new MarginPadding { Vertical = 16, Left = 16, Right = 35 },
-                            Children = new Drawable[]
+                            new UnshearingWrapper(new GridContainer
                             {
-                                new FillFlowContainer
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                RowDimensions = new[]
                                 {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Direction = FillDirection.Vertical,
-                                    Spacing = new Vector2(0f, 10f),
-                                    Children = new Drawable[]
-                                    {
-                                        new GridContainer
-                                        {
-                                            RelativeSizeAxes = Axes.X,
-                                            AutoSizeAxes = Axes.Y,
-                                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                                            ColumnDimensions = new[]
-                                            {
-                                                new Dimension(),
-                                                new Dimension(),
-                                                new Dimension(),
-                                            },
-                                            Content = new[]
-                                            {
-                                                new[]
-                                                {
-                                                    new FillFlowContainer
-                                                    {
-                                                        RelativeSizeAxes = Axes.X,
-                                                        AutoSizeAxes = Axes.Y,
-                                                        Direction = FillDirection.Vertical,
-                                                        Spacing = new Vector2(0f, 10f),
-                                                        Children = new[]
-                                                        {
-                                                            creator = new BeatmapMetadataWedge.MetadataDisplay(EditorSetupStrings.Creator),
-                                                            genre = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoGenre),
-                                                        },
-                                                    },
-                                                    new FillFlowContainer
-                                                    {
-                                                        RelativeSizeAxes = Axes.X,
-                                                        AutoSizeAxes = Axes.Y,
-                                                        Direction = FillDirection.Vertical,
-                                                        Spacing = new Vector2(0f, 10f),
-                                                        Children = new[]
-                                                        {
-                                                            source = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoSource),
-                                                            language = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoLanguage),
-                                                        },
-                                                    },
-                                                    new FillFlowContainer
-                                                    {
-                                                        RelativeSizeAxes = Axes.X,
-                                                        AutoSizeAxes = Axes.Y,
-                                                        Direction = FillDirection.Vertical,
-                                                        Spacing = new Vector2(0f, 10f),
-                                                        Children = new[]
-                                                        {
-                                                            submitted = new BeatmapMetadataWedge.MetadataDisplay(SongSelectStrings.Submitted),
-                                                            ranked = new BeatmapMetadataWedge.MetadataDisplay(SongSelectStrings.Ranked),
-                                                        },
-                                                    },
-                                                },
-                                            },
-                                        },
-                                        userTags = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoUserTags)
-                                        {
-                                            Alpha = 0,
-                                        },
-                                        mapperTags = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoMapperTags),
-                                    },
+                                    new Dimension(GridSizeMode.AutoSize)
                                 },
-                            },
-                        },
-                    },
-                });
+                                Content = new Drawable[][]
+                                {
+                                    [
+                                        creator = new BeatmapMetadataWedge.MetadataDisplay(EditorSetupStrings.Creator),
+                                        source = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoSource),
+                                        submitted = new BeatmapMetadataWedge.MetadataDisplay(SongSelectStrings.Submitted),
+                                    ]
+                                }
+                            }),
+                            new UnshearingWrapper(new GridContainer
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                RowDimensions = new[]
+                                {
+                                    new Dimension(GridSizeMode.AutoSize)
+                                },
+                                Content = new Drawable[][]
+                                {
+                                    [
+                                        genre = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoGenre),
+                                        language = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoLanguage),
+                                        ranked = new BeatmapMetadataWedge.MetadataDisplay(SongSelectStrings.Ranked),
+                                    ]
+                                }
+                            }),
+                            new UnshearingWrapper(userTags = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoUserTags)
+                            {
+                                Alpha = 0,
+                            }),
+                            new UnshearingWrapper(mapperTags = new BeatmapMetadataWedge.MetadataDisplay(BeatmapsetsStrings.ShowInfoMapperTags)),
+                        }
+                    }
+                };
             }
 
             protected override void LoadComplete()
@@ -431,51 +480,47 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             public RatingsWedge(APIBeatmap beatmap)
             {
                 this.beatmap = beatmap;
+
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
+
+                CornerRadius = 5;
+                Masking = true;
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                InternalChild = new ShearAligningWrapper(new Container
+                InternalChildren = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    CornerRadius = 5,
-                    Masking = true,
-                    Children = new Drawable[]
+                    new WedgeBackground(),
+                    new UnshearingWrapper(new GridContainer
                     {
-                        new WedgeBackground(),
-                        new GridContainer
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                        Padding = new MarginPadding(16),
+                        ColumnDimensions = new[]
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Shear = -OsuGame.SHEAR,
-                            Padding = new MarginPadding { Vertical = 16, Left = 16, Right = 35 },
-                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                            ColumnDimensions = new[]
+                            new Dimension(),
+                            new Dimension(GridSizeMode.Absolute, 10),
+                            new Dimension(),
+                            new Dimension(GridSizeMode.Absolute, 10),
+                            new Dimension(),
+                        },
+                        Content = new[]
+                        {
+                            new[]
                             {
-                                new Dimension(),
-                                new Dimension(GridSizeMode.Absolute, 10),
-                                new Dimension(),
-                                new Dimension(GridSizeMode.Absolute, 10),
-                                new Dimension(),
-                            },
-                            Content = new[]
-                            {
-                                new[]
-                                {
-                                    successRateDisplay = new BeatmapMetadataWedge.SuccessRateDisplay(),
-                                    Empty(),
-                                    userRatingDisplay = new BeatmapMetadataWedge.UserRatingDisplay(),
-                                    Empty(),
-                                    ratingSpreadDisplay = new BeatmapMetadataWedge.RatingSpreadDisplay(),
-                                },
+                                successRateDisplay = new BeatmapMetadataWedge.SuccessRateDisplay(),
+                                Empty(),
+                                userRatingDisplay = new BeatmapMetadataWedge.UserRatingDisplay(),
+                                Empty(),
+                                ratingSpreadDisplay = new BeatmapMetadataWedge.RatingSpreadDisplay(),
                             },
                         },
-                    }
-                });
+                    }),
+                };
             }
 
             protected override void LoadComplete()
@@ -492,42 +537,82 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             private readonly APIBeatmap beatmap;
 
-            private BeatmapMetadataWedge.FailRetryDisplay failRetryDisplay = null!;
+            private BeatmapMetadataWedge.FailRetryDisplay.GraphDrawable retriesGraph = null!;
+            private BeatmapMetadataWedge.FailRetryDisplay.GraphDrawable failsGraph = null!;
 
             public FailRetryWedge(APIBeatmap beatmap)
             {
                 this.beatmap = beatmap;
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+
+                CornerRadius = 5;
+                Masking = true;
             }
 
             [BackgroundDependencyLoader]
-            private void load()
+            private void load(OsuColour colours)
             {
-                InternalChild = new ShearAligningWrapper(new Container
+                InternalChildren = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    CornerRadius = 5,
-                    Masking = true,
-                    Children = new Drawable[]
+                    new WedgeBackground(),
+                    new FillFlowContainer
                     {
-                        new WedgeBackground(),
-                        new Container
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding(16),
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(0f, 4f),
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Shear = -OsuGame.SHEAR,
-                            Padding = new MarginPadding { Vertical = 16, Left = 16, Right = 35 },
-                            Child = failRetryDisplay = new BeatmapMetadataWedge.FailRetryDisplay(),
+                            new UnshearingWrapper(new OsuSpriteText
+                            {
+                                Text = BeatmapsetsStrings.ShowInfoPointsOfFailure,
+                                Font = OsuFont.Style.Caption1.With(weight: FontWeight.SemiBold),
+                                Margin = new MarginPadding { Bottom = 4f },
+                            }),
+                            new UnshearingWrapper(new Container
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 65f,
+                                Children = new[]
+                                {
+                                    retriesGraph = new BeatmapMetadataWedge.FailRetryDisplay.GraphDrawable
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Y = -1f,
+                                        Colour = colours.Orange1
+                                    },
+                                    failsGraph = new BeatmapMetadataWedge.FailRetryDisplay.GraphDrawable
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = colours.DarkOrange2
+                                    },
+                                },
+                            }),
                         },
                     },
-                });
+                };
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
 
-                failRetryDisplay.Data = beatmap.FailTimes ?? new APIFailTimes();
+                setData(beatmap.FailTimes ?? new APIFailTimes());
+            }
+
+            private void setData(APIFailTimes data)
+            {
+                int[] retries = data.Retries ?? Array.Empty<int>();
+                int[] fails = data.Fails ?? Array.Empty<int>();
+                int[] total = retries.Zip(fails, (r, f) => r + f).ToArray();
+
+                int maximum = total.DefaultIfEmpty(0).Max();
+
+                retriesGraph.Data = total.Select(r => maximum == 0 ? 0 : (float)r / maximum).ToArray();
+                failsGraph.Data = fails.Select(r => maximum == 0 ? 0 : (float)r / maximum).ToArray();
             }
         }
 
@@ -543,6 +628,20 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     RelativeSizeAxes = Axes.Both,
                     Colour = ColourInfo.GradientVertical(Colour4.FromHex("1D1B1E").Opacity(0.75f), Colour4.FromHex("1D1B1E").Opacity(0.35f))
                 };
+            }
+        }
+
+        private partial class UnshearingWrapper : CompositeDrawable
+        {
+            public UnshearingWrapper(Drawable drawable)
+            {
+                RelativeSizeAxes = drawable.RelativeSizeAxes;
+                AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes;
+
+                Shear = -OsuGame.SHEAR;
+                Padding = new MarginPadding { Right = 19, Bottom = 6 };
+
+                InternalChild = drawable;
             }
         }
     }
