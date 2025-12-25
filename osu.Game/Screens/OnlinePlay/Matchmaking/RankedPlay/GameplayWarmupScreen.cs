@@ -6,19 +6,23 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
+using osu.Game.Beatmaps.Drawables;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Localisation;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Chat;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens.SelectV2;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -65,10 +69,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 {
                     new[]
                     {
-                        headerWedge = new HeaderWedge
-                        {
-                            RelativeSizeAxes = Axes.Both
-                        }
+                        headerWedge = new HeaderWedge(item, beatmap)
                     },
                     null,
                     new Drawable[]
@@ -148,16 +149,117 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public partial class HeaderWedge : CompositeDrawable
         {
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                Masking = true;
-                CornerRadius = 5;
+            private readonly MultiplayerPlaylistItem item;
+            private readonly APIBeatmap beatmap;
 
-                InternalChild = new WedgeBackground
+            public HeaderWedge(MultiplayerPlaylistItem item, APIBeatmap beatmap)
+            {
+                this.item = item;
+                this.beatmap = beatmap;
+
+                RelativeSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(OsuColour colours)
+            {
+                Colour4 srColour = colours.ForStarDifficulty(item.StarRating);
+
+                OsuTextFlowContainer titleLine;
+                LinkFlowContainer difficultyLine;
+
+                InternalChild = new ShearAligningWrapper(new Container
                 {
-                    RelativeSizeAxes = Axes.Both
-                };
+                    RelativeSizeAxes = Axes.Both,
+                    CornerRadius = 5,
+                    Masking = true,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0), srColour),
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding { Right = 5, Bottom = 5 },
+                            Child = new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                CornerRadius = 5,
+                                Masking = true,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Alpha = 0.7f,
+                                        Colour = Colour4.FromHex("363138")
+                                    },
+                                    new UpdateableBeatmapBackgroundSprite
+                                    {
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                        RelativeSizeAxes = Axes.Both,
+                                        Beatmap = { Value = beatmap },
+                                        BackgroundLoadDelay = 0,
+                                        Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.15f), Color4.White.Opacity(0.5f)),
+                                    },
+                                }
+                            }
+                        },
+                        new FillFlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Shear = -OsuGame.SHEAR,
+                            Padding = new MarginPadding { Vertical = 16, Left = 16, Right = 35 },
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(5),
+                            Children = new Drawable[]
+                            {
+                                titleLine = new OsuTextFlowContainer(s => s.Font = s.Font.With(weight: FontWeight.SemiBold))
+                                {
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    AutoSizeAxes = Axes.Both
+                                },
+                                new FillFlowContainer
+                                {
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    AutoSizeAxes = Axes.Both,
+                                    Direction = FillDirection.Horizontal,
+                                    Spacing = new Vector2(5),
+                                    Children = new Drawable[]
+                                    {
+                                        new StarRatingDisplay(new StarDifficulty(item.StarRating, 0))
+                                        {
+                                            Anchor = Anchor.CentreLeft,
+                                            Origin = Anchor.CentreLeft,
+                                        },
+                                        difficultyLine = new LinkFlowContainer(s => s.Font = s.Font.With(weight: FontWeight.SemiBold))
+                                        {
+                                            Anchor = Anchor.CentreLeft,
+                                            Origin = Anchor.CentreLeft,
+                                            AutoSizeAxes = Axes.Both
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                titleLine.AddText(beatmap.Metadata.Title, s => s.Font = OsuFont.Style.Heading1);
+                titleLine.AddText($" by {beatmap.Metadata.Artist}", s => s.Font = OsuFont.Style.Heading2);
+
+                difficultyLine.AddText(beatmap.DifficultyName, s => s.Font = OsuFont.Style.Heading2);
+                difficultyLine.AddLink($" mapped by {beatmap.Metadata.Author.Username}", LinkAction.OpenUserProfile, beatmap.Metadata.Author, creationParameters: s =>
+                {
+                    s.Font = OsuFont.Style.Heading2;
+                    // s.Margin = new MarginPadding { Top = -5 };
+                });
             }
         }
 
@@ -439,7 +541,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 InternalChild = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = colourProvider.Background5.Opacity(0.6f),
+                    Colour = ColourInfo.GradientVertical(Colour4.FromHex("1D1B1E").Opacity(0.75f), Colour4.FromHex("1D1B1E").Opacity(0.35f))
                 };
             }
         }

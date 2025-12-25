@@ -6,6 +6,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
+using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual.Multiplayer;
 
 namespace osu.Game.Tests.Visual.RankedPlay
@@ -18,7 +19,23 @@ namespace osu.Game.Tests.Visual.RankedPlay
         {
             base.SetUpSteps();
 
-            AddStep("join room", () => JoinRoom(CreateDefaultRoom(MatchType.RankedPlay)));
+            AddStep("join room", () =>
+            {
+                var beatmap = new TestBeatmap(Ruleset.Value).BeatmapInfo;
+                beatmap.StarRating = 2;
+
+                var room = CreateDefaultRoom(MatchType.RankedPlay);
+                room.Playlist =
+                [
+                    new PlaylistItem(beatmap)
+                    {
+                        RulesetID = Ruleset.Value.OnlineID
+                    }
+                ];
+
+                JoinRoom(room);
+            });
+
             WaitForJoined();
             AddStep("add other user", () => MultiplayerClient.AddUser(new MultiplayerRoomUser(2)));
 
