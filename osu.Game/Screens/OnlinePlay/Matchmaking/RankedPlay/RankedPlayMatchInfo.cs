@@ -25,6 +25,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         public IReadOnlyList<RankedPlayCardWithPlaylistItem> OpponentCards => opponentCards;
 
         /// <summary>
+        /// The last card that was played.
+        /// </summary>
+        public RankedPlayCardWithPlaylistItem? LastPlayedCard { get; private set; }
+
+        /// <summary>
         /// The current room stage.
         /// </summary>
         public IBindable<RankedPlayStage> Stage => stage;
@@ -131,7 +136,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             }
         }
 
-        private void onCardPlayed(RankedPlayCardWithPlaylistItem item) => CardPlayed?.Invoke(item);
+        private void onCardPlayed(RankedPlayCardWithPlaylistItem item)
+        {
+            LastPlayedCard = item;
+            CardPlayed?.Invoke(item);
+        }
 
         protected override void Dispose(bool isDisposing)
         {

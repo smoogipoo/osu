@@ -142,6 +142,17 @@ namespace osu.Game.Tests.Visual.RankedPlay
         }
 
         [Test]
+        public void TestGameplayWarmupStage()
+        {
+            AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = API.LocalUser.Value.OnlineID).WaitSafely());
+            AddWaitStep("wait", 3);
+            AddStep("play card", () => MultiplayerClient.PlayCard(hand => hand[0]).WaitSafely());
+
+            AddWaitStep("wait", 3);
+            AddStep("set gameplay warmup phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.GameplayWarmup).WaitSafely());
+        }
+
+        [Test]
         public void TestOtherPlaysCard()
         {
             AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = 2).WaitSafely());

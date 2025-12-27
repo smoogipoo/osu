@@ -12,6 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Database;
@@ -26,6 +27,7 @@ using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards;
 using osu.Game.Screens.SelectV2;
 using osuTK;
 using osuTK.Graphics;
@@ -34,8 +36,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public partial class GameplayWarmupScreen : RankedPlaySubScreen
     {
+        public CardRow CenterRow { get; private set; } = null!;
+
         [Resolved]
         private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
+
+        [Resolved]
+        private RankedPlayMatchInfo matchInfo { get; set; } = null!;
 
         private readonly MultiplayerPlaylistItem item;
 
@@ -55,13 +62,23 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             APIBeatmap beatmap = beatmapLookupCache.GetBeatmapAsync(item.BeatmapID).GetResultSafely()!;
 
-            InternalChild = new GridContainer
+            Children =
+            [
+                CenterRow = new CardRow
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                },
+            ];
+
+            CenterColumn.Child = new GridContainer
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Width = 0.7f,
+                Padding = new MarginPadding { Horizontal = -100 },
                 Shear = OsuGame.SHEAR,
                 RowDimensions = new[]
                 {
@@ -156,6 +173,26 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             metadataWedge.MoveToX(200).MoveToX(0, 800, Easing.OutPow10);
             ratingsWedge.MoveToX(400).MoveToX(0, 800, Easing.OutPow10);
             failRetryWedge.MoveToY(200).MoveToY(0, 800, Easing.OutPow10);
+
+            if (matchInfo.LastPlayedCard == null)
+                return;
+
+            if ((previous as PickScreen)?.CenterRow.RemoveCard(matchInfo.LastPlayedCard, out var card, out var screenSpaceDrawQuad) == true)
+                card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, CenterRow);
+            else
+            {
+                Logger.Log($"Played card {matchInfo.LastPlayedCard.Card.ID} was not on the screen.", level: LogLevel.Error);
+
+                card = new RankedPlayCard(matchInfo.LastPlayedCard)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                };
+            }
+
+            CenterRow.Add(card);
+
+            card.ScaleTo(0, 800, Easing.OutPow10);
         }
 
         public partial class HeaderWedge : CompositeDrawable
