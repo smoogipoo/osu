@@ -48,6 +48,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private Drawable headerWedge = null!;
         private Drawable statisticsWedge = null!;
+        private Drawable attributesWedge = null!;
         private Drawable metadataWedge = null!;
         private Drawable ratingsWedge = null!;
         private Drawable failRetryWedge = null!;
@@ -115,10 +116,37 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                             {
                                 new[]
                                 {
-                                    statisticsWedge = new StatisticsWedge
+                                    new GridContainer
                                     {
                                         Anchor = Anchor.CentreLeft,
-                                        Origin = Anchor.CentreLeft
+                                        Origin = Anchor.CentreLeft,
+                                        RelativeSizeAxes = Axes.Both,
+                                        RowDimensions =
+                                        [
+                                            new Dimension(),
+                                            new Dimension(GridSizeMode.Absolute, 10)
+                                        ],
+
+                                        Content = new[]
+                                        {
+                                            new[]
+                                            {
+                                                statisticsWedge = new BeatmapStatisticsWedge
+                                                {
+                                                    Anchor = Anchor.CentreLeft,
+                                                    Origin = Anchor.CentreLeft,
+                                                }
+                                            },
+                                            null,
+                                            new[]
+                                            {
+                                                attributesWedge = new BeatmapAttributesWedge
+                                                {
+                                                    Anchor = Anchor.CentreLeft,
+                                                    Origin = Anchor.CentreLeft,
+                                                }
+                                            }
+                                        }
                                     },
                                     null,
                                     new GridContainer
@@ -170,8 +198,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             headerWedge.MoveToY(-200).MoveToY(0, 800, Easing.OutPow10);
             statisticsWedge.MoveToX(-200).MoveToX(0, 800, Easing.OutPow10);
+            attributesWedge.MoveToX(-200).MoveToX(0, 800, Easing.OutPow10);
             metadataWedge.MoveToX(200).MoveToX(0, 800, Easing.OutPow10);
-            ratingsWedge.MoveToX(400).MoveToX(0, 800, Easing.OutPow10);
+            ratingsWedge.MoveToX(200).MoveToX(0, 800, Easing.OutPow10);
             failRetryWedge.MoveToY(200).MoveToY(0, 800, Easing.OutPow10);
 
             if (matchInfo.LastPlayedCard == null)
@@ -311,7 +340,82 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             }
         }
 
-        public partial class StatisticsWedge : CompositeDrawable
+        public partial class BeatmapStatisticsWedge : CompositeDrawable
+        {
+            [Resolved]
+            private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
+
+            [Resolved]
+            private IBindable<RulesetInfo> ruleset { get; set; } = null!;
+
+            public BeatmapStatisticsWedge()
+            {
+                RelativeSizeAxes = Axes.Both;
+
+                Masking = true;
+                CornerRadius = 5;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                IBeatmap playableBeatmap = beatmap.Value.GetPlayableBeatmap(ruleset.Value);
+                List<BeatmapTitleWedge.StatisticDifficulty.Data> statistics = [];
+
+                foreach (var stat in playableBeatmap.GetStatistics()
+                                                    .Select(s => new BeatmapTitleWedge.StatisticDifficulty.Data(s.Name, s.BarDisplayLength ?? 0, s.BarDisplayLength ?? 0, 1, s.Content)))
+                {
+                    statistics.Add(stat);
+                }
+
+                List<Dimension> rowDimensions = [];
+                List<Drawable?[]?> rowContents = [];
+
+                foreach (var row in statistics.Chunk(3))
+                {
+                    if (rowContents.Count > 0)
+                    {
+                        rowDimensions.Add(new Dimension(GridSizeMode.Absolute, 10));
+                        rowContents.Add(null);
+                    }
+
+                    List<Drawable?> thisRow = [];
+
+                    foreach (var cell in row)
+                    {
+                        thisRow.Add(new UnshearingWrapper(new BeatmapTitleWedge.StatisticDifficulty
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Value = cell
+                        }));
+                    }
+
+                    while (thisRow.Count < 3)
+                        thisRow.Add(null);
+
+                    rowDimensions.Add(new Dimension(GridSizeMode.AutoSize));
+                    rowContents.Add(thisRow.ToArray());
+                }
+
+                InternalChildren = new Drawable[]
+                {
+                    new WedgeBackground
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    },
+                    new GridContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding(16),
+                        RowDimensions = rowDimensions.ToArray(),
+                        Content = rowContents.ToArray()
+                    }
+                };
+            }
+        }
+
+        public partial class BeatmapAttributesWedge : CompositeDrawable
         {
             [Resolved]
             private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
@@ -322,10 +426,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             [Resolved]
             private IBindable<IReadOnlyList<Mod>> mods { get; set; } = null!;
 
-            public StatisticsWedge()
+            public BeatmapAttributesWedge()
             {
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
+                RelativeSizeAxes = Axes.Both;
 
                 Masking = true;
                 CornerRadius = 5;
@@ -334,15 +437,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             [BackgroundDependencyLoader]
             private void load()
             {
-                IBeatmap playableBeatmap = beatmap.Value.GetPlayableBeatmap(ruleset.Value);
                 Ruleset rulesetInstance = ruleset.Value.CreateInstance();
                 List<BeatmapTitleWedge.StatisticDifficulty.Data> statistics = [];
-
-                foreach (var stat in playableBeatmap.GetStatistics()
-                                                    .Select(s => new BeatmapTitleWedge.StatisticDifficulty.Data(s.Name, s.BarDisplayLength ?? 0, s.BarDisplayLength ?? 0, 1, s.Content)))
-                {
-                    statistics.Add(stat);
-                }
 
                 foreach (var stat in rulesetInstance.GetBeatmapAttributesForDisplay(beatmap.Value.BeatmapInfo, mods.Value)
                                                     .Select(a => new BeatmapTitleWedge.StatisticDifficulty.Data(a)))
