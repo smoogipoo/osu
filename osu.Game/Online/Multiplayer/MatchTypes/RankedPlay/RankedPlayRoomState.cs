@@ -42,6 +42,12 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         public int ActiveUserId { get; set; }
 
         /// <summary>
+        /// The average star rating of all cards.
+        /// </summary>
+        [Key(5)]
+        public double StarRating { get; set; }
+
+        /// <summary>
         /// The user currently playing a card.
         /// </summary>
         [IgnoreMember]
