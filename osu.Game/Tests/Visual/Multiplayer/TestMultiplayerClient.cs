@@ -129,6 +129,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 case RankedPlayRoomState:
                     ((RankedPlayRoomState)ServerRoom!.MatchState!).Users[user.UserID] = new RankedPlayUserInfo
                     {
+                        Rating = 1500,
                         Hand = Enumerable.Range(0, 5).Select(_ => new RankedPlayCardItem()).ToList()
                     };
 
@@ -644,6 +645,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     {
                         ((RankedPlayRoomState)ServerRoom.MatchState).Users[user.UserID] = new RankedPlayUserInfo
                         {
+                            Rating = 1500,
                             Hand = Enumerable.Range(0, 5).Select(_ => new RankedPlayCardItem()).ToList()
                         };
                     }

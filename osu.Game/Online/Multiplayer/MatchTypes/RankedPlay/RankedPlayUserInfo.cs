@@ -12,15 +12,21 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
     public class RankedPlayUserInfo
     {
         /// <summary>
-        /// The current life points.
+        /// This user's matchmaking rating.
         /// </summary>
         [Key(0)]
+        public required int Rating { get; set; }
+
+        /// <summary>
+        /// The current life points.
+        /// </summary>
+        [Key(1)]
         public int Life { get; set; } = 1_000_000;
 
         /// <summary>
         /// The cards in this user's hand.
         /// </summary>
-        [Key(1)]
+        [Key(2)]
         public List<RankedPlayCardItem> Hand { get; set; } = [];
     }
 }
