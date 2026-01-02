@@ -17,7 +17,7 @@ namespace osu.Game.Screens.SelectV2
 {
     public partial class BeatmapMetadataWedge
     {
-        private partial class UserRatingDisplay : CompositeDrawable
+        public partial class UserRatingDisplay : CompositeDrawable
         {
             private readonly OsuSpriteText negativeText;
             private readonly OsuSpriteText positiveText;

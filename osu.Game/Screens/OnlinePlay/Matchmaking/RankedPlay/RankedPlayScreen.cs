@@ -235,6 +235,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     Debug.Assert(activeSubscreen is PickScreen || activeSubscreen is OpponentPickScreen);
                     break;
 
+                case RankedPlayStage.GameplayWarmup:
+                    ShowScreen(new GameplayWarmupScreen());
+                    break;
+
                 default:
                     ShowScreen(new PlaceholderScreen(stage));
                     break;
