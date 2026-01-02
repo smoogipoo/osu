@@ -51,6 +51,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         [Resolved]
         private RankedPlayMatchInfo matchInfo { get; set; } = null!;
 
+        [Resolved]
+        private OverlayColourProvider overlayColours { get; set; } = null!;
+
+        private Container<RankedPlayCard> cardColumn = null!;
+        private Drawable separator = null!;
+        private Drawable detailsColumn = null!;
+        private Drawable wedgesContainer = null!;
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -62,43 +70,72 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             Children =
             [
-                CenterRow = new CardRow
+                new FillFlowContainer
                 {
-                    RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Alpha = 0,
-                },
-            ];
-
-            CenterColumn.Children =
-            [
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Masking = true,
-                    Child = new Container
+                    Direction = FillDirection.Horizontal,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Width = 0.5f,
+                    Spacing = new Vector2(20),
+                    LayoutDuration = 500,
+                    LayoutEasing = Easing.OutPow10,
+                    Children = new[]
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        Shear = OsuGame.SHEAR,
-                        Padding = new MarginPadding
+                        cardColumn = new Container<RankedPlayCard>
                         {
-                            Top = -SongSelect.CORNER_RADIUS_HIDE_OFFSET,
-                            Left = -SongSelect.CORNER_RADIUS_HIDE_OFFSET,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
                         },
-                        Child = new FillFlowContainer
+                        separator = new Box
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Spacing = new Vector2(0f, 4f),
-                            Direction = FillDirection.Vertical,
-                            Children =
-                            [
-                                new ShearAligningWrapper(new GameplayWarmupScreenTitleWedge(beatmap)),
-                                new ShearAligningWrapper(new GameplayWarmupScreenMetadataWedge(beatmap))
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(2, 50),
+                            Scale = new Vector2(1, 0),
+                            Alpha = 0,
+                            Colour = overlayColours.Colour0
+                        },
+                        detailsColumn = new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Masking = true,
+                            Scale = new Vector2(0.8f),
+                            Alpha = 0,
+                            Child = wedgesContainer = new Container
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Shear = OsuGame.SHEAR,
+                                X = -20,
+                                Padding = new MarginPadding
                                 {
-                                    Shear = -OsuGame.SHEAR,
+                                    Left = -SongSelect.CORNER_RADIUS_HIDE_OFFSET,
                                 },
-                            ]
+                                Child = new FillFlowContainer
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
+                                    Spacing = new Vector2(0f, 4f),
+                                    Direction = FillDirection.Vertical,
+                                    Children =
+                                    [
+                                        new ShearAligningWrapper(new GameplayWarmupScreenTitleWedge(beatmap))
+                                        {
+                                            Shear = -OsuGame.SHEAR,
+                                        },
+                                        new ShearAligningWrapper(new GameplayWarmupScreenMetadataWedge(beatmap))
+                                        {
+                                            Shear = -OsuGame.SHEAR,
+                                        },
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
@@ -119,14 +156,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 case PickScreen pick:
                 {
                     if (pick.CenterRow.RemoveCard(matchInfo.LastPlayedCard, out card, out var screenSpaceDrawQuad))
-                        card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, CenterRow);
+                        card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, cardColumn);
                     break;
                 }
 
                 case OpponentPickScreen opponentPick:
                 {
                     if (opponentPick.CenterRow.RemoveCard(matchInfo.LastPlayedCard, out card, out var screenSpaceDrawQuad))
-                        card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, CenterRow);
+                        card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, cardColumn);
                     break;
                 }
             }
@@ -142,9 +179,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 };
             }
 
-            CenterRow.Add(card);
+            cardColumn.Add(card);
 
-            card.MoveToX(-100, 800, Easing.OutPow10);
+            separator.AlwaysPresent = true;
+            detailsColumn.AlwaysPresent = true;
+
+            using (BeginDelayedSequence(500))
+            {
+                separator.FadeIn();
+                separator.ScaleTo(Vector2.One, 1000, Easing.OutPow10);
+
+                using (BeginDelayedSequence(200))
+                {
+                    detailsColumn.FadeIn(800, Easing.OutPow10);
+                    wedgesContainer.MoveToX(0, 1000, Easing.OutPow10);
+                }
+            }
         }
     }
 
@@ -166,6 +216,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         public GameplayWarmupScreenTitleWedge(APIBeatmap beatmap)
         {
             this.beatmap = beatmap;
+
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
         }
@@ -174,6 +225,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private void load()
         {
             Masking = true;
+            Shear = OsuGame.SHEAR;
             CornerRadius = corner_radius;
 
             InternalChildren = new Drawable[]
@@ -317,6 +369,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         public GameplayWarmupScreenDifficultyDisplay(APIBeatmap beatmap)
         {
             this.beatmap = beatmap;
+
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
         }
