@@ -21,6 +21,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public partial class PickScreen : RankedPlaySubScreen
     {
+        public CardRow CenterRow { get; private set; } = null!;
+
         private PlayerCardHand playerHand = null!;
         private OpponentCardHand opponentHand = null!;
         private ShearedButton playButton = null!;
@@ -35,6 +37,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             var matchState = Client.Room?.MatchState as RankedPlayRoomState;
 
             Debug.Assert(matchState != null);
+
+            Children =
+            [
+                CenterRow = new CardRow
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                },
+            ];
 
             CenterColumn.Children =
             [
@@ -158,7 +170,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             if (playerHand.RemoveCard(item, out card, out var drawQuad))
             {
-                card.MatchScreenSpaceDrawQuad(drawQuad, this);
+                card.MatchScreenSpaceDrawQuad(drawQuad, CenterRow);
             }
             else
             {
@@ -171,7 +183,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 };
             }
 
-            AddInternal(card);
+            CenterRow.Add(card);
 
             card
                 .MoveTo(new Vector2(0), 600, Easing.OutExpo)
