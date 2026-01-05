@@ -4,6 +4,7 @@
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Game.Collections;
 using osu.Game.Database;
 using osu.Game.Localisation;
@@ -21,6 +22,9 @@ namespace osu.Game.Overlays.Settings.Sections.Maintenance
         [Resolved]
         private INotificationOverlay? notificationOverlay { get; set; }
 
+        [Resolved]
+        private Storage storage { get; set; } = null!;
+
         [BackgroundDependencyLoader]
         private void load(IDialogOverlay? dialogOverlay)
         {
@@ -30,6 +34,15 @@ namespace osu.Game.Overlays.Settings.Sections.Maintenance
                 Action = () =>
                 {
                     dialogOverlay?.Push(new MassDeleteConfirmationDialog(deleteAllCollections, DeleteConfirmationContentStrings.Collections));
+                }
+            });
+
+            Add(new SettingsButton
+            {
+                Text = "Export collections",
+                Action = () =>
+                {
+                    new LegacyCollectionExporter(storage, realm).Export();
                 }
             });
         }
@@ -49,7 +62,8 @@ namespace osu.Game.Overlays.Settings.Sections.Maintenance
                 }
             });
 
-            notificationOverlay?.Post(new ProgressCompletionNotification { Text = anyDeleted ? MaintenanceSettingsStrings.DeletedAllCollections : MaintenanceSettingsStrings.NoCollectionsFoundToDelete });
+            notificationOverlay?.Post(new ProgressCompletionNotification
+                { Text = anyDeleted ? MaintenanceSettingsStrings.DeletedAllCollections : MaintenanceSettingsStrings.NoCollectionsFoundToDelete });
         }
     }
 }
