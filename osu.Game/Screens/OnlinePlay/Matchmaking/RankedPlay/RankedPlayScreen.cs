@@ -240,6 +240,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     ShowScreen(new GameplayWarmupScreen());
                     break;
 
+                case RankedPlayStage.Results:
+                    ShowScreen(new ResultsScreen());
+                    break;
+
                 default:
                     ShowScreen(new PlaceholderScreen(stage));
                     break;
