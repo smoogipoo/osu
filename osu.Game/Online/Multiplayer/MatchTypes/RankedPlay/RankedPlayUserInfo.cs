@@ -28,5 +28,11 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// </summary>
         [Key(2)]
         public List<RankedPlayCardItem> Hand { get; set; } = [];
+
+        /// <summary>
+        /// Rating after conclusion of the match.
+        /// </summary>
+        [Key(3)]
+        public int RatingAfter { get; set; }
     }
 }

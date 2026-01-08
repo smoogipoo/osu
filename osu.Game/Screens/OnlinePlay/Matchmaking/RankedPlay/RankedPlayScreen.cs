@@ -244,6 +244,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     ShowScreen(new ResultsScreen());
                     break;
 
+                case RankedPlayStage.Ended:
+                    ShowScreen(new EndedScreen());
+                    break;
+
                 default:
                     ShowScreen(new PlaceholderScreen(stage));
                     break;

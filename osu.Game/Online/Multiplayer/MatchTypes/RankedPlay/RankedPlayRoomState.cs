@@ -48,9 +48,18 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         public double StarRating { get; set; }
 
         /// <summary>
+        /// The winner of the match.
+        /// </summary>
+        [Key(6)]
+        public int? WinningUserId { get; set; }
+
+        /// <summary>
         /// The user currently playing a card.
         /// </summary>
         [IgnoreMember]
         public RankedPlayUserInfo ActiveUser => Users[ActiveUserId];
+
+        [IgnoreMember]
+        public RankedPlayUserInfo? WinningUser => WinningUserId == null ? null : Users[WinningUserId.Value];
     }
 }
