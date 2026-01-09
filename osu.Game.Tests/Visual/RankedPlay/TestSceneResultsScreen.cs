@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Utils;
 using osu.Game.Online.API;
@@ -25,8 +26,6 @@ namespace osu.Game.Tests.Visual.RankedPlay
         {
             base.SetUpSteps();
 
-            setupRequestHandler();
-
             AddStep("join room", () => JoinRoom(CreateDefaultRoom(MatchType.RankedPlay)));
             WaitForJoined();
 
@@ -34,6 +33,36 @@ namespace osu.Game.Tests.Visual.RankedPlay
 
             AddStep("load screen", () => LoadScreen(screen = new RankedPlayScreen(MultiplayerClient.ClientRoom!)));
             AddUntilStep("screen loaded", () => screen.IsLoaded);
+
+            setupRequestHandler();
+        }
+
+        [Test]
+        public void TestBasic()
+        {
+            AddStep("set results state", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.Results).WaitSafely());
+        }
+
+        [Test]
+        public void TestMissingScores()
+        {
+            AddStep("setup request handler", () =>
+            {
+                Func<APIRequest, bool>? defaultRequestHandler = ((DummyAPIAccess)API).HandleRequest;
+
+                ((DummyAPIAccess)API).HandleRequest = request =>
+                {
+                    switch (request)
+                    {
+                        case IndexPlaylistScoresRequest index:
+                            index.TriggerSuccess(new IndexedMultiplayerScores());
+                            return true;
+
+                        default:
+                            return defaultRequestHandler?.Invoke(request) ?? false;
+                    }
+                };
+            });
 
             AddStep("set results state", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.Results).WaitSafely());
         }
