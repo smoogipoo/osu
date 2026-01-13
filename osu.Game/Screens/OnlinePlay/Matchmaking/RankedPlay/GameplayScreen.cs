@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
-    public class GameplayScreen : RankedPlaySubScreen
+    public partial class GameplayScreen : RankedPlaySubScreen
     {
         [BackgroundDependencyLoader]
         private void load()
