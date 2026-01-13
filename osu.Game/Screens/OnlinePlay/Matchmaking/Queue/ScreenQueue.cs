@@ -214,6 +214,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             base.OnResuming(e);
 
             client.MatchmakingJoinLobby().FireAndForget();
+
+            if (e.Last is RankedPlayScreen rankedPlay && rankedPlay.RetryRequested)
+                client.MatchmakingJoinQueue(selectedPool.Value!.Id).FireAndForget();
         }
 
         public override void OnSuspending(ScreenTransitionEvent e)

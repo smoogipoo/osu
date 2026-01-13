@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -18,6 +19,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public partial class EndedScreen : RankedPlaySubScreen
     {
+        /// <summary>
+        /// Invoked when the user requests to exit this screen.
+        /// </summary>
+        public Action<bool>? ExitRequested { get; init; }
+
         [Resolved]
         private RankedPlayMatchInfo matchInfo { get; set; } = null!;
 
@@ -144,14 +150,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                             new ShearedButton(100)
                             {
                                 Text = "Quit",
-                                Action = () => { },
+                                Action = () => ExitRequested?.Invoke(false),
                                 DarkerColour = colours.Red3,
                                 LighterColour = colours.Red4,
                             },
                             new ShearedButton(200)
                             {
                                 Text = "Play Again",
-                                Action = () => { },
+                                Action = () => ExitRequested?.Invoke(true),
                                 DarkerColour = colours.Green3,
                                 LighterColour = colours.Green4,
                             },

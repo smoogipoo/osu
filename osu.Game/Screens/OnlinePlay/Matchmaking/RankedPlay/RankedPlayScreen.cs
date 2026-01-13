@@ -39,6 +39,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
     {
         public override bool AllowUserExit => false;
 
+        public bool RetryRequested { get; private set; }
+
         protected override BackgroundScreen CreateBackground() => new MatchmakingBackgroundScreen(new OverlayColourProvider(OverlayColourScheme.Pink));
 
         [Cached(typeof(OnlinePlayBeatmapAvailabilityTracker))]
@@ -78,7 +80,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private MusicController music { get; set; } = null!;
 
         private readonly MultiplayerRoom room;
-
         private readonly Container<RankedPlaySubScreen> screenContainer;
 
         private IBindable<RankedPlayStage> stage = null!;
@@ -249,7 +250,17 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     break;
 
                 case RankedPlayStage.Ended:
-                    ShowScreen(new EndedScreen());
+                    ShowScreen(new EndedScreen
+                    {
+                        ExitRequested = retry =>
+                        {
+                            RetryRequested = retry;
+                            exitConfirmed = true;
+
+                            if (this.IsCurrentScreen())
+                                this.Exit();
+                        }
+                    });
                     break;
 
                 default:
