@@ -11,6 +11,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Logging;
 using osu.Framework.Screens;
 using osu.Game.Audio;
@@ -31,6 +32,7 @@ using osu.Game.Screens.OnlinePlay.Matchmaking.Match.Gameplay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
+using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -40,6 +42,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         protected override bool InitialBackButtonVisibility => false;
 
         public bool RetryRequested { get; private set; }
+
+        public RankedPlaySubScreen? ActiveSubScreen { get; private set; }
 
         protected override BackgroundScreen CreateBackground() => new MatchmakingBackgroundScreen(new OverlayColourProvider(OverlayColourScheme.Pink));
 
@@ -101,10 +105,21 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             {
                 matchInfo = new RankedPlayMatchInfo(),
                 beatmapAvailabilityTracker,
-                screenContainer = new Container<RankedPlaySubScreen>
+                new PopoverContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                },
+                    Children = new Drawable[]
+                    {
+                        screenContainer = new Container<RankedPlaySubScreen>
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        new HamburgerMenu
+                        {
+                            Size = new Vector2(56),
+                        }
+                    }
+                }
             };
         }
 
@@ -151,18 +166,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             stage.BindValueChanged(e => onStageChanged(e.NewValue));
         }
 
-        private RankedPlaySubScreen? activeSubscreen;
-
         public void ShowScreen(RankedPlaySubScreen screen)
         {
-            if (screen == activeSubscreen)
+            if (screen == ActiveSubScreen)
                 return;
 
             LoadComponent(screen);
 
-            var previousScreen = activeSubscreen;
+            var previousScreen = ActiveSubScreen;
 
-            screenContainer.Add(activeSubscreen = screen);
+            screenContainer.Add(ActiveSubScreen = screen);
             screen.OnLoadComplete += _ =>
             {
                 previousScreen?.OnExiting(screen);
@@ -226,7 +239,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     break;
 
                 case RankedPlayStage.FinishCardDiscard:
-                    (activeSubscreen as DiscardScreen)?.PresentRemainingCards();
+                    (ActiveSubScreen as DiscardScreen)?.PresentRemainingCards();
                     break;
 
                 case RankedPlayStage.CardPlay:
@@ -234,7 +247,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     break;
 
                 case RankedPlayStage.FinishCardPlay:
-                    Debug.Assert(activeSubscreen is PickScreen || activeSubscreen is OpponentPickScreen);
+                    Debug.Assert(ActiveSubScreen is PickScreen || ActiveSubScreen is OpponentPickScreen);
                     break;
 
                 case RankedPlayStage.GameplayWarmup:
@@ -373,7 +386,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public override bool OnExiting(ScreenExitEvent e)
         {
-            if (exitConfirmed || activeSubscreen is EndedScreen)
+            if (exitConfirmed || ActiveSubScreen is EndedScreen)
             {
                 if (base.OnExiting(e))
                 {
