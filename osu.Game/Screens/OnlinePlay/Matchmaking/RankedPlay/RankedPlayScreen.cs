@@ -362,7 +362,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public override bool OnExiting(ScreenExitEvent e)
         {
-            if (exitConfirmed)
+            if (exitConfirmed || activeSubscreen is EndedScreen)
             {
                 if (base.OnExiting(e))
                 {
