@@ -37,7 +37,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
     [Cached]
     public partial class RankedPlayScreen : OsuScreen, IPreviewTrackOwner, IHandlePresentBeatmap
     {
-        public override bool AllowUserExit => false;
+        protected override bool InitialBackButtonVisibility => false;
 
         public bool RetryRequested { get; private set; }
 
