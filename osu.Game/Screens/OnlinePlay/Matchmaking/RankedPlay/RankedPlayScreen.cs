@@ -86,6 +86,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private MusicController music { get; set; } = null!;
 
         private readonly MultiplayerRoom room;
+        private readonly Container contentContainer;
         private readonly Container<RankedPlaySubScreen> screenContainer;
         private readonly MatchmakingChatDisplay chat;
 
@@ -104,34 +105,45 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             this.room = room;
 
-            InternalChildren = new Drawable[]
+            InternalChild = new InverseScalingDrawSizePreservingFillContainer
             {
-                matchInfo = new RankedPlayMatchInfo(),
-                beatmapAvailabilityTracker,
-                new PopoverContainer
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Child = contentContainer = new DrawSizePreservingFillContainer
                 {
                     RelativeSizeAxes = Axes.Both,
+                    TargetDrawSize = new Vector2(1366, 768),
                     Children = new Drawable[]
                     {
-                        screenContainer = new Container<RankedPlaySubScreen>
+                        matchInfo = new RankedPlayMatchInfo(),
+                        beatmapAvailabilityTracker,
+                        new PopoverContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                        },
-                        chat = new MatchmakingChatDisplay(new Room(room))
-                        {
-                            Anchor = Anchor.BottomRight,
-                            Origin = Anchor.BottomRight,
-                            Size = new Vector2(320, 160),
-                            Margin = new MarginPadding
+                            Children = new Drawable[]
                             {
-                                Bottom = 10,
-                                Right = 10
-                            },
-                            Alpha = 0,
-                        },
-                        new HamburgerMenu
-                        {
-                            Size = new Vector2(56),
+                                screenContainer = new Container<RankedPlaySubScreen>
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                chat = new MatchmakingChatDisplay(new Room(room))
+                                {
+                                    Anchor = Anchor.BottomRight,
+                                    Origin = Anchor.BottomRight,
+                                    Size = new Vector2(320, 160),
+                                    Margin = new MarginPadding
+                                    {
+                                        Bottom = 10,
+                                        Right = 10
+                                    },
+                                    Alpha = 0,
+                                },
+                                new HamburgerMenu
+                                {
+                                    Size = new Vector2(56),
+                                }
+                            }
                         }
                     }
                 }
@@ -159,7 +171,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             int localUserId = api.LocalUser.Value.OnlineID;
             int opponentUserId = ((RankedPlayRoomState)client.Room!.MatchState!).Users.Keys.Single(it => it != localUserId);
 
-            AddRangeInternal([
+            contentContainer.AddRange(
+            [
                 new RankedPlayCornerPiece(RankedPlayColourScheme.Blue, Anchor.BottomLeft)
                 {
                     State = { BindTarget = cornerPieceVisibility },
