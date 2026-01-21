@@ -162,7 +162,6 @@ namespace osu.Game.Screens.Menu
             {
                 Padding = new MarginPadding { Left = WEDGE_WIDTH }
             });
-            buttonsMulti.Add(new MainMenuButton("quick play", @"button-daily-select", FontAwesome.Solid.Bolt, new Color4(94, 63, 186, 255), onQuickPlay, Key.Q));
             buttonsMulti.Add(new MainMenuButton("ranked play", @"button-daily-select", FontAwesome.Solid.Crown, new Color4(94, 63, 186, 255), onRankedPlay, Key.E));
             buttonsMulti.ForEach(b => b.VisibleState = ButtonSystemState.Multi);
 
