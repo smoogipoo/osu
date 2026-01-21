@@ -33,9 +33,40 @@ namespace osu.Game.Tests.Visual.RankedPlay
         }
 
         [Test]
-        public void TestIntro()
+        public void TestIntroStage()
         {
             AddStep("set round warmup phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.RoundWarmup, s => s.StarRating = 6.3f).WaitSafely());
+        }
+
+        [Test]
+        public void TestDiscardCardsStage()
+        {
+            AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
+
+            AddWaitStep("wait", 3);
+
+            for (int i = 0; i < 3; i++)
+            {
+                int i2 = i;
+                AddStep($"click card {i2}", () =>
+                {
+                    InputManager.MoveMouseTo(this.ChildrenOfType<PlayerCardHand.PlayerHandCard>().ElementAt(i2));
+                    InputManager.Click(MouseButton.Left);
+                });
+            }
+
+            AddWaitStep("wait", 3);
+
+            AddStep("click discard button", () =>
+            {
+                var button = screen.ChildrenOfType<ShearedButton>().Single(it => it.Text == "Discard");
+
+                InputManager.MoveMouseTo(button);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddWaitStep("wait", 13);
+            AddStep("set finish discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.FinishCardDiscard).WaitSafely());
         }
 
         [Test]
@@ -80,37 +111,6 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
             AddWaitStep("wait", 3);
             AddStep("discard cards", () => MultiplayerClient.DiscardCards(hand => hand.Take(3)).WaitSafely());
-            AddWaitStep("wait", 13);
-            AddStep("set finish discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.FinishCardDiscard).WaitSafely());
-        }
-
-        [Test]
-        public void TestDiscardCardsStage()
-        {
-            AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
-
-            AddWaitStep("wait", 3);
-
-            for (int i = 0; i < 3; i++)
-            {
-                int i2 = i;
-                AddStep($"click card {i2}", () =>
-                {
-                    InputManager.MoveMouseTo(this.ChildrenOfType<PlayerCardHand.PlayerHandCard>().ElementAt(i2));
-                    InputManager.Click(MouseButton.Left);
-                });
-            }
-
-            AddWaitStep("wait", 3);
-
-            AddStep("click discard button", () =>
-            {
-                var button = screen.ChildrenOfType<ShearedButton>().Single(it => it.Text == "Discard");
-
-                InputManager.MoveMouseTo(button);
-                InputManager.Click(MouseButton.Left);
-            });
-
             AddWaitStep("wait", 13);
             AddStep("set finish discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.FinishCardDiscard).WaitSafely());
         }
