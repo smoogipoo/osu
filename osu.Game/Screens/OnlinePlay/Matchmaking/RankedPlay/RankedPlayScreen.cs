@@ -87,6 +87,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private readonly MultiplayerRoom room;
         private readonly Container<RankedPlaySubScreen> screenContainer;
+        private readonly MatchmakingChatDisplay chat;
 
         private IBindable<RankedPlayStage> stage = null!;
 
@@ -115,6 +116,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                         screenContainer = new Container<RankedPlaySubScreen>
                         {
                             RelativeSizeAxes = Axes.Both,
+                        },
+                        chat = new MatchmakingChatDisplay(new Room(room))
+                        {
+                            Anchor = Anchor.BottomRight,
+                            Origin = Anchor.BottomRight,
+                            Size = new Vector2(320, 160),
+                            Margin = new MarginPadding
+                            {
+                                Bottom = 10,
+                                Right = 10
+                            },
+                            Alpha = 0,
                         },
                         new HamburgerMenu
                         {
@@ -164,6 +177,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     }
                 },
             ]);
+
+            cornerPieceVisibility.BindValueChanged(e =>
+            {
+                if (e.NewValue == Visibility.Visible)
+                    chat.Appear();
+                else
+                    chat.Disappear();
+            });
 
             stage.BindValueChanged(e => onStageChanged(e.NewValue));
         }
