@@ -6,10 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Humanizer;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
+using osu.Game.Audio;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
@@ -29,8 +32,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         [Resolved]
         private RankedPlayMatchInfo matchInfo { get; set; } = null!;
 
+        private const int card_play_samples = 2;
+        private Sample?[]? cardPlaySamples;
+
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(AudioManager audio)
         {
             var matchState = Client.Room?.MatchState as RankedPlayRoomState;
 
@@ -94,6 +100,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     ]
                 },
             ];
+
+            cardPlaySamples = new Sample?[card_play_samples];
+            for (int i = 0; i < card_play_samples; i++)
+                cardPlaySamples[i] = audio.Samples.Get($@"Multiplayer/Matchmaking/Ranked/card-play-{1 + i}");
         }
 
         public override void OnEntering(RankedPlaySubScreen? previous)
@@ -154,6 +164,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 }
 
                 CenterRow.Add(card);
+
+                SamplePlaybackHelper.PlayWithRandomPitch(cardPlaySamples);
 
                 card
                     .MoveTo(new Vector2(0), 600, Easing.OutExpo)

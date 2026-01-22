@@ -5,10 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Game.Audio;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
@@ -31,8 +34,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         [Resolved]
         private RankedPlayMatchInfo matchInfo { get; set; } = null!;
 
+        private Sample? cardAddSample;
+        private Sample? cardDiscardSample;
+
+        private const int card_play_samples = 2;
+        private Sample?[]? cardPlaySamples;
+
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(AudioManager audio)
         {
             Children =
             [
@@ -103,6 +112,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 Enabled = { Value = true },
                 Text = "Discard",
             };
+
+            cardAddSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-add-1");
+            cardDiscardSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-discard-1");
+
+            cardPlaySamples = new Sample?[card_play_samples];
+            for (int i = 0; i < card_play_samples; i++)
+                cardPlaySamples[i] = audio.Samples.Get($@"Multiplayer/Matchmaking/Ranked/card-play-{1 + i}");
         }
 
         protected override void LoadComplete()
@@ -133,6 +149,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             base.OnEntering(previous);
 
             var screenBottomCenter = new Vector2(DrawWidth / 2, DrawHeight);
+            int cardCount = 0;
 
             foreach (var card in matchInfo.PlayerCards)
             {
@@ -140,6 +157,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 {
                     c.Position = ToSpaceOfOtherDrawable(screenBottomCenter, playerHand);
                 });
+                Scheduler.AddDelayed(() =>
+                {
+                    SamplePlaybackHelper.PlayWithRandomPitch(cardAddSample);
+                }, 50 * cardCount);
+                cardCount++;
             }
 
             playerHand.UpdateLayout(stagger: 50);
@@ -171,8 +193,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     card.PopOutAndExpire();
                 }
 
+                Scheduler.AddDelayed(() =>
+                {
+                    SamplePlaybackHelper.PlayWithRandomPitch(cardPlaySamples);
+                }, delay);
+
                 delay += stagger;
             }
+
+            Scheduler.AddDelayed(() =>
+            {
+                cardDiscardSample?.Play();
+            }, 1000);
 
             discardedCards.Clear();
             CenterRow.LayoutCards(stagger: stagger);
@@ -201,6 +233,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     d.Position = ToSpaceOfOtherDrawable(new Vector2(DrawWidth, DrawHeight * 0.5f), playerHand);
                     d.Rotation = -30;
                 });
+
+                SamplePlaybackHelper.PlayWithRandomPitch(cardAddSample);
             }, delay);
         }
 
@@ -213,6 +247,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private void presentRemainingCards()
         {
+            int delay = 0;
+
             foreach (var item in matchInfo.PlayerCards)
             {
                 if (playerHand.RemoveCard(item, out var card, out Quad drawQuad))
@@ -220,6 +256,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     card.MatchScreenSpaceDrawQuad(drawQuad, CenterRow);
 
                     CenterRow.Add(card);
+
+                    Scheduler.AddDelayed(() =>
+                    {
+                        SamplePlaybackHelper.PlayWithRandomPitch(cardPlaySamples);
+                    }, delay);
+
+                    delay += 50;
                 }
                 else
                 {

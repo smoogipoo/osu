@@ -5,10 +5,13 @@ using System.Diagnostics;
 using System.Linq;
 using Humanizer;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
+using osu.Game.Audio;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
@@ -31,8 +34,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         [Resolved]
         private RankedPlayMatchInfo matchInfo { get; set; } = null!;
 
+        private Sample? cardAddSample;
+
+        private const int card_play_samples = 2;
+        private Sample?[]? cardPlaySamples;
+
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(AudioManager audio)
         {
             var matchState = Client.Room?.MatchState as RankedPlayRoomState;
 
@@ -103,6 +111,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 Enabled = { Value = false },
                 Text = "Play",
             };
+
+            cardAddSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-add-1");
+
+            cardPlaySamples = new Sample?[card_play_samples];
+            for (int i = 0; i < card_play_samples; i++)
+                cardPlaySamples[i] = audio.Samples.Get($@"Multiplayer/Matchmaking/Ranked/card-play-{1 + i}");
         }
 
         protected override void LoadComplete()
@@ -134,6 +148,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             base.OnEntering(previous);
 
+            int delay = 0;
+
             foreach (var item in matchInfo.PlayerCards)
             {
                 if ((previous as DiscardScreen)?.CenterRow.RemoveCard(item, out var card, out var drawQuad) == true)
@@ -149,6 +165,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     {
                         c.Position = ToSpaceOfOtherDrawable(new Vector2(DrawWidth / 2, DrawHeight), playerHand);
                     });
+                    Scheduler.AddDelayed(() =>
+                    {
+                        SamplePlaybackHelper.PlayWithRandomPitch(cardAddSample);
+                    }, 50 * delay);
+                    delay++;
                 }
             }
 
@@ -191,6 +212,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 .MoveTo(new Vector2(0), 600, Easing.OutExpo)
                 .ScaleTo(CENTERED_CARD_SCALE, 600, Easing.OutExpo)
                 .RotateTo(0, 400, Easing.OutExpo);
+
+            SamplePlaybackHelper.PlayWithRandomPitch(cardPlaySamples);
 
             opponentHand.Contract();
             playerHand.Contract();

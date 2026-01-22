@@ -4,8 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
+using osu.Game.Audio;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.RankedPlay;
 using osuTK.Input;
@@ -61,6 +65,24 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
 
         private readonly BindableBool allowSelection = new BindableBool(true);
 
+        private const int select_samples = 1;
+        private const int deselect_samples = 2;
+
+        private Sample?[]? cardSelectSamples;
+        private Sample?[]? cardDeselectSamples;
+
+        [BackgroundDependencyLoader]
+        private void load(AudioManager audio)
+        {
+            cardSelectSamples = new Sample?[select_samples];
+            for (int i = 0; i < select_samples; i++)
+                cardSelectSamples[i] = audio.Samples.Get(@$"Multiplayer/Matchmaking/Ranked/card-select-{i + 1}");
+
+            cardDeselectSamples = new Sample?[deselect_samples];
+            for (int i = 0; i < deselect_samples; i++)
+                cardDeselectSamples[i] = audio.Samples.Get(@$"Multiplayer/Matchmaking/Ranked/card-deselect-{i + 1}");
+        }
+
         protected override HandCard CreateHandCard(RankedPlayCard card) => new PlayerHandCard(card)
         {
             Action = cardClicked,
@@ -76,6 +98,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
             {
                 if (selectionMode == CardSelectionMode.Single)
                 {
+                    // only play feedback SFX if the selected card has changed
+                    if (!card.Selected)
+                        SamplePlaybackHelper.PlayWithRandomPitch(cardSelectSamples);
+
                     foreach (var c in Cards)
                     {
                         ((PlayerHandCard)c).Selected = c == card;
@@ -85,6 +111,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
                 }
 
                 card.Selected = !card.Selected;
+
+                SamplePlaybackHelper.PlayWithRandomPitch(card.Selected ? cardSelectSamples : cardDeselectSamples);
             }
             finally
             {
@@ -116,10 +144,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
             {
                 base.LoadComplete();
 
-                AddInternal(new HoverClickSounds
-                {
-                    Enabled = { BindTarget = AllowSelection }
-                });
+                AddInternal(new HoverSounds());
             }
 
             protected override bool OnHover(HoverEvent e)

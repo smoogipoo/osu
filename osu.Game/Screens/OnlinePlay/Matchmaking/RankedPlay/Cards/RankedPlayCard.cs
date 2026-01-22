@@ -3,6 +3,8 @@
 
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -10,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Logging;
+using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.Online.Rooms;
 using osuTK;
@@ -30,6 +33,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
         public readonly Container OverlayLayer;
 
         public float Elevation;
+
+        private Sample? cardFlipSample;
 
         [Resolved]
         private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
@@ -85,6 +90,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
                     ]
                 }
             ];
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(AudioManager audio)
+        {
+            cardFlipSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-flip-1");
         }
 
         protected override void LoadComplete()
@@ -157,6 +168,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
                    .Then()
                    .Schedule(() => cardContent.Child = newContent)
                    .ScaleTo(new Vector2(1), 300, Easing.OutElasticQuarter);
+
+            SamplePlaybackHelper.PlayWithRandomPitch(cardFlipSample);
         }
 
         #endregion
