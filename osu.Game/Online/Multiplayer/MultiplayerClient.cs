@@ -1198,7 +1198,7 @@ namespace osu.Game.Online.Multiplayer
             return cardsWithPlaylistItems[card] = new RankedPlayCardWithPlaylistItem(card);
         }
 
-        public abstract Task<MatchmakingPool[]> GetMatchmakingPools(MatchmakingPoolType type);
+        public abstract Task<MatchmakingPool[]> GetMatchmakingPoolsOfType(MatchmakingPoolType type);
 
         public abstract Task MatchmakingJoinLobby();
 

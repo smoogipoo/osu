@@ -851,7 +851,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             await ((IRankedPlayClient)this).RankedPlayCardPlayed(clone(card)).ConfigureAwait(false);
         }
 
-        public override Task<MatchmakingPool[]> GetMatchmakingPools(MatchmakingPoolType type)
+        public override Task<MatchmakingPool[]> GetMatchmakingPoolsOfType(MatchmakingPoolType type)
         {
             return Task.FromResult<MatchmakingPool[]>(
             [
