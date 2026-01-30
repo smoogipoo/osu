@@ -176,6 +176,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             opponentHand.Contract();
             playerHand.Contract();
+
+            playerHand.SelectionMode = CardSelectionMode.Disabled;
         }
 
         protected override void Dispose(bool isDisposing)

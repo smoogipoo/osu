@@ -231,6 +231,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public void PresentRemainingCards()
         {
+            discardButton.Hide();
+
             double presentationTime = Math.Max(earliestPresentationTime, Time.Current);
 
             Scheduler.AddDelayed(presentRemainingCards, presentationTime - Time.Current);
