@@ -699,7 +699,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             if (!this.IsCurrentScreen())
                 return;
 
-            this.Push(new MultiplayerMatchSongSelect(room, itemToEdit));
+            this.Push(new MultiplayerMatchSongSelectV2(room, itemToEdit));
         }
 
         /// <summary>
