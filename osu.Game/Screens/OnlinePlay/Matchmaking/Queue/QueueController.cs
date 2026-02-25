@@ -95,15 +95,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             closeNotifications();
         });
 
-        private void onMatchmakingRoomInvited() => Scheduler.Add(() =>
+        private void onMatchmakingRoomInvited(MatchmakingRoomInvitationParams invitation) => Scheduler.Add(() =>
         {
             CurrentState.Value = ScreenQueue.MatchmakingScreenState.PendingAccept;
 
-            if (backgroundNotification != null)
-            {
-                backgroundNotification.State = ProgressNotificationState.Completed;
-                backgroundNotification = null;
-            }
+            backgroundNotification?.Complete(invitation);
+            backgroundNotification = null;
         });
 
         private void onMatchmakingRoomReady(long roomId, string password) => Scheduler.Add(() =>
@@ -184,18 +181,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     return false;
                 };
 
-                CompletionClickAction = () =>
-                {
-                    client.MatchmakingAcceptInvitation().FireAndForget();
-                    controller.CurrentState.Value = ScreenQueue.MatchmakingScreenState.AcceptedWaitingForRoom;
-
-                    // Todo: Quick play value here is temporary. Needs some sort of signalling...
-                    performer?.PerformFromScreen(s => s.Push(new ScreenIntro(MatchmakingPoolType.QuickPlay)));
-
-                    Close(false);
-                    return true;
-                };
-
                 CancelRequested = () =>
                 {
                     client.MatchmakingLeaveQueue().FireAndForget();
@@ -203,6 +188,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 };
 
                 matchFoundSample = audio.Samples.Get(@"Multiplayer/Matchmaking/match-found");
+            }
+
+            public void Complete(MatchmakingRoomInvitationParams invitation)
+            {
+                CompletionClickAction = () =>
+                {
+                    client.MatchmakingAcceptInvitation().FireAndForget();
+                    controller.CurrentState.Value = ScreenQueue.MatchmakingScreenState.AcceptedWaitingForRoom;
+
+                    performer?.PerformFromScreen(s => s.Push(new ScreenIntro(invitation.Type)));
+
+                    Close(false);
+                    return true;
+                };
+
+                State = ProgressNotificationState.Completed;
             }
 
             protected override Notification CreateCompletionNotification()
