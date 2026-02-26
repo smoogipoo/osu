@@ -235,6 +235,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
                 if (timeRunningOutSampleChannel == null || timeRunningOutSampleChannel.Playing) return;
 
+                timeRunningOutSampleChannel.ManualFree = true;
                 timeRunningOutSampleChannel.Looping = true;
                 timeRunningOutSampleChannel.Play();
             }
@@ -263,6 +264,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         protected override void Dispose(bool isDisposing)
         {
             timeRunningOutSampleChannel?.Stop();
+            timeRunningOutSampleChannel?.Dispose();
 
             base.Dispose(isDisposing);
 
