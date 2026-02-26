@@ -37,6 +37,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private const int card_play_samples = 2;
         private Sample?[]? cardPlaySamples;
 
+        private bool timeRunningOutWarningActive;
         private Sample? timeRunningOutSample;
         private SampleChannel? timeRunningOutSampleChannel;
         private Sample? timeUpBuzzerSample;
@@ -126,7 +127,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             TimeSpan remainingTime = stageEndTime - DateTimeOffset.Now;
 
-            if (remainingTime.TotalSeconds < warning_time_threshold)
+            if (timeRunningOutWarningActive && remainingTime.TotalSeconds < warning_time_threshold)
             {
                 timeRunningOutSampleChannel ??= timeRunningOutSample?.GetChannel();
 
@@ -182,18 +183,25 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private void onCountdownStarted(MultiplayerCountdown countdown) => Scheduler.Add(() =>
         {
-            if (countdown is not RankedPlayStageCountdown)
+            if (countdown is not RankedPlayStageCountdown stageCountdown)
                 return;
 
             stageEndTime = DateTimeOffset.Now + countdown.TimeRemaining;
+            timeRunningOutWarningActive = stageCountdown.Stage == RankedPlayStage.CardPlay;
         });
 
         private void onCountdownStopped(MultiplayerCountdown countdown) => Scheduler.Add(() =>
         {
-            if (countdown is not RankedPlayStageCountdown)
+            if (countdown is not RankedPlayStageCountdown stageCountdown)
                 return;
 
+            timeRunningOutSampleChannel?.Stop();
+
             stageEndTime = DateTimeOffset.Now;
+            timeRunningOutWarningActive = false;
+
+            if (stageCountdown.Stage == RankedPlayStage.CardPlay && !hasPlayedCard)
+                timeUpBuzzerSample?.Play();
         });
 
         private void onPlayButtonClicked()
@@ -243,11 +251,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             playerHand.Contract();
 
             playerHand.SelectionMode = CardSelectionMode.Disabled;
-
-            timeRunningOutSampleChannel?.Stop();
-
-            if (!hasPlayedCard)
-                timeUpBuzzerSample?.Play();
         }
 
         protected override void Dispose(bool isDisposing)
