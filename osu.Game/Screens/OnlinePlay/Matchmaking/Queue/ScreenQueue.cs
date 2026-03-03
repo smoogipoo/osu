@@ -213,7 +213,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             client.MatchmakingJoinLobby().FireAndForget();
 
             if (e.Last is RankedPlayScreen rankedPlay && rankedPlay.RetryRequested)
-                client.MatchmakingJoinQueue(selectedPool.Value!.Id).FireAndForget();
+                controller.JoinQueue(selectedPool.Value!);
         }
 
         public override void OnSuspending(ScreenTransitionEvent e)
@@ -241,7 +241,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
                 case MatchmakingScreenState.PendingAccept:
                 case MatchmakingScreenState.AcceptedWaitingForRoom:
-                    client.MatchmakingLeaveQueue().FireAndForget();
+                    controller.LeaveQueue();
                     return true;
 
                 case MatchmakingScreenState.InRoom:
@@ -292,7 +292,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 Action = () =>
                                 {
                                     Debug.Assert(selectedPool.Value != null);
-                                    client.MatchmakingJoinQueue(selectedPool.Value.Id).FireAndForget();
+                                    controller.JoinQueue(selectedPool.Value);
                                 },
                                 Text = "Begin queueing",
                             }
@@ -328,7 +328,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Text = "Stop queueing",
-                                Action = () => client.MatchmakingLeaveQueue().FireAndForget()
+                                Action = () => controller.LeaveQueue()
                             }
                         }
                     };
