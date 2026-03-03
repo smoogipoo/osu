@@ -73,6 +73,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         }
 
         /// <summary>
+        /// Rejoins the last joined matchmaking queue.
+        /// </summary>
+        public void RejoinQueue()
+        {
+            if (lastJoinedPool != null)
+                JoinQueue(lastJoinedPool);
+        }
+
+        /// <summary>
         /// Moves the matchmaking queue search to the background.
         /// </summary>
         public void SearchInBackground()
