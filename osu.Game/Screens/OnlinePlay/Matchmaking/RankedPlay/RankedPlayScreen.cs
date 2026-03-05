@@ -93,7 +93,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private MusicController music { get; set; } = null!;
 
         [Resolved]
-        private QueueController controller { get; set; } = null!;
+        private QueueController? controller { get; set; }
 
         private readonly MultiplayerRoom room;
         private readonly Container<RankedPlaySubScreen> screenContainer;
@@ -446,7 +446,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 client.LeaveRoom().FireAndForget();
 
                 if (retryRequested)
-                    controller.RejoinQueue();
+                    controller?.RejoinQueue();
 
                 return false;
             }
