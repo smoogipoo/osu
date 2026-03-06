@@ -1,17 +1,31 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RankedPlay;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
 {
-    public partial class CardHandReplayPlayer : CardHandReplayPlayerBase
+    public partial class CardHandReplayPlayer : Component
     {
-        public CardHandReplayPlayer(OpponentCardHand cardHand)
-            : base(cardHand)
+        /// <summary>
+        /// Maximum amount of frames that can get queued up at the same time
+        /// </summary>
+        public int MaxQueuedFrames { get; set; } = 20;
+
+        private readonly int userId;
+        private readonly OpponentCardHand cardHand;
+
+        private int queuedFrames;
+        private double? lastPlayback;
+
+        public CardHandReplayPlayer(int userId, OpponentCardHand cardHand)
         {
+            this.userId = userId;
+            this.cardHand = cardHand;
         }
 
         [Resolved]
@@ -26,10 +40,26 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
 
         private void onMatchEvent(MatchServerEvent e)
         {
-            if (e is not RankedPlayCardHandReplayEvent replayEvent || replayEvent.UserId == client.LocalUser?.UserID)
+            if (e is not RankedPlayCardHandReplayEvent replayEvent || replayEvent.UserId != userId)
                 return;
 
-            EnqueueFrames(replayEvent.Frames);
+            foreach (var frame in replayEvent.Frames)
+            {
+                if (queuedFrames >= MaxQueuedFrames)
+                    return;
+
+                queuedFrames++;
+
+                double delay = Math.Max(lastPlayback != null ? lastPlayback.Value + frame.Delay - Time.Current : 0, 0);
+                lastPlayback = Time.Current + delay;
+
+                Scheduler.AddDelayed(() =>
+                {
+                    queuedFrames--;
+
+                    cardHand.SetState(frame.Cards);
+                }, delay);
+            }
         }
 
         protected override void Dispose(bool isDisposing)

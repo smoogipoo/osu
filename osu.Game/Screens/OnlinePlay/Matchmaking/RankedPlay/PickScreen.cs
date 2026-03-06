@@ -92,7 +92,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     Y = -100,
                 },
                 new CardHandReplayRecorder(playerHand),
-                new CardHandReplayPlayer(opponentHand),
+                new CardHandReplayPlayer(matchInfo.OpponentId, opponentHand),
             ];
 
             cardAddSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-add-1");
