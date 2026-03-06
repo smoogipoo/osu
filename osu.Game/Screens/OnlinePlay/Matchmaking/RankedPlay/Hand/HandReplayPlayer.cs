@@ -7,9 +7,9 @@ using osu.Framework.Graphics;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RankedPlay;
 
-namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
+namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 {
-    public partial class CardHandReplayPlayer : Component
+    public partial class HandReplayPlayer : Component
     {
         /// <summary>
         /// Maximum amount of frames that can get queued up at the same time
@@ -17,15 +17,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
         public int MaxQueuedFrames { get; set; } = 20;
 
         private readonly int userId;
-        private readonly OpponentCardHand cardHand;
+        private readonly OpponentHandOfCards handOfCards;
 
         private int queuedFrames;
         private double? lastPlayback;
 
-        public CardHandReplayPlayer(int userId, OpponentCardHand cardHand)
+        public HandReplayPlayer(int userId, OpponentHandOfCards handOfCards)
         {
             this.userId = userId;
-            this.cardHand = cardHand;
+            this.handOfCards = handOfCards;
         }
 
         [Resolved]
@@ -57,7 +57,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
                 {
                     queuedFrames--;
 
-                    cardHand.SetState(frame.Cards);
+                    handOfCards.SetState(frame.Cards);
                 }, delay);
             }
         }
