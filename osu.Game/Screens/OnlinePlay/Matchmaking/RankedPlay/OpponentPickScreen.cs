@@ -72,7 +72,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     Height = 0.5f,
                 },
                 new CardHandReplayRecorder(playerHand),
-                new CardHandReplayPlayer(opponentHand),
+                new CardHandReplayPlayer(matchInfo.OpponentId, opponentHand),
             ];
 
             cardPlaySamples = new Sample?[card_play_samples];
