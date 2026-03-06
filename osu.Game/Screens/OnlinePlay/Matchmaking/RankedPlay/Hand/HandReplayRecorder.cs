@@ -8,9 +8,9 @@ using osu.Framework.Graphics;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.RankedPlay;
 
-namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
+namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 {
-    public partial class CardHandReplayRecorder : Component
+    public partial class HandReplayRecorder : Component
     {
         /// <summary>
         /// Interval at which buffered frames get collected and emitted
@@ -30,15 +30,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
 
-        private readonly PlayerCardHand cardHand;
+        private readonly PlayerHandOfCards handOfCards;
 
         private readonly List<RankedPlayCardHandReplayFrame> buffer = new List<RankedPlayCardHandReplayFrame>();
         private bool hasChanges;
         private double? lastFrameTime;
 
-        public CardHandReplayRecorder(PlayerCardHand cardHand)
+        public HandReplayRecorder(PlayerHandOfCards handOfCards)
         {
-            this.cardHand = cardHand;
+            this.handOfCards = handOfCards;
         }
 
         protected override void LoadComplete()
@@ -48,10 +48,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
             Scheduler.AddDelayed(recordFrame, RecordInterval, true);
             Scheduler.AddDelayed(tryFlush, FlushInterval, true);
 
-            cardHand.StateChanged += onHandStateChanged;
+            handOfCards.StateChanged += onHandOfCardsStateChanged;
         }
 
-        private void onHandStateChanged() => hasChanges = true;
+        private void onHandOfCardsStateChanged() => hasChanges = true;
 
         private void recordFrame()
         {
@@ -63,7 +63,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
             buffer.Add(new RankedPlayCardHandReplayFrame
             {
                 Delay = delay,
-                Cards = cardHand.State,
+                Cards = handOfCards.State,
             });
 
             lastFrameTime = Time.Current;
@@ -116,7 +116,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards
 
         protected override void Dispose(bool isDisposing)
         {
-            cardHand.StateChanged -= onHandStateChanged;
+            handOfCards.StateChanged -= onHandOfCardsStateChanged;
 
             base.Dispose(isDisposing);
         }

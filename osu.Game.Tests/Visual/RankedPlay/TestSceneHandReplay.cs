@@ -13,17 +13,17 @@ using osu.Game.Online.RankedPlay;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
-using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Cards;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
 using osu.Game.Tests.Visual.Multiplayer;
 using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {
-    public partial class TestSceneCardHandReplay : MultiplayerTestScene
+    public partial class TestSceneHandReplay : MultiplayerTestScene
     {
-        private PlayerCardHand playerHand = null!;
-        private OpponentCardHand opponentHand = null!;
-        private TestCardHandReplayRecorder recorder = null!;
+        private PlayerHandOfCards playerHand = null!;
+        private OpponentHandOfCards opponentHand = null!;
+        private TestHandReplayRecorder recorder = null!;
 
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Pink);
@@ -43,23 +43,23 @@ namespace osu.Game.Tests.Visual.RankedPlay
 
                 Children =
                 [
-                    playerHand = new PlayerCardHand
+                    playerHand = new PlayerHandOfCards
                     {
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.5f),
                         Anchor = Anchor.BottomCentre,
                         Origin = Anchor.BottomCentre,
-                        SelectionMode = CardSelectionMode.Multiple
+                        SelectionMode = HandSelectionMode.Multiple
                     },
-                    opponentHand = new OpponentCardHand
+                    opponentHand = new OpponentHandOfCards
                     {
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.5f),
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
                     },
-                    new CardHandReplayPlayer(API.LocalUser.Value.OnlineID, opponentHand),
-                    recorder = new TestCardHandReplayRecorder(playerHand)
+                    new HandReplayPlayer(API.LocalUser.Value.OnlineID, opponentHand),
+                    recorder = new TestHandReplayRecorder(playerHand)
                     {
                         FlushInterval = flushInterval,
                         RecordInterval = recordInterval,
@@ -109,7 +109,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             if (recorder.IsNotNull())
             {
                 Remove(recorder, true);
-                Add(recorder = new TestCardHandReplayRecorder(playerHand)
+                Add(recorder = new TestHandReplayRecorder(playerHand)
                 {
                     FlushInterval = flushInterval,
                     RecordInterval = recordInterval,
@@ -119,7 +119,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             }
         }
 
-        private partial class TestCardHandReplayRecorder(PlayerCardHand cardHand) : CardHandReplayRecorder(cardHand)
+        private partial class TestHandReplayRecorder(PlayerHandOfCards handOfCards) : HandReplayRecorder(handOfCards)
         {
             private double lastSendTime;
 
