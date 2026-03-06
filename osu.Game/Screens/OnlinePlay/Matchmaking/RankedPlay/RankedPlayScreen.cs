@@ -325,10 +325,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                         }
                     });
                     break;
-
-                default:
-                    ShowScreen(new PlaceholderScreen(stage));
-                    break;
             }
         }
 
