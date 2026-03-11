@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Graphics.Visualisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
@@ -87,6 +88,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                                 new AttributeListing(Beatmap)
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                },
+                                new UserTagsDisplay
+                                {
+                                    Anchor = Anchor.BottomCentre,
+                                    Origin = Anchor.BottomCentre,
+                                    RelativeSizeAxes = Axes.X,
                                 }
                             ]
                         },
@@ -115,6 +122,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 cardDetailsOverlay?.ShowCardDetails(this, Beatmap);
         }
 
+        [DrawVisualiserHidden]
         private partial class CardBorder : CompositeDrawable
         {
             [BackgroundDependencyLoader]

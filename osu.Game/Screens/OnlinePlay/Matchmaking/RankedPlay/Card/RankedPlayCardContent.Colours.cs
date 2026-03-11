@@ -30,6 +30,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             public Colour4 BackgroundLightest => mix(base_background, getColour(0.2f, 0.23f), 0.5f);
 
+            public Colour4 BackgroundDarker => mix(base_background, getColour(0.1f, 0.125f), 0.5f);
+
             public Color4 OnBackground => getColour(1f, 0.9f, isAccent: true);
 
             public Color4 Border => beatmap.StarRating > 8.0 ? Color4Extensions.FromHex("34044f") : Primary;

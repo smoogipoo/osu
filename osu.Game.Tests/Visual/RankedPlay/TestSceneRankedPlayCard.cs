@@ -96,7 +96,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
                     beatmap.TopTags =
                     [
                         new APIBeatmapTag { TagId = 4, VoteCount = 1 },
-                        new APIBeatmapTag { TagId = 2, VoteCount = 1 },
+                        new APIBeatmapTag { TagId = 2, VoteCount = 5 },
                         new APIBeatmapTag { TagId = 23, VoteCount = 5 },
                     ];
 
