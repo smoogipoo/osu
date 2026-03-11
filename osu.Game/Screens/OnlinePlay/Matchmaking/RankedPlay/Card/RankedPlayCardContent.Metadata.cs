@@ -13,6 +13,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
@@ -38,6 +39,33 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                                 Origin = Anchor.TopCentre,
                                 Margin = new MarginPadding { Top = 4 },
                             },
+                            new Container
+                            {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
+                                Width = RankedPlayCard.SIZE.X - 40,
+                                Height = 12,
+                                Margin = new MarginPadding { Top = -4 },
+                                Masking = true,
+                                CornerRadius = 3,
+                                Depth = 1,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = colours.Primary,
+                                    },
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                        Font = OsuFont.GetFont(size: 9, weight: FontWeight.Bold),
+                                        Text = "aim / aim control",
+                                        Colour = colours.OnPrimary
+                                    }
+                                }
+                            }
                         ]
                     },
                     new LinkFlowContainer(static s => s.ShadowOffset = new Vector2(0, 0.15f))
