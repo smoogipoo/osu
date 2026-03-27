@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -31,6 +32,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Volume;
 using osu.Game.Rulesets;
+using osu.Game.Screens.Footer;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osuTK;
@@ -99,53 +101,115 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         {
             base.LoadComplete();
 
+            RatingDistributionGraph ratingGraph;
+
             InternalChild = new InverseScalingDrawSizePreservingFillContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
                     new GlobalScrollAdjustsVolume(),
-                    cloud = new CloudVisualisation
+                    new GridContainer
                     {
-                        Y = -100,
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
-                        Size = new Vector2(0.6f)
-                    },
-                    new MatchmakingAvatar(api.LocalUser.Value, true)
-                    {
-                        Y = -100,
-                        Scale = new Vector2(3),
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                    },
-                    new Container
-                    {
-                        RelativePositionAxes = Axes.Y,
-                        Y = 0.25f,
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        AutoSizeAxes = Axes.Both,
-                        CornerRadius = 10f,
-                        Masking = true,
-                        Children = new Drawable[]
+                        Padding = new MarginPadding
                         {
-                            new Box
+                            Horizontal = 50,
+                            Top = 50,
+                            Bottom = ScreenFooter.HEIGHT + 50
+                        },
+                        ColumnDimensions = new[]
+                        {
+                            new Dimension(),
+                            new Dimension(GridSizeMode.Absolute, 20),
+                            new Dimension()
+                        },
+                        RowDimensions = new[]
+                        {
+                            new Dimension(),
+                            new Dimension(GridSizeMode.Absolute, 200)
+                        },
+                        Content = new[]
+                        {
+                            new Drawable?[]
                             {
-                                Colour = colourProvider.Background3,
-                                RelativeSizeAxes = Axes.Both,
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
+                                    {
+                                        cloud = new CloudVisualisation
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            RelativeSizeAxes = Axes.Both,
+                                            Size = new Vector2(0.6f)
+                                        },
+                                        new MatchmakingAvatar(api.LocalUser.Value, true)
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Scale = new Vector2(3),
+                                        }
+                                    }
+                                },
+                                null,
+                                null,
                             },
-                            mainContent = new Container
+                            new Drawable?[]
                             {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Alpha = 0,
-                                AutoSizeAxes = Axes.Both,
-                                AutoSizeDuration = 300,
-                                AutoSizeEasing = Easing.OutQuint,
-                                Padding = new MarginPadding(20),
-                            },
+                                new Container
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Y,
+                                    AutoSizeAxes = Axes.X,
+                                    CornerRadius = 10f,
+                                    Masking = true,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            Colour = colourProvider.Background3,
+                                            RelativeSizeAxes = Axes.Both,
+                                        },
+                                        mainContent = new Container
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Alpha = 0,
+                                            AutoSizeAxes = Axes.Both,
+                                            AutoSizeDuration = 300,
+                                            AutoSizeEasing = Easing.OutQuint,
+                                            Padding = new MarginPadding(20),
+                                        },
+                                    }
+                                },
+                                null,
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    CornerRadius = 10f,
+                                    Masking = true,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            Colour = colourProvider.Background3,
+                                            RelativeSizeAxes = Axes.Both,
+                                        },
+                                        new Container
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Padding = new MarginPadding(10),
+                                            Child = ratingGraph = new RatingDistributionGraph
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                 }
@@ -157,6 +221,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             client.MatchmakingLobbyStatusChanged += onMatchmakingLobbyStatusChanged;
 
             populateAvailablePools().FireAndForget();
+
+            List<(int x, int y)> values = new List<(int x, int y)>();
+            for (int i = 400; i <= 2800; i += 25)
+                values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
+            ratingGraph.SetData(values.ToArray(), Random.Shared.Next(400, 2800));
+        }
+
+        private static double generateCount(double x, double mean, double stdDev, double amplitude)
+        {
+            return amplitude * Math.Exp(-Math.Pow(x - mean, 2) / (2 * Math.Pow(stdDev, 2))) + Random.Shared.Next(300);
         }
 
         private async Task populateAvailablePools()
