@@ -22,6 +22,7 @@ using osu.Framework.Screens;
 using osu.Framework.Threading;
 using osu.Game.Database;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
@@ -127,6 +128,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         RowDimensions = new[]
                         {
                             new Dimension(),
+                            new Dimension(GridSizeMode.Absolute, 20),
                             new Dimension(GridSizeMode.Absolute, 200)
                         },
                         Content = new[]
@@ -154,8 +156,30 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     }
                                 },
                                 null,
-                                null,
+                                new OsuScrollContainer(Direction.Vertical)
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Child = new FillFlowContainer
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Spacing = new Vector2(10),
+                                        Children = new Drawable[]
+                                        {
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                            new MatchResultPanel(),
+                                        }
+                                    }
+                                }
                             },
+                            null,
                             new Drawable?[]
                             {
                                 new Container

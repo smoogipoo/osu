@@ -1,0 +1,28 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Game.Overlays;
+using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
+using osu.Game.Tests.Visual.Multiplayer;
+
+namespace osu.Game.Tests.Visual.Matchmaking
+{
+    public class TestSceneMatchResultPanel : MultiplayerTestScene
+    {
+        [Cached]
+        private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
+
+        [SetUp]
+        public void Setup() => Schedule(() =>
+        {
+            Child = new MatchResultPanel
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            };
+        });
+    }
+}
