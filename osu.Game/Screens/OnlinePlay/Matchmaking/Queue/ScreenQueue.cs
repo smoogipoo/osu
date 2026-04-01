@@ -29,6 +29,7 @@ using osu.Game.Input.Bindings;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Matchmaking;
+using osu.Game.Online.Matchmaking.Requests;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Volume;
@@ -96,6 +97,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         public ScreenQueue(MatchmakingPoolType poolType)
         {
             this.poolType = poolType;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(AudioManager audio)
+        {
+            enqueueSample = audio.Samples.Get(@"Multiplayer/Matchmaking/enqueue");
+            waitingLoopSample = audio.Samples.Get(@"Multiplayer/Matchmaking/waiting-loop");
+            matchFoundSample = audio.Samples.Get(@"Multiplayer/Matchmaking/match-found");
         }
 
         protected override void LoadComplete()
@@ -244,6 +253,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
             client.MatchmakingLobbyStatusChanged += onMatchmakingLobbyStatusChanged;
 
+            selectedPool.BindValueChanged(onSelectedPoolChanged, true);
+
             populateAvailablePools().FireAndForget();
 
             List<(int x, int y)> values = new List<(int x, int y)>();
@@ -270,14 +281,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             });
         }
 
-        [BackgroundDependencyLoader]
-        private void load(AudioManager audio)
-        {
-            enqueueSample = audio.Samples.Get(@"Multiplayer/Matchmaking/enqueue");
-            waitingLoopSample = audio.Samples.Get(@"Multiplayer/Matchmaking/waiting-loop");
-            matchFoundSample = audio.Samples.Get(@"Multiplayer/Matchmaking/match-found");
-        }
-
         private void onMatchmakingLobbyStatusChanged(MatchmakingLobbyStatus status) => Scheduler.Add(() =>
         {
             userLookupCancellation.Cancel();
@@ -292,13 +295,25 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                            }), cancellation.Token);
         });
 
+        private void onSelectedPoolChanged(ValueChangedEvent<MatchmakingPool?> e)
+        {
+            if (e.NewValue == null)
+            {
+                client.MatchmakingLeaveLobby();
+                return;
+            }
+
+            client.MatchmakingJoinLobbyWithParams(new MatchmakingJoinLobbyRequest
+            {
+                PoolId = e.NewValue.Id
+            });
+        }
+
         public override void OnEntering(ScreenTransitionEvent e)
         {
             base.OnEntering(e);
 
             controller.SearchInForeground();
-
-            client.MatchmakingJoinLobby().FireAndForget();
 
             using (BeginDelayedSequence(800))
                 Schedule(() => SetState(currentState.Value));
@@ -308,7 +323,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         {
             base.OnResuming(e);
 
-            client.MatchmakingJoinLobby().FireAndForget();
+            // Rejoin the lobby.
+            selectedPool.TriggerChange();
         }
 
         public override void OnSuspending(ScreenTransitionEvent e)
