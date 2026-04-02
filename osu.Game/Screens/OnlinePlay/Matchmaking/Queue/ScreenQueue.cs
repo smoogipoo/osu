@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -51,8 +50,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         public override bool? ApplyModTrackAdjustments => false;
 
         private Container mainContent = null!;
-
         private CloudVisualisation cloud = null!;
+        private RatingDistributionGraph ratingGraph = null!;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -94,6 +93,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private SampleChannel? waitingLoopChannel;
         private ScheduledDelegate? startLoopPlaybackDelegate;
 
+        private int? userRating;
+
         public ScreenQueue(MatchmakingPoolType poolType)
         {
             this.poolType = poolType;
@@ -110,8 +111,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
-            RatingDistributionGraph ratingGraph;
 
             InternalChild = new InverseScalingDrawSizePreservingFillContainer
             {
@@ -256,16 +255,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             selectedPool.BindValueChanged(onSelectedPoolChanged, true);
 
             populateAvailablePools().FireAndForget();
-
-            List<(int x, int y)> values = new List<(int x, int y)>();
-            for (int i = 400; i <= 2800; i += 25)
-                values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
-            ratingGraph.SetData(values.ToArray(), Random.Shared.Next(400, 2800));
-        }
-
-        private static double generateCount(double x, double mean, double stdDev, double amplitude)
-        {
-            return amplitude * Math.Exp(-Math.Pow(x - mean, 2) / (2 * Math.Pow(stdDev, 2))) + Random.Shared.Next(300);
         }
 
         private async Task populateAvailablePools()
@@ -293,6 +282,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                if (!cancellation.IsCancellationRequested)
                                    Users = users.OfType<APIUser>().ToArray();
                            }), cancellation.Token);
+
+            if (status.UserRating != null)
+                userRating = status.UserRating;
+
+            ratingGraph.SetData(status.RatingDistribution, userRating);
         });
 
         private void onSelectedPoolChanged(ValueChangedEvent<MatchmakingPool?> e)
