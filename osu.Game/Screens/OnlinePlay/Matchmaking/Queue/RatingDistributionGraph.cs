@@ -34,7 +34,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private readonly Drawable hoverMarkerFill;
 
         private (int x, int y)[]? data;
-        private int userRating;
+        private int? userRating;
         private (int min, int max) xRange;
         private (int min, int max) yRange;
 
@@ -129,13 +129,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             AddLayout(pathCache);
         }
 
-        public void SetData((int x, int y)[] data, int userRating)
+        public void SetData((int x, int y)[] data, int? userRating)
         {
             this.data = data;
             this.userRating = userRating;
 
-            xRange = (data.MinBy(d => d.x).x, data.MaxBy(d => d.x).x);
-            yRange = (0, (int)roundToSignificant(data.MaxBy(d => d.y).y));
+            xRange = (data.Select(d => d.x).DefaultIfEmpty().Min(), data.Select(d => d.x).DefaultIfEmpty().Max());
+            yRange = (0, (int)roundToSignificant(data.Select(d => d.y).DefaultIfEmpty().Max()));
 
             updateGraph();
         }
@@ -216,13 +216,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 });
             }
 
-            grid.Add(new UserRatingLine(userRating)
+            if (userRating != null)
             {
-                RelativeSizeAxes = Axes.Y,
-                RelativePositionAxes = Axes.X,
-                X = pointOnGraph(userRating, 0).X,
-                Colour = Color4.Green
-            });
+                grid.Add(new UserRatingLine(userRating.Value)
+                {
+                    RelativeSizeAxes = Axes.Y,
+                    RelativePositionAxes = Axes.X,
+                    X = pointOnGraph(userRating.Value, 0).X,
+                    Colour = Color4.Green
+                });
+            }
 
             foreach (var point in data!)
             {
@@ -309,27 +312,36 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
                 Vector2 mousePos = GetContainingInputManager()!.CurrentState.Mouse.Position;
 
-                Vector2 userRatingPos1 = grid.ToScreenSpace(pointOnGraph(userRating, 0) * grid.DrawSize);
-                Vector2 userRatingPos2 = grid.ToScreenSpace(pointOnGraph(userRating, yRange.max) * grid.DrawSize);
+                float minDistToCursor = float.MaxValue;
+                Vector2 closestPointToCursor = Vector2.Zero;
+                Color4 closestColourToCursor = Color4.White;
+                int closestRatingToCursor = 0;
+                string closestValueToCursor = string.Empty;
 
-                float minDistToCursor = Vector2.Distance(mousePos, userRatingPos1);
-                Vector2 closestPointToCursor = userRatingPos1;
-                Color4 closestColourToCursor = Color4.Green;
-                int closestRatingToCursor = userRating;
-                string closestValueToCursor = $"Your rating ({userRating})";
-
-                float d = Vector2.Distance(mousePos, userRatingPos2);
-
-                if (d < minDistToCursor)
+                if (userRating != null)
                 {
-                    minDistToCursor = d;
-                    closestPointToCursor = userRatingPos2;
+                    Vector2 userRatingPos1 = grid.ToScreenSpace(pointOnGraph(userRating.Value, 0) * grid.DrawSize);
+                    Vector2 userRatingPos2 = grid.ToScreenSpace(pointOnGraph(userRating.Value, yRange.max) * grid.DrawSize);
+
+                    minDistToCursor = Vector2.Distance(mousePos, userRatingPos1);
+                    closestPointToCursor = userRatingPos1;
+                    closestColourToCursor = Color4.Green;
+                    closestRatingToCursor = userRating.Value;
+                    closestValueToCursor = $"Your rating ({userRating})";
+
+                    float d = Vector2.Distance(mousePos, userRatingPos2);
+
+                    if (d < minDistToCursor)
+                    {
+                        minDistToCursor = d;
+                        closestPointToCursor = userRatingPos2;
+                    }
                 }
 
                 for (int i = 0; i < distributionPath.Vertices.Count; i++)
                 {
                     Vector2 pos = distributionPath.ToScreenSpace(distributionPath.Vertices[i] + new Vector2(2, 0));
-                    d = Vector2.Distance(mousePos, pos);
+                    float d = Vector2.Distance(mousePos, pos);
 
                     if (d < minDistToCursor)
                     {
@@ -349,7 +361,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     currentCount += data![i].y;
 
                     Vector2 pos = distributionPath.ToScreenSpace(cumulativePath.Vertices[i] + new Vector2(2));
-                    d = Vector2.Distance(mousePos, pos);
+                    float d = Vector2.Distance(mousePos, pos);
 
                     if (d < minDistToCursor)
                     {
@@ -361,7 +373,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     }
                 }
 
-                if (float.IsNaN(minDistToCursor))
+                if (float.IsNaN(minDistToCursor) || minDistToCursor == float.MaxValue)
                     return new RatingDistributionGraphTooltipData();
 
                 return new RatingDistributionGraphTooltipData

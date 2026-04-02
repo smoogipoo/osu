@@ -27,7 +27,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
         });
 
         [Test]
-        public void Test()
+        public void TestRandomData()
         {
             AddStep("set random data", () =>
             {
@@ -36,6 +36,24 @@ namespace osu.Game.Tests.Visual.Matchmaking
                     values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
                 graph.SetData(values.ToArray(), Random.Shared.Next(400, 2800));
             });
+        }
+
+        [Test]
+        public void TestNoUserRating()
+        {
+            AddStep("set data", () =>
+            {
+                List<(int x, int y)> values = new List<(int x, int y)>();
+                for (int i = 400; i <= 2800; i += 25)
+                    values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
+                graph.SetData(values.ToArray(), null);
+            });
+        }
+
+        [Test]
+        public void TestNoData()
+        {
+            AddStep("set empty data", () => graph.SetData([], null));
         }
 
         private static double generateCount(double x, double mean, double stdDev, double amplitude)
