@@ -12,5 +12,11 @@ namespace osu.Game.Online.Matchmaking
     {
         [Key(0)]
         public int[] UsersInQueue { get; set; } = [];
+
+        [Key(1)]
+        public (int Rating, int Count)[] RatingDistribution { get; set; } = [];
+
+        [Key(2)]
+        public int? UserRating { get; set; }
     }
 }
