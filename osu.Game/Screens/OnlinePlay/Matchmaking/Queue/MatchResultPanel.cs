@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -228,31 +229,79 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Padding = new MarginPadding(5),
                                     Child = new FillFlowContainer
                                     {
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        AutoSizeAxes = Axes.Both,
-                                        Spacing = new Vector2(10),
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(5),
                                         Children = new Drawable[]
                                         {
-                                            new OsuSpriteText
+                                            new Container
                                             {
-                                                Anchor = Anchor.Centre,
-                                                Origin = Anchor.Centre,
-                                                Text = result.Scores[0].Score.ToString(),
-                                                Font = result.WinningUser == result.Scores[0].UserID ? OsuFont.GetFont(weight: FontWeight.SemiBold) : OsuFont.GetFont()
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Children = new Drawable[]
+                                                {
+                                                    new SpriteIcon
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.Centre,
+                                                        Size = new Vector2(12),
+                                                        Icon = FontAwesome.Solid.Heart,
+                                                        Colour = Color4.Red
+                                                    },
+                                                    new OsuSpriteText
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.CentreRight,
+                                                        X = -20,
+                                                        Text = result.Scores[0].Life.ToString("N0"),
+                                                        UseFullGlyphHeight = false,
+                                                        Colour = result.Scores[0].Life > result.Scores[1].Life ? Color4.White : colourProvider.Foreground1,
+                                                        Font = OsuFont.GetFont(weight: result.Scores[0].Life > result.Scores[1].Life ? FontWeight.SemiBold : FontWeight.Regular)
+                                                    },
+                                                    new OsuSpriteText
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.CentreLeft,
+                                                        X = 20,
+                                                        Text = result.Scores[1].Life.ToString("N0"),
+                                                        UseFullGlyphHeight = false,
+                                                        Colour = result.Scores[1].Life > result.Scores[0].Life ? Color4.White : colourProvider.Foreground1,
+                                                        Font = OsuFont.GetFont(weight: result.Scores[1].Life > result.Scores[0].Life ? FontWeight.SemiBold : FontWeight.Regular)
+                                                    }
+                                                },
                                             },
-                                            new OsuSpriteText
+                                            new Container
                                             {
-                                                Anchor = Anchor.Centre,
-                                                Origin = Anchor.Centre,
-                                                Text = "-"
-                                            },
-                                            new OsuSpriteText
-                                            {
-                                                Anchor = Anchor.Centre,
-                                                Origin = Anchor.Centre,
-                                                Text = result.Scores[1].Score.ToString(),
-                                                Font = result.WinningUser == result.Scores[1].UserID ? OsuFont.GetFont(weight: FontWeight.SemiBold) : OsuFont.GetFont()
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Colour = colourProvider.Foreground1,
+                                                Children = new Drawable[]
+                                                {
+                                                    new SpriteIcon
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.Centre,
+                                                        Size = new Vector2(10),
+                                                        Icon = FontAwesome.Solid.Skull
+                                                    },
+                                                    new OsuSpriteText
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.CentreRight,
+                                                        X = -20,
+                                                        Text = result.Scores[0].Score.ToString(),
+                                                        UseFullGlyphHeight = false,
+                                                    },
+                                                    new OsuSpriteText
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.CentreLeft,
+                                                        X = 20,
+                                                        Text = result.Scores[1].Score.ToString(),
+                                                        UseFullGlyphHeight = false,
+                                                    }
+                                                },
                                             }
                                         }
                                     }

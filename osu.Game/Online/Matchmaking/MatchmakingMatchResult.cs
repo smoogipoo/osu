@@ -19,11 +19,5 @@ namespace osu.Game.Online.Matchmaking
 
         [Key(1)]
         public List<MatchmakingPlayerScore> Scores { get; set; } = [];
-
-        /// <summary>
-        /// The winner of either <see cref="Player1"/> or <see cref="Player2"/>.
-        /// </summary>
-        [Key(2)]
-        public int WinningUser { get; set; }
     }
 }

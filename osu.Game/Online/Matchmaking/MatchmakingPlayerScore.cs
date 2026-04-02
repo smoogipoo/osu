@@ -14,6 +14,9 @@ namespace osu.Game.Online.Matchmaking
         public int UserID { get; set; }
 
         [Key(1)]
+        public int Life { get; set; }
+
+        [Key(2)]
         public int Score { get; set; }
     }
 }

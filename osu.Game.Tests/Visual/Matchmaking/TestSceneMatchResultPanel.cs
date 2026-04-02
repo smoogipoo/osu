@@ -4,6 +4,7 @@
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Game.Online.Matchmaking;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
 using osu.Game.Tests.Visual.Multiplayer;
@@ -18,7 +19,14 @@ namespace osu.Game.Tests.Visual.Matchmaking
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new MatchResultPanel
+            Child = new MatchResultPanel(new MatchmakingMatchResult
+            {
+                Scores =
+                [
+                    new MatchmakingPlayerScore { UserID = 1, Life = 800_000, Score = 3 },
+                    new MatchmakingPlayerScore { UserID = 2, Life = 200_000, Score = 1 },
+                ],
+            })
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
