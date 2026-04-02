@@ -18,5 +18,8 @@ namespace osu.Game.Online.Matchmaking
 
         [Key(2)]
         public int? UserRating { get; set; }
+
+        [Key(3)]
+        public MatchmakingMatchResult[] RecentMatches { get; set; } = [];
     }
 }
