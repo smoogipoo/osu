@@ -1,15 +1,19 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Matchmaking;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Users;
@@ -27,8 +31,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
-        public MatchResultPanel()
+        [Resolved]
+        private UserLookupCache userLookupCache { get; set; } = null!;
+
+        private readonly MatchmakingMatchResult result;
+
+        public MatchResultPanel(MatchmakingMatchResult result)
         {
+            this.result = result;
+
             Width = 300;
             AutoSizeAxes = Axes.Y;
 
@@ -39,19 +50,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [BackgroundDependencyLoader]
         private void load()
         {
-            APIUser user1 = new APIUser
-            {
-                Id = 2,
-                Username = "peppy",
-                CoverUrl = "https://assets.ppy.sh/user-cover-presets/1/df28696b58541a9e67f6755918951d542d93bdf1da41720fcca2fd2c1ea8cf51.jpeg",
-            };
-
-            APIUser user2 = new APIUser
-            {
-                Id = 1040328,
-                Username = "smoogipoo",
-                CoverUrl = "https://assets.ppy.sh/user-cover-presets/7/4a0ccb7b7fdd5c4238b11f0e7c686760fe2c99c6472b19400e82d1a8ff503e31.jpeg",
-            };
+            Task<APIUser?> user1 = userLookupCache.GetUserAsync(result.Scores[0].UserID);
+            Task<APIUser?> user2 = userLookupCache.GetUserAsync(result.Scores[1].UserID);
+            Task.WhenAll(user1, user2).WaitSafely();
 
             InternalChildren = new Drawable[]
             {
@@ -111,7 +112,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Child = new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        User = user1
+                                        User = user1.GetResultSafely()
                                     }
                                 },
                                 new Container
@@ -125,7 +126,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Child = new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        User = user2
+                                        User = user2.GetResultSafely()
                                     }
                                 },
                                 new OsuSpriteText
@@ -159,7 +160,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                     Origin = Anchor.CentreLeft,
                                                     Size = new Vector2(25),
                                                     Masking = true,
-                                                    Child = new UpdateableAvatar(user1)
+                                                    Child = new UpdateableAvatar(user1.GetResultSafely())
                                                     {
                                                         RelativeSizeAxes = Axes.Both
                                                     }
@@ -168,7 +169,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 {
                                                     Anchor = Anchor.CentreLeft,
                                                     Origin = Anchor.CentreLeft,
-                                                    Text = user1.Username,
+                                                    Text = user1.GetResultSafely()?.Username ?? "Unknown",
                                                     Font = OsuFont.GetFont(weight: FontWeight.SemiBold),
                                                     UseFullGlyphHeight = false,
                                                 },
@@ -189,7 +190,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                     Origin = Anchor.CentreRight,
                                                     Size = new Vector2(25),
                                                     Masking = true,
-                                                    Child = new UpdateableAvatar(user2)
+                                                    Child = new UpdateableAvatar(user2.GetResultSafely())
                                                     {
                                                         RelativeSizeAxes = Axes.Both
                                                     }
@@ -198,7 +199,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 {
                                                     Anchor = Anchor.CentreRight,
                                                     Origin = Anchor.CentreRight,
-                                                    Text = user2.Username,
+                                                    Text = user2.GetResultSafely()?.Username ?? "Unknown",
                                                     Font = OsuFont.GetFont(weight: FontWeight.SemiBold),
                                                     UseFullGlyphHeight = false,
                                                 },
@@ -225,11 +226,35 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
                                     Padding = new MarginPadding(5),
-                                    Child = new OsuSpriteText
+                                    Child = new FillFlowContainer
                                     {
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
-                                        Text = "1 - 1"
+                                        AutoSizeAxes = Axes.Both,
+                                        Spacing = new Vector2(10),
+                                        Children = new Drawable[]
+                                        {
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.Centre,
+                                                Origin = Anchor.Centre,
+                                                Text = result.Scores[0].Score.ToString(),
+                                                Font = result.WinningUser == result.Scores[0].UserID ? OsuFont.GetFont(weight: FontWeight.SemiBold) : OsuFont.GetFont()
+                                            },
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.Centre,
+                                                Origin = Anchor.Centre,
+                                                Text = "-"
+                                            },
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.Centre,
+                                                Origin = Anchor.Centre,
+                                                Text = result.Scores[1].Score.ToString(),
+                                                Font = result.WinningUser == result.Scores[1].UserID ? OsuFont.GetFont(weight: FontWeight.SemiBold) : OsuFont.GetFont()
+                                            }
+                                        }
                                     }
                                 }
                             }

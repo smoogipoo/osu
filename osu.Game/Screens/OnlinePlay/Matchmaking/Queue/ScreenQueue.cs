@@ -52,6 +52,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private Container mainContent = null!;
         private CloudVisualisation cloud = null!;
         private RatingDistributionGraph ratingGraph = null!;
+        private FillFlowContainer<MatchResultPanel> resultPanelContainer = null!;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -167,23 +168,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 new OsuScrollContainer(Direction.Vertical)
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Child = new FillFlowContainer
+                                    Child = resultPanelContainer = new FillFlowContainer<MatchResultPanel>()
                                     {
                                         RelativeSizeAxes = Axes.X,
                                         AutoSizeAxes = Axes.Y,
                                         Spacing = new Vector2(10),
-                                        Children = new Drawable[]
-                                        {
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                            new MatchResultPanel(),
-                                        }
                                     }
                                 }
                             },
@@ -287,10 +276,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 userRating = status.UserRating;
 
             ratingGraph.SetData(status.RatingDistribution, userRating);
+
+            foreach (var result in status.RecentMatches)
+            {
+                resultPanelContainer.Insert(-resultPanelContainer.Count, new MatchResultPanel(result));
+            }
         });
 
         private void onSelectedPoolChanged(ValueChangedEvent<MatchmakingPool?> e)
         {
+            userRating = null;
+            resultPanelContainer.Clear();
+
             if (e.NewValue == null)
             {
                 client.MatchmakingLeaveLobby();
