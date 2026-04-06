@@ -907,6 +907,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Task.CompletedTask;
         }
 
+        public new async Task MatchmakingLobbyStatusChanged(MatchmakingLobbyStatus status)
+        {
+            await ((IMatchmakingClient)this).MatchmakingLobbyStatusChanged(clone(status));
+        }
+
         public override Task MatchmakingToggleSelection(long playlistItemId)
             => MatchmakingToggleUserSelection(api.LocalUser.Value.OnlineID, playlistItemId);
 
