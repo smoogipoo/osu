@@ -8,8 +8,10 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -241,13 +243,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 AutoSizeAxes = Axes.Y,
                                                 Children = new Drawable[]
                                                 {
-                                                    new SpriteIcon
+                                                    new IconWithTooltip
                                                     {
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.Centre,
                                                         Size = new Vector2(12),
                                                         Icon = FontAwesome.Solid.Heart,
-                                                        Colour = Color4.Red
+                                                        Colour = Color4.Red,
+                                                        TooltipText = "Remaining Life"
                                                     },
                                                     new OsuSpriteText
                                                     {
@@ -278,12 +281,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 Colour = colourProvider.Foreground1,
                                                 Children = new Drawable[]
                                                 {
-                                                    new SpriteIcon
+                                                    new IconWithTooltip
                                                     {
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.Centre,
                                                         Size = new Vector2(10),
-                                                        Icon = FontAwesome.Solid.Skull
+                                                        Icon = FontAwesome.Solid.Skull,
+                                                        TooltipText = "Rounds Won",
                                                     },
                                                     new OsuSpriteText
                                                     {
@@ -311,6 +315,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     }
                 }
             };
+        }
+
+        private class IconWithTooltip : SpriteIcon, IHasTooltip
+        {
+            public LocalisableString TooltipText { get; set; }
         }
     }
 }
