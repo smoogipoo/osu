@@ -168,6 +168,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 new OsuScrollContainer(Direction.Vertical)
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                    ScrollbarOverlapsContent = false,
                                     Child = resultPanelContainer = new FillFlowContainer<MatchResultPanel>
                                     {
                                         RelativeSizeAxes = Axes.X,
