@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -13,6 +14,7 @@ using osu.Framework.Layout;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Overlays;
 using osuTK;
 using osuTK.Graphics;
 
@@ -25,16 +27,20 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         private readonly LayoutValue pathCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
 
-        private readonly Container grid;
+        [Resolved]
+        private OverlayColourProvider colourProvider { get; set; } = null!;
 
-        private readonly Container pathContainer;
-        private readonly SmoothPath cumulativePath;
-        private readonly SmoothPath distributionPath;
+        [Resolved]
+        private OsuColour colours { get; set; } = null!;
 
-        private readonly Drawable hoverMarker;
-        private readonly Drawable hoverMarkerFill;
-
-        private readonly OsuTextFlowContainer descriptionText;
+        private Container chartContainer = null!;
+        private Container grid = null!;
+        private Container pathContainer = null!;
+        private SmoothPath cumulativePath = null!;
+        private SmoothPath distributionPath = null!;
+        private Drawable hoverMarker = null!;
+        private Drawable hoverMarkerFill = null!;
+        private OsuTextFlowContainer descriptionText = null!;
 
         private (int x, int y)[]? data;
         private int? userRating;
@@ -42,6 +48,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private (int min, int max) yRange;
 
         public RatingDistributionGraph()
+        {
+            AddLayout(pathCache);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
         {
             InternalChild = new GridContainer
             {
@@ -67,7 +79,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Text = "Players",
                                     Font = OsuFont.Default.With(size: 12),
                                     Rotation = -90,
-                                    Colour = OsuColour.Gray(0.5f)
+                                    Colour = colourProvider.Foreground1
                                 },
                                 new OsuSpriteText
                                 {
@@ -75,7 +87,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Origin = Anchor.BottomCentre,
                                     Text = "Rating",
                                     Font = OsuFont.Default.With(size: 12),
-                                    Colour = OsuColour.Gray(0.5f),
+                                    Colour = colourProvider.Foreground1
                                 },
                                 new OsuSpriteText
                                 {
@@ -84,16 +96,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Text = "Cumulative",
                                     Font = OsuFont.Default.With(size: 12),
                                     Rotation = 90,
-                                    Colour = OsuColour.Gray(0.5f),
+                                    Colour = colourProvider.Foreground1
                                 },
-                                new Container
+                                chartContainer = new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Padding = new MarginPadding
                                     {
                                         Left = 50,
                                         Top = 20,
-                                        Bottom = 40,
+                                        Bottom = 37,
                                         Right = 50
                                     },
                                     Children = new[]
@@ -115,14 +127,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                     AutoSizeAxes = Axes.None,
                                                     RelativeSizeAxes = Axes.Both,
                                                     PathRadius = 2,
-                                                    Colour = Color4.SlateGray
+                                                    Colour = colourProvider.Colour0
                                                 },
                                                 cumulativePath = new SmoothPath
                                                 {
                                                     AutoSizeAxes = Axes.None,
                                                     RelativeSizeAxes = Axes.Both,
                                                     PathRadius = 2,
-                                                    Colour = Color4.Yellow
+                                                    Colour = colours.Yellow
                                                 },
                                             }
                                         },
@@ -136,8 +148,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                             Alpha = 0,
                                             Child = hoverMarkerFill = new Box
                                             {
-                                                RelativeSizeAxes = Axes.Both,
-                                                Colour = Color4.Yellow,
+                                                RelativeSizeAxes = Axes.Both
                                             }
                                         }
                                     }
@@ -151,14 +162,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            AutoSizeAxes = Axes.Both,
+                            AutoSizeAxes = Axes.X,
+                            Height = 16,
                             Padding = new MarginPadding { Top = 5 }
                         },
                     }
                 }
             };
-
-            AddLayout(pathCache);
         }
 
         public void SetData((int x, int y)[] data, int? userRating)
@@ -169,7 +179,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             xRange = (data.Select(d => d.x).DefaultIfEmpty().Min(), data.Select(d => d.x).DefaultIfEmpty().Max());
             yRange = (0, (int)roundToSignificant(data.Select(d => d.y).DefaultIfEmpty().Max()));
 
-            updateGraph();
+            Scheduler.AddOnce(updateGraph);
         }
 
         protected override void UpdateAfterChildren()
@@ -194,7 +204,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     RelativeSizeAxes = Axes.Y,
                     RelativePositionAxes = Axes.X,
                     X = (float)step / x_divisions,
-                    Colour = OsuColour.Gray(0.5f)
+                    Colour = colourProvider.Background1
                 });
 
                 grid.Add(new OsuSpriteText
@@ -208,7 +218,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Text = (xRange.min + (xRange.max - xRange.min) / x_divisions * step).ToString(),
                     UseFullGlyphHeight = false,
                     Font = OsuFont.Default.With(size: 12),
-                    Colour = OsuColour.Gray(0.5f)
+                    Colour = colourProvider.Foreground1
                 });
             }
 
@@ -219,7 +229,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     RelativeSizeAxes = Axes.X,
                     RelativePositionAxes = Axes.Y,
                     Y = (float)step / y_divisions,
-                    Colour = OsuColour.Gray(0.5f)
+                    Colour = colourProvider.Background1
                 });
 
                 grid.Add(new OsuSpriteText
@@ -231,7 +241,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Text = (yRange.max - (yRange.max - yRange.min) / y_divisions * step).ToString(),
                     UseFullGlyphHeight = false,
                     Font = OsuFont.Default.With(size: 12),
-                    Colour = OsuColour.Gray(0.5f)
+                    Colour = colourProvider.Foreground1
                 });
 
                 grid.Add(new OsuSpriteText
@@ -244,7 +254,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Text = $"{1.0 - (float)step / y_divisions:P1}",
                     UseFullGlyphHeight = false,
                     Font = OsuFont.Default.With(size: 12),
-                    Colour = OsuColour.Gray(0.5f)
+                    Colour = colourProvider.Foreground1
                 });
             }
 
@@ -255,7 +265,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     RelativeSizeAxes = Axes.Y,
                     RelativePositionAxes = Axes.X,
                     X = pointOnGraph(userRating.Value, 0).X,
-                    Colour = Color4.Green
+                    Colour = colours.Green
                 });
             }
 
@@ -267,7 +277,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     RelativePositionAxes = Axes.Both,
                     Position = pointOnGraph(point.x, point.y),
                     Size = new Vector2(8),
-                    Colour = Color4.SlateGray
+                    Colour = colourProvider.Colour0
                 });
             }
 
@@ -281,11 +291,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 int countPlayersAbove = data.Where(d => d.x >= userRating).Sum(d => d.y);
                 float p = (float)countPlayersBelow / (countPlayersBelow + countPlayersAbove);
 
+                descriptionText.Clear();
                 descriptionText.AddText("You are better than ");
-                descriptionText.AddText($"{p:P0}", s =>
+                descriptionText.AddText($"{p:P1}", s =>
                 {
                     s.Font = OsuFont.GetFont(weight: FontWeight.SemiBold);
-                    s.Colour = Color4.Yellow;
+                    s.Colour = colours.Green;
                 });
                 descriptionText.AddText(" of players.");
             }
@@ -330,6 +341,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             double scale = Math.Pow(10, Math.Floor(Math.Log10(value)));
             return Math.Ceiling(value / scale) * scale;
         }
+
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+            => chartContainer.ReceivePositionalInputAt(screenSpacePos);
 
         protected override bool OnHover(HoverEvent e)
         {
@@ -376,7 +390,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
                     minDistToCursor = Vector2.Distance(mousePos, userRatingPos1);
                     closestPointToCursor = userRatingPos1;
-                    closestColourToCursor = Color4.Green;
+                    closestColourToCursor = colours.Green;
                     closestRatingToCursor = userRating.Value;
                     closestValueToCursor = $"Your rating ({userRating})";
 
@@ -398,7 +412,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     {
                         minDistToCursor = d;
                         closestPointToCursor = pos;
-                        closestColourToCursor = Color4.SlateGray;
+                        closestColourToCursor = colourProvider.Colour0;
                         closestRatingToCursor = data![i].x;
                         closestValueToCursor = $"Players: {data![i].y}";
                     }
@@ -418,7 +432,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     {
                         minDistToCursor = d;
                         closestPointToCursor = pos;
-                        closestColourToCursor = Color4.Yellow;
+                        closestColourToCursor = colours.Yellow;
                         closestRatingToCursor = data![i].x;
                         closestValueToCursor = $"Cumulative: {(float)currentCount / totalCount:P1}";
                     }
