@@ -39,6 +39,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         private readonly MatchmakingMatchResult result;
 
+        private Drawable leftResultLight = null!;
+        private Drawable rightResultLight = null!;
+        private OsuSpriteText leftLifeText = null!;
+        private OsuSpriteText rightLifeText = null!;
+
         public MatchResultPanel(MatchmakingMatchResult result)
         {
             this.result = result;
@@ -53,9 +58,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [BackgroundDependencyLoader]
         private void load()
         {
-            Task<APIUser?> user1 = userLookupCache.GetUserAsync(result.Scores[0].UserID);
-            Task<APIUser?> user2 = userLookupCache.GetUserAsync(result.Scores[1].UserID);
-            Task.WhenAll(user1, user2).WaitSafely();
+            Task<APIUser?> leftUser = userLookupCache.GetUserAsync(result.Scores[0].UserID);
+            Task<APIUser?> rightUser = userLookupCache.GetUserAsync(result.Scores[1].UserID);
+            Task.WhenAll(leftUser, rightUser).WaitSafely();
 
             InternalChildren = new Drawable[]
             {
@@ -104,7 +109,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                             Name = "Middle part",
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
-                            Children = new Drawable[]
+                            Children = new[]
                             {
                                 new Container
                                 {
@@ -115,7 +120,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Child = new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        User = user1.GetResultSafely()
+                                        User = leftUser.GetResultSafely()
                                     }
                                 },
                                 new Container
@@ -129,8 +134,32 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Child = new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        User = user2.GetResultSafely()
+                                        User = rightUser.GetResultSafely()
                                     }
+                                },
+                                leftResultLight = new Container
+                                {
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    RelativeSizeAxes = Axes.X,
+                                    Size = new Vector2(0.4f, 3),
+                                    Child = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.White.Opacity(0))
+                                    }
+                                },
+                                rightResultLight = new Container
+                                {
+                                    Anchor = Anchor.CentreRight,
+                                    Origin = Anchor.CentreRight,
+                                    RelativeSizeAxes = Axes.X,
+                                    Size = new Vector2(0.4f, 3),
+                                    Child = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0), Color4.White)
+                                    },
                                 },
                                 new OsuSpriteText
                                 {
@@ -163,7 +192,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                     Origin = Anchor.CentreLeft,
                                                     Size = new Vector2(25),
                                                     Masking = true,
-                                                    Child = new UpdateableAvatar(user1.GetResultSafely())
+                                                    Child = new UpdateableAvatar(leftUser.GetResultSafely())
                                                     {
                                                         RelativeSizeAxes = Axes.Both
                                                     }
@@ -172,7 +201,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 {
                                                     Anchor = Anchor.CentreLeft,
                                                     Origin = Anchor.CentreLeft,
-                                                    Text = user1.GetResultSafely()?.Username ?? "Unknown",
+                                                    Text = leftUser.GetResultSafely()?.Username ?? "Unknown",
                                                     Font = OsuFont.GetFont(weight: FontWeight.SemiBold),
                                                     UseFullGlyphHeight = false,
                                                 },
@@ -193,7 +222,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                     Origin = Anchor.CentreRight,
                                                     Size = new Vector2(25),
                                                     Masking = true,
-                                                    Child = new UpdateableAvatar(user2.GetResultSafely())
+                                                    Child = new UpdateableAvatar(rightUser.GetResultSafely())
                                                     {
                                                         RelativeSizeAxes = Axes.Both
                                                     }
@@ -202,7 +231,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 {
                                                     Anchor = Anchor.CentreRight,
                                                     Origin = Anchor.CentreRight,
-                                                    Text = user2.GetResultSafely()?.Username ?? "Unknown",
+                                                    Text = rightUser.GetResultSafely()?.Username ?? "Unknown",
                                                     Font = OsuFont.GetFont(weight: FontWeight.SemiBold),
                                                     UseFullGlyphHeight = false,
                                                 },
@@ -252,25 +281,23 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Colour = Color4.Red,
                                                         TooltipText = "Remaining Life"
                                                     },
-                                                    new OsuSpriteText
+                                                    leftLifeText = new OsuSpriteText
                                                     {
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.CentreRight,
                                                         X = -20,
+                                                        Colour = colourProvider.Foreground1,
                                                         Text = result.Scores[0].Life.ToString("N0"),
                                                         UseFullGlyphHeight = false,
-                                                        Colour = result.Scores[0].Life > result.Scores[1].Life ? Color4.White : colourProvider.Foreground1,
-                                                        Font = OsuFont.GetFont(weight: result.Scores[0].Life > result.Scores[1].Life ? FontWeight.SemiBold : FontWeight.Regular)
                                                     },
-                                                    new OsuSpriteText
+                                                    rightLifeText = new OsuSpriteText
                                                     {
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.CentreLeft,
                                                         X = 20,
+                                                        Colour = colourProvider.Foreground1,
                                                         Text = result.Scores[1].Life.ToString("N0"),
                                                         UseFullGlyphHeight = false,
-                                                        Colour = result.Scores[1].Life > result.Scores[0].Life ? Color4.White : colourProvider.Foreground1,
-                                                        Font = OsuFont.GetFont(weight: result.Scores[1].Life > result.Scores[0].Life ? FontWeight.SemiBold : FontWeight.Regular)
                                                     }
                                                 },
                                             },
@@ -278,7 +305,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                             {
                                                 RelativeSizeAxes = Axes.X,
                                                 AutoSizeAxes = Axes.Y,
-                                                Colour = colourProvider.Foreground1,
                                                 Children = new Drawable[]
                                                 {
                                                     new IconWithTooltip
@@ -286,6 +312,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.Centre,
                                                         Size = new Vector2(10),
+                                                        Colour = colourProvider.Foreground1,
                                                         Icon = FontAwesome.Solid.Skull,
                                                         TooltipText = "Rounds Won",
                                                     },
@@ -294,6 +321,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.CentreRight,
                                                         X = -20,
+                                                        Colour = colourProvider.Foreground1,
                                                         Text = result.Scores[0].Score.ToString(),
                                                         UseFullGlyphHeight = false,
                                                     },
@@ -302,6 +330,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Anchor = Anchor.Centre,
                                                         Origin = Anchor.CentreLeft,
                                                         X = 20,
+                                                        Colour = colourProvider.Foreground1,
                                                         Text = result.Scores[1].Score.ToString(),
                                                         UseFullGlyphHeight = false,
                                                     }
@@ -315,6 +344,32 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     }
                 }
             };
+
+            bool leftWin = result.Scores[0].Life > result.Scores[1].Life;
+            bool rightWin = result.Scores[1].Life > result.Scores[0].Life;
+            bool isDraw = result.Scores[0].Life == result.Scores[1].Life;
+
+            if (isDraw)
+            {
+                leftResultLight.Colour = colours.Yellow;
+                rightResultLight.Colour = colours.Yellow;
+            }
+            else if (leftWin)
+            {
+                leftResultLight.Colour = colours.Green;
+                rightResultLight.Colour = colours.Red;
+
+                leftLifeText.Colour = Color4.White;
+                leftLifeText.Font = OsuFont.GetFont(weight: FontWeight.SemiBold);
+            }
+            else if (rightWin)
+            {
+                leftResultLight.Colour = colours.Red;
+                rightResultLight.Colour = colours.Green;
+
+                rightLifeText.Colour = Color4.White;
+                rightLifeText.Font = OsuFont.GetFont(weight: FontWeight.SemiBold);
+            }
         }
 
         private class IconWithTooltip : SpriteIcon, IHasTooltip

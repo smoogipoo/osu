@@ -17,13 +17,47 @@ namespace osu.Game.Tests.Visual.Matchmaking
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
 
         [Test]
-        public void TestPanel()
+        public void TestLeftWin()
         {
             AddStep("add panel", () => Child = new MatchResultPanel(new MatchmakingMatchResult
             {
                 Scores =
                 [
                     new MatchmakingPlayerScore { UserID = 1, Life = 800_000, Score = 3 },
+                    new MatchmakingPlayerScore { UserID = 2, Life = 200_000, Score = 1 },
+                ],
+            })
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+        }
+
+        [Test]
+        public void TestRightWin()
+        {
+            AddStep("add panel", () => Child = new MatchResultPanel(new MatchmakingMatchResult
+            {
+                Scores =
+                [
+                    new MatchmakingPlayerScore { UserID = 1, Life = 200_000, Score = 3 },
+                    new MatchmakingPlayerScore { UserID = 2, Life = 800_000, Score = 1 },
+                ],
+            })
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+        }
+
+        [Test]
+        public void TestDraw()
+        {
+            AddStep("add panel", () => Child = new MatchResultPanel(new MatchmakingMatchResult
+            {
+                Scores =
+                [
+                    new MatchmakingPlayerScore { UserID = 1, Life = 200_000, Score = 3 },
                     new MatchmakingPlayerScore { UserID = 2, Life = 200_000, Score = 1 },
                 ],
             })
