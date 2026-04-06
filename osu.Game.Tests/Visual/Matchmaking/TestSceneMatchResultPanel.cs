@@ -16,10 +16,10 @@ namespace osu.Game.Tests.Visual.Matchmaking
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
 
-        [SetUp]
-        public void Setup() => Schedule(() =>
+        [Test]
+        public void TestPanel()
         {
-            Child = new MatchResultPanel(new MatchmakingMatchResult
+            AddStep("add panel", () => Child = new MatchResultPanel(new MatchmakingMatchResult
             {
                 Scores =
                 [
@@ -30,7 +30,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
-            };
-        });
+            });
+        }
     }
 }
