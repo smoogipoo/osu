@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Framework.Layout;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
@@ -22,7 +23,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private const int y_divisions = 8;
         private const int x_divisions = 16;
 
-        private readonly LayoutValue pathCache = new LayoutValue(Invalidation.DrawSize);
+        private readonly LayoutValue pathCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
 
         private readonly Container grid;
 
@@ -33,6 +34,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private readonly Drawable hoverMarker;
         private readonly Drawable hoverMarkerFill;
 
+        private readonly OsuTextFlowContainer descriptionText;
+
         private (int x, int y)[]? data;
         private int? userRating;
         private (int min, int max) xRange;
@@ -40,88 +43,117 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         public RatingDistributionGraph()
         {
-            InternalChildren = new Drawable[]
+            InternalChild = new GridContainer
             {
-                new OsuSpriteText
+                RelativeSizeAxes = Axes.Both,
+                RowDimensions =
+                [
+                    new Dimension(),
+                    new Dimension(GridSizeMode.AutoSize)
+                ],
+                Content = new[]
                 {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.TopCentre,
-                    Text = "Players",
-                    Font = OsuFont.Default.With(size: 12),
-                    Rotation = -90,
-                    Colour = OsuColour.Gray(0.5f)
-                },
-                new OsuSpriteText
-                {
-                    Anchor = Anchor.BottomCentre,
-                    Origin = Anchor.BottomCentre,
-                    Text = "Rating",
-                    Font = OsuFont.Default.With(size: 12),
-                    Colour = OsuColour.Gray(0.5f),
-                },
-                new OsuSpriteText
-                {
-                    Anchor = Anchor.CentreRight,
-                    Origin = Anchor.TopCentre,
-                    Text = "Cumulative",
-                    Font = OsuFont.Default.With(size: 12),
-                    Rotation = 90,
-                    Colour = OsuColour.Gray(0.5f),
-                },
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding
+                    new Drawable[]
                     {
-                        Left = 50,
-                        Top = 20,
-                        Bottom = 40,
-                        Right = 50
-                    },
-                    Children = new[]
-                    {
-                        grid = new Container
-                        {
-                            RelativeSizeAxes = Axes.Both
-                        },
-                        pathContainer = new Container
+                        new Container
                         {
                             RelativeSizeAxes = Axes.Both,
-                            // Margin and padding to better align the paths.
-                            Margin = new MarginPadding { Left = -2 },
-                            Padding = new MarginPadding { Right = -2 },
                             Children = new Drawable[]
                             {
-                                distributionPath = new SmoothPath
+                                new OsuSpriteText
                                 {
-                                    AutoSizeAxes = Axes.None,
-                                    RelativeSizeAxes = Axes.Both,
-                                    PathRadius = 2,
-                                    Colour = Color4.SlateGray
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.TopCentre,
+                                    Text = "Players",
+                                    Font = OsuFont.Default.With(size: 12),
+                                    Rotation = -90,
+                                    Colour = OsuColour.Gray(0.5f)
                                 },
-                                cumulativePath = new SmoothPath
+                                new OsuSpriteText
                                 {
-                                    AutoSizeAxes = Axes.None,
-                                    RelativeSizeAxes = Axes.Both,
-                                    PathRadius = 2,
-                                    Colour = Color4.Yellow
+                                    Anchor = Anchor.BottomCentre,
+                                    Origin = Anchor.BottomCentre,
+                                    Text = "Rating",
+                                    Font = OsuFont.Default.With(size: 12),
+                                    Colour = OsuColour.Gray(0.5f),
                                 },
-                            }
-                        },
-                        hoverMarker = new CircularContainer
-                        {
-                            Origin = Anchor.Centre,
-                            Size = new Vector2(12),
-                            Masking = true,
-                            BorderThickness = 2,
-                            BorderColour = Color4.White,
-                            Alpha = 0,
-                            Child = hoverMarkerFill = new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Yellow,
+                                new OsuSpriteText
+                                {
+                                    Anchor = Anchor.CentreRight,
+                                    Origin = Anchor.TopCentre,
+                                    Text = "Cumulative",
+                                    Font = OsuFont.Default.With(size: 12),
+                                    Rotation = 90,
+                                    Colour = OsuColour.Gray(0.5f),
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Padding = new MarginPadding
+                                    {
+                                        Left = 50,
+                                        Top = 20,
+                                        Bottom = 40,
+                                        Right = 50
+                                    },
+                                    Children = new[]
+                                    {
+                                        grid = new Container
+                                        {
+                                            RelativeSizeAxes = Axes.Both
+                                        },
+                                        pathContainer = new Container
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            // Margin and padding to better align the paths.
+                                            Margin = new MarginPadding { Left = -2 },
+                                            Padding = new MarginPadding { Right = -2 },
+                                            Children = new Drawable[]
+                                            {
+                                                distributionPath = new SmoothPath
+                                                {
+                                                    AutoSizeAxes = Axes.None,
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    PathRadius = 2,
+                                                    Colour = Color4.SlateGray
+                                                },
+                                                cumulativePath = new SmoothPath
+                                                {
+                                                    AutoSizeAxes = Axes.None,
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    PathRadius = 2,
+                                                    Colour = Color4.Yellow
+                                                },
+                                            }
+                                        },
+                                        hoverMarker = new CircularContainer
+                                        {
+                                            Origin = Anchor.Centre,
+                                            Size = new Vector2(12),
+                                            Masking = true,
+                                            BorderThickness = 2,
+                                            BorderColour = Color4.White,
+                                            Alpha = 0,
+                                            Child = hoverMarkerFill = new Box
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                                Colour = Color4.Yellow,
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
+                    },
+                    new Drawable[]
+                    {
+                        descriptionText = new OsuTextFlowContainer
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
+                            Padding = new MarginPadding { Top = 5 }
+                        },
                     }
                 }
             };
@@ -140,9 +172,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             updateGraph();
         }
 
-        protected override void Update()
+        protected override void UpdateAfterChildren()
         {
-            base.Update();
+            base.UpdateAfterChildren();
 
             if (!pathCache.IsValid)
             {
@@ -237,6 +269,25 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Size = new Vector2(8),
                     Colour = Color4.SlateGray
                 });
+            }
+
+            if (data.Length == 0)
+                descriptionText.Text = "No games have been played yet.";
+            else if (userRating == null)
+                descriptionText.Text = "Play more games to get rated!";
+            else
+            {
+                int countPlayersBelow = data.Where(d => d.x < userRating).Sum(d => d.y);
+                int countPlayersAbove = data.Where(d => d.x >= userRating).Sum(d => d.y);
+                float p = (float)countPlayersBelow / (countPlayersBelow + countPlayersAbove);
+
+                descriptionText.AddText("You are better than ");
+                descriptionText.AddText($"{p:P0}", s =>
+                {
+                    s.Font = OsuFont.GetFont(weight: FontWeight.SemiBold);
+                    s.Colour = Color4.Yellow;
+                });
+                descriptionText.AddText(" of players.");
             }
 
             updatePaths();
