@@ -168,7 +168,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 new OsuScrollContainer(Direction.Vertical)
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Child = resultPanelContainer = new FillFlowContainer<MatchResultPanel>()
+                                    Child = resultPanelContainer = new FillFlowContainer<MatchResultPanel>
                                     {
                                         RelativeSizeAxes = Axes.X,
                                         AutoSizeAxes = Axes.Y,
@@ -183,8 +183,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    RelativeSizeAxes = Axes.Y,
-                                    AutoSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Both,
                                     CornerRadius = 10f,
                                     Masking = true,
                                     Children = new Drawable[]

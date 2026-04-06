@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -30,14 +29,10 @@ namespace osu.Game.Tests.Visual.Matchmaking
             AddStep("load screen", () => LoadScreen(new ScreenIntro(MatchmakingPoolType.QuickPlay)));
             AddUntilStep("wait for queue screen", () => queueScreen?.IsLoaded == true);
 
-            List<(int x, int y)> values = new List<(int x, int y)>();
-            for (int i = 400; i <= 2800; i += 25)
-                values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
-
             AddStep("send status update", () => MultiplayerClient.MatchmakingLobbyStatusChanged(new MatchmakingLobbyStatus
             {
                 UsersInQueue = Enumerable.Range(1, 10).ToArray(),
-                RatingDistribution = Enumerable.Range(0, 96).Select(i => (400 + i * 25, (int)Math.Round(generateCount(400 + i * 25, 1600, 400, 7200)))).ToArray(),
+                RatingDistribution = Enumerable.Range(0, 24).Select(i => (400 + i * 100, (int)Math.Round(generateCount(400 + i * 100, 1600, 400, 7200)))).ToArray(),
                 UserRating = Random.Shared.Next(400, 2800),
                 RecentMatches = Enumerable.Range(1, 10).Select(i => new MatchmakingMatchResult
                 {

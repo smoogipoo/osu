@@ -25,32 +25,28 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private const int y_divisions = 8;
         private const int x_divisions = 16;
 
-        private readonly LayoutValue pathCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
-
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
 
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
+        private Container yAxisLeftContainer = null!;
+        private Container yAxisRightContainer = null!;
+        private Container xAxisContainer = null!;
         private Container chartContainer = null!;
+
         private Container grid = null!;
-        private Container pathContainer = null!;
-        private SmoothPath cumulativePath = null!;
-        private SmoothPath distributionPath = null!;
+        private PointPath cumulativePath = null!;
+        private PointPath distributionPath = null!;
         private Drawable hoverMarker = null!;
         private Drawable hoverMarkerFill = null!;
         private OsuTextFlowContainer descriptionText = null!;
 
-        private (int x, int y)[]? data;
+        private (int x, int y)[] data = [];
         private int? userRating;
         private (int min, int max) xRange;
         private (int min, int max) yRange;
-
-        public RatingDistributionGraph()
-        {
-            AddLayout(pathCache);
-        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -58,103 +54,146 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             InternalChild = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
+                Padding = new MarginPadding { Top = 20 },
                 RowDimensions =
                 [
+                    // Chart
                     new Dimension(),
+                    // x-axis
+                    new Dimension(GridSizeMode.AutoSize),
+                    // "Rating"
+                    new Dimension(GridSizeMode.AutoSize),
+                    // Description text
                     new Dimension(GridSizeMode.AutoSize)
                 ],
-                Content = new[]
+                Content = new Drawable[][]
                 {
                     new Drawable[]
                     {
-                        new Container
+                        new GridContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Children = new Drawable[]
+                            ColumnDimensions = new[]
                             {
-                                new OsuSpriteText
+                                // "Players"
+                                new Dimension(GridSizeMode.AutoSize),
+                                // Left y-axis
+                                new Dimension(GridSizeMode.AutoSize),
+                                // Chart
+                                new Dimension(),
+                                // Right y-axis
+                                new Dimension(GridSizeMode.AutoSize),
+                                // "Cumulative"
+                                new Dimension(GridSizeMode.AutoSize),
+                            },
+                            Content = new Drawable[][]
+                            {
+                                new Drawable[]
                                 {
-                                    Anchor = Anchor.CentreLeft,
-                                    Origin = Anchor.TopCentre,
-                                    Text = "Players",
-                                    Font = OsuFont.Default.With(size: 12),
-                                    Rotation = -90,
-                                    Colour = colourProvider.Foreground1
-                                },
-                                new OsuSpriteText
-                                {
-                                    Anchor = Anchor.BottomCentre,
-                                    Origin = Anchor.BottomCentre,
-                                    Text = "Rating",
-                                    Font = OsuFont.Default.With(size: 12),
-                                    Colour = colourProvider.Foreground1
-                                },
-                                new OsuSpriteText
-                                {
-                                    Anchor = Anchor.CentreRight,
-                                    Origin = Anchor.TopCentre,
-                                    Text = "Cumulative",
-                                    Font = OsuFont.Default.With(size: 12),
-                                    Rotation = 90,
-                                    Colour = colourProvider.Foreground1
-                                },
-                                chartContainer = new Container
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Padding = new MarginPadding
+                                    new OsuSpriteText
                                     {
-                                        Left = 50,
-                                        Top = 20,
-                                        Bottom = 37,
-                                        Right = 50
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.TopCentre,
+                                        Text = "Players",
+                                        Font = OsuFont.Default.With(size: 12),
+                                        Rotation = -90,
+                                        Colour = colourProvider.Foreground1
                                     },
-                                    Children = new[]
+                                    yAxisLeftContainer = new Container
                                     {
-                                        grid = new Container
+                                        RelativeSizeAxes = Axes.Y,
+                                        AutoSizeAxes = Axes.X,
+                                        Margin = new MarginPadding { Left = 5, Right = 5 },
+                                    },
+                                    chartContainer = new Container
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Children = new[]
                                         {
-                                            RelativeSizeAxes = Axes.Both
-                                        },
-                                        pathContainer = new Container
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            // Margin and padding to better align the paths.
-                                            Margin = new MarginPadding { Left = -2 },
-                                            Padding = new MarginPadding { Right = -2 },
-                                            Children = new Drawable[]
-                                            {
-                                                distributionPath = new SmoothPath
-                                                {
-                                                    AutoSizeAxes = Axes.None,
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    PathRadius = 2,
-                                                    Colour = colourProvider.Colour0
-                                                },
-                                                cumulativePath = new SmoothPath
-                                                {
-                                                    AutoSizeAxes = Axes.None,
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    PathRadius = 2,
-                                                    Colour = colours.Yellow
-                                                },
-                                            }
-                                        },
-                                        hoverMarker = new CircularContainer
-                                        {
-                                            Origin = Anchor.Centre,
-                                            Size = new Vector2(12),
-                                            Masking = true,
-                                            BorderThickness = 2,
-                                            BorderColour = Color4.White,
-                                            Alpha = 0,
-                                            Child = hoverMarkerFill = new Box
+                                            grid = new Container
                                             {
                                                 RelativeSizeAxes = Axes.Both
+                                            },
+                                            new Container
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                                // Margin and padding to better align the paths.
+                                                Margin = new MarginPadding { Left = -2 },
+                                                Padding = new MarginPadding { Right = -2 },
+                                                Children = new Drawable[]
+                                                {
+                                                    distributionPath = new PointPath
+                                                    {
+                                                        AutoSizeAxes = Axes.None,
+                                                        RelativeSizeAxes = Axes.Both,
+                                                        PathRadius = 2,
+                                                        Colour = colourProvider.Colour0,
+                                                    },
+                                                    cumulativePath = new PointPath
+                                                    {
+                                                        AutoSizeAxes = Axes.None,
+                                                        RelativeSizeAxes = Axes.Both,
+                                                        PathRadius = 2,
+                                                        Colour = colours.Yellow,
+                                                        Offset = new Vector2(0, -3)
+                                                    },
+                                                }
+                                            },
+
+                                            hoverMarker = new CircularContainer
+                                            {
+                                                Origin = Anchor.Centre,
+                                                Size = new Vector2(12),
+                                                Masking = true,
+                                                BorderThickness = 2,
+                                                BorderColour = Color4.White,
+                                                Alpha = 0,
+                                                Child = hoverMarkerFill = new Box
+                                                {
+                                                    RelativeSizeAxes = Axes.Both
+                                                }
                                             }
                                         }
-                                    }
+                                    },
+                                    yAxisRightContainer = new Container
+                                    {
+                                        RelativeSizeAxes = Axes.Y,
+                                        AutoSizeAxes = Axes.X,
+                                        Margin = new MarginPadding { Left = 5 },
+                                    },
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.CentreRight,
+                                        Origin = Anchor.TopCentre,
+                                        Text = "Cumulative",
+                                        Font = OsuFont.Default.With(size: 12),
+                                        Rotation = 90,
+                                        Colour = colourProvider.Foreground1
+                                    },
                                 }
                             }
                         }
+                    },
+                    new Drawable[]
+                    {
+                        xAxisContainer = new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Y,
+                            Margin = new MarginPadding { Top = 5 }
+                        }
+                    },
+                    new Drawable[]
+                    {
+                        new OsuSpriteText
+                        {
+                            Anchor = Anchor.BottomCentre,
+                            Origin = Anchor.BottomCentre,
+                            Text = "Rating",
+                            Font = OsuFont.Default.With(size: 12),
+                            Colour = colourProvider.Foreground1
+                        },
                     },
                     new Drawable[]
                     {
@@ -171,6 +210,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             };
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            updateGraph();
+        }
+
         public void SetData((int x, int y)[] data, int? userRating)
         {
             this.data = data;
@@ -179,22 +224,20 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             xRange = (data.Select(d => d.x).DefaultIfEmpty().Min(), data.Select(d => d.x).DefaultIfEmpty().Max());
             yRange = (0, (int)roundToSignificant(data.Select(d => d.y).DefaultIfEmpty().Max()));
 
-            Scheduler.AddOnce(updateGraph);
+            updateGraph();
         }
 
-        protected override void UpdateAfterChildren()
+        protected override void Update()
         {
-            base.UpdateAfterChildren();
-
-            if (!pathCache.IsValid)
-            {
-                updatePaths();
-                pathCache.Validate();
-            }
+            base.Update();
+            xAxisContainer.Width = chartContainer.DrawWidth;
         }
 
-        private void updateGraph()
+        private void updateGraph() => Scheduler.AddOnce(() =>
         {
+            xAxisContainer.Clear();
+            yAxisLeftContainer.Clear();
+            yAxisRightContainer.Clear();
             grid.Clear();
 
             for (int step = 0; step <= x_divisions; step++)
@@ -207,14 +250,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Colour = colourProvider.Background1
                 });
 
-                grid.Add(new OsuSpriteText
+                xAxisContainer.Add(new OsuSpriteText
                 {
-                    Anchor = Anchor.BottomLeft,
+                    Anchor = Anchor.TopLeft,
                     Origin = Anchor.CentreRight,
-                    Rotation = -40,
                     RelativePositionAxes = Axes.X,
                     X = (float)step / x_divisions,
-                    Y = 5,
+                    Rotation = -40,
                     Text = (xRange.min + (xRange.max - xRange.min) / x_divisions * step).ToString(),
                     UseFullGlyphHeight = false,
                     Font = OsuFont.Default.With(size: 12),
@@ -232,25 +274,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     Colour = colourProvider.Background1
                 });
 
-                grid.Add(new OsuSpriteText
+                yAxisLeftContainer.Add(new OsuSpriteText
                 {
-                    Origin = Anchor.CentreRight,
+                    Origin = Anchor.CentreLeft,
                     RelativePositionAxes = Axes.Y,
                     Y = (float)step / y_divisions,
-                    X = -5,
                     Text = (yRange.max - (yRange.max - yRange.min) / y_divisions * step).ToString(),
                     UseFullGlyphHeight = false,
                     Font = OsuFont.Default.With(size: 12),
                     Colour = colourProvider.Foreground1
                 });
 
-                grid.Add(new OsuSpriteText
+                yAxisRightContainer.Add(new OsuSpriteText
                 {
-                    Anchor = Anchor.TopRight,
                     Origin = Anchor.CentreLeft,
                     RelativePositionAxes = Axes.Y,
                     Y = (float)step / y_divisions,
-                    X = 5,
                     Text = $"{1.0 - (float)step / y_divisions:P1}",
                     UseFullGlyphHeight = false,
                     Font = OsuFont.Default.With(size: 12),
@@ -269,7 +308,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 });
             }
 
-            foreach (var point in data!)
+            foreach (var point in data)
             {
                 grid.Add(new Circle
                 {
@@ -301,30 +340,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 descriptionText.AddText(" of players.");
             }
 
-            updatePaths();
-        }
-
-        private void updatePaths()
-        {
-            if (data == null)
-                return;
-
-            distributionPath.ClearVertices();
-            cumulativePath.ClearVertices();
-
-            foreach (var point in data)
-                distributionPath.AddVertex(pointOnGraph(point.x, point.y) * pathContainer.DrawSize);
+            distributionPath.Points = data.Select(d => pointOnGraph(d.x, d.y)).ToArray();
 
             int currentCount = 0;
             int totalCount = data.Sum(d => d.y);
 
-            foreach (var point in data)
+            cumulativePath.Points = data.Select(d =>
             {
-                currentCount += point.y;
+                currentCount += d.y;
                 float p = (float)currentCount / totalCount;
-                cumulativePath.AddVertex(new Vector2(pointOnGraph(point.x, 0).X, 1 - p) * (pathContainer.DrawSize - new Vector2(0, 2)));
-            }
-        }
+                return new Vector2(pointOnGraph(d.x, 0).X, 1 - p);
+            }).ToArray();
+        });
 
         private Vector2 pointOnGraph(int x, int y)
         {
@@ -343,7 +370,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         }
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
-            => chartContainer.ReceivePositionalInputAt(screenSpacePos);
+        {
+            return chartContainer.DrawRectangle.Inflate(20).Contains(chartContainer.ToLocalSpace(screenSpacePos));
+        }
 
         protected override bool OnHover(HoverEvent e)
         {
@@ -372,9 +401,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         {
             get
             {
-                if (data == null)
-                    return new RatingDistributionGraphTooltipData();
-
                 Vector2 mousePos = GetContainingInputManager()!.CurrentState.Mouse.Position;
 
                 float minDistToCursor = float.MaxValue;
@@ -413,17 +439,17 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         minDistToCursor = d;
                         closestPointToCursor = pos;
                         closestColourToCursor = colourProvider.Colour0;
-                        closestRatingToCursor = data![i].x;
-                        closestValueToCursor = $"Players: {data![i].y}";
+                        closestRatingToCursor = data[i].x;
+                        closestValueToCursor = $"Players: {data[i].y}";
                     }
                 }
 
                 int currentCount = 0;
-                int totalCount = data!.Sum(p => p.y);
+                int totalCount = data.Sum(p => p.y);
 
                 for (int i = 0; i < cumulativePath.Vertices.Count; i++)
                 {
-                    currentCount += data![i].y;
+                    currentCount += data[i].y;
 
                     Vector2 pos = distributionPath.ToScreenSpace(cumulativePath.Vertices[i] + new Vector2(2));
                     float d = Vector2.Distance(mousePos, pos);
@@ -433,7 +459,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         minDistToCursor = d;
                         closestPointToCursor = pos;
                         closestColourToCursor = colours.Yellow;
-                        closestRatingToCursor = data![i].x;
+                        closestRatingToCursor = data[i].x;
                         closestValueToCursor = $"Cumulative: {(float)currentCount / totalCount:P1}";
                     }
                 }
@@ -509,6 +535,59 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         Font = OsuFont.Torus.With(size: 12),
                     }
                 };
+            }
+        }
+
+        private class PointPath : SmoothPath
+        {
+            private Vector2[] points = [];
+
+            public Vector2[] Points
+            {
+                get => points;
+                set
+                {
+                    points = value;
+                    verticesCache.Invalidate();
+                }
+            }
+
+            private Vector2 offset;
+
+            public Vector2 Offset
+            {
+                get => offset;
+                set
+                {
+                    offset = value;
+                    verticesCache.Invalidate();
+                }
+            }
+
+            private readonly LayoutValue verticesCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
+
+            public PointPath()
+            {
+                AddLayout(verticesCache);
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                if (!verticesCache.IsValid)
+                {
+                    updateVertices();
+                    verticesCache.Validate();
+                }
+            }
+
+            private void updateVertices()
+            {
+                ClearVertices();
+
+                for (int i = 0; i < Points.Length; i++)
+                    AddVertex(Points[i] * (Parent!.DrawSize + offset));
             }
         }
 

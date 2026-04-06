@@ -37,7 +37,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
             AddStep("set random data", () =>
             {
                 List<(int x, int y)> values = new List<(int x, int y)>();
-                for (int i = 400; i <= 2800; i += 25)
+                for (int i = 400; i <= 2800; i += 100)
                     values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
                 graph.SetData(values.ToArray(), Random.Shared.Next(400, 2800));
             });
@@ -49,7 +49,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
             AddStep("set data", () =>
             {
                 List<(int x, int y)> values = new List<(int x, int y)>();
-                for (int i = 400; i <= 2800; i += 25)
+                for (int i = 400; i <= 2800; i += 100)
                     values.Add((i, (int)Math.Round(generateCount(i, 1600, 400, 7200))));
                 graph.SetData(values.ToArray(), null);
             });
