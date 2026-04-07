@@ -66,7 +66,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     // Description text
                     new Dimension(GridSizeMode.AutoSize)
                 ],
-                Content = new Drawable[][]
+                Content = new[]
                 {
                     new Drawable[]
                     {
@@ -86,7 +86,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 // "Cumulative"
                                 new Dimension(GridSizeMode.AutoSize),
                             },
-                            Content = new Drawable[][]
+                            Content = new[]
                             {
                                 new Drawable[]
                                 {

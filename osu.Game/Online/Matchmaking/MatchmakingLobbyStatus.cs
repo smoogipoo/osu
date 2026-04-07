@@ -3,6 +3,7 @@
 
 using System;
 using MessagePack;
+using osu.Game.Online.Multiplayer;
 
 namespace osu.Game.Online.Matchmaking
 {
@@ -20,6 +21,6 @@ namespace osu.Game.Online.Matchmaking
         public int? UserRating { get; set; }
 
         [Key(3)]
-        public MatchmakingMatchResult[] RecentMatches { get; set; } = [];
+        public MatchRoomState[] RecentMatches { get; set; } = [];
     }
 }

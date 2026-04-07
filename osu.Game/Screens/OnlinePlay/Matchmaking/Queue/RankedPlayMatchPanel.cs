@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
@@ -16,7 +17,7 @@ using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
-using osu.Game.Online.Matchmaking;
+using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Users;
@@ -26,7 +27,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {
-    public class MatchResultPanel : CompositeDrawable
+    public class RankedPlayMatchPanel : CompositeDrawable
     {
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
@@ -37,16 +38,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [Resolved]
         private UserLookupCache userLookupCache { get; set; } = null!;
 
-        private readonly MatchmakingMatchResult result;
+        private readonly RankedPlayRoomState state;
 
         private Drawable leftResultLight = null!;
         private Drawable rightResultLight = null!;
         private OsuSpriteText leftLifeText = null!;
         private OsuSpriteText rightLifeText = null!;
 
-        public MatchResultPanel(MatchmakingMatchResult result)
+        public RankedPlayMatchPanel(RankedPlayRoomState state)
         {
-            this.result = result;
+            this.state = state;
 
             Width = 300;
             AutoSizeAxes = Axes.Y;
@@ -58,8 +59,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [BackgroundDependencyLoader]
         private void load()
         {
-            Task<APIUser?> leftUser = userLookupCache.GetUserAsync(result.Scores[0].UserID);
-            Task<APIUser?> rightUser = userLookupCache.GetUserAsync(result.Scores[1].UserID);
+            (int UserId, RankedPlayUserInfo Info)[] users = state.Users.Select(kvp => (kvp.Key, kvp.Value)).ToArray();
+            Task<APIUser?> leftUser = userLookupCache.GetUserAsync(users[0].UserId);
+            Task<APIUser?> rightUser = userLookupCache.GetUserAsync(users[1].UserId);
             Task.WhenAll(leftUser, rightUser).WaitSafely();
 
             InternalChildren = new Drawable[]
@@ -287,7 +289,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Origin = Anchor.CentreRight,
                                                         X = -20,
                                                         Colour = colourProvider.Foreground1,
-                                                        Text = result.Scores[0].Life.ToString("N0"),
+                                                        Text = users[0].Info.Life.ToString("N0"),
                                                         UseFullGlyphHeight = false,
                                                     },
                                                     rightLifeText = new OsuSpriteText
@@ -296,7 +298,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Origin = Anchor.CentreLeft,
                                                         X = 20,
                                                         Colour = colourProvider.Foreground1,
-                                                        Text = result.Scores[1].Life.ToString("N0"),
+                                                        Text = users[1].Info.Life.ToString("N0"),
                                                         UseFullGlyphHeight = false,
                                                     }
                                                 },
@@ -322,7 +324,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Origin = Anchor.CentreRight,
                                                         X = -20,
                                                         Colour = colourProvider.Foreground1,
-                                                        Text = result.Scores[0].Score.ToString(),
+                                                        Text = users[0].Info.RoundsWon.ToString(),
                                                         UseFullGlyphHeight = false,
                                                     },
                                                     new OsuSpriteText
@@ -331,7 +333,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Origin = Anchor.CentreLeft,
                                                         X = 20,
                                                         Colour = colourProvider.Foreground1,
-                                                        Text = result.Scores[1].Score.ToString(),
+                                                        Text = users[1].Info.RoundsWon.ToString(),
                                                         UseFullGlyphHeight = false,
                                                     }
                                                 },
@@ -345,9 +347,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 }
             };
 
-            bool leftWin = result.Scores[0].Life > result.Scores[1].Life;
-            bool rightWin = result.Scores[1].Life > result.Scores[0].Life;
-            bool isDraw = result.Scores[0].Life == result.Scores[1].Life;
+            bool leftWin = users[0].Info.Life > users[1].Info.Life;
+            bool rightWin = users[1].Info.Life > users[0].Info.Life;
+            bool isDraw = users[0].Info.Life == users[1].Info.Life;
 
             if (isDraw)
             {

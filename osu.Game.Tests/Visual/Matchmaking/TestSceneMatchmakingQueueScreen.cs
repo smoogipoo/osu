@@ -8,6 +8,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Testing;
 using osu.Game.Online.Matchmaking;
+using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Intro;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
 using osu.Game.Tests.Visual.Multiplayer;
@@ -29,31 +31,26 @@ namespace osu.Game.Tests.Visual.Matchmaking
             AddStep("load screen", () => LoadScreen(new ScreenIntro(MatchmakingPoolType.QuickPlay)));
             AddUntilStep("wait for queue screen", () => queueScreen?.IsLoaded == true);
 
-            AddStep("send status update", () => MultiplayerClient.MatchmakingLobbyStatusChanged(new MatchmakingLobbyStatus
+            AddStep("send status update", () =>
             {
-                UsersInQueue = Enumerable.Range(1, 10).ToArray(),
-                RatingDistribution = Enumerable.Range(0, 24).Select(i => (400 + i * 100, (int)Math.Round(generateCount(400 + i * 100, 1600, 400, 7200)))).ToArray(),
-                UserRating = Random.Shared.Next(400, 2800),
-                RecentMatches = Enumerable.Range(1, 10).Select(i => new MatchmakingMatchResult
+                int userId1 = Random.Shared.Next(1, 11);
+                int userId2 = Random.Shared.GetItems(Enumerable.Range(1, 10).Except([userId1]).ToArray(), 1).Single();
+
+                MultiplayerClient.MatchmakingLobbyStatusChanged(new MatchmakingLobbyStatus
                 {
-                    RoomID = i,
-                    Scores =
-                    [
-                        new MatchmakingPlayerScore
+                    UsersInQueue = Enumerable.Range(1, 10).ToArray(),
+                    RatingDistribution = Enumerable.Range(0, 24).Select(i => (400 + i * 100, (int)Math.Round(generateCount(400 + i * 100, 1600, 400, 7200)))).ToArray(),
+                    UserRating = Random.Shared.Next(400, 2800),
+                    RecentMatches = Enumerable.Range(1, 10).Select(_ => (MatchRoomState)new RankedPlayRoomState
+                    {
+                        Users =
                         {
-                            UserID = Random.Shared.Next(1, 11),
-                            Life = Random.Shared.Next(0, 1_000_001),
-                            Score = Random.Shared.Next(0, 4)
-                        },
-                        new MatchmakingPlayerScore
-                        {
-                            UserID = Random.Shared.Next(1, 11),
-                            Life = Random.Shared.Next(0, 1_000_001),
-                            Score = Random.Shared.Next(0, 4)
+                            { userId1, new RankedPlayUserInfo { Rating = 0, Life = Random.Shared.Next(0, 1_000_001), RoundsWon = Random.Shared.Next(0, 4) } },
+                            { userId2, new RankedPlayUserInfo { Rating = 0, Life = Random.Shared.Next(0, 1_000_001), RoundsWon = Random.Shared.Next(0, 4) } },
                         }
-                    ]
-                }).ToArray()
-            }).WaitSafely());
+                    }).ToArray()
+                }).WaitSafely();
+            });
         }
 
         [Test]

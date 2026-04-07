@@ -30,6 +30,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Matchmaking.Requests;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Volume;
 using osu.Game.Rulesets;
@@ -52,7 +53,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private Container mainContent = null!;
         private CloudVisualisation cloud = null!;
         private RatingDistributionGraph ratingGraph = null!;
-        private FillFlowContainer<MatchResultPanel> resultPanelContainer = null!;
+        private FillFlowContainer<RankedPlayMatchPanel> resultPanelContainer = null!;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -169,7 +170,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     ScrollbarOverlapsContent = false,
-                                    Child = resultPanelContainer = new FillFlowContainer<MatchResultPanel>
+                                    Child = resultPanelContainer = new FillFlowContainer<RankedPlayMatchPanel>
                                     {
                                         RelativeSizeAxes = Axes.X,
                                         AutoSizeAxes = Axes.Y,
@@ -277,10 +278,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
             ratingGraph.SetData(status.RatingDistribution, userRating);
 
-            foreach (var result in status.RecentMatches)
-            {
-                resultPanelContainer.Insert(-resultPanelContainer.Count, new MatchResultPanel(result));
-            }
+            foreach (var state in status.RecentMatches.OfType<RankedPlayRoomState>())
+                resultPanelContainer.Insert(-resultPanelContainer.Count, new RankedPlayMatchPanel(state));
         });
 
         private void onSelectedPoolChanged(ValueChangedEvent<MatchmakingPool?> e)
