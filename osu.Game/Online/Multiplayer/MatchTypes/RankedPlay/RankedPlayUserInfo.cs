@@ -49,5 +49,11 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         /// </summary>
         [Key(5)]
         public int RoundsWon { get; set; }
+
+        /// <summary>
+        /// This user's damage multiplier.
+        /// </summary>
+        [Key(6)]
+        public double DamageMultiplier { get; set; } = 1;
     }
 }

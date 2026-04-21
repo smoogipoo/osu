@@ -24,7 +24,7 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         public int CurrentRound { get; set; }
 
         /// <summary>
-        /// A multiplier applied to life point damage.
+        /// The damage multiplier for the current round.
         /// </summary>
         [Key(2)]
         public double DamageMultiplier { get; set; } = 1;
