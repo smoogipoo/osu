@@ -58,6 +58,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             private RankedPlayUserDisplay playerUserDisplay = null!;
             private RankedPlayUserDisplay opponentUserDisplay = null!;
 
+            private OsuSpriteText damageMultiplierText = null!;
+            private OsuSpriteText damageMultiplierUserText = null!;
+
             private RankedPlayDamageInfo losingDamageInfo = null!;
 
             private AudioContainer sampleContainer = null!;
@@ -277,15 +280,31 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     },
                                 ]
                             },
-                            new OsuSpriteText
+                            new FillFlowContainer
                             {
-                                Text = Precision.AlmostEquals(matchInfo.RoomState.DamageMultiplier, 1)
-                                    ? "Damage"
-                                    : $"Damage {matchInfo.RoomState.DamageMultiplier.ToStandardFormattedString(maxDecimalDigits: 1)}x",
                                 Anchor = Anchor.TopCentre,
                                 Origin = Anchor.Centre,
-                                Font = OsuFont.GetFont(weight: FontWeight.SemiBold, size: 22),
-                            },
+                                AutoSizeAxes = Axes.Both,
+                                Direction = FillDirection.Vertical,
+                                Spacing = new Vector2(-4),
+                                Children = new Drawable[]
+                                {
+                                    damageMultiplierText = new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Font = OsuFont.GetFont(weight: FontWeight.SemiBold, size: 22),
+                                    },
+                                    damageMultiplierUserText = new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Font = OsuFont.GetFont(weight: FontWeight.SemiBold, size: 12),
+                                        // Push the entire component upwards a bit.
+                                        Margin = new MarginPadding { Bottom = 4 }
+                                    }
+                                }
+                            }
                         ]
                     }
                 });
@@ -312,6 +331,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             protected override void LoadComplete()
             {
                 base.LoadComplete();
+
+                if (matchInfo.RoomState.ActiveUserId == PlayerScore.UserID)
+                    damageMultiplierUserText.Text = $"{PlayerScore.User.Username}'s multiplier";
+                else
+                    damageMultiplierUserText.Text = $"{OpponentScore.User.Username}'s multiplier";
+
+                if (Precision.AlmostEquals(matchInfo.RoomState.DamageMultiplier, 1))
+                {
+                    damageMultiplierText.Text = "Damage";
+                    damageMultiplierUserText.Alpha = 0;
+                }
+                else
+                {
+                    damageMultiplierText.Text = $"Damage {matchInfo.RoomState.DamageMultiplier.ToStandardFormattedString(maxDecimalDigits: 1)}x";
+                    damageMultiplierUserText.Alpha = 1;
+                }
 
                 playAnimation();
             }
