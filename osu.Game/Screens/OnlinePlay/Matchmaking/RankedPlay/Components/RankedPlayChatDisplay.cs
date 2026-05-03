@@ -113,7 +113,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         private void onNewMessagesArrived(IEnumerable<Message> bundle)
         {
             foreach (var message in bundle)
-                chatHistory.PostMessage(message.Sender, message.Content);
+                chatHistory.PostMessage(message.Sender, message.DisplayContent);
         }
 
         private void onFocusGained()
