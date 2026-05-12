@@ -8,49 +8,72 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
 {
     [Serializable]
     [MessagePackObject]
-    public class RankedPlayDamageInfo : IEquatable<RankedPlayDamageInfo>
+    public class RankedPlayDamageInfo
     {
         /// <summary>
         /// Total amount of damage dealt.
         /// </summary>
         [Key(0)]
-        public required int Damage { get; init; }
+        public int Damage { get; init; }
 
         /// <summary>
         /// Damage dealt before multipliers are applied.
         /// </summary>
         [Key(1)]
-        public required int RawDamage { get; init; }
+        public int RawDamage { get; init; }
 
         /// <summary>
         /// Life before damage was applied.
         /// </summary>
         [Key(2)]
-        public required int OldLife { get; init; }
+        public int OldLife { get; init; }
 
         /// <summary>
         /// Life after damage was applied.
         /// </summary>
         [Key(3)]
-        public required int NewLife { get; init; }
+        public int NewLife { get; init; }
 
-        public bool Equals(RankedPlayDamageInfo? other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
+        /// <summary>
+        /// Describes each source of damage.
+        /// </summary>
+        [Key(4)]
+        public RankedPlayDamageBreakdown[] Breakdown { get; init; } = [];
+    }
 
-            return Damage == other.Damage && RawDamage == other.RawDamage && OldLife == other.OldLife && NewLife == other.NewLife;
-        }
+    [Serializable]
+    [MessagePackObject]
+    public class RankedPlayDamageBreakdown
+    {
+        /// <summary>
+        /// The damage source.
+        /// </summary>
+        [Key(0)]
+        public RankedPlayDamageSource Source { get; init; }
 
-        public override bool Equals(object? obj)
-        {
-            if (obj is null) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
+        /// <summary>
+        /// Total amount of damage dealt from this source.
+        /// </summary>
+        [Key(1)]
+        public int Damage { get; init; }
 
-            return Equals((RankedPlayDamageInfo)obj);
-        }
+        /// <summary>
+        /// Damage dealt before multipliers are applied.
+        /// </summary>
+        [Key(2)]
+        public int RawDamage { get; init; }
+    }
 
-        public override int GetHashCode() => HashCode.Combine(Damage, RawDamage, OldLife, NewLife);
+    public enum RankedPlayDamageSource
+    {
+        /// <summary>
+        /// Base damage dealt for losing a round.
+        /// </summary>
+        Base,
+
+        /// <summary>
+        /// Attack damage dealt based on score difference.
+        /// </summary>
+        Attack
     }
 }

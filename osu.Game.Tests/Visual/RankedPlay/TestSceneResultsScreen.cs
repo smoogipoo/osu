@@ -94,6 +94,19 @@ namespace osu.Game.Tests.Visual.RankedPlay
                             Damage = 123_456,
                             OldLife = 500_000,
                             NewLife = 500_000 - 123_456,
+                            Breakdown =
+                            [
+                                new RankedPlayDamageBreakdown
+                                {
+                                    Source = RankedPlayDamageSource.Base,
+                                    Damage = 10_000,
+                                    RawDamage = 10_000
+                                },
+                                new RankedPlayDamageBreakdown
+                                {
+                                    Source = RankedPlayDamageSource.Attack
+                                }
+                            ]
                         };
 
                         userInfo.Life = 500_000 - 123_456;

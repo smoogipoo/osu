@@ -70,6 +70,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                 ? Anchor.CentreLeft
                 : Anchor.CentreRight;
 
+            var damageMultiplierAnchor = (contentAnchor & Anchor.x0) != 0
+                ? Anchor.CentreRight
+                : Anchor.CentreLeft;
+
             InternalChildren =
             [
                 new CircularContainer
@@ -104,6 +108,23 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                     Direction = FillDirection.Vertical,
                     Children =
                     [
+                        new Container
+                        {
+                            Anchor = contentAnchor,
+                            Origin = contentAnchor,
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Padding = new MarginPadding { Horizontal = 4, Vertical = 6 },
+                            Child = new OsuSpriteText
+                            {
+                                Name = "Multiplier",
+                                Text = "2x damage",
+                                Anchor = damageMultiplierAnchor,
+                                Origin = damageMultiplierAnchor,
+                                Font = OsuFont.GetFont(size: 16, weight: FontWeight.SemiBold),
+                                UseFullGlyphHeight = false,
+                            }
+                        },
                         HealthDisplay = new HealthBar(colourScheme, (contentAnchor & Anchor.x0) != 0, shear)
                         {
                             Health = { BindTarget = Health },
