@@ -48,8 +48,13 @@ namespace osu.Desktop
             var osuBeatmap = readBeatmap(archiveReader, "Soleily - Renatus (Gamu) [Insane].osu");
             var osuCalculator = new OsuRuleset().CreateDifficultyCalculator(osuBeatmap);
 
+            var lc = new PooledBeatmapLoadContext();
+
             for (int i = 0; i < 10000; i++)
-                osuCalculator.Calculate();
+            {
+                using (lc.Begin())
+                    osuCalculator.Calculate();
+            }
 
             static WorkingBeatmap readBeatmap(ZipArchiveReader archiveReader, string beatmapName)
             {
