@@ -34,6 +34,7 @@ using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
+using osu.Game.Arcade;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -221,6 +222,7 @@ namespace osu.Game
         protected MultiplayerClient MultiplayerClient { get; private set; }
 
         private MetadataClient metadataClient;
+        private ArcadeClient arcadeClient;
 
         private RealmAccess realm;
 
@@ -339,6 +341,7 @@ namespace osu.Game
             dependencies.CacheAs(SpectatorClient = new OnlineSpectatorClient(endpoints));
             dependencies.CacheAs(MultiplayerClient = new OnlineMultiplayerClient(endpoints));
             dependencies.CacheAs(metadataClient = new OnlineMetadataClient(endpoints));
+            dependencies.CacheAs(arcadeClient = new OnlineArcadeClient());
 
             base.Content.Add(new BeatmapOnlineChangeIngest(beatmapUpdater, realm, metadataClient));
 
@@ -384,6 +387,7 @@ namespace osu.Game
             base.Content.Add(SpectatorClient);
             base.Content.Add(MultiplayerClient);
             base.Content.Add(metadataClient);
+            base.Content.Add(arcadeClient);
 
             base.Content.Add(rulesetConfigCache);
 
