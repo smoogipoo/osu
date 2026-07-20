@@ -14,6 +14,7 @@ using osu.Framework.Utils;
 using osu.Game.Screens.Menu;
 using osu.Framework.Screens;
 using osu.Framework.Threading;
+using osu.Game.Arcade;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Seasonal;
@@ -35,7 +36,13 @@ namespace osu.Game.Screens
         private LoadingSpinner spinner;
         private ScheduledDelegate spinnerShow;
 
-        protected virtual OsuScreen CreateLoadableScreen() => getIntroSequence();
+        protected virtual OsuScreen CreateLoadableScreen()
+        {
+            if (OsuGame.ARCADE)
+                return new ArcadeScreen();
+
+            return getIntroSequence();
+        }
 
         private IntroScreen getIntroSequence()
         {
