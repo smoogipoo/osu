@@ -4,6 +4,8 @@
 using System;
 using System.Text.Json.Serialization;
 using MessagePack;
+using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Users;
 
 namespace osu.Game.Arcade
 {
@@ -23,8 +25,38 @@ namespace osu.Game.Arcade
         [Key(2)]
         public string AvatarUrl { get; set; } = string.Empty;
 
-        [JsonPropertyName("cover_url")]
+        [JsonPropertyName("cover")]
         [Key(3)]
-        public string CoverUrl { get; set; } = string.Empty;
+        public UserCover Cover { get; set; } = new UserCover();
+
+        [JsonPropertyName("country_code")]
+        [Key(4)]
+        public string CountryCodeString { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        [IgnoreMember]
+        public CountryCode CountryCode
+        {
+            get => Enum.TryParse(CountryCodeString, out CountryCode result) ? result : CountryCode.Unknown;
+            set => CountryCodeString = value.ToString();
+        }
+
+        public void TransferTo(APIUser user)
+        {
+            user.Id = UserId;
+            user.Username = Username;
+            user.AvatarUrl = AvatarUrl;
+            user.CoverUrl = Cover.Url;
+            user.CountryCode = CountryCode;
+        }
+
+        [MessagePackObject]
+        [Serializable]
+        public class UserCover
+        {
+            [JsonPropertyName(@"url")]
+            [Key(0)]
+            public string Url { get; set; } = string.Empty;
+        }
     }
 }

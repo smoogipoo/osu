@@ -72,7 +72,10 @@ namespace osu.Game.Tests
                 UserId = 2,
                 Username = "peppy",
                 AvatarUrl = "https://a.ppy.sh/2",
-                CoverUrl = "https://assets.ppy.sh/user-profile-covers/8195163/4a8e2ad5a02a2642b631438cfa6c6bd7e2f9db289be881cb27df18331f64144c.jpeg",
+                Cover = new ArcadeUser.UserCover
+                {
+                    Url = "https://assets.ppy.sh/user-profile-covers/8195163/4a8e2ad5a02a2642b631438cfa6c6bd7e2f9db289be881cb27df18331f64144c.jpeg"
+                }
             },
             MatchmakingStats =
             [

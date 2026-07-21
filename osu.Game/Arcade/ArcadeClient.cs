@@ -37,19 +37,13 @@ namespace osu.Game.Arcade
                 ConnectedClients[clientId] = identity;
 
                 // This is very dodgy and abuses the fact that UserLookupStore provides permanent mutable references to stored objects.
-                user.Id = identity.User.UserId;
-                user.Username = identity.User.Username;
-                user.AvatarUrl = identity.User.AvatarUrl;
-                user.CoverUrl = identity.User.CoverUrl;
+                identity.User.TransferTo(user);
             });
         }
 
         public Task UserDisconnected(int clientId)
         {
-            Scheduler.Add(() =>
-            {
-                ConnectedClients.Remove(clientId);
-            });
+            Scheduler.Add(() => ConnectedClients.Remove(clientId));
 
             return Task.CompletedTask;
         }
