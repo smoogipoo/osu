@@ -50,15 +50,6 @@ namespace osu.Game.Arcade
             CountryCode = CountryCode
         };
 
-        public void TransferTo(APIUser user)
-        {
-            user.Id = UserId;
-            user.Username = Username;
-            user.AvatarUrl = AvatarUrl;
-            user.CoverUrl = Cover.Url;
-            user.CountryCode = CountryCode;
-        }
-
         [MessagePackObject]
         [Serializable]
         public class UserCover

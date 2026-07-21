@@ -22,6 +22,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Overlays;
 using osu.Game.Overlays.Login;
 using osu.Game.Screens;
 using osu.Game.Screens.Backgrounds;
@@ -49,7 +50,9 @@ namespace osu.Game.Arcade.Screens
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
-        private readonly IBindableDictionary<int, ArcadeIdentity> arcadeClients = new BindableDictionary<int, ArcadeIdentity>();
+        [Cached]
+        private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
+
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
         private readonly Func<ArcadeIdentity, OsuScreen> createNextScreen;
 

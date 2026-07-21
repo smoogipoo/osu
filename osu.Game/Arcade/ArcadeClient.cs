@@ -40,8 +40,13 @@ namespace osu.Game.Arcade
             {
                 ConnectedClients[clientId] = identity;
 
+                // We will now be faking a given user as their new identity.
                 // This is very dodgy and abuses the fact that UserLookupStore provides permanent mutable references to stored objects.
-                identity.User.TransferTo(user);
+                // Note that User ID is not rewritten since it is sometimes used from the returend objects.
+                user.Username = identity.User.Username;
+                user.AvatarUrl = identity.User.AvatarUrl;
+                user.CoverUrl = identity.User.Cover.Url;
+                user.CountryCode = identity.User.CountryCode;
 
                 UserConnected?.Invoke(clientId, identity);
             });

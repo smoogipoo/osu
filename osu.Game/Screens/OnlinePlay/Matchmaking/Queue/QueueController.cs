@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
@@ -20,7 +21,6 @@ using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Matchmaking.Requests;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
-using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Intro;
 
@@ -34,6 +34,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
     /// </summary>
     public partial class QueueController : Component
     {
+        public Action<Notification>? PostNotification { get; set; }
+
         public readonly Bindable<ScreenQueue.MatchmakingScreenState> CurrentState = new Bindable<ScreenQueue.MatchmakingScreenState>();
         public readonly Bindable<MatchmakingPool?> SelectedPool = new Bindable<MatchmakingPool?>();
 
@@ -47,9 +49,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         [Resolved]
         private UserLookupCache users { get; set; } = null!;
-
-        [Resolved]
-        private INotificationOverlay? notifications { get; set; }
 
         private BackgroundQueueNotification? backgroundNotification;
 
@@ -200,7 +199,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 if (user == null)
                     return;
 
-                Scheduler.Add(() => notifications?.Post(new DuelNotification(this, user, duel)));
+                Scheduler.Add(() => PostNotification?.Invoke(new DuelNotification(this, user, duel)));
             }).FireAndForget();
         }
 
@@ -219,7 +218,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             if (CurrentState.Value != ScreenQueue.MatchmakingScreenState.Queueing)
                 return;
 
-            notifications?.Post(backgroundNotification = new BackgroundQueueNotification(this));
+            PostNotification?.Invoke(backgroundNotification = new BackgroundQueueNotification(this));
         }
 
         private void closeNotification()

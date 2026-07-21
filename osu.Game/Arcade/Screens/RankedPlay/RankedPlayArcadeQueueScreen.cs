@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -21,7 +22,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Online.Rooms;
 using osu.Game.Screens;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
@@ -51,6 +51,9 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         [Resolved]
         private GameHost host { get; set; } = null!;
 
+        [Resolved]
+        private QueueController queueController { get; set; } = null!;
+
         private readonly Bindable<MatchmakingPool[]?> availablePools = new Bindable<MatchmakingPool[]?>();
         private readonly Bindable<MatchmakingPool?> selectedPool = new Bindable<MatchmakingPool?>();
         private readonly Bindable<bool> canPractice = new Bindable<bool>();
@@ -63,7 +66,6 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
         private DateTimeOffset practiceEndTime = DateTimeOffset.MaxValue;
         private ScheduledDelegate? scheduledReturnToFromPlayer;
-        private bool isQueueing;
 
         public RankedPlayArcadeQueueScreen(ArcadeIdentity identity)
         {
@@ -112,6 +114,8 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         {
             base.LoadComplete();
 
+            queueController.PostNotification = null;
+
             welcomeText.FadeInFromZero(1000, Easing.OutQuint)
                        .Delay(1000)
                        .MoveToOffset(new Vector2(0, -0.25f), 500, Easing.OutQuint);
@@ -120,8 +124,8 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                          .Delay(1200)
                          .FadeInFromZero(1000, Easing.OutQuint);
 
+            multiplayerClient.RoomUpdated += onRoomUpdated;
             multiplayerClient.MatchmakingRoomInvited += onMatchmakingRoomInvited;
-            multiplayerClient.MatchmakingRoomReady += onMatchmakingRoomReady;
 
             connectedClients.BindTo(arcadeClient.ConnectedClients);
             connectedClients.BindCollectionChanged(onConnectedClientsChanged, true);
@@ -145,14 +149,17 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                 practiceEndTime = DateTimeOffset.Now + duration;
         }
 
+        private void onRoomUpdated() => Schedule(() =>
+        {
+            if (!this.IsCurrentScreen())
+                return;
+
+            if (multiplayerClient.Room != null)
+                this.Push(new RankedPlayScreen(multiplayerClient.Room));
+        });
+
         private void onMatchmakingRoomInvited(MatchmakingRoomInvitationParams e)
             => Schedule(() => multiplayerClient.MatchmakingAcceptInvitation().FireAndForget());
-
-        private void onMatchmakingRoomReady(long roomId, string password) => Schedule(() =>
-        {
-            multiplayerClient.JoinRoom(new Room { RoomID = roomId }, password)
-                             .FireAndForget(() => Schedule(() => this.Push(new RankedPlayScreen(multiplayerClient.Room!))));
-        });
 
         private void onConnectedClientsChanged(object? sender, NotifyDictionaryChangedEventArgs<int, ArcadeIdentity> e)
         {
@@ -358,10 +365,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
             if (selectedPool.Value == null)
                 return;
 
-            isQueueing = true;
-
             multiplayerClient.MatchmakingJoinQueue(selectedPool.Value.Id).FireAndForget();
-
             setState(ArcadeState.WaitingForStart);
         }
 
@@ -380,7 +384,14 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
+
             scheduledReturnToFromPlayer?.Cancel();
+
+            if (multiplayerClient.IsNotNull())
+            {
+                multiplayerClient.RoomUpdated -= onRoomUpdated;
+                multiplayerClient.MatchmakingRoomInvited -= onMatchmakingRoomInvited;
+            }
         }
 
         private enum ArcadeState
