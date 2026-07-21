@@ -9,6 +9,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
@@ -22,14 +23,18 @@ using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays.Login;
 using osu.Game.Screens;
+using osu.Game.Screens.Backgrounds;
 using osuTK;
+using osuTK.Graphics;
 using QRCoder;
 
-namespace osu.Game.Arcade
+namespace osu.Game.Arcade.Screens
 {
     public partial class ArcadeScreen : OsuScreen
     {
-        private readonly IBindable<APIState> apiState = new Bindable<APIState>();
+        public override bool AllowUserExit => false;
+
+        protected override BackgroundScreen CreateBackground() => new BackgroundScreenDefault();
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -43,10 +48,17 @@ namespace osu.Game.Arcade
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
-        private Texture qrTexture = null!;
+        private readonly IBindable<APIState> apiState = new Bindable<APIState>();
+        private readonly Func<OsuScreen> createNextScreen;
 
+        private Texture qrTexture = null!;
         private OsuNumberBox? codeTextBox;
         private OsuSpriteText? errorText;
+
+        public ArcadeScreen(Func<OsuScreen> createNextScreen)
+        {
+            this.createNextScreen = createNextScreen;
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -75,7 +87,7 @@ namespace osu.Game.Arcade
             apiState.BindValueChanged(onApiStateChanged, true);
         }
 
-        private void onApiStateChanged(ValueChangedEvent<APIState> e)
+        private void onApiStateChanged(ValueChangedEvent<APIState> e) => Schedule(() =>
         {
             switch (e.NewValue)
             {
@@ -112,50 +124,66 @@ namespace osu.Game.Arcade
                     break;
 
                 case APIState.Online:
-                    InternalChild = new FillFlowContainer
+                    InternalChild = new Container
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         AutoSizeAxes = Axes.Both,
-                        Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(10),
+                        Masking = true,
+                        CornerRadius = 20,
                         Children = new Drawable[]
                         {
-                            new OsuSpriteText
+                            new Box
                             {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                Text = "The play, first open the following link and log-in to osu!"
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Black,
+                                Alpha = 0.8f
                             },
-                            new Sprite
+                            new FillFlowContainer
                             {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                Texture = qrTexture,
-                                Size = new Vector2(100)
-                            },
-                            new OsuSpriteText
-                            {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                Text = "Then, type the 6-digit code displayed into the box below!"
-                            },
-                            codeTextBox = new OsuNumberBox
-                            {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                Width = 200,
-                                InputProperties = new TextInputProperties(TextInputType.Number),
-                                PlaceholderText = LoginPanelStrings.EnterCode,
-                            },
-                            errorText = new OsuSpriteText
-                            {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                Colour = colours.Red,
-                                AlwaysPresent = true,
-                                Text = "Invalid code provided",
-                                Alpha = 0
+                                AutoSizeAxes = Axes.Both,
+                                Direction = FillDirection.Vertical,
+                                Spacing = new Vector2(10),
+                                Padding = new MarginPadding(20),
+                                Children = new Drawable[]
+                                {
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Text = "Open the following link and log-in to osu!"
+                                    },
+                                    new Sprite
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Texture = qrTexture,
+                                        Size = new Vector2(100)
+                                    },
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Text = "Type the 6-digit code displayed into the box below:"
+                                    },
+                                    codeTextBox = new OsuNumberBox
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Width = 200,
+                                        InputProperties = new TextInputProperties(TextInputType.Code),
+                                        PlaceholderText = LoginPanelStrings.EnterCode,
+                                    },
+                                    errorText = new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Colour = colours.Red,
+                                        AlwaysPresent = true,
+                                        Text = "Invalid code",
+                                        Alpha = 0
+                                    }
+                                }
                             }
                         }
                     };
@@ -163,13 +191,14 @@ namespace osu.Game.Arcade
                     codeTextBox.Current.BindValueChanged(onCodeChanged);
                     break;
             }
-        }
+        });
 
         private void onCodeChanged(ValueChangedEvent<string> e)
         {
             string trimmedCode = e.NewValue.Trim();
+            trimmedCode = trimmedCode[..Math.Min(8, trimmedCode.Length)];
 
-            if (trimmedCode.Length == 6)
+            if (trimmedCode.Length == 8)
             {
                 Task.Run(() => attemptLogin(trimmedCode));
                 codeTextBox!.Current.Disabled = true;
@@ -197,20 +226,17 @@ namespace osu.Game.Arcade
         private void completeLoginAttempt() => Scheduler.Add(() =>
         {
             Logger.Log("[ARCADE] Login completed");
-
-            // Todo: Forward user to new screen.
+            this.Push(createNextScreen());
         });
 
         private void failLoginAttempt(Exception ex) => Scheduler.Add(() =>
         {
-            Logger.Error(ex, "[ARCADE] Login failed");
-
             errorText?.FadeIn().Delay(2000).FadeOut(500);
 
             if (codeTextBox != null)
             {
                 codeTextBox.Current.Disabled = false;
-                codeTextBox.Text = string.Empty;
+                codeTextBox.Current.Value = string.Empty;
             }
         });
 
@@ -218,11 +244,14 @@ namespace osu.Game.Arcade
         {
             base.OnResuming(e);
 
-            if (codeTextBox != null)
+            arcadeClient.Disconnect().FireAndForget(() => Scheduler.Add(() =>
             {
-                codeTextBox.Text = string.Empty;
-                codeTextBox.Current.Disabled = false;
-            }
+                if (codeTextBox != null)
+                {
+                    codeTextBox.Current.Disabled = false;
+                    codeTextBox.Current.Value = string.Empty;
+                }
+            }));
         }
     }
 }

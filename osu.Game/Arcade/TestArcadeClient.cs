@@ -25,12 +25,12 @@ namespace osu.Game.Arcade
             => ConnectUser(api.LocalUser.Value.OnlineID, identity);
 
         public Task ConnectUser(int clientId, ArcadeIdentity identity)
-            => UserConnected(clientId, identity);
+            => ((IArcadeClient)this).UserConnected(clientId, identity);
 
         public override Task Disconnect()
             => DisconnectUser(api.LocalUser.Value.OnlineID);
 
         public Task DisconnectUser(int clientId)
-            => UserDisconnected(clientId);
+            => ((IArcadeClient)this).UserDisconnected(clientId);
     }
 }

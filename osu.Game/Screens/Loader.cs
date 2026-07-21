@@ -14,7 +14,8 @@ using osu.Framework.Utils;
 using osu.Game.Screens.Menu;
 using osu.Framework.Screens;
 using osu.Framework.Threading;
-using osu.Game.Arcade;
+using osu.Game.Arcade.Screens;
+using osu.Game.Arcade.Screens.RankedPlay;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Seasonal;
@@ -39,7 +40,7 @@ namespace osu.Game.Screens
         protected virtual OsuScreen CreateLoadableScreen()
         {
             if (OsuGame.ARCADE)
-                return new ArcadeScreen();
+                return new ArcadeScreen(() => new RankedPlayArcadeQueueScreen());
 
             return getIntroSequence();
         }

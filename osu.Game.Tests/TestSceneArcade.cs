@@ -7,8 +7,10 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing;
 using osu.Game.Arcade;
+using osu.Game.Arcade.Screens;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API;
+using osu.Game.Screens;
 using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests
@@ -29,7 +31,7 @@ namespace osu.Game.Tests
             AddStep("logout", () => API.Logout());
 
             ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen()));
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(() => new DummyScreen())));
             AddUntilStep("wait for load", () => screen.IsLoaded);
 
             AddStep("set state -> connecting", () => ((DummyAPIAccess)API).SetState(APIState.Connecting));
@@ -44,7 +46,7 @@ namespace osu.Game.Tests
             AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => peppy_user);
 
             ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen()));
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(() => new DummyScreen())));
             AddUntilStep("wait for load", () => screen.IsLoaded);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
 
@@ -58,12 +60,14 @@ namespace osu.Game.Tests
             AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => throw new InvalidOperationException("Invalid code."));
 
             ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen()));
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(() => new DummyScreen())));
             AddUntilStep("wait for load", () => screen.IsLoaded);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
 
             AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "111111");
         }
+
+        private class DummyScreen : OsuScreen;
 
         private static readonly ArcadeIdentity peppy_user = new ArcadeIdentity
         {

@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -16,6 +17,9 @@ namespace osu.Game.Arcade
 
         public abstract IBindable<bool> IsConnected { get; }
 
+        public event Action<int, ArcadeIdentity>? UserConnected;
+        public event Action<int>? UserDisconnected;
+
         [Resolved]
         private UserLookupCache userLookupCache { get; set; } = null!;
 
@@ -25,7 +29,7 @@ namespace osu.Game.Arcade
         /// <param name="code">The single-sign-on code.</param>
         public abstract Task<ArcadeIdentity> GetUserWithCode(string code);
 
-        public async Task UserConnected(int clientId, ArcadeIdentity identity)
+        async Task IArcadeClient.UserConnected(int clientId, ArcadeIdentity identity)
         {
             APIUser? user = await userLookupCache.GetUserAsync(clientId).ConfigureAwait(false);
 
@@ -38,12 +42,18 @@ namespace osu.Game.Arcade
 
                 // This is very dodgy and abuses the fact that UserLookupStore provides permanent mutable references to stored objects.
                 identity.User.TransferTo(user);
+
+                UserConnected?.Invoke(clientId, identity);
             });
         }
 
-        public Task UserDisconnected(int clientId)
+        Task IArcadeClient.UserDisconnected(int clientId)
         {
-            Scheduler.Add(() => ConnectedClients.Remove(clientId));
+            Scheduler.Add(() =>
+            {
+                ConnectedClients.Remove(clientId);
+                UserDisconnected?.Invoke(clientId);
+            });
 
             return Task.CompletedTask;
         }
