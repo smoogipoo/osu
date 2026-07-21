@@ -41,6 +41,15 @@ namespace osu.Game.Arcade
             set => CountryCodeString = value.ToString();
         }
 
+        public APIUser ToAPIUser() => new APIUser
+        {
+            Id = UserId,
+            Username = Username,
+            AvatarUrl = AvatarUrl,
+            CoverUrl = Cover.Url,
+            CountryCode = CountryCode
+        };
+
         public void TransferTo(APIUser user)
         {
             user.Id = UserId;

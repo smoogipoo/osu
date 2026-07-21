@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Game.Arcade;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
@@ -21,6 +22,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public TestMultiplayerClient MultiplayerClient => OnlinePlayDependencies.MultiplayerClient;
         public TestSpectatorClient SpectatorClient => OnlinePlayDependencies.SpectatorClient;
         public QueueController QueueController => OnlinePlayDependencies.QueueController;
+        public TestArcadeClient ArcadeClient => OnlinePlayDependencies.ArcadeClient;
 
         protected new MultiplayerTestSceneDependencies OnlinePlayDependencies => (MultiplayerTestSceneDependencies)base.OnlinePlayDependencies;
 

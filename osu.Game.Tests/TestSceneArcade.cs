@@ -31,7 +31,7 @@ namespace osu.Game.Tests
             AddStep("logout", () => API.Logout());
 
             ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(() => new DummyScreen())));
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
             AddUntilStep("wait for load", () => screen.IsLoaded);
 
             AddStep("set state -> connecting", () => ((DummyAPIAccess)API).SetState(APIState.Connecting));
@@ -46,7 +46,7 @@ namespace osu.Game.Tests
             AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => peppy_user);
 
             ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(() => new DummyScreen())));
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
             AddUntilStep("wait for load", () => screen.IsLoaded);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
 
@@ -60,7 +60,7 @@ namespace osu.Game.Tests
             AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => throw new InvalidOperationException("Invalid code."));
 
             ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(() => new DummyScreen())));
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
             AddUntilStep("wait for load", () => screen.IsLoaded);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
 

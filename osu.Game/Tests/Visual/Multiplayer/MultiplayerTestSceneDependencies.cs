@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Game.Arcade;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
@@ -17,16 +18,19 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public TestMultiplayerClient MultiplayerClient { get; }
         public TestSpectatorClient SpectatorClient { get; }
         public QueueController QueueController { get; }
+        public TestArcadeClient ArcadeClient { get; }
 
         public MultiplayerTestSceneDependencies()
         {
             MultiplayerClient = new TestMultiplayerClient(RequestsHandler);
             SpectatorClient = CreateSpectatorClient();
             QueueController = new QueueController();
+            ArcadeClient = new TestArcadeClient();
 
             CacheAs<MultiplayerClient>(MultiplayerClient);
             CacheAs<SpectatorClient>(SpectatorClient);
             CacheAs(QueueController);
+            CacheAs<ArcadeClient>(ArcadeClient);
         }
 
         protected virtual TestSpectatorClient CreateSpectatorClient() => new TestSpectatorClient();

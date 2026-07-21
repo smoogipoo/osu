@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
@@ -48,14 +49,15 @@ namespace osu.Game.Arcade.Screens
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
+        private readonly IBindableDictionary<int, ArcadeIdentity> arcadeClients = new BindableDictionary<int, ArcadeIdentity>();
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
-        private readonly Func<OsuScreen> createNextScreen;
+        private readonly Func<ArcadeIdentity, OsuScreen> createNextScreen;
 
         private Texture qrTexture = null!;
         private OsuNumberBox? codeTextBox;
         private OsuSpriteText? errorText;
 
-        public ArcadeScreen(Func<OsuScreen> createNextScreen)
+        public ArcadeScreen(Func<ArcadeIdentity, OsuScreen> createNextScreen)
         {
             this.createNextScreen = createNextScreen;
         }
@@ -85,6 +87,8 @@ namespace osu.Game.Arcade.Screens
 
             apiState.BindTo(api.State);
             apiState.BindValueChanged(onApiStateChanged, true);
+
+            arcadeClient.UserConnected += onClientConnected;
         }
 
         private void onApiStateChanged(ValueChangedEvent<APIState> e) => Schedule(() =>
@@ -193,6 +197,12 @@ namespace osu.Game.Arcade.Screens
             }
         });
 
+        private void onClientConnected(int clientId, ArcadeIdentity identity) => Schedule(() =>
+        {
+            if (clientId == api.LocalUser.Value.OnlineID)
+                this.Push(createNextScreen(identity));
+        });
+
         private void onCodeChanged(ValueChangedEvent<string> e)
         {
             string trimmedCode = e.NewValue.Trim();
@@ -209,49 +219,54 @@ namespace osu.Game.Arcade.Screens
         {
             try
             {
-                Logger.Log($"[ARCADE] Retrieving user: {code}...");
+                Logger.Log($"[ARCADE] Retrieving user with code '{code}'...");
                 ArcadeIdentity user = await arcadeClient.GetUserWithCode(code);
 
-                Logger.Log($"[ARCADE] Mapped user: {user.User.Username}");
-
-                Logger.Log("[ARCADE] Attempting login...");
-                arcadeClient.Connect(user).FireAndForget(completeLoginAttempt, failLoginAttempt);
+                Logger.Log($"[ARCADE] Connecting as {user.User.Username}...");
+                arcadeClient.Connect(user).FireAndForget(() => Logger.Log("[ARCADE] Connected"), failLoginAttempt);
             }
             catch (Exception ex)
             {
                 failLoginAttempt(ex);
             }
-        }
 
-        private void completeLoginAttempt() => Scheduler.Add(() =>
-        {
-            Logger.Log("[ARCADE] Login completed");
-            this.Push(createNextScreen());
-        });
-
-        private void failLoginAttempt(Exception ex) => Scheduler.Add(() =>
-        {
-            errorText?.FadeIn().Delay(2000).FadeOut(500);
-
-            if (codeTextBox != null)
+            void failLoginAttempt(Exception ex) => Schedule(() =>
             {
-                codeTextBox.Current.Disabled = false;
-                codeTextBox.Current.Value = string.Empty;
-            }
-        });
+                Logger.Log($"[ARCADE] Failed to connect: {ex}");
+
+                errorText?.FadeIn().Delay(2000).FadeOut(500);
+
+                if (codeTextBox != null)
+                {
+                    codeTextBox.Current.Disabled = false;
+                    codeTextBox.Current.Value = string.Empty;
+                }
+            });
+        }
 
         public override void OnResuming(ScreenTransitionEvent e)
         {
             base.OnResuming(e);
 
-            arcadeClient.Disconnect().FireAndForget(() => Scheduler.Add(() =>
+            Logger.Log("[ARCADE] Disconnecting from arcade server...");
+            arcadeClient.Disconnect().FireAndForget(() => Schedule(() =>
             {
+                Logger.Log("[ARCADE] Disconnected");
+
                 if (codeTextBox != null)
                 {
                     codeTextBox.Current.Disabled = false;
                     codeTextBox.Current.Value = string.Empty;
                 }
             }));
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            if (arcadeClient.IsNotNull())
+                arcadeClient.UserConnected -= onClientConnected;
         }
     }
 }

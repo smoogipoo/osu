@@ -40,7 +40,7 @@ namespace osu.Game.Screens
         protected virtual OsuScreen CreateLoadableScreen()
         {
             if (OsuGame.ARCADE)
-                return new ArcadeScreen(() => new RankedPlayArcadeQueueScreen());
+                return new ArcadeScreen(identity => new RankedPlayArcadeQueueScreen(identity));
 
             return getIntroSequence();
         }
