@@ -107,6 +107,7 @@ namespace osu.Game.Overlays.Toolbar
                                             new ToolbarSettingsButton(),
                                             new ToolbarHomeButton
                                             {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1,
                                                 Action = () => OnHome?.Invoke()
                                             },
                                         },
@@ -117,6 +118,7 @@ namespace osu.Game.Overlays.Toolbar
                             {
                                 Name = "Ruleset selector",
                                 RelativeSizeAxes = Axes.Both,
+                                Alpha = OsuGame.ARCADE ? 0 : 1,
                                 Children = new Drawable[]
                                 {
                                     new OsuScrollContainer(Direction.Horizontal)
@@ -162,21 +164,45 @@ namespace osu.Game.Overlays.Toolbar
                                         AutoSizeAxes = Axes.X,
                                         Children = new Drawable[]
                                         {
-                                            new ToolbarNewsButton(),
-                                            new ToolbarChangelogButton(),
-                                            new ToolbarWikiButton(),
-                                            new ToolbarRankingsButton(),
-                                            new ToolbarBeatmapListingButton(),
-                                            new ToolbarChatButton(),
-                                            new ToolbarSocialButton(),
+                                            new ToolbarNewsButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
+                                            new ToolbarChangelogButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
+                                            new ToolbarWikiButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
+                                            new ToolbarRankingsButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
+                                            new ToolbarBeatmapListingButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
+                                            new ToolbarChatButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
+                                            new ToolbarSocialButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
                                             new ToolbarMusicButton(),
                                             //new ToolbarButton
                                             //{
                                             //    Icon = FontAwesome.Solid.search
                                             //},
-                                            userButton = new ToolbarUserButton(),
+                                            userButton = new ToolbarUserButton
+                                            {
+                                                Alpha = OsuGame.ARCADE ? 0 : 1
+                                            },
                                             new ToolbarClock(),
-                                            new ToolbarNotificationButton(),
+                                            new ToolbarNotificationButton()
                                         }
                                     },
                                 }
