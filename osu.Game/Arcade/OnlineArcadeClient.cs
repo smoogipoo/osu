@@ -22,12 +22,12 @@ namespace osu.Game.Arcade
         /// <summary>
         /// The URL which users will open in their browser to generate SSO tokens.
         /// </summary>
-        public const string ARCADE_SSO_GENERATE_URL = "https://osu.ppy.sh/api/v2/one-time-key";
+        public const string ARCADE_SSO_GENERATE_URL = "https://osu.ppy.sh/one-time-key";
 
         /// <summary>
         /// The URL which the client will query to retrieve data associated with an SSO token.
         /// </summary>
-        public const string ARCADE_SSO_RETRIVAL_URL = "https://osu.ppy.sh/api/v2/one-time-key/check";
+        public const string ARCADE_SSO_RETRIVAL_URL = "https://osu.ppy.sh/one-time-key/check";
 
         private IHubClientConnector? connector;
 
@@ -56,7 +56,7 @@ namespace osu.Game.Arcade
 
         public override async Task<ArcadeIdentity> GetUserWithCode(string code)
         {
-            OsuJsonWebRequest<ArcadeIdentity> req = new OsuJsonWebRequest<ArcadeIdentity>(ARCADE_SSO_GENERATE_URL);
+            OsuJsonWebRequest<ArcadeIdentity> req = new OsuJsonWebRequest<ArcadeIdentity>(ARCADE_SSO_RETRIVAL_URL);
             req.Method = HttpMethod.Post;
             req.AddParameter("key", code);
             await req.PerformAsync();
