@@ -100,7 +100,11 @@ namespace osu.Game
         public const string IPC_PIPE_NAME = "osu-lazer";
 #endif
 
+#if ARCADE
         public static readonly bool ARCADE = true;
+#else
+        public static readonly bool ARCADE = false;
+#endif
 
         /// <summary>
         /// The amount of global offset to apply when a left/right anchored overlay is displayed (ie. settings or notifications).
