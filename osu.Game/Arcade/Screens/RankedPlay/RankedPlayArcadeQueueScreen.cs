@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Threading;
+using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -34,6 +35,8 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 {
     public class RankedPlayArcadeQueueScreen : OsuScreen
     {
+        public Func<MatchmakingPool, WorkingBeatmap> GetPracticeBeatmap { get; init; }
+
         protected override BackgroundScreen CreateBackground() => new RankedPlayBackgroundScreen();
 
         [Resolved]
@@ -54,6 +57,9 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         [Resolved]
         private QueueController queueController { get; set; } = null!;
 
+        [Resolved]
+        private BeatmapManager beatmapManager { get; set; } = null!;
+
         private readonly Bindable<MatchmakingPool[]?> availablePools = new Bindable<MatchmakingPool[]?>();
         private readonly Bindable<MatchmakingPool?> selectedPool = new Bindable<MatchmakingPool?>();
         private readonly Bindable<bool> canPractice = new Bindable<bool>();
@@ -70,6 +76,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         public RankedPlayArcadeQueueScreen(ArcadeIdentity identity)
         {
             this.identity = identity;
+            GetPracticeBeatmap = getPracticeBeatmap;
         }
 
         [BackgroundDependencyLoader]
@@ -359,6 +366,9 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
         private void enterPractice()
         {
+            Beatmap.Value = GetPracticeBeatmap(selectedPool.Value!);
+            Ruleset.Value = Beatmap.Value.BeatmapInfo.Ruleset;
+
             scheduledReturnFromPlayer = host.UpdateThread.Scheduler.AddDelayed(() =>
             {
                 if (DateTimeOffset.Now >= practiceEndTime)
@@ -375,6 +385,42 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
             multiplayerClient.MatchmakingJoinQueue(selectedPool.Value.Id).FireAndForget();
             setState(ArcadeState.WaitingForStart);
+        }
+
+        private WorkingBeatmap getPracticeBeatmap(MatchmakingPool pool)
+        {
+            BeatmapInfo? beatmapInfo = null;
+
+            switch (pool.RulesetId)
+            {
+                case 0:
+                    beatmapInfo = beatmapManager.QueryOnlineBeatmapId(397535);
+                    break;
+
+                case 1:
+                    beatmapInfo = beatmapManager.QueryOnlineBeatmapId(646448);
+                    break;
+
+                case 2:
+                    beatmapInfo = beatmapManager.QueryOnlineBeatmapId(3597220);
+                    break;
+
+                case 3:
+                    switch (pool.Variant)
+                    {
+                        case 4:
+                            beatmapInfo = beatmapManager.QueryOnlineBeatmapId(902771);
+                            break;
+
+                        case 7:
+                            beatmapInfo = beatmapManager.QueryOnlineBeatmapId(3192595);
+                            break;
+                    }
+
+                    break;
+            }
+
+            return beatmapManager.GetWorkingBeatmap(beatmapInfo);
         }
 
         public override void OnResuming(ScreenTransitionEvent e)

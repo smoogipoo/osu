@@ -27,8 +27,11 @@ namespace osu.Game.Tests.Arcade
         [SetUpSteps]
         public void SetupSteps()
         {
-            AddStep("prepare beatmap", () => Beatmap.Value = CreateWorkingBeatmap(new OsuRuleset().RulesetInfo));
-            AddStep("load screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(peppy_user)));
+            AddStep("load screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(peppy_user)
+            {
+                GetPracticeBeatmap = _ => CreateWorkingBeatmap(new OsuRuleset().RulesetInfo)
+            }));
+
             AddUntilStep("wait for load", () => screen.IsLoaded);
         }
 
