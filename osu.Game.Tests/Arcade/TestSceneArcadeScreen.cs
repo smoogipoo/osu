@@ -13,14 +13,14 @@ using osu.Game.Online.API;
 using osu.Game.Screens;
 using osu.Game.Tests.Visual;
 
-namespace osu.Game.Tests
+namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneArcade : ScreenTestScene
+    public class TestSceneArcadeScreen : ScreenTestScene
     {
         [Cached(typeof(ArcadeClient))]
         private readonly TestArcadeClient arcadeClient;
 
-        public TestSceneArcade()
+        public TestSceneArcadeScreen()
         {
             Child = arcadeClient = new TestArcadeClient();
         }

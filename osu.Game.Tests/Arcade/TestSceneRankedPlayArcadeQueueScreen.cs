@@ -15,9 +15,9 @@ using osu.Game.Screens.Play;
 using osu.Game.Tests.Visual.RankedPlay;
 using osuTK.Input;
 
-namespace osu.Game.Tests
+namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneRankedPlayArcadeScreen : RankedPlayTestScene
+    public class TestSceneRankedPlayArcadeQueueScreen : RankedPlayTestScene
     {
         private RankedPlayArcadeQueueScreen screen = null!;
 
@@ -47,7 +47,7 @@ namespace osu.Game.Tests
             AddStep("connect users", () =>
             {
                 ArcadeClient.Connect(peppy_user).WaitSafely();
-                ArcadeClient.ConnectUser(2, peppy_user).WaitSafely();
+                ArcadeClient.Connect(2, peppy_user).WaitSafely();
             });
         }
 
@@ -57,7 +57,7 @@ namespace osu.Game.Tests
             AddStep("connect users", () =>
             {
                 ArcadeClient.Connect(peppy_user).WaitSafely();
-                ArcadeClient.ConnectUser(2, peppy_user).WaitSafely();
+                ArcadeClient.Connect(2, peppy_user).WaitSafely();
             });
 
             AddStep("finish animations", () => screen.FinishTransforms(true));

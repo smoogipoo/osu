@@ -50,6 +50,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
 
         [Resolved]
+        private UserLookupCache userLookupCache { get; set; } = null!;
+
+        [Resolved]
         private IBindable<WorkingBeatmap> globalBeatmap { get; set; } = null!;
 
         [Resolved]
@@ -114,15 +117,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 {
                     Rank = ScoreRank.F,
                     Ruleset = globalRuleset.Value,
-                    User = new APIUser { Id = localUserId }
                 };
 
                 ScoreInfo opponentScore = scores.SingleOrDefault(s => s.UserID == opponentId) ?? new ScoreInfo
                 {
                     Rank = ScoreRank.F,
                     Ruleset = globalRuleset.Value,
-                    User = new APIUser { Id = opponentId }
                 };
+
+                // This serves two purposes: first to populate an unknown user where a score couldn't be retrieved,
+                // and second to populate users with their correct online model that could differ during arcade play.
+                playerScore.User = await userLookupCache.GetUserAsync(localUserId) ?? APIUser.UnknownUser(localUserId);
+                opponentScore.User = await userLookupCache.GetUserAsync(opponentId) ?? APIUser.UnknownUser(opponentId);
 
                 // Should complete instantaneously due to prior lookups.
                 APIBeatmap beatmap = (await beatmapLookupCache.GetBeatmapAsync(globalBeatmap.Value.BeatmapInfo.OnlineID).ConfigureAwait(false))!;
