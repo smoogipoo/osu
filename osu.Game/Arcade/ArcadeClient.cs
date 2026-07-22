@@ -13,6 +13,8 @@ namespace osu.Game.Arcade
 {
     public abstract partial class ArcadeClient : Component, IArcadeClient, IArcadeServer
     {
+        public virtual string KeyEndpoint => string.Empty;
+
         public readonly BindableDictionary<int, ArcadeIdentity> ConnectedClients = new BindableDictionary<int, ArcadeIdentity>();
 
         public abstract IBindable<bool> IsConnected { get; }

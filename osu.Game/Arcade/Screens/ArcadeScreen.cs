@@ -68,7 +68,7 @@ namespace osu.Game.Arcade.Screens
         [BackgroundDependencyLoader]
         private void load()
         {
-            using (var qrCode = QRCodeGenerator.GenerateQrCode(new PayloadGenerator.Url(OnlineArcadeClient.ARCADE_SSO_GENERATE_URL)))
+            using (var qrCode = QRCodeGenerator.GenerateQrCode(new PayloadGenerator.Url(arcadeClient.KeyEndpoint)))
             {
                 using (var qrRenderer = new PngByteQRCode(qrCode))
                 {

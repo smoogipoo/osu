@@ -14,20 +14,9 @@ namespace osu.Game.Arcade
 {
     public partial class OnlineArcadeClient : ArcadeClient
     {
-        /// <summary>
-        /// URL of the SignalR arcade server.
-        /// </summary>
-        public const string ARCADE_SERVER_URL = "http://localhost:8081/signalr/arcade";
+        public override string KeyEndpoint { get; }
 
-        /// <summary>
-        /// The URL which users will open in their browser to generate SSO tokens.
-        /// </summary>
-        public const string ARCADE_SSO_GENERATE_URL = "https://osu.ppy.sh/one-time-key";
-
-        /// <summary>
-        /// The URL which the client will query to retrieve data associated with an SSO token.
-        /// </summary>
-        public const string ARCADE_SSO_RETRIVAL_URL = "https://osu.ppy.sh/one-time-key/check";
+        private readonly string serverEndpoint;
 
         private IHubClientConnector? connector;
 
@@ -35,10 +24,16 @@ namespace osu.Game.Arcade
 
         private HubConnection? connection => connector?.CurrentConnection;
 
+        public OnlineArcadeClient(EndpointConfiguration endpoints)
+        {
+            serverEndpoint = endpoints.ArcadeUrl;
+            KeyEndpoint = $"{endpoints.WebsiteUrl}/one-time-key";
+        }
+
         [BackgroundDependencyLoader]
         private void load(IAPIProvider api)
         {
-            connector = api.GetHubConnector(nameof(OnlineArcadeClient), ARCADE_SERVER_URL);
+            connector = api.GetHubConnector(nameof(OnlineArcadeClient), serverEndpoint);
 
             if (connector != null)
             {
@@ -56,7 +51,7 @@ namespace osu.Game.Arcade
 
         public override async Task<ArcadeIdentity> GetUserWithCode(string code)
         {
-            OsuJsonWebRequest<ArcadeIdentity> req = new OsuJsonWebRequest<ArcadeIdentity>(ARCADE_SSO_RETRIVAL_URL);
+            OsuJsonWebRequest<ArcadeIdentity> req = new OsuJsonWebRequest<ArcadeIdentity>($"{KeyEndpoint}/check");
             req.Method = HttpMethod.Post;
             req.AddParameter("key", code);
             await req.PerformAsync();

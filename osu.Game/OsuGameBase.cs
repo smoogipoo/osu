@@ -341,7 +341,9 @@ namespace osu.Game
             dependencies.CacheAs(SpectatorClient = new OnlineSpectatorClient(endpoints));
             dependencies.CacheAs(MultiplayerClient = new OnlineMultiplayerClient(endpoints));
             dependencies.CacheAs(metadataClient = new OnlineMetadataClient(endpoints));
-            dependencies.CacheAs(arcadeClient = new OnlineArcadeClient());
+
+            if (OsuGame.ARCADE)
+                dependencies.CacheAs(arcadeClient = new OnlineArcadeClient(endpoints));
 
             base.Content.Add(new BeatmapOnlineChangeIngest(beatmapUpdater, realm, metadataClient));
 
