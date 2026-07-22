@@ -65,7 +65,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         private Container mainContainer = null!;
 
         private DateTimeOffset practiceEndTime = DateTimeOffset.MaxValue;
-        private ScheduledDelegate? scheduledReturnToFromPlayer;
+        private ScheduledDelegate? scheduledReturnFromPlayer;
 
         public RankedPlayArcadeQueueScreen(ArcadeIdentity identity)
         {
@@ -131,6 +131,11 @@ namespace osu.Game.Arcade.Screens.RankedPlay
             connectedClients.BindCollectionChanged(onConnectedClientsChanged, true);
 
             Task.Run(populateAvailablePools);
+
+            // In most cases this is a no-op because we don't have a room by this point in time.
+            // Except... for tests, where this is sometimes necessary to ensure proper execution flow.
+            // See: TestSceneRankedPlayArcadeQueueScreen.TestExitFromRankedPlay().
+            onRoomUpdated();
         }
 
         protected override void Update()
@@ -151,11 +156,14 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
         private void onRoomUpdated() => Schedule(() =>
         {
-            if (!this.IsCurrentScreen())
+            if (!this.IsCurrentScreen() || !ValidForResume)
                 return;
 
             if (multiplayerClient.Room != null)
+            {
+                ValidForResume = false;
                 this.Push(new RankedPlayScreen(multiplayerClient.Room));
+            }
         });
 
         private void onMatchmakingRoomInvited(MatchmakingRoomInvitationParams e)
@@ -351,7 +359,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
         private void enterPractice()
         {
-            scheduledReturnToFromPlayer = host.UpdateThread.Scheduler.AddDelayed(() =>
+            scheduledReturnFromPlayer = host.UpdateThread.Scheduler.AddDelayed(() =>
             {
                 if (DateTimeOffset.Now >= practiceEndTime)
                     this.MakeCurrent();
@@ -372,12 +380,12 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         public override void OnResuming(ScreenTransitionEvent e)
         {
             base.OnResuming(e);
-            scheduledReturnToFromPlayer?.Cancel();
+            scheduledReturnFromPlayer?.Cancel();
         }
 
         public override bool OnExiting(ScreenExitEvent e)
         {
-            scheduledReturnToFromPlayer?.Cancel();
+            scheduledReturnFromPlayer?.Cancel();
             return base.OnExiting(e);
         }
 
@@ -385,7 +393,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         {
             base.Dispose(isDisposing);
 
-            scheduledReturnToFromPlayer?.Cancel();
+            scheduledReturnFromPlayer?.Cancel();
 
             if (multiplayerClient.IsNotNull())
             {

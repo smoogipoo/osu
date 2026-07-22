@@ -10,7 +10,10 @@ using osu.Framework.Testing;
 using osu.Game.Arcade;
 using osu.Game.Arcade.Screens.RankedPlay;
 using osu.Game.Graphics.UserInterfaceV2;
+using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Osu;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Screens.Play;
 using osu.Game.Tests.Visual.RankedPlay;
 using osuTK.Input;
@@ -84,6 +87,31 @@ namespace osu.Game.Tests.Arcade
             AddUntilStep("practice ended", () => screen.IsCurrentScreen());
 
             AddAssert("button disabled", () => screen.ChildrenOfType<RoundedButton>().First().Enabled.Value, () => Is.False);
+        }
+
+        [Test]
+        public void TestExitFromRankedPlay()
+        {
+            // This test is quite tricky, because we need the room to be in the correct state by the time it gets to the arcade screen.
+            // Normally (in every other test), we would join the room, _then_ join the secondary user, and only _after all of that_ open the expected screen.
+            // Which means that there's a period of time where the match state actually has 1 user where we need 2.
+            //
+            // Therefore, to get around this, we'll first exit the arcade screen, join the room, and then enter the arcade screen again,
+            // which will automatically open the ranked play screen upon entering.
+            AddStep("exit screen", () => Stack.Exit());
+
+            AddStep("join room", () => JoinRoom(CreateDefaultRoom(MatchType.RankedPlay)));
+            WaitForJoined();
+            AddStep("join other user", () => MultiplayerClient.AddUser(new APIUser { Id = 2 }));
+
+            AddStep("load arcade screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(peppy_user)));
+            AddUntilStep("wait for load", () => screen.IsLoaded);
+
+            AddUntilStep("entered ranked play screen", () => Stack.CurrentScreen is RankedPlayScreen);
+            AddStep("trigger exit", () => Stack.Exit());
+            AddStep("press confirmation button", () => DialogOverlay.CurrentDialog!.PerformOkAction());
+
+            AddUntilStep("exited from arcade screen", () => Stack.CurrentScreen is null);
         }
 
         private static readonly ArcadeIdentity peppy_user = new ArcadeIdentity
