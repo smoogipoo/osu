@@ -31,6 +31,19 @@ namespace osu.Game.Overlays
 
         protected override IEnumerable<SettingsSection> CreateSections()
         {
+            if (OsuGame.ARCADE)
+            {
+                return
+                [
+                    new GeneralSection(),
+                    new SkinSection(),
+                    new InputSection(createSubPanel(new KeyBindingPanel())),
+                    new GameplaySection(),
+                    new RulesetSection(),
+                    new AudioSection()
+                ];
+            }
+
             var sections = new List<SettingsSection>
             {
                 // This list should be kept in sync with ScreenBehaviour.

@@ -57,7 +57,7 @@ namespace osu.Game.Overlays.Settings.Sections
         [BackgroundDependencyLoader(permitNulls: true)]
         private void load([CanBeNull] SkinEditorOverlay skinEditor)
         {
-            Children = new Drawable[]
+            Children = new[]
             {
                 new SettingsItemV2(skinDropdown = new SkinDropdown
                 {
@@ -66,20 +66,22 @@ namespace osu.Game.Overlays.Settings.Sections
                     Caption = SkinSettingsStrings.CurrentSkin,
                     Current = skins.CurrentSkinInfo,
                 }),
-                new FillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Horizontal,
-                    Padding = SettingsPanel.CONTENT_PADDING,
-                    Children = new Drawable[]
+                OsuGame.ARCADE
+                    ? Empty()
+                    : new FillFlowContainer
                     {
-                        // This is all super-temporary until we move skin settings to their own panel / overlay.
-                        new RenameSkinButton { Padding = new MarginPadding { Right = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
-                        new ExportSkinButton { Padding = new MarginPadding { Horizontal = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
-                        new DeleteSkinButton { Padding = new MarginPadding { Left = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
-                    }
-                },
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Horizontal,
+                        Padding = SettingsPanel.CONTENT_PADDING,
+                        Children = new Drawable[]
+                        {
+                            // This is all super-temporary until we move skin settings to their own panel / overlay.
+                            new RenameSkinButton { Padding = new MarginPadding { Right = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
+                            new ExportSkinButton { Padding = new MarginPadding { Horizontal = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
+                            new DeleteSkinButton { Padding = new MarginPadding { Left = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
+                        }
+                    },
                 new SettingsButtonV2
                 {
                     Text = SkinSettingsStrings.SkinLayoutEditor,

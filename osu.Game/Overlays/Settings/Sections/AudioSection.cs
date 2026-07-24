@@ -25,11 +25,15 @@ namespace osu.Game.Overlays.Settings.Sections
 
         public AudioSection()
         {
-            Children = new Drawable[]
+            Children = new[]
             {
-                new AudioDevicesSettings(),
+                OsuGame.ARCADE
+                    ? Empty()
+                    : new AudioDevicesSettings(),
                 new VolumeSettings(),
-                new OffsetSettings(),
+                OsuGame.ARCADE
+                    ? Empty()
+                    : new OffsetSettings(),
             };
         }
     }

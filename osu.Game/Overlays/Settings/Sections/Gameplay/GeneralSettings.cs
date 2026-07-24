@@ -19,17 +19,19 @@ namespace osu.Game.Overlays.Settings.Sections.Gameplay
         [BackgroundDependencyLoader]
         private void load(OsuConfigManager config)
         {
-            Children = new Drawable[]
+            Children = new[]
             {
-                new SettingsItemV2(new FormEnumDropdown<ScoringMode>
-                {
-                    Caption = GameplaySettingsStrings.ScoreDisplayMode,
-                    Current = config.GetBindable<ScoringMode>(OsuSetting.ScoreDisplayMode),
-                })
-                {
-                    Keywords = new[] { "scoring" },
-                    ApplyClassicDefault = c => ((IHasCurrentValue<ScoringMode>)c).Current.Value = ScoringMode.Classic,
-                },
+                OsuGame.ARCADE
+                    ? Empty()
+                    : new SettingsItemV2(new FormEnumDropdown<ScoringMode>
+                    {
+                        Caption = GameplaySettingsStrings.ScoreDisplayMode,
+                        Current = config.GetBindable<ScoringMode>(OsuSetting.ScoreDisplayMode),
+                    })
+                    {
+                        Keywords = new[] { "scoring" },
+                        ApplyClassicDefault = c => ((IHasCurrentValue<ScoringMode>)c).Current.Value = ScoringMode.Classic,
+                    },
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = GraphicsSettingsStrings.HitLighting,

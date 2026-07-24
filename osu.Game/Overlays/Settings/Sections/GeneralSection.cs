@@ -25,12 +25,17 @@ namespace osu.Game.Overlays.Settings.Sections
         [BackgroundDependencyLoader]
         private void load(UpdateManager? updateManager)
         {
-            Add(new QuickActionSettings());
-            Add(new LanguageSettings());
-            if (updateManager?.CanCheckForUpdate == true)
-                Add(new UpdateSettings());
-            if (RuntimeInfo.IsDesktop)
-                Add(new InstallationSettings());
+            if (OsuGame.ARCADE)
+                Add(new LanguageSettings());
+            else
+            {
+                Add(new QuickActionSettings());
+                Add(new LanguageSettings());
+                if (updateManager?.CanCheckForUpdate == true)
+                    Add(new UpdateSettings());
+                if (RuntimeInfo.IsDesktop)
+                    Add(new InstallationSettings());
+            }
         }
     }
 }
