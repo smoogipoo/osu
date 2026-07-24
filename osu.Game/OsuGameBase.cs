@@ -389,7 +389,9 @@ namespace osu.Game
             base.Content.Add(SpectatorClient);
             base.Content.Add(MultiplayerClient);
             base.Content.Add(metadataClient);
-            base.Content.Add(arcadeClient);
+
+            if (OsuGame.ARCADE)
+                base.Content.Add(arcadeClient);
 
             base.Content.Add(rulesetConfigCache);
 
