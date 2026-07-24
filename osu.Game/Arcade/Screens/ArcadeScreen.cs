@@ -22,6 +22,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
 using osu.Framework.Screens;
+using osu.Framework.Testing;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -33,6 +34,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Login;
+using osu.Game.Overlays.Settings.Sections.Input;
 using osu.Game.Rulesets;
 using osu.Game.Screens;
 using osu.Game.Screens.Backgrounds;
@@ -78,6 +80,9 @@ namespace osu.Game.Arcade.Screens
 
         [Resolved]
         private GlobalActionContainer globalActionContainer { get; set; } = null!;
+
+        [Resolved]
+        private SettingsOverlay settingsOverlay { get; set; } = null!;
 
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
@@ -314,7 +319,9 @@ namespace osu.Game.Arcade.Screens
                         continue;
 
                     case "WindowMode":
+#if !DEBUG
                         setValue(bindable, WindowMode.Fullscreen);
+#endif
                         break;
 
                     case "FrameSync":
@@ -382,20 +389,20 @@ namespace osu.Game.Arcade.Screens
             {
                 using (var transaction = r.BeginWrite())
                 {
-                    r.RemoveAll<RealmKeyBinding>();
-
-                    insertDefaultKeyBindings(r, globalActionContainer.DefaultKeyBindings);
+                    resetBindings(r, globalActionContainer.DefaultKeyBindings);
 
                     foreach (var ruleset in rulesetStore.AvailableRulesets)
                     {
                         var instance = ruleset.CreateInstance();
                         foreach (int variant in instance.AvailableVariants)
-                            insertDefaultKeyBindings(r, instance.GetDefaultKeyBindings(variant), ruleset.ShortName, variant);
+                            resetBindings(r, instance.GetDefaultKeyBindings(variant), ruleset.ShortName, variant);
                     }
 
                     transaction.Commit();
                 }
             });
+
+            reloadBindings(settingsOverlay);
 
             static Dictionary<string, IBindable> getSettings(IConfigManager config)
             {
@@ -410,18 +417,53 @@ namespace osu.Game.Arcade.Screens
 
             static void setDefault(IBindable target)
             {
-                target.GetType().GetMethod(nameof(Bindable<int>.SetDefault), BindingFlags.Instance | BindingFlags.Public)!.Invoke(target, null);
+                try
+                {
+                    target.GetType().GetMethod(nameof(Bindable<int>.SetDefault), BindingFlags.Instance | BindingFlags.Public)!.Invoke(target, null);
+                }
+                catch
+                {
+                }
             }
 
             static void setValue<T>(IBindable target, T value)
             {
-                target.GetType().GetProperty(nameof(Bindable<int>.Value), BindingFlags.Instance | BindingFlags.Public)!.SetValue(target, value);
+                try
+                {
+                    target.GetType().GetProperty(nameof(Bindable<int>.Value), BindingFlags.Instance | BindingFlags.Public)!.SetValue(target, value);
+                }
+                catch
+                {
+                }
             }
 
-            static void insertDefaultKeyBindings(Realm realm, IEnumerable<IKeyBinding> defaults, string? rulesetName = null, int? variant = null)
+            static void resetBindings(Realm realm, IEnumerable<IKeyBinding> defaultBindings, string? rulesetName = null, int? variant = null)
             {
-                foreach (var defaultsForAction in defaults.GroupBy(k => k.Action))
-                    realm.Add(defaultsForAction.Select(k => new RealmKeyBinding(k.Action, k.KeyCombination, rulesetName, variant)));
+                foreach (var bindingGroup in defaultBindings.GroupBy(b => b.Action))
+                {
+                    int actionInt = (int)bindingGroup.Key;
+
+                    RealmKeyBinding[] existingBindings = realm.All<RealmKeyBinding>()
+                                                              .Where(k => k.ActionInt == actionInt && k.RulesetName == rulesetName && k.Variant == variant)
+                                                              .ToArray();
+
+                    int bindingIndex = 0;
+
+                    foreach (var binding in bindingGroup)
+                    {
+                        if (!existingBindings[bindingIndex].KeyCombination.Equals(binding.KeyCombination))
+                            existingBindings[bindingIndex].KeyCombination = binding.KeyCombination;
+                        bindingIndex++;
+                    }
+                }
+            }
+
+            static void reloadBindings(SettingsOverlay overlay)
+            {
+                MethodInfo reloadAllBindings = typeof(KeyBindingsSubsection).GetMethod("reloadAllBindings", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+                foreach (var section in overlay.ChildrenOfType<KeyBindingsSubsection>())
+                    reloadAllBindings.Invoke(section, null);
             }
         }
 
