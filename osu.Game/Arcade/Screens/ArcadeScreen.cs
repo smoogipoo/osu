@@ -158,46 +158,89 @@ namespace osu.Game.Arcade.Screens
                             new FillFlowContainer
                             {
                                 AutoSizeAxes = Axes.Both,
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(10),
                                 Padding = new MarginPadding(20),
+                                Direction = FillDirection.Horizontal,
+                                Spacing = new Vector2(20),
                                 Children = new Drawable[]
                                 {
-                                    new OsuSpriteText
+                                    new FillFlowContainer
                                     {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        Text = "Open the following link and log-in to osu!"
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        AutoSizeAxes = Axes.Both,
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(10),
+                                        Children = new Drawable[]
+                                        {
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Text = "Open the following link and log-in to osu!"
+                                            },
+                                            new Sprite
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Texture = qrTexture,
+                                                Size = new Vector2(100)
+                                            },
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Margin = new MarginPadding { Top = 30 },
+                                                Text = "Type the code displayed into the box below:"
+                                            },
+                                            codeTextBox = new OsuNumberBox
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Width = 200,
+                                                InputProperties = new TextInputProperties(TextInputType.Code),
+                                                PlaceholderText = LoginPanelStrings.EnterCode,
+                                            },
+                                            errorText = new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Colour = colours.Red,
+                                                AlwaysPresent = true,
+                                                Text = "Invalid code",
+                                                Alpha = 0
+                                            }
+                                        }
                                     },
-                                    new Sprite
+                                    new Box
                                     {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        Texture = qrTexture,
-                                        Size = new Vector2(100)
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        Size = new Vector2(2, 280),
+                                        Colour = Color4.White,
+                                        Alpha = 0.5f
                                     },
-                                    new OsuSpriteText
+                                    new FillFlowContainer
                                     {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        Text = "Type the 6-digit code displayed into the box below:"
-                                    },
-                                    codeTextBox = new OsuNumberBox
-                                    {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        Width = 200,
-                                        InputProperties = new TextInputProperties(TextInputType.Code),
-                                        PlaceholderText = LoginPanelStrings.EnterCode,
-                                    },
-                                    errorText = new OsuSpriteText
-                                    {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        Colour = colours.Red,
-                                        AlwaysPresent = true,
-                                        Text = "Invalid code",
-                                        Alpha = 0
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        AutoSizeAxes = Axes.Both,
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(10),
+                                        Children = new Drawable[]
+                                        {
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Text = "Leaderboard"
+                                            },
+                                            new ArcadeLeaderboard
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Size = new Vector2(300, 300),
+                                            }
+                                        }
                                     }
                                 }
                             }

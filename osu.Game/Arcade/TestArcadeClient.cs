@@ -15,11 +15,16 @@ namespace osu.Game.Arcade
 
         public Func<string, ArcadeIdentity> GetUserWithCodeFunc { get; set; } = _ => throw new NotImplementedException();
 
+        public Func<ArcadeUserStats[]> FetchLeaderboardFunc { get; set; } = () => [];
+
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
         public override Task<ArcadeIdentity> GetUserWithCode(string code)
             => Task.FromResult(GetUserWithCodeFunc(code));
+
+        public override Task<ArcadeUserStats[]> FetchLeaderboard()
+            => Task.FromResult(FetchLeaderboardFunc());
 
         public override Task Connect(ArcadeIdentity identity)
             => Connect(api.LocalUser.Value.OnlineID, identity);
@@ -32,5 +37,12 @@ namespace osu.Game.Arcade
 
         public Task Disconnect(int clientId)
             => ((IArcadeClient)this).UserDisconnected(clientId);
+
+        public static ArcadeUserStats CreateUserStats(int userId, int victories) => new ArcadeUserStats
+        {
+            UserId = userId,
+            Username = $"User {userId}",
+            Victories = victories
+        };
     }
 }

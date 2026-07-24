@@ -1,11 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osu.Game.Arcade;
 using osu.Game.Arcade.Screens;
 using osu.Game.Graphics.UserInterface;
@@ -20,20 +20,38 @@ namespace osu.Game.Tests.Arcade
         [Cached(typeof(ArcadeClient))]
         private readonly TestArcadeClient arcadeClient;
 
+        private ArcadeScreen screen = null!;
+
         public TestSceneArcadeScreen()
         {
-            Child = arcadeClient = new TestArcadeClient();
+            Child = arcadeClient = new TestArcadeClient
+            {
+                FetchLeaderboardFunc = () => new[]
+                {
+                    TestArcadeClient.CreateUserStats(1, RNG.Next(10)),
+                    TestArcadeClient.CreateUserStats(2, RNG.Next(10)),
+                    TestArcadeClient.CreateUserStats(3, RNG.Next(10)),
+                    TestArcadeClient.CreateUserStats(4, RNG.Next(10)),
+                    TestArcadeClient.CreateUserStats(5, RNG.Next(10)),
+                    TestArcadeClient.CreateUserStats(6, RNG.Next(10)),
+                    TestArcadeClient.CreateUserStats(7, RNG.Next(10)),
+                }
+            };
+        }
+
+        public override void SetUpSteps()
+        {
+            base.SetUpSteps();
+
+            AddStep("logout", () => API.Logout());
+
+            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
+            AddUntilStep("wait for load", () => screen.IsLoaded);
         }
 
         [Test]
         public void TestLogin()
         {
-            AddStep("logout", () => API.Logout());
-
-            ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
-            AddUntilStep("wait for load", () => screen.IsLoaded);
-
             AddStep("set state -> connecting", () => ((DummyAPIAccess)API).SetState(APIState.Connecting));
             AddStep("set state -> second factor", () => ((DummyAPIAccess)API).SetState(APIState.RequiresSecondFactorAuth));
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
@@ -42,28 +60,15 @@ namespace osu.Game.Tests.Arcade
         [Test]
         public void TestSuccessfulAuth()
         {
-            AddStep("logout", () => API.Logout());
             AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => peppy_user);
-
-            ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
-            AddUntilStep("wait for load", () => screen.IsLoaded);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
-
             AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "111111");
         }
 
         [Test]
         public void TestFailedAuth()
         {
-            AddStep("logout", () => API.Logout());
-            AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => throw new InvalidOperationException("Invalid code."));
-
-            ArcadeScreen screen = null!;
-            AddStep("load arcade screen", () => LoadScreen(screen = new ArcadeScreen(_ => new DummyScreen())));
-            AddUntilStep("wait for load", () => screen.IsLoaded);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
-
             AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "111111");
         }
 

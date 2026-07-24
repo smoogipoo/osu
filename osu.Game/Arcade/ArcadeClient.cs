@@ -65,6 +65,8 @@ namespace osu.Game.Arcade
             return Task.CompletedTask;
         }
 
+        public abstract Task<ArcadeUserStats[]> FetchLeaderboard();
+
         public abstract Task Connect(ArcadeIdentity identity);
 
         public abstract Task Disconnect();

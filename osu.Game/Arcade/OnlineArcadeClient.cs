@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -56,6 +57,16 @@ namespace osu.Game.Arcade
             req.AddParameter("key", code);
             await req.PerformAsync();
             return req.ResponseObject;
+        }
+
+        public override Task<ArcadeUserStats[]> FetchLeaderboard()
+        {
+            if (!IsConnected.Value)
+                return Task.FromResult(Array.Empty<ArcadeUserStats>());
+
+            Debug.Assert(connection != null);
+
+            return connection.InvokeAsync<ArcadeUserStats[]>(nameof(IArcadeServer.FetchLeaderboard));
         }
 
         public override Task Connect(ArcadeIdentity identity)

@@ -8,6 +8,11 @@ namespace osu.Game.Arcade
     public interface IArcadeServer
     {
         /// <summary>
+        /// Retrievse the arcade leaderboard.
+        /// </summary>
+        Task<ArcadeUserStats[]> FetchLeaderboard();
+
+        /// <summary>
         /// Connects to the arcade server with the given identity.
         /// </summary>
         /// <param name="identity">The identity.</param>
