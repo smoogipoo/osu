@@ -2,15 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -19,29 +14,21 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
-using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
 using osu.Framework.Screens;
-using osu.Framework.Testing;
-using osu.Game.Configuration;
-using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Login;
-using osu.Game.Overlays.Settings.Sections.Input;
-using osu.Game.Rulesets;
 using osu.Game.Screens;
 using osu.Game.Screens.Backgrounds;
 using osuTK;
 using osuTK.Graphics;
 using QRCoder;
-using Realms;
 
 namespace osu.Game.Arcade.Screens
 {
@@ -63,26 +50,8 @@ namespace osu.Game.Arcade.Screens
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
-        [Resolved]
-        private FrameworkConfigManager frameworkConfig { get; set; } = null!;
-
-        [Resolved]
-        private OsuConfigManager osuConfig { get; set; } = null!;
-
-        [Resolved]
-        private IRulesetConfigCache rulesetConfigs { get; set; } = null!;
-
-        [Resolved]
-        private RulesetStore rulesetStore { get; set; } = null!;
-
-        [Resolved]
-        private RealmAccess realmAccess { get; set; } = null!;
-
-        [Resolved]
-        private GlobalActionContainer globalActionContainer { get; set; } = null!;
-
-        [Resolved]
-        private SettingsOverlay settingsOverlay { get; set; } = null!;
+        [Cached]
+        private ArcadeConfigManager arcadeConfig = null!;
 
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
@@ -97,6 +66,12 @@ namespace osu.Game.Arcade.Screens
         public ArcadeScreen(Func<ArcadeIdentity, OsuScreen> createNextScreen)
         {
             this.createNextScreen = createNextScreen;
+        }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
+            arcadeConfig = new ArcadeConfigManager(parent);
+            return base.CreateChildDependencies(parent);
         }
 
         [BackgroundDependencyLoader]
@@ -285,7 +260,7 @@ namespace osu.Game.Arcade.Screens
         {
             base.OnEntering(e);
 
-            resetSettings();
+            arcadeConfig.Reset();
         }
 
         public override void OnResuming(ScreenTransitionEvent e)
@@ -304,167 +279,7 @@ namespace osu.Game.Arcade.Screens
                 }
             }));
 
-            resetSettings();
-        }
-
-        private void resetSettings()
-        {
-            Logger.Log("[ARCADE] Resetting framework settings...");
-
-            foreach ((string setting, IBindable bindable) in getSettings(frameworkConfig))
-            {
-                switch (setting)
-                {
-                    case "LastDisplayDevice":
-                        continue;
-
-                    case "WindowMode":
-#if !DEBUG
-                        setValue(bindable, WindowMode.Fullscreen);
-#endif
-                        break;
-
-                    case "FrameSync":
-                        setValue(bindable, FrameSync.Unlimited);
-                        break;
-
-                    default:
-                        setDefault(bindable);
-                        break;
-                }
-            }
-
-            Logger.Log("[ARCADE] Resetting global settings...");
-
-            foreach ((string setting, IBindable bindable) in getSettings(osuConfig))
-            {
-                switch (setting)
-                {
-                    case "Username":
-                    case "Token":
-                    case "SavePassword":
-                    case "SaveUsername":
-                    case "ReleaseStream":
-                    case "Version":
-                    case "LastProcessedMetadataId":
-                    case "LastOnlineTagsPopulation":
-                        continue;
-
-                    case "ShowFirstRunSetup":
-                        setValue(bindable, false);
-                        break;
-
-                    case "MouseDisableButtons":
-                        setValue(bindable, true);
-                        break;
-
-                    default:
-                        setDefault(bindable);
-                        break;
-                }
-            }
-
-            foreach (var ruleset in rulesetStore.AvailableRulesets)
-            {
-                Logger.Log($"[ARCADE] Resetting settings for ruleset: {ruleset.Name}...");
-
-                var rulesetConfig = rulesetConfigs.GetConfigFor(ruleset.CreateInstance());
-                if (rulesetConfig == null)
-                    continue;
-
-                foreach ((string setting, IBindable bindable) in getSettings(rulesetConfig))
-                {
-                    switch (setting)
-                    {
-                        default:
-                            setDefault(bindable);
-                            break;
-                    }
-                }
-            }
-
-            Logger.Log("[ARCADE] Resetting keybindings...");
-
-            realmAccess.Run(r =>
-            {
-                using (var transaction = r.BeginWrite())
-                {
-                    resetBindings(r, globalActionContainer.DefaultKeyBindings);
-
-                    foreach (var ruleset in rulesetStore.AvailableRulesets)
-                    {
-                        var instance = ruleset.CreateInstance();
-                        foreach (int variant in instance.AvailableVariants)
-                            resetBindings(r, instance.GetDefaultKeyBindings(variant), ruleset.ShortName, variant);
-                    }
-
-                    transaction.Commit();
-                }
-            });
-
-            reloadBindings(settingsOverlay);
-
-            static Dictionary<string, IBindable> getSettings(IConfigManager config)
-            {
-                IDictionary configStore = (IDictionary)config.GetType().GetField("ConfigStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(config)!;
-
-                Dictionary<string, IBindable> dict = new Dictionary<string, IBindable>();
-                foreach (object key in configStore.Keys)
-                    dict[key.ToString()!] = (IBindable)configStore[key]!;
-
-                return dict;
-            }
-
-            static void setDefault(IBindable target)
-            {
-                try
-                {
-                    target.GetType().GetMethod(nameof(Bindable<int>.SetDefault), BindingFlags.Instance | BindingFlags.Public)!.Invoke(target, null);
-                }
-                catch
-                {
-                }
-            }
-
-            static void setValue<T>(IBindable target, T value)
-            {
-                try
-                {
-                    target.GetType().GetProperty(nameof(Bindable<int>.Value), BindingFlags.Instance | BindingFlags.Public)!.SetValue(target, value);
-                }
-                catch
-                {
-                }
-            }
-
-            static void resetBindings(Realm realm, IEnumerable<IKeyBinding> defaultBindings, string? rulesetName = null, int? variant = null)
-            {
-                foreach (var bindingGroup in defaultBindings.GroupBy(b => b.Action))
-                {
-                    int actionInt = (int)bindingGroup.Key;
-
-                    RealmKeyBinding[] existingBindings = realm.All<RealmKeyBinding>()
-                                                              .Where(k => k.ActionInt == actionInt && k.RulesetName == rulesetName && k.Variant == variant)
-                                                              .ToArray();
-
-                    int bindingIndex = 0;
-
-                    foreach (var binding in bindingGroup)
-                    {
-                        if (!existingBindings[bindingIndex].KeyCombination.Equals(binding.KeyCombination))
-                            existingBindings[bindingIndex].KeyCombination = binding.KeyCombination;
-                        bindingIndex++;
-                    }
-                }
-            }
-
-            static void reloadBindings(SettingsOverlay overlay)
-            {
-                MethodInfo reloadAllBindings = typeof(KeyBindingsSubsection).GetMethod("reloadAllBindings", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-                foreach (var section in overlay.ChildrenOfType<KeyBindingsSubsection>())
-                    reloadAllBindings.Invoke(section, null);
-            }
+            arcadeConfig.Reset();
         }
 
         protected override void Dispose(bool isDisposing)
