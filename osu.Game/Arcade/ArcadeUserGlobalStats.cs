@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Text.Json.Serialization;
 using MessagePack;
+using Newtonsoft.Json;
 
 namespace osu.Game.Arcade
 {
@@ -11,15 +11,15 @@ namespace osu.Game.Arcade
     [Serializable]
     public class ArcadeUserGlobalStats
     {
-        [JsonPropertyName("ruleset_id")]
+        [JsonProperty("ruleset_id")]
         [Key(0)]
         public int RulesetId { get; set; }
 
-        [JsonPropertyName("variant_id")]
+        [JsonProperty("variant_id")]
         [Key(1)]
         public int VariantId { get; set; }
 
-        [JsonPropertyName("pp")]
+        [JsonProperty("pp")]
         [Key(2)]
         public double Pp { get; set; }
     }

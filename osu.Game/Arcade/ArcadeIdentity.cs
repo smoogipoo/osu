@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Text.Json.Serialization;
 using MessagePack;
+using Newtonsoft.Json;
 
 namespace osu.Game.Arcade
 {
@@ -11,15 +11,15 @@ namespace osu.Game.Arcade
     [Serializable]
     public class ArcadeIdentity
     {
-        [JsonPropertyName("user")]
+        [JsonProperty("user")]
         [Key(0)]
         public ArcadeUser User { get; set; } = new ArcadeUser();
 
-        [JsonPropertyName("stats")]
+        [JsonProperty("stats")]
         [Key(1)]
         public ArcadeUserGlobalStats[] UserStats { get; set; } = [];
 
-        [JsonPropertyName("matchmaking_user_stats")]
+        [JsonProperty("matchmaking_user_stats")]
         [Key(2)]
         public ArcadeUserMatchmakingStats[] MatchmakingStats { get; set; } = [];
     }

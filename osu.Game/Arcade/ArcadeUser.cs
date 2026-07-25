@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Text.Json.Serialization;
 using MessagePack;
+using Newtonsoft.Json;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users;
 
@@ -13,23 +13,23 @@ namespace osu.Game.Arcade
     [Serializable]
     public class ArcadeUser
     {
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         [Key(0)]
         public int UserId { get; set; }
 
-        [JsonPropertyName("username")]
+        [JsonProperty("username")]
         [Key(1)]
         public string Username { get; set; } = string.Empty;
 
-        [JsonPropertyName("avatar_url")]
+        [JsonProperty("avatar_url")]
         [Key(2)]
         public string AvatarUrl { get; set; } = string.Empty;
 
-        [JsonPropertyName("cover")]
+        [JsonProperty("cover")]
         [Key(3)]
         public UserCover Cover { get; set; } = new UserCover();
 
-        [JsonPropertyName("country_code")]
+        [JsonProperty("country_code")]
         [Key(4)]
         public string CountryCodeString { get; set; } = string.Empty;
 
@@ -54,7 +54,7 @@ namespace osu.Game.Arcade
         [Serializable]
         public class UserCover
         {
-            [JsonPropertyName(@"url")]
+            [JsonProperty(@"url")]
             [Key(0)]
             public string Url { get; set; } = string.Empty;
         }
