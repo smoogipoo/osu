@@ -380,6 +380,9 @@ namespace osu.Game
                 return;
             }
 
+            if (ARCADE)
+                return;
+
             lock (dragDropFiles)
             {
                 dragDropFiles.Add(path);

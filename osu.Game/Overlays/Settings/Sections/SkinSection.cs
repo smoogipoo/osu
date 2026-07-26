@@ -82,11 +82,13 @@ namespace osu.Game.Overlays.Settings.Sections
                             new DeleteSkinButton { Padding = new MarginPadding { Left = 2.5f }, RelativeSizeAxes = Axes.X, Width = 1 / 3f },
                         }
                     },
-                new SettingsButtonV2
-                {
-                    Text = SkinSettingsStrings.SkinLayoutEditor,
-                    Action = () => skinEditor?.ToggleVisibility(),
-                },
+                OsuGame.ARCADE
+                    ? Empty()
+                    : new SettingsButtonV2
+                    {
+                        Text = SkinSettingsStrings.SkinLayoutEditor,
+                        Action = () => skinEditor?.ToggleVisibility(),
+                    },
             };
         }
 

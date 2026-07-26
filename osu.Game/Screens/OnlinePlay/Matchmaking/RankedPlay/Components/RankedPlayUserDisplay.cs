@@ -103,7 +103,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                         grayScaleContainer = new BufferedContainer(cachedFrameBuffer: false, pixelSnapping: true)
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Child = new UpdateableAvatar(user)
+                            Child = new UpdateableAvatar(user, isInteractive: !OsuGame.ARCADE)
                             {
                                 RelativeSizeAxes = Axes.Both,
                             }
