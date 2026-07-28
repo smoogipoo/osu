@@ -38,10 +38,14 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         private void load()
         {
             var bindings = getAllBindings();
+            HashSet<int> actions = bindings.Select(b => b.ActionInt).ToHashSet();
 
             foreach (var defaultGroup in Defaults.GroupBy(d => d.Action))
             {
                 int intKey = (int)defaultGroup.Key;
+
+                if (!actions.Contains(intKey))
+                    continue;
 
                 var row = CreateKeyBindingRow(defaultGroup.Key, defaultGroup)
                     .With(row =>
