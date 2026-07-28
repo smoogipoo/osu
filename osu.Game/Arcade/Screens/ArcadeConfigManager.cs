@@ -109,6 +109,27 @@ namespace osu.Game.Arcade.Screens
                         setValue(bindable, true);
                         break;
 
+                    case "HitLighting":
+                        setValue(bindable, false);
+                        break;
+
+                    case "StarFountains":
+                        setValue(bindable, false);
+                        break;
+
+                    case "DimLevel":
+                        setValue(bindable, 0.92f);
+                        setMaxValue(bindable, 0.92f);
+                        break;
+
+                    case "BeatmapSkins":
+                        setValue(bindable, false);
+                        break;
+
+                    case "BeatmapColours":
+                        setValue(bindable, false);
+                        break;
+
                     default:
                         setDefault(bindable);
                         break;
@@ -146,13 +167,14 @@ namespace osu.Game.Arcade.Screens
             {
                 using (var transaction = r.BeginWrite())
                 {
-                    resetBindings(r, globalActionContainer.DefaultKeyBindings);
+                    resetBindings(r, adjustBindings(globalActionContainer.DefaultKeyBindings.ToArray(), null));
 
                     foreach (var ruleset in rulesetStore.AvailableRulesets)
                     {
                         var instance = ruleset.CreateInstance();
+
                         foreach (int variant in instance.AvailableVariants)
-                            resetBindings(r, instance.GetDefaultKeyBindings(variant), ruleset.ShortName, variant);
+                            resetBindings(r, adjustBindings(instance.GetDefaultKeyBindings(variant).OfType<IKeyBinding>().ToArray(), ruleset.OnlineID), ruleset.ShortName, variant);
                     }
 
                     transaction.Commit();
@@ -162,6 +184,11 @@ namespace osu.Game.Arcade.Screens
             MethodInfo reloadAllBindings = typeof(KeyBindingsSubsection).GetMethod("reloadAllBindings", BindingFlags.Instance | BindingFlags.NonPublic)!;
             foreach (var section in settingsOverlay.ChildrenOfType<KeyBindingsSubsection>())
                 reloadAllBindings.Invoke(section, null);
+
+            realmAccess.Write(r =>
+            {
+                r.Remove(r.All<RealmKeyBinding>().Single(b => b.ActionInt == 34 && b.RulesetName == null));
+            });
 
             static void resetBindings(Realm realm, IEnumerable<IKeyBinding> defaultBindings, string? rulesetName = null, int? variant = null)
             {
@@ -192,6 +219,28 @@ namespace osu.Game.Arcade.Screens
             host.ResetInputHandlers();
         }
 
+        private IKeyBinding[] adjustBindings(IKeyBinding[] bindings, int? rulesetId)
+        {
+            switch (rulesetId)
+            {
+                case null:
+                {
+                    IKeyBinding toggleInterface = bindings.Single(b => (int)b.Action == 34);
+                    toggleInterface.KeyCombination = new KeyCombination(InputKey.None);
+                    break;
+                }
+
+                case 0:
+                {
+                    IKeyBinding smokeBinding = bindings.Single(b => (int)b.Action == 2);
+                    smokeBinding.KeyCombination = new KeyCombination(InputKey.None);
+                    break;
+                }
+            }
+
+            return bindings;
+        }
+
         private static Dictionary<string, IBindable> getSettings(IConfigManager config)
         {
             IDictionary configStore = (IDictionary)config.GetType().GetField("ConfigStore", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(config)!;
@@ -219,6 +268,17 @@ namespace osu.Game.Arcade.Screens
             try
             {
                 target.GetType().GetProperty(nameof(Bindable<int>.Value), BindingFlags.Instance | BindingFlags.Public)!.SetValue(target, value);
+            }
+            catch
+            {
+            }
+        }
+
+        private static void setMaxValue<T>(IBindable target, T value)
+        {
+            try
+            {
+                target.GetType().GetProperty(nameof(BindableNumber<int>.MaxValue), BindingFlags.Instance | BindingFlags.Public)!.SetValue(target, value);
             }
             catch
             {
