@@ -187,7 +187,8 @@ namespace osu.Game.Arcade.Screens
 
             realmAccess.Write(r =>
             {
-                r.Remove(r.All<RealmKeyBinding>().Single(b => b.ActionInt == 34 && b.RulesetName == null));
+                if (r.All<RealmKeyBinding>().SingleOrDefault(b => b.ActionInt == 34 && b.RulesetName == null) is RealmKeyBinding toggleInterfaceBinding)
+                    r.Remove(toggleInterfaceBinding);
             });
 
             static void resetBindings(Realm realm, IEnumerable<IKeyBinding> defaultBindings, string? rulesetName = null, int? variant = null)
@@ -199,6 +200,9 @@ namespace osu.Game.Arcade.Screens
                     RealmKeyBinding[] existingBindings = realm.All<RealmKeyBinding>()
                                                               .Where(k => k.ActionInt == actionInt && k.RulesetName == rulesetName && k.Variant == variant)
                                                               .ToArray();
+
+                    if (existingBindings.Length == 0)
+                        continue;
 
                     int bindingIndex = 0;
 
@@ -225,15 +229,15 @@ namespace osu.Game.Arcade.Screens
             {
                 case null:
                 {
-                    IKeyBinding toggleInterface = bindings.Single(b => (int)b.Action == 34);
-                    toggleInterface.KeyCombination = new KeyCombination(InputKey.None);
+                    if (bindings.SingleOrDefault(b => (int)b.Action == 34) is IKeyBinding toggleInterfaceBinding)
+                        toggleInterfaceBinding.KeyCombination = new KeyCombination(InputKey.None);
                     break;
                 }
 
                 case 0:
                 {
-                    IKeyBinding smokeBinding = bindings.Single(b => (int)b.Action == 2);
-                    smokeBinding.KeyCombination = new KeyCombination(InputKey.None);
+                    if (bindings.SingleOrDefault(b => (int)b.Action == 2) is IKeyBinding smokeBinding)
+                        smokeBinding.KeyCombination = new KeyCombination(InputKey.None);
                     break;
                 }
             }
