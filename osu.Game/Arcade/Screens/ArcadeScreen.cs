@@ -17,6 +17,7 @@ using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Screens;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
@@ -235,17 +236,45 @@ namespace osu.Game.Arcade.Screens
                                         Spacing = new Vector2(10),
                                         Children = new Drawable[]
                                         {
-                                            new OsuSpriteText
+                                            new FillFlowContainer
                                             {
                                                 Anchor = Anchor.TopCentre,
                                                 Origin = Anchor.TopCentre,
-                                                Text = "Leaderboard"
+                                                AutoSizeAxes = Axes.Both,
+                                                Direction = FillDirection.Horizontal,
+                                                Spacing = new Vector2(5),
+                                                Children = new Drawable[]
+                                                {
+                                                    new OsuSpriteText
+                                                    {
+                                                        Anchor = Anchor.CentreLeft,
+                                                        Origin = Anchor.CentreLeft,
+                                                        Text = "Leaderboard"
+                                                    },
+                                                    new IconButton
+                                                    {
+                                                        Anchor = Anchor.CentreLeft,
+                                                        Origin = Anchor.CentreLeft,
+                                                        Scale = new Vector2(0.5f),
+                                                        Icon = FontAwesome.Regular.WindowMaximize,
+                                                        Action = () =>
+                                                        {
+                                                            if (this.IsCurrentScreen())
+                                                                this.Push(new ArcadeLeaderboardScreen());
+                                                        }
+                                                    }
+                                                }
                                             },
-                                            new ArcadeLeaderboard
+                                            new OsuScrollContainer(Direction.Vertical)
                                             {
                                                 Anchor = Anchor.TopCentre,
                                                 Origin = Anchor.TopCentre,
                                                 Size = new Vector2(300, 300),
+                                                ScrollbarOverlapsContent = false,
+                                                Child = new ArcadeLeaderboard
+                                                {
+                                                    RelativeSizeAxes = Axes.X
+                                                }
                                             }
                                         }
                                     }
