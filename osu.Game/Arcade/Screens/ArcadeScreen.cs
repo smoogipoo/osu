@@ -208,6 +208,13 @@ namespace osu.Game.Arcade.Screens
                                                 AlwaysPresent = true,
                                                 Text = "Invalid code",
                                                 Alpha = 0
+                                            },
+                                            new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.TopCentre,
+                                                Origin = Anchor.TopCentre,
+                                                Text = "And remember to collect your prize at the store!",
+                                                Colour = colours.Pink
                                             }
                                         }
                                     },
