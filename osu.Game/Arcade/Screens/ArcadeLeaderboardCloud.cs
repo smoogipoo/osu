@@ -24,8 +24,6 @@ namespace osu.Game.Arcade.Screens
         private DrawablePool<PanelWrapper> pool = null!;
         private Container<PanelWrapper> panels = null!;
 
-        private int nextUser;
-
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -66,7 +64,8 @@ namespace osu.Game.Arcade.Screens
 
                 while (panels.Count < 50)
                 {
-                    ArcadeUserStats stats = arcadeUserStats[RNG.Next(arcadeUserStats.Length)];
+                    int index = RNG.Next(arcadeUserStats.Length);
+                    ArcadeUserStats stats = arcadeUserStats[index];
                     float scale = maxVictories == 0 ? 1 : min_scale + (max_scale - min_scale) * stats.Victories / maxVictories;
 
                     panels.Add(pool.Get(w =>
@@ -80,10 +79,8 @@ namespace osu.Game.Arcade.Screens
                         w.Speed = scale;
                         w.SetUser(stats.UserId, stats.Username);
                         w.Count = stats.Victories;
-                        w.Rank = nextUser + 1;
+                        w.Rank = index + 1;
                     }));
-
-                    nextUser = (nextUser + 1) % arcadeUserStats.Length;
                 }
             }
 
