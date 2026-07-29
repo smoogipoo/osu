@@ -41,7 +41,7 @@ namespace osu.Game.Arcade.Screens
         private RankedPlayCornerPiece rightCornerPiece = null!;
         private OsuSpriteText beatmapText = null!;
 
-        private int? lastRoomId;
+        private long? lastRoomId;
         private int? lastBeatmapId;
 
         [BackgroundDependencyLoader]
@@ -181,12 +181,12 @@ namespace osu.Game.Arcade.Screens
                 {
                     if (room.RoomID != lastRoomId)
                     {
-                        leftCornerPiece.Child = new RankedPlayUserDisplay(player1User, Anchor.TopLeft, RankedPlayColourScheme.BLUE, showHealth: false)
+                        leftCornerPiece.Child = new ArcadeLeaderboardScreenUserDisplay(player1User, Anchor.TopLeft, RankedPlayColourScheme.BLUE)
                         {
                             RelativeSizeAxes = Axes.Both,
                         };
 
-                        rightCornerPiece.Child = new RankedPlayUserDisplay(player2User, Anchor.TopRight, RankedPlayColourScheme.BLUE, showHealth: false)
+                        rightCornerPiece.Child = new ArcadeLeaderboardScreenUserDisplay(player2User, Anchor.TopRight, RankedPlayColourScheme.BLUE)
                         {
                             RelativeSizeAxes = Axes.Both,
                         };
@@ -195,7 +195,7 @@ namespace osu.Game.Arcade.Screens
                     if (beatmap?.OnlineID != lastBeatmapId)
                         beatmapText.Text = beatmap == null ? string.Empty : beatmap.GetDisplayString();
 
-                    lastRoomId = room.ChannelID;
+                    lastRoomId = room.RoomID;
                     lastBeatmapId = beatmap?.OnlineID;
                 });
 
