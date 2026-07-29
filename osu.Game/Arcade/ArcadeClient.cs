@@ -8,6 +8,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Database;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Multiplayer;
 
 namespace osu.Game.Arcade
 {
@@ -66,6 +67,8 @@ namespace osu.Game.Arcade
         }
 
         public abstract Task<ArcadeUserStats[]> FetchLeaderboard();
+
+        public abstract Task<MultiplayerRoom[]> GetActiveRooms();
 
         public abstract Task Connect(ArcadeIdentity identity);
 

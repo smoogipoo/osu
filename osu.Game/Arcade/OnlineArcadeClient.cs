@@ -10,6 +10,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Online;
 using osu.Game.Online.API;
+using osu.Game.Online.Multiplayer;
 
 namespace osu.Game.Arcade
 {
@@ -67,6 +68,16 @@ namespace osu.Game.Arcade
             Debug.Assert(connection != null);
 
             return connection.InvokeAsync<ArcadeUserStats[]>(nameof(IArcadeServer.FetchLeaderboard));
+        }
+
+        public override Task<MultiplayerRoom[]> GetActiveRooms()
+        {
+            if (!IsConnected.Value)
+                return Task.FromResult(Array.Empty<MultiplayerRoom>());
+
+            Debug.Assert(connection != null);
+
+            return connection.InvokeAsync<MultiplayerRoom[]>(nameof(IArcadeServer.GetActiveRooms));
         }
 
         public override Task Connect(ArcadeIdentity identity)

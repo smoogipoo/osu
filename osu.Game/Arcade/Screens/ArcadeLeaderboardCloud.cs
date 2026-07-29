@@ -71,9 +71,9 @@ namespace osu.Game.Arcade.Screens
                     panels.Add(pool.Get(w =>
                     {
                         if (isInitialPopulation)
-                            w.Position = new Vector2(RNG.NextSingle(-200, DrawWidth), RNG.NextSingle(10, DrawHeight - ArcadeLeaderboardPanel.HEIGHT - 10));
+                            w.Position = new Vector2(RNG.NextSingle(-200, DrawWidth), RNG.NextSingle(50, DrawHeight - ArcadeLeaderboardPanel.HEIGHT - 10));
                         else
-                            w.Position = new Vector2(-200, RNG.NextSingle(10, DrawHeight - ArcadeLeaderboardPanel.HEIGHT - 10));
+                            w.Position = new Vector2(-200, RNG.NextSingle(50, DrawHeight - ArcadeLeaderboardPanel.HEIGHT - 10));
                         w.Scale = new Vector2(scale);
                         w.Alpha = scale;
                         w.Speed = scale;

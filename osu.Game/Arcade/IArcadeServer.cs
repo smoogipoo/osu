@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
+using osu.Game.Online.Multiplayer;
 
 namespace osu.Game.Arcade
 {
@@ -11,6 +12,8 @@ namespace osu.Game.Arcade
         /// Retrievse the arcade leaderboard.
         /// </summary>
         Task<ArcadeUserStats[]> FetchLeaderboard();
+
+        Task<MultiplayerRoom[]> GetActiveRooms();
 
         /// <summary>
         /// Connects to the arcade server with the given identity.

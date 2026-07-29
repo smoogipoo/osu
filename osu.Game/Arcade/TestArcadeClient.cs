@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Rooms;
 
 namespace osu.Game.Arcade
 {
@@ -25,6 +28,39 @@ namespace osu.Game.Arcade
 
         public override Task<ArcadeUserStats[]> FetchLeaderboard()
             => Task.FromResult(FetchLeaderboardFunc());
+
+        public override Task<MultiplayerRoom[]> GetActiveRooms()
+            => Task.FromResult(new[]
+            {
+                new MultiplayerRoom(0)
+                {
+                    Settings =
+                    {
+                        PlaylistItemId = 1
+                    },
+                    Playlist =
+                    [
+                        new MultiplayerPlaylistItem(new PlaylistItem(new APIBeatmap
+                        {
+                            BeatmapSet = new APIBeatmapSet
+                            {
+                                Artist = "Some Artist",
+                                Title = "Some Title",
+                                AuthorString = "Some Author"
+                            },
+                            DifficultyName = "Some Difficulty"
+                        }))
+                        {
+                            ID = 1
+                        }
+                    ],
+                    Users =
+                    [
+                        new MultiplayerRoomUser(1),
+                        new MultiplayerRoomUser(2)
+                    ]
+                }
+            });
 
         public override Task Connect(ArcadeIdentity identity)
             => Connect(api.LocalUser.Value.OnlineID, identity);
