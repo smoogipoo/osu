@@ -7,12 +7,15 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Screens;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osuTK.Graphics;
 
 namespace osu.Game.Arcade.Screens
 {
     public class ArcadeLeaderboardScreen : OsuScreen
     {
+        protected override BackgroundScreen CreateBackground() => new RankedPlayBackgroundScreen();
+
         [BackgroundDependencyLoader]
         private void load()
         {

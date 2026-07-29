@@ -215,7 +215,8 @@ namespace osu.Game.Arcade.Screens
                                                 Anchor = Anchor.TopCentre,
                                                 Origin = Anchor.TopCentre,
                                                 Text = "And remember to collect your prize at the store!",
-                                                Colour = colours.Pink
+                                                Font = OsuFont.GetFont(weight: FontWeight.Bold),
+                                                Colour = colours.Yellow
                                             }
                                         }
                                     },

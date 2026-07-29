@@ -134,7 +134,7 @@ namespace osu.Game.Arcade.Screens
 
             public PanelWrapper()
             {
-                Width = 200;
+                Width = 250;
                 AutoSizeAxes = Axes.Y;
             }
 
