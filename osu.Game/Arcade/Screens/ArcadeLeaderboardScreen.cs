@@ -15,8 +15,10 @@ using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Overlays.Notifications;
 using osu.Game.Screens;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osuTK;
 using osuTK.Graphics;
 
@@ -37,9 +39,12 @@ namespace osu.Game.Arcade.Screens
 
         protected override BackgroundScreen CreateBackground() => new RankedPlayBackgroundScreen();
 
-        private OsuSpriteText player1Name = null!;
-        private OsuSpriteText player2Name = null!;
+        private RankedPlayCornerPiece leftCornerPiece = null!;
+        private RankedPlayCornerPiece rightCornerPiece = null!;
         private OsuSpriteText beatmapText = null!;
+
+        private int? lastRoomId;
+        private int? lastBeatmapId;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -106,54 +111,27 @@ namespace osu.Game.Arcade.Screens
                             },
                             new Container
                             {
-                                Size = new Vector2(200, 100),
-                                Masking = true,
-                                EdgeEffect = new EdgeEffectParameters
-                                {
-                                    Colour = Color4.Black,
-                                    Radius = 50,
-                                },
-                                Blending = new BlendingParameters
-                                {
-                                    Source = BlendingType.Zero,
-                                    Destination = BlendingType.One,
-                                    SourceAlpha = BlendingType.Zero,
-                                    DestinationAlpha = BlendingType.OneMinusSrcAlpha,
-                                    RGBEquation = BlendingEquation.Add,
-                                    AlphaEquation = BlendingEquation.ReverseSubtract,
-                                },
-                                // Child = new Box
-                                // {
-                                //     RelativeSizeAxes = Axes.Both,
-                                //     Colour = Color4.Black,
-                                //     Alpha = 1
-                                // }
-                            },
-                            new Container
-                            {
                                 RelativeSizeAxes = Axes.Both,
-                                Padding = new MarginPadding
-                                {
-                                    Top = 10,
-                                    Horizontal = 10
-                                },
                                 Children = new Drawable[]
                                 {
-                                    player1Name = new OsuSpriteText
+                                    leftCornerPiece = new RankedPlayCornerPiece(RankedPlayColourScheme.BLUE, Anchor.TopLeft)
                                     {
-                                        Font = OsuFont.GetFont(size: 32)
+                                        Scale = new Vector2(0.75f),
+                                        State = { Value = Visibility.Visible },
                                     },
-                                    player2Name = new OsuSpriteText
+                                    rightCornerPiece = new RankedPlayCornerPiece(RankedPlayColourScheme.BLUE, Anchor.TopRight)
                                     {
                                         Anchor = Anchor.TopRight,
                                         Origin = Anchor.TopRight,
-                                        Font = OsuFont.GetFont(size: 32)
+                                        Scale = new Vector2(0.75f),
+                                        State = { Value = Visibility.Visible },
                                     },
                                     beatmapText = new OsuSpriteText
                                     {
                                         Anchor = Anchor.TopCentre,
                                         Origin = Anchor.TopCentre,
-                                        Font = OsuFont.GetFont(size: 24)
+                                        Font = OsuFont.GetFont(size: 24),
+                                        Margin = new MarginPadding { Top = 10 }
                                     },
                                 }
                             },
@@ -166,6 +144,8 @@ namespace osu.Game.Arcade.Screens
                                 Padding = new MarginPadding { Top = 50 },
                                 Child = new ArcadeLeaderboard
                                 {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
                                     RelativeSizeAxes = Axes.X,
                                     MaxPanels = 5
                                 }
@@ -195,15 +175,30 @@ namespace osu.Game.Arcade.Screens
                 if (room.Users.Count != 2)
                     return;
 
-                APIUser? player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false);
-                APIUser? player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false);
+                APIUser player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false) ?? APIUser.UnknownUser(room.Users[0].UserID);
+                APIUser player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false) ?? APIUser.UnknownUser(room.Users[1].UserID);
                 APIBeatmap? beatmap = await beatmapLookupCache.GetBeatmapAsync(room.CurrentPlaylistItem.BeatmapID).ConfigureAwait(false);
 
                 Schedule(() =>
                 {
-                    player1Name.Text = player1User?.Username ?? string.Empty;
-                    player2Name.Text = player2User?.Username ?? string.Empty;
-                    beatmapText.Text = beatmap == null ? string.Empty : beatmap.GetDisplayString();
+                    if (room.RoomID != lastRoomId)
+                    {
+                        leftCornerPiece.Child = new RankedPlayUserDisplay(player1User, Anchor.TopLeft, RankedPlayColourScheme.BLUE, showHealth: false)
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        };
+
+                        rightCornerPiece.Child = new RankedPlayUserDisplay(player2User, Anchor.TopRight, RankedPlayColourScheme.BLUE, showHealth: false)
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        };
+                    }
+
+                    if (beatmap?.OnlineID != lastBeatmapId)
+                        beatmapText.Text = beatmap == null ? string.Empty : beatmap.GetDisplayString();
+
+                    lastRoomId = room.ChannelID;
+                    lastBeatmapId = beatmap?.OnlineID;
                 });
 
                 await Task.Delay(1000).ConfigureAwait(false);

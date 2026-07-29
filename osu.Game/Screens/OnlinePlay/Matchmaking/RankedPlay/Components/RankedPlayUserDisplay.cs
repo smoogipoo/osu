@@ -43,6 +43,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         private readonly APIUser user;
         private readonly Anchor contentAnchor;
         private readonly RankedPlayColourScheme colourScheme;
+        private readonly bool showHealth;
 
         private BufferedContainer grayScaleContainer = null!;
         private OsuSpriteText beatmapState = null!;
@@ -57,11 +58,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         [Resolved]
         private RankedPlayCornerPiece? cornerPiece { get; set; }
 
-        public RankedPlayUserDisplay(APIUser user, Anchor contentAnchor, RankedPlayColourScheme colourScheme)
+        public RankedPlayUserDisplay(APIUser user, Anchor contentAnchor, RankedPlayColourScheme colourScheme, bool showHealth = true)
         {
             this.user = user;
             this.contentAnchor = contentAnchor;
             this.colourScheme = colourScheme;
+            this.showHealth = showHealth;
         }
 
         [BackgroundDependencyLoader]
@@ -150,6 +152,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                             Height = 22,
                             Anchor = contentAnchor,
                             Origin = contentAnchor,
+                            Alpha = showHealth ? 1 : 0
                         },
                         new FillFlowContainer
                         {
@@ -158,7 +161,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                             Anchor = contentAnchor,
                             Origin = contentAnchor,
                             Direction = FillDirection.Horizontal,
-                            Padding = new MarginPadding { Horizontal = 4, Vertical = 6 },
+                            Padding = new MarginPadding
+                            {
+                                Horizontal = showHealth ? 4 : 10,
+                                Vertical = 6
+                            },
                             Spacing = new Vector2(5, 0),
                             Children =
                             [
