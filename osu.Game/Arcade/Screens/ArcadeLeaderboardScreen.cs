@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -31,6 +32,8 @@ namespace osu.Game.Arcade.Screens
 
         [Resolved]
         private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
+
+        private readonly CancellationTokenSource cancellationSource = new CancellationTokenSource();
 
         protected override BackgroundScreen CreateBackground() => new RankedPlayBackgroundScreen();
 
@@ -182,24 +185,36 @@ namespace osu.Game.Arcade.Screens
 
         private async Task fetchActiveRoom()
         {
-            var room = (await arcadeClient.GetActiveRooms().ConfigureAwait(false)).FirstOrDefault();
-
-            if (room == null)
-                return;
-
-            if (room.Users.Count != 2)
-                return;
-
-            APIUser? player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false);
-            APIUser? player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false);
-            APIBeatmap? beatmap = await beatmapLookupCache.GetBeatmapAsync(room.CurrentPlaylistItem.BeatmapID).ConfigureAwait(false);
-
-            Schedule(() =>
+            while (!cancellationSource.IsCancellationRequested)
             {
-                player1Name.Text = player1User?.Username ?? string.Empty;
-                player2Name.Text = player2User?.Username ?? string.Empty;
-                beatmapText.Text = beatmap.GetDisplayString();
-            });
+                var room = (await arcadeClient.GetActiveRooms().ConfigureAwait(false)).FirstOrDefault();
+
+                if (room == null)
+                    return;
+
+                if (room.Users.Count != 2)
+                    return;
+
+                APIUser? player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false);
+                APIUser? player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false);
+                APIBeatmap? beatmap = await beatmapLookupCache.GetBeatmapAsync(room.CurrentPlaylistItem.BeatmapID).ConfigureAwait(false);
+
+                Schedule(() =>
+                {
+                    player1Name.Text = player1User?.Username ?? string.Empty;
+                    player2Name.Text = player2User?.Username ?? string.Empty;
+                    beatmapText.Text = beatmap == null ? string.Empty : beatmap.GetDisplayString();
+                });
+
+                await Task.Delay(1000).ConfigureAwait(false);
+            }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            cancellationSource.Cancel();
         }
     }
 }
