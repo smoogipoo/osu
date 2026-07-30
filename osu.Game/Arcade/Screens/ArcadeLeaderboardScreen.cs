@@ -168,10 +168,10 @@ namespace osu.Game.Arcade.Screens
                 var room = (await arcadeClient.GetActiveRooms().ConfigureAwait(false)).FirstOrDefault();
 
                 if (room == null)
-                    return;
+                    continue;
 
                 if (room.Users.Count != 2)
-                    return;
+                    continue;
 
                 APIUser player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false) ?? APIUser.UnknownUser(room.Users[0].UserID);
                 APIUser player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false) ?? APIUser.UnknownUser(room.Users[1].UserID);
@@ -199,7 +199,7 @@ namespace osu.Game.Arcade.Screens
                     lastBeatmapId = beatmap?.OnlineID;
                 });
 
-                await Task.Delay(1000).ConfigureAwait(false);
+                await Task.Delay(1000, cancellationSource.Token).ConfigureAwait(false);
             }
         }
 
