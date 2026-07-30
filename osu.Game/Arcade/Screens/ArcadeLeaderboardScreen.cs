@@ -167,35 +167,46 @@ namespace osu.Game.Arcade.Screens
             {
                 var room = (await arcadeClient.GetActiveRooms().ConfigureAwait(false)).FirstOrDefault();
 
-                if (room == null)
-                    continue;
+                APIUser? player1User = null;
+                APIUser? player2User = null;
+                APIBeatmap? beatmap = null;
 
-                if (room.Users.Count != 2)
-                    continue;
-
-                APIUser player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false) ?? APIUser.UnknownUser(room.Users[0].UserID);
-                APIUser player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false) ?? APIUser.UnknownUser(room.Users[1].UserID);
-                APIBeatmap? beatmap = await beatmapLookupCache.GetBeatmapAsync(room.CurrentPlaylistItem.BeatmapID).ConfigureAwait(false);
+                if (room?.Users.Count == 2)
+                {
+                    player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false);
+                    player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false);
+                    beatmap = await beatmapLookupCache.GetBeatmapAsync(room.CurrentPlaylistItem.BeatmapID).ConfigureAwait(false);
+                }
 
                 Schedule(() =>
                 {
-                    if (room.RoomID != lastRoomId)
+                    if (room?.RoomID != lastRoomId)
                     {
-                        leftCornerPiece.Child = new ArcadeLeaderboardScreenUserDisplay(player1User, Anchor.TopLeft, RankedPlayColourScheme.BLUE)
+                        if (player1User == null)
+                            leftCornerPiece.Child = Empty();
+                        else
                         {
-                            RelativeSizeAxes = Axes.Both,
-                        };
+                            leftCornerPiece.Child = new ArcadeLeaderboardScreenUserDisplay(player1User, Anchor.TopLeft, RankedPlayColourScheme.BLUE)
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                            };
+                        }
 
-                        rightCornerPiece.Child = new ArcadeLeaderboardScreenUserDisplay(player2User, Anchor.TopRight, RankedPlayColourScheme.BLUE)
+                        if (player2User == null)
+                            rightCornerPiece.Child = Empty();
+                        else
                         {
-                            RelativeSizeAxes = Axes.Both,
-                        };
+                            rightCornerPiece.Child = new ArcadeLeaderboardScreenUserDisplay(player2User, Anchor.TopRight, RankedPlayColourScheme.BLUE)
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                            };
+                        }
                     }
 
                     if (beatmap?.OnlineID != lastBeatmapId)
                         beatmapText.Text = beatmap == null ? string.Empty : beatmap.GetDisplayString();
 
-                    lastRoomId = room.RoomID;
+                    lastRoomId = room?.RoomID;
                     lastBeatmapId = beatmap?.OnlineID;
                 });
 
