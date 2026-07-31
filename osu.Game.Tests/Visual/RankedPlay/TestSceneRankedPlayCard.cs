@@ -227,5 +227,20 @@ namespace osu.Game.Tests.Visual.RankedPlay
                 });
             }
         }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestBackSide(bool mystery)
+        {
+            AddStep("add card", () =>
+            {
+                Child = new RankedPlayCardBackSide(mystery)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Scale = new Vector2(1.2f)
+                };
+            });
+        }
     }
 }

@@ -2,13 +2,17 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
+using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osuTK;
 
@@ -16,8 +20,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
     public partial class RankedPlayCardBackSide : CompositeDrawable
     {
-        public RankedPlayCardBackSide()
+        [Resolved]
+        private OsuColour colours { get; set; } = null!;
+
+        private readonly bool mystery;
+
+        public RankedPlayCardBackSide(bool mystery)
         {
+            this.mystery = mystery;
             Size = RankedPlayCard.SIZE;
         }
 
@@ -26,6 +36,17 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
         {
             Masking = true;
             CornerRadius = RankedPlayCard.CORNER_RADIUS;
+
+            if (mystery)
+            {
+                EdgeEffect = new EdgeEffectParameters
+                {
+                    Type = EdgeEffectType.Glow,
+                    Colour = colours.Yellow.Opacity(0.5f),
+                    Radius = 20,
+                    Hollow = true
+                };
+            }
 
             InternalChildren = new Drawable[]
             {
@@ -44,14 +65,43 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                     SpawnRatio = 1.2f,
                     Velocity = 0.1f,
                 },
-                new Sprite
-                {
-                    Texture = textures.Get(@"Menu/logo"),
-                    Size = new Vector2(32),
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                },
+                mystery
+                    ? new OsuSpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = "?",
+                        Font = OsuFont.GetFont(size: 32),
+                        UseFullGlyphHeight = false
+                    }
+                    : new Sprite
+                    {
+                        Texture = textures.Get(@"Menu/logo"),
+                        Size = new Vector2(32),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    },
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (mystery)
+            {
+                EdgeEffectParameters initialEdgeEffect = EdgeEffect;
+                TweenEdgeEffectTo(new EdgeEffectParameters
+                    {
+                        Type = EdgeEffectType.Glow,
+                        Colour = colours.Yellow.Opacity(0.3f),
+                        Radius = 18,
+                        Hollow = true
+                    }, 3000)
+                    .Then()
+                    .Append(_ => TweenEdgeEffectTo(initialEdgeEffect, 3000, Easing.OutQuint))
+                    .Loop();
+            }
         }
     }
 }

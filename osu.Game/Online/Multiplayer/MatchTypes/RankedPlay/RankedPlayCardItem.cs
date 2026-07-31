@@ -17,6 +17,9 @@ namespace osu.Game.Online.Multiplayer.MatchTypes.RankedPlay
         [Key(0)]
         public Guid ID { get; set; } = Guid.NewGuid();
 
+        [Key(1)]
+        public bool Mystery { get; set; }
+
         public bool Equals(RankedPlayCardItem? other)
             => other != null && ID.Equals(other.ID);
 

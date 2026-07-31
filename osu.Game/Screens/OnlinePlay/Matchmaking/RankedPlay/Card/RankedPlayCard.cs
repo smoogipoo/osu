@@ -49,6 +49,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
             set => songPreviewContainer.CardHovered.Value = value;
         }
 
+        public bool RevealMysteryCard;
+
         public float Elevation;
 
         public bool PreviewTrackLoaded => songPreviewContainer.TrackLoaded;
@@ -102,7 +104,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                         Origin = Anchor.Centre,
                         Children =
                         [
-                            new RankedPlayCardBackSide(),
+                            new RankedPlayCardBackSide(item.Card.Mystery),
                             cardContent = new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
@@ -155,7 +157,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 return;
             }
 
-            loadCardContentAsync(playlistItem);
+            if (RevealMysteryCard)
+                loadCardContentAsync(playlistItem);
         }
 
         private void loadCardContentAsync(MultiplayerPlaylistItem playlistItem) => Task.Run(async () =>
