@@ -173,8 +173,9 @@ namespace osu.Game.Arcade.Screens
 
                 if (room?.Users.Count == 2)
                 {
-                    player1User = await userLookupCache.GetUserAsync(room.Users[0].UserID).ConfigureAwait(false);
-                    player2User = await userLookupCache.GetUserAsync(room.Users[1].UserID).ConfigureAwait(false);
+                    // Hardcoded user ids for now because I'm not sure how to get the left/right PCs.
+                    player1User = await userLookupCache.GetUserAsync(159).ConfigureAwait(false);
+                    player2User = await userLookupCache.GetUserAsync(158).ConfigureAwait(false);
                     beatmap = await beatmapLookupCache.GetBeatmapAsync(room.CurrentPlaylistItem.BeatmapID).ConfigureAwait(false);
                 }
 
