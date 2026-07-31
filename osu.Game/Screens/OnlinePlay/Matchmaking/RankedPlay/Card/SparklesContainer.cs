@@ -19,8 +19,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
             Blending = BlendingParameters.Additive;
         }
 
+        public bool Enabled = true;
+
         public void AddSparkles(Drawable source, Color4 seedColour, Vector2 velocity)
         {
+            if (!Enabled)
+                return;
+
             var drawQuad = ToLocalSpace(source.ScreenSpaceDrawQuad);
 
             float horizontal = RNG.NextSingle();
