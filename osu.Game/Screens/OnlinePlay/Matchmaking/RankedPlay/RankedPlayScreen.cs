@@ -118,6 +118,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private readonly SongPreviewParticleContainer particleContainer;
 
         [Cached]
+        private readonly SparklesContainer sparklesContainer;
+
+        [Cached]
         private BackgroundMusicManager backgroundMusic;
 
         public RankedPlayScreen(MultiplayerRoom room)
@@ -138,6 +141,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     Origin = Anchor.Centre,
                     Children = new Drawable[]
                     {
+                        sparklesContainer = new SparklesContainer(),
                         new PopoverContainer
                         {
                             RelativeSizeAxes = Axes.Both,

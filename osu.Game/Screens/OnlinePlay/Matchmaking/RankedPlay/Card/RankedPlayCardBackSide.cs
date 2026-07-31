@@ -7,14 +7,17 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
@@ -39,10 +42,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             if (mystery)
             {
+                BorderColour = Color4.White;
+                BorderThickness = 3;
                 EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = colours.Yellow.Opacity(0.5f),
+                    Colour = colours.Cyan.Opacity(0.5f),
                     Radius = 20,
                     Hollow = true
                 };
@@ -54,9 +59,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour =
-                        ColourInfo.GradientVertical(
-                            colourProvider.Background3,
-                            colourProvider.Background4),
+                        mystery
+                            ? ColourInfo.GradientVertical(
+                                new OverlayColourProvider(OverlayColourScheme.Purple).Background5,
+                                new OverlayColourProvider(OverlayColourScheme.Purple).Background6)
+                            : ColourInfo.GradientVertical(
+                                colourProvider.Background3,
+                                colourProvider.Background4),
                 },
                 new TrianglesV2
                 {
@@ -71,9 +80,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Text = "?",
-                        Font = OsuFont.GetFont(size: 32),
-                        UseFullGlyphHeight = false
-                    }
+                        Font = OsuFont.GetFont(size: 42, weight: FontWeight.Black),
+                        UseFullGlyphHeight = false,
+                    }.WithEffect(new GlowEffect
+                    {
+                        Blending = BlendingParameters.Additive,
+                        Colour = colours.Cyan,
+                        BlurSigma = new Vector2(20),
+                        PadExtent = true,
+                        Strength = 10
+                    })
                     : new Sprite
                     {
                         Texture = textures.Get(@"Menu/logo"),
@@ -83,6 +99,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                     },
             };
         }
+
+        [Resolved]
+        private SparklesContainer? sparklesContainer { get; set; }
 
         protected override void LoadComplete()
         {
@@ -101,6 +120,45 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                     .Then()
                     .Append(_ => TweenEdgeEffectTo(initialEdgeEffect, 3000, Easing.OutQuint))
                     .Loop();
+
+                Scheduler.AddDelayed(() =>
+                {
+                    if (lastDrawQuad != null)
+                        sparklesContainer?.AddSparkles(this, colours.Cyan, velocity);
+                }, 25, true);
+            }
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            lastDrawQuad = ScreenSpaceDrawQuad;
+        }
+
+        private Quad? lastDrawQuad;
+
+        private Vector2 velocity =>
+            Precision.DefinitelyBigger(Time.Elapsed, 0)
+                ? (ScreenSpaceDrawQuad.Centre - lastDrawQuad!.Value.Centre) / (float)Time.Elapsed
+                : Vector2.Zero;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (mystery)
+            {
+                float angle = (float)(Time.Current * 0.0004);
+                const float angle_offset = 59 / 360f;
+
+                BorderColour = new ColourInfo
+                {
+                    TopLeft = Colour4.FromHSV((angle - angle_offset) % 1, 0.5f, 1f),
+                    TopRight = Colour4.FromHSV((angle + angle_offset) % 1, 0.5f, 1f),
+                    BottomLeft = Colour4.FromHSV((angle - angle_offset + 0.5f) % 1, 0.5f, 1f),
+                    BottomRight = Colour4.FromHSV((angle + angle_offset + 0.5f) % 1, 0.5f, 1f),
+                };
             }
         }
     }

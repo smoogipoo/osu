@@ -35,10 +35,14 @@ namespace osu.Game.Tests.Visual.RankedPlay
         [Cached]
         private readonly SongPreviewParticleContainer particleContainer;
 
+        [Cached]
+        private readonly SparklesContainer sparklesContainer;
+
         public TestSceneRankedPlayCard()
         {
             base.Content.AddRange(new Drawable[]
             {
+                sparklesContainer = new SparklesContainer(),
                 new OsuContextMenuContainer
                 {
                     RelativeSizeAxes = Axes.Both,
