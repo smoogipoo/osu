@@ -13,6 +13,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
+using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
 using osuTK.Input;
 
@@ -33,6 +34,52 @@ namespace osu.Game.Tests.Visual.RankedPlay
 
             AddStep("load screen", () => LoadScreen(screen = new RankedPlayScreen(MultiplayerClient.ClientRoom!)));
             AddUntilStep("screen loaded", () => screen.IsLoaded);
+        }
+
+        [Test]
+        public void TestMystery()
+        {
+            BeatmapRequestHandler requestHandler = null!;
+            AddStep("setup", () =>
+            {
+                requestHandler = new BeatmapRequestHandler(new OsuRuleset().RulesetInfo);
+                ((DummyAPIAccess)API).HandleRequest = requestHandler.HandleRequest;
+            });
+
+            AddStep("add mystery card", () => MultiplayerClient.RankedPlayAddCards([new RankedPlayCardItem { Mystery = true }]).WaitSafely());
+
+            AddStep("set pick state", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = API.LocalUser.Value.OnlineID).WaitSafely());
+
+            AddStep("reveal cards", () =>
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    int i2 = i;
+                    MultiplayerClient.RankedPlayRevealCard(hand => hand[i2], new MultiplayerPlaylistItem
+                    {
+                        ID = i2,
+                        BeatmapID = requestHandler.Beatmaps[0].OnlineID
+                    }).WaitSafely();
+                }
+            });
+
+            AddStep("click mystery card", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<RankedPlayCard>().Single(c => c.Item.Card.Mystery));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("click play button", () =>
+            {
+                var button = screen
+                             .ChildrenOfType<PlayerHandOfCards.PlayerHandCard>()
+                             .First(it => it.Selected)
+                             .ChildrenOfType<ShearedButton>()
+                             .First();
+
+                InputManager.MoveMouseTo(button);
+                InputManager.Click(MouseButton.Left);
+            });
         }
 
         [Test]
