@@ -37,6 +37,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
         }
 
         [Test]
+        [Solo]
         public void TestMystery()
         {
             BeatmapRequestHandler requestHandler = null!;
