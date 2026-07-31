@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
-using osu.Framework.Utils;
 using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -37,6 +36,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private const int warning_time_threshold = 11;
 
         public CardFlow CenterRow { get; private set; } = null!;
+
+        [Resolved]
+        private SparklesContainer? sparklesContainer { get; set; }
 
         public override bool ShowStageOverlay => true;
 
@@ -320,7 +322,31 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             playerHand.SelectionMode = HandSelectionMode.Disabled;
 
             if (item.Card.Mystery)
-                this.Delay(1000).Schedule(() => mysteryLayer.ShowWithCard(item));
+            {
+                this.Delay(0).Schedule(() =>
+                {
+                    this.FindClosestParent<OsuGameBase>()!.AddRange([
+                        mysteryLayer.CreateProxy(),
+                        sparklesContainer?.CreateProxy() ?? Empty(),
+                        card.CreateProxy()
+                    ]);
+
+                    card.Delay(1500)
+                        .FadeOut(1000);
+                    sparklesContainer?
+                        .Delay(1500)
+                        .FadeOut(2000);
+
+                    mysteryLayer.ShowWithCard(item);
+                    CornerPieceVisibility.Value = Visibility.Hidden;
+                });
+
+                Scheduler.AddDelayed(() =>
+                {
+                    if (sparklesContainer != null)
+                        sparklesContainer.Enabled = false;
+                }, 500);
+            }
         }
 
         protected override void Dispose(bool isDisposing)
@@ -389,7 +415,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 {
                     State.Value = Visibility.Visible;
 
-                    using (BeginDelayedSequence(2000))
+                    using (BeginDelayedSequence(3000))
                     {
                         centreText.FadeInFromZero(1000);
 
@@ -411,7 +437,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             protected override void PopIn()
             {
-                this.FadeIn(1000);
+                this.FadeIn(350);
             }
 
             protected override void PopOut()
