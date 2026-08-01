@@ -8,12 +8,15 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
+using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
+using osu.Framework.Utils;
 using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -22,6 +25,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.RankedPlay;
+using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
@@ -325,11 +329,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             {
                 this.Delay(0).Schedule(() =>
                 {
-                    this.FindClosestParent<OsuGameBase>()!.AddRange([
-                        mysteryLayer.CreateProxy(),
-                        sparklesContainer?.CreateProxy() ?? Empty(),
-                        card.CreateProxy()
-                    ]);
+                    // this.FindClosestParent<OsuGameBase>()!.AddRange([
+                    //     mysteryLayer.CreateProxy(),
+                    //     sparklesContainer?.CreateProxy() ?? Empty(),
+                    //     card.CreateProxy()
+                    // ]);
 
                     card.Delay(1500)
                         .FadeOut(1000);
@@ -363,8 +367,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             public override bool IsPresent => base.IsPresent || Scheduler.HasPendingTasks;
 
-            private readonly Bindable<int> textIndex = new Bindable<int>();
-
             [Resolved]
             private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
 
@@ -385,20 +387,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Font = OsuFont.GetFont(typeface: Typeface.Inter, size: 30),
-                        Text = "FEATURING",
+                        Text = "NEW FEATURED ARTIST",
                         Alpha = 0
-                    }
+                    },
+                    // new ArtistDisplayContainer
+                    // {
+                    //     Anchor = Anchor.TopCentre,
+                    //     Origin = Anchor.TopCentre,
+                    //     Y = 100
+                    // }
                 };
-            }
-
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                textIndex.BindValueChanged(idx =>
-                {
-                    centreText.Text = artists[idx.NewValue];
-                });
             }
 
             public void ShowWithCard(RankedPlayCardWithPlaylistItem card)
@@ -421,15 +419,32 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                         using (BeginDelayedSequence(4000))
                         {
-                            Schedule(() => centreText.Text = artists[0]);
+                            centreText.Delay(75).FadeOut(100);
 
-                            centreText.FadeIn();
+                            Schedule(() =>
+                            {
+                                FillFlowContainer f;
 
-                            this.Delay(500)
-                                .TransformBindableTo(textIndex, artists.Length - 2, 5000, Easing.InOutExpo)
-                                .Then()
-                                .Delay(500)
-                                .TransformBindableTo(textIndex, artists.Length - 1);
+                                Add(f = new FillFlowContainer
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Spacing = new Vector2(10),
+                                    Direction = FillDirection.Vertical,
+                                    Rotation = -15,
+                                    Alpha = 0.4f
+                                });
+
+                                for (int i = 0; i < 10; i++)
+                                {
+                                    f.Add(new ScrollingTextLayer(i, (LineDirection)(i % 2))
+                                    {
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre
+                                    });
+                                }
+                            });
                         }
                     }
                 });
@@ -444,562 +459,205 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             {
                 this.FadeOut();
             }
+        }
 
-            private static readonly string[] artists =
-            [
-                "nekodex",
-                "cYsmix",
-                "IAHN",
-                "yuki.",
-                "Helblinde",
-                "dark cat",
-                "Loki / Thaehan",
-                "Sylvir / sakuraburst",
-                "S3RL",
-                "nanobii",
-                "Ben Briggs",
-                "LukHash",
-                "Kuba Oms",
-                "Rin / Function Phantom",
-                "Fractal Dreamers",
-                "Wisp X",
-                "OISHII",
-                "*namirin",
-                "MOtOLOiD",
-                "Trial &amp; Error",
-                "niu arx",
-                "VINXIS",
-                "Cranky",
-                "antiPLUR / Internet Death Machine",
-                "Nakanojojo",
-                "High Tea Music",
-                "KIRA",
-                "Virtual Self",
-                "Culprate",
-                "SOOOO",
-                "Camellia",
-                "onumi",
-                "HyuN / INFX",
-                "tieff",
-                "Imperial Circus Dead Decadence",
-                "Creo",
-                "The Flashbulb",
-                "BilliumMoto",
-                "James Landino",
-                "RiraN",
-                "Rising Sun Traxx",
-                "Carpool Tunnel",
-                "Inferi",
-                "Disko Warp",
-                "UNDEAD CORPORATION",
-                "Billain",
-                "Æther Realm",
-                "KNOWER",
-                "KOAN Sound",
-                "Native Construct",
-                "Akira Complex",
-                "False Noise",
-                "Nekrogoblikon",
-                "Ricky Montgomery",
-                "Panda Eyes",
-                "Klayton / Celldweller",
-                "goreshit",
-                "Kurokotei",
-                "Voicians",
-                "F-777",
-                "MDK",
-                "MYLK",
-                "Rivers of Nihil",
-                "Teminite",
-                "Blue Stahli",
-                "Station Earth / Blue Marble",
-                "Kola Kid",
-                "Frums",
-                "ELFENSJóN",
-                "Sound Souler",
-                "Venetian Snares",
-                "ginkiha",
-                "LeaF",
-                "O2i3",
-                "meganeko",
-                "Zekk",
-                "MIMI",
-                "CircusP",
-                "PUP",
-                "BLANKFIELD",
-                "Disasterpeace",
-                "Rohi",
-                "Thank You Scientist",
-                "Noisia",
-                "Hyper Potions",
-                "Ne Obliviscaris",
-                "Rusty K",
-                "LEAF XCEED Music Division",
-                "Street",
-                "Numtack05",
-                "Receptor",
-                "Silentroom",
-                "Ariabl&#039;eyeS",
-                "Magnetude",
-                "ARForest",
-                "Kobaryo",
-                "Task Horizon",
-                "Umeboshi Chazuke",
-                "Imy",
-                "EPICA",
-                "kiraku",
-                "siqlo",
-                "Sable Hills",
-                "Omoi",
-                "cute girls doing cute things",
-                "P4koo",
-                "ALEPH",
-                "Morimori Atsushi",
-                "Joe Ford",
-                "Sennzai",
-                "DUAL ALTER WORLD",
-                "Se-U-Ra",
-                "glass beach",
-                "Fuki",
-                "BLOOD CODE",
-                "Lime / Kankitsu",
-                "I love you Orchestra",
-                "orangentle / Yu_Asahina",
-                "Bossfight",
-                "MuryokuP / Powerless",
-                "MYUKKE.",
-                "Lifetheory",
-                "kanone",
-                "Jun Kuroda",
-                "Erik McClure",
-                "BLOOD STAIN CHILD",
-                "Aitsuki Nakuru",
-                "Getty",
-                "Phantom Sage",
-                "Symholic",
-                "Tiny Waves",
-                "Yuyoyuppe / DJ&#039;TEKINA//SOMETHING ",
-                "Geoxor",
-                "Dimrain47",
-                "Irreversible Mechanism",
-                "Masahiro &quot;Godspeed&quot; Aoki",
-                "SECONDWALL",
-                "seleP",
-                "Shawn Wasabi",
-                "ovEnola",
-                "nora2r",
-                "The Gentle Men",
-                "Extra Terra",
-                "Tanchiky",
-                "Empty Peperoncino",
-                "polysha",
-                "Cres.",
-                "RYUJIN / GYZE",
-                "URBANGARDE",
-                "BlackY",
-                "Amidst",
-                "Xanthochroid",
-                "Aethoro",
-                "Boxplot",
-                "YUZUKINGDOM",
-                "fiend",
-                "2TD",
-                "Vektor",
-                "Grynpyret",
-                "Emille&#039;s Moonlight Serenade",
-                "m108",
-                "miraie",
-                "Reku Mochizuki",
-                "Agressor Bunx",
-                "Kitazawa Kyouhei",
-                "Aiobahn",
-                "yukitani",
-                "A-One",
-                "Sewerslvt / Cynthoni",
-                "Fleshgod Apocalypse",
-                "love solfege",
-                "II-L",
-                "Aquestion",
-                "La prière",
-                "Pratanallis",
-                "katagiri",
-                "Andromedik",
-                "wotoha",
-                "ABSOLUTE CASTAWAY",
-                "Fred V &amp; Grafix",
-                "Rish",
-                "Michael Cera Palin",
-                "Aoi",
-                "Redside",
-                "seatrus",
-                "SEBii",
-                "3R2 / DJ Mashiro",
-                "T &amp; Sugah",
-                "Natsume Itsuki",
-                "rN",
-                "Aether",
-                "Wiklund",
-                "technoplanet",
-                "Release Hallucination",
-                "Alkome",
-                "Sephid",
-                "Harumaki Gohan",
-                "Avizura",
-                "rejection",
-                "Our Stolen Theory",
-                "litmus* / Ester",
-                "tokiwa",
-                "Lundy",
-                "DJ Raisei",
-                "HARDCORE UTOPIA",
-                "METAROOM",
-                "solfa",
-                "Lexurus",
-                "Mameyudoufu",
-                "iFeature",
-                "Risa Yuzuki",
-                "garlagan",
-                "linear ring",
-                "LV.4",
-                "Chroma",
-                "FATE GEAR",
-                "Kurubukko",
-                "Yooh",
-                "Matduke",
-                "Marmalade butcher",
-                "Tasty",
-                "KINEMA106",
-                "Tedjimo yomigY",
-                "Zomboy",
-                "Seraph",
-                "siromaru",
-                "PTB10",
-                "NIWASHI",
-                "DGK",
-                "Haywyre",
-                "satella",
-                "Vansire",
-                "Boom Kitty",
-                "Annabel",
-                "Maduk",
-                "bill wurtz",
-                "Atavistia",
-                "HEAD PHONES PRESIDENT",
-                "MisoilePunch",
-                "Good Kid",
-                "Riya",
-                "Rabbit House",
-                "MisomyL",
-                "Yunosuke",
-                "City Girl",
-                "EmoCosine",
-                "Raimukun",
-                "USAO",
-                "Plum",
-                "luvlxckdown",
-                "Never Say Die",
-                "my sound life",
-                "A.SAKA",
-                "Stonebank",
-                "Monstercat",
-                "Archspire",
-                "in love with a ghost",
-                "Mage",
-                "Aethral",
-                "Nile",
-                "MUZZ",
-                "RINYA",
-                "Ardolf",
-                "Allegaeon",
-                "Tenchio",
-                "Neko Hacker",
-                "JOYLESS",
-                "69 de 74",
-                "Origami Angel",
-                "Rameses B",
-                "Ponchi",
-                "Hino Isuka",
-                "SAMString",
-                "Kanpyohgo",
-                ":Poin7less",
-                "Tokyo Machine",
-                "Beach Bunny",
-                "NILFRUITS",
-                "Toromaru",
-                "Rootkit",
-                "Grant",
-                "aran",
-                "Liar-soft",
-                "Blind Guardian",
-                "Exyl",
-                "NOISZ",
-                "Pegboard Nerds",
-                "ZxNX",
-                "Hamu",
-                "Darkney",
-                "Waterflame",
-                "Mitsukiyo",
-                "Koven",
-                "Abuse",
-                "DJ Genki / Gram",
-                "Aiyru",
-                "-45",
-                "Nashimoto Ui",
-                "Nitro Fun",
-                "Rezonate",
-                "AAAA",
-                "Andy Gillion",
-                "Vorso",
-                "Alestorm",
-                "Ritorikal",
-                "Feint",
-                "Mono.",
-                "Tokyo.MeltiMelt",
-                "Ata",
-                "Hybrid Minds",
-                "GLORYHAMMER",
-                "Au5",
-                "Fractal",
-                "Kikuo",
-                "Hinkik",
-                "Zenpaku",
-                "happy30",
-                "Massive New Krew",
-                "HoneyComeBear",
-                "Ensou",
-                "Crywolf",
-                "E0ri4",
-                "Innocent Key",
-                "Noisestorm",
-                "LilyPichu",
-                "Ekcle",
-                "LandRoot",
-                "Satyr",
-                "tsunamix",
-                "nyankobrq",
-                "Mili",
-                "Fellowship",
-                "Euchaeta",
-                "Sound piercer",
-                "Etherwood",
-                "kakichoco",
-                "WINTERHORDE",
-                "Sobrem",
-                "FRASER EDWARDS",
-                "Liquicity",
-                "Cinamoro",
-                "yaseta",
-                "KASHIWA Daisuke",
-                "True North",
-                "Kabocha",
-                "Mediks",
-                "Whispered",
-                "SWORD OF JUSTICE",
-                "Minstrel",
-                "Down",
-                "Kenneyon",
-                "Ashrount",
-                "Stars Hollow",
-                "CHON",
-                "Yokomin",
-                "7_7",
-                "Synthion",
-                "Genkaku Aria",
-                "cygnus",
-                "Aice room",
-                "tephe",
-                "Shadren",
-                "Andora",
-                "kaitendaentai",
-                "Junk",
-                "passchooo",
-                "kanemiko",
-                "Halv",
-                "kuro",
-                "Ruby My Dear",
-                "Krimek",
-                "YUC&#039;e",
-                "Supire",
-                "ALLMYFRIENDS",
-                "Kardashev",
-                "soowamisu",
-                "beignet",
-                "C-Show",
-                "Kommisar",
-                "Aquellex",
-                "Corsace",
-                "1914",
-                "Kou!",
-                "ColBreakz",
-                "Will Stetson",
-                "Dustvoxx",
-                "PHAZE",
-                "Solarbear",
-                "you",
-                "DOT96",
-                "Knife",
-                "Sydosys",
-                "Sorry about my face",
-                "Asa",
-                "Hitori Tori",
-                "t+pazolite",
-                "anubasu-anubasu",
-                "Sparxe",
-                "iroha(sasaki)",
-                "Rocket Start",
-                "Akiri",
-                "uselet",
-                "Draper",
-                "Takamachi Walk",
-                "Pandize",
-                "YonKaGor",
-                "Cansol",
-                "Yuuni",
-                "ptar124",
-                "Grabbitz",
-                "ODDEEO",
-                "Pa&#039;s Lam System",
-                "REAPER",
-                "PaceMKR",
-                "lemm",
-                "watering",
-                "Billx",
-                "Rubatonin",
-                "633397",
-                "TEST Open",
-                "Strelitzia",
-                "DeBisco",
-                "xiiiac13",
-                "0 K",
-                "Doomsday",
-                "Nakura",
-                "WangleLine",
-                "takehirotei",
-                "Rose Quartz",
-                "MetaHumanBoi",
-                "Candle",
-                "ShibayanRecords",
-                "Xyris",
-                "SiLiS",
-                "Supa7onyz",
-                "cast heal",
-                "tom^s",
-                "Kagetora.",
-                "Raytrax Music Collective",
-                "Trina Lydia",
-                "Badly Wood Cup",
-                "sugosugiii",
-                "Midian",
-                "Future Witness",
-                "WyvernP",
-                "ikaruga_nex",
-                "nagiha",
-                "Kry.exe",
-                "Lusumi",
-                "Zmey Gorynich",
-                "Attoclef",
-                "XH",
-                "uynet",
-                "Anamanaguchi",
-                "ZVLIAN",
-                "ntyn",
-                "Powerwolf",
-                "EBIMAYO",
-                "Ludicin",
-                "WEARY",
-                "SEVEN LIVES",
-                "osu! community music",
-                "hikota",
-                "rae",
-                "Slax",
-                "ak+q",
-                "AQUASINE",
-                "lexycat",
-                "Quarkee",
-                "Terminal 11",
-                "Naikou",
-                "yoho",
-                "1zm8",
-                "Xeven",
-                "Kyutatsuki",
-                "JinoBeats",
-                "The Musical Ghost",
-                "UNTONE Music",
-                "TONE::FURY",
-                "Simon Safhalter",
-                "XenjeS",
-                "Shirobon",
-                "Ice",
-                "Dispel",
-                "Aspect",
-                "DraGonis",
-                "SPIRIT GARDEN *",
-                "Juwubi",
-                "muyu",
-                "GRYSCL",
-                "d0tc0mmie",
-                "Sad Keyboard Guy",
-                "Myntian",
-                "Drazically",
-                "kikoyu",
-                "Xeon Diversity",
-                "LUZE",
-                "roer",
-                "Raphiiel",
-                "Dvwnpour",
-                "MARETU",
-                "mimizu",
-                "BrayanKitsn",
-                "Tanger",
-                "MEMODEMO",
-                "unfeeling",
-                "lexxndr",
-                "gladde paling",
-                "WhiteSakata",
-                "Akts",
-                "steelplus",
-                "MIDInco",
-                "AKA",
-                "Stariah",
-                "Memme",
-                "ePiaeon",
-                "tachibanaka",
-                "voira",
-                "gmtn. / witch&#039;s slave",
-                "kefi",
-                "John Grant",
-                "qfeileadh",
-                "penoreri",
-                "Laur",
-                "celtix",
-                "Genesis",
-                "SHK",
-                "Juztan",
-                "LaXal",
-                "Ariz Kayaba",
-                "Brandy",
-                "OLDUCT",
-                "Getter Jaani",
-                "dennoko-P",
-                "jeko",
-                "Ennnn",
-                "log() / ohm002",
-                "Pashtetue",
-                "Sukima Altera",
-                "trung-nova",
-                "dandeless",
-                "Dazzling",
-                "Junshi",
-                "elwood",
-                "Adust Rain",
-                "Katari",
-                "TRIAL",
-                "Link&quot;0",
-                "endofsystem",
-                "Otsukisama Koukyoukyoku",
-                "awoKen",
-                "xi",
-            ];
+        private class ArtistDisplayContainer : CompositeDrawable
+        {
+            public ArtistDisplayContainer()
+            {
+                AutoSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(TextureStore textures)
+            {
+                InternalChildren = new Drawable[]
+                {
+                    new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Horizontal,
+                        Spacing = new Vector2(10),
+                        Children = new Drawable[]
+                        {
+                            new Sprite
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Texture = textures.Get("https://i.imgur.com/ZK8JKCy.png"),
+                                Size = new Vector2(100),
+                                FillMode = FillMode.Fit
+                            },
+                            new Container
+                            {
+                                Anchor = Anchor.BottomLeft,
+                                Origin = Anchor.BottomLeft,
+                                AutoSizeAxes = Axes.Both,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both
+                                    },
+                                    new Container
+                                    {
+                                        AutoSizeAxes = Axes.Both,
+                                        Padding = new MarginPadding { Horizontal = 20, Vertical = 10 },
+                                        Child = new OsuSpriteText
+                                        {
+                                            Colour = Color4.Black,
+                                            Text = "Nizikawa",
+                                            Font = OsuFont.GetFont(weight: FontWeight.Black),
+                                            Spacing = new Vector2(20)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                };
+            }
+        }
+
+        private class TextLine : CompositeDrawable
+        {
+            public bool Generate { get; set; } = true;
+
+            private readonly LineDirection direction;
+
+            private Texture texture = null!;
+            private Container<Sprite> container = null!;
+
+            public TextLine(LineDirection direction)
+            {
+                this.direction = direction;
+
+                AutoSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(TextureStore textures)
+            {
+                texture = textures.Get("https://i.imgur.com/93dJ4Vt.png");
+
+                InternalChild = container = new FillFlowContainer<Sprite>
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Horizontal,
+                    Spacing = new Vector2(40)
+                };
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                do
+                {
+                    Sprite? lastSprite = container.LastOrDefault();
+
+                    if (lastSprite?.ScreenSpaceDrawQuad.Intersects(Parent!.ScreenSpaceDrawQuad) == false)
+                        break;
+
+                    container.Add(new Sprite
+                    {
+                        Texture = texture,
+                        Scale = new Vector2(0.95f)
+                    });
+                } while (true);
+            }
+        }
+
+        private class ScrollingTextLayer : CompositeDrawable
+        {
+            private readonly int id;
+            private readonly LineDirection direction;
+
+            private Container outerScroll = null!;
+            private FillFlowContainer innerScroll = null!;
+
+            private Texture outlineTexture = null!;
+            private Texture filledTexture = null!;
+
+            public ScrollingTextLayer(int id, LineDirection direction)
+            {
+                this.id = id;
+                this.direction = direction;
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(TextureStore textures)
+            {
+                outlineTexture = textures.Get("https://i.imgur.com/93dJ4Vt.png");
+                filledTexture = textures.Get("https://i.imgur.com/f6MjM2Q.png");
+
+                InternalChild = outerScroll = new Container
+                {
+                    AutoSizeAxes = Axes.Y,
+                    Child = innerScroll = new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Horizontal,
+                        Spacing = new Vector2(40)
+                    }
+                };
+
+                for (int i = 0; i < 8; i++)
+                {
+                    innerScroll.Add(new Sprite
+                    {
+                        Texture = outlineTexture,
+                        Scale = new Vector2(0.95f)
+                    });
+                }
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                ScheduleAfterChildren(() =>
+                {
+                    using (BeginDelayedSequence(0))
+                    {
+                        outerScroll.Width = innerScroll.DrawWidth;
+
+                        if (direction == LineDirection.LeftToRight)
+                        {
+                            outerScroll.Anchor = Anchor.TopLeft;
+                            outerScroll.Origin = Anchor.TopRight;
+
+                            outerScroll.MoveToOffset(new Vector2(DrawWidth * (1 + RNG.NextSingle()), 0), 2000, Easing.OutPow10);
+                            innerScroll.MoveToOffset(new Vector2(10 * DrawWidth, 0), 200000);
+                        }
+                        else
+                        {
+                            outerScroll.Anchor = Anchor.TopRight;
+                            outerScroll.Origin = Anchor.TopLeft;
+
+                            outerScroll.MoveToOffset(new Vector2(-DrawWidth * (1 + RNG.NextSingle()), 0), 2000, Easing.OutPow10);
+                            innerScroll.MoveToOffset(new Vector2(-10 * DrawWidth, 0), 200000);
+                        }
+                    }
+
+                    using (BeginDelayedSequence(8000))
+                    {
+                        if (direction == LineDirection.LeftToRight)
+                            outerScroll.MoveToOffset(new Vector2(DrawWidth * 4, 0), 2000, Easing.OutPow10);
+                        else
+                            outerScroll.MoveToOffset(new Vector2(-DrawWidth * 4, 0), 2000, Easing.OutPow10);
+                    }
+                });
+            }
+        }
+
+        private enum LineDirection
+        {
+            LeftToRight,
+            RightToLeft
         }
     }
 }
