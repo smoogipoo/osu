@@ -406,7 +406,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Font = OsuFont.GetFont(typeface: Typeface.Inter, size: 30),
-                        Text = "NEW FEATURED ARTIST",
+                        Text = "REVEALED FIRST AT COE",
                         Alpha = 0
                     },
                 };
@@ -431,49 +431,52 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 {
                     State.Value = Visibility.Visible;
 
-                    using (BeginDelayedSequence(3000))
-                    {
-                        centreText.FadeInFromZero(1000);
-
-                        using (BeginDelayedSequence(4000))
+                    this.Delay(3000)
+                        .Schedule(() => centreText.FadeInFromZero(1000))
+                        .Delay(3000)
+                        .Schedule(() => centreText.FadeOut(300))
+                        .Delay(300)
+                        .Schedule(() =>
+                        {
+                            centreText.Text = "NEW FEATURED ARTIST";
+                            centreText.FadeInFromZero(1000);
+                        })
+                        .Delay(3000)
+                        .Schedule(() =>
                         {
                             centreText.FadeOut(100);
 
-                            Schedule(() =>
+                            LogoAnimation s;
+                            Add(s = new LogoAnimation
                             {
-                                LogoAnimation s;
-                                Add(s = new LogoAnimation
-                                {
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Texture = textures.Get("https://i.imgur.com/KhYzTvw.png"),
-                                    FillMode = FillMode.Fit,
-                                });
-
-                                s.TransformTo(nameof(s.AnimationProgress), 1f, 6000, Easing.OutCubic);
-
-                                s.ScaleTo(2f)
-                                 .ScaleTo(0.6f, 5000, new CubicBezierEasingFunction(0, .75, 0, .75))
-                                 .Delay(4000)
-                                 .ResizeTo(0, 400, Easing.InCubic)
-                                 .Delay(350)
-                                 .Schedule(() =>
-                                 {
-                                     background.FadeOut();
-                                     s.FadeOut();
-                                     Add(Card = new RankedPlayCard(item)
-                                     {
-                                         Anchor = Anchor.Centre,
-                                         Origin = Anchor.Centre,
-                                         RevealMysteryCard = true,
-                                     });
-
-                                     Card.ScaleTo(1.3f)
-                                         .ScaleTo(1f, 500, Easing.OutExpo);
-                                 });
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Texture = textures.Get("https://osuc.ad/yzZIyRA3"),
+                                FillMode = FillMode.Fit,
                             });
-                        }
-                    }
+
+                            s.TransformTo(nameof(s.AnimationProgress), 1f, 6000, Easing.OutCubic);
+
+                            s.ScaleTo(1f)
+                             .ScaleTo(0.3f, 5000, new CubicBezierEasingFunction(0, .75, 0, .75))
+                             .Delay(4000)
+                             .ResizeTo(0, 400, Easing.InCubic)
+                             .Delay(350)
+                             .Schedule(() =>
+                             {
+                                 background.FadeOut();
+                                 s.FadeOut();
+                                 Add(Card = new RankedPlayCard(item)
+                                 {
+                                     Anchor = Anchor.Centre,
+                                     Origin = Anchor.Centre,
+                                     RevealMysteryCard = true,
+                                 });
+
+                                 Card.ScaleTo(1.3f)
+                                     .ScaleTo(1f, 500, Easing.OutExpo);
+                             });
+                        });
                 });
             }
 
