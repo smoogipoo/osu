@@ -186,7 +186,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             {
                 case PickScreen pick:
                 {
-                    if (pick.CenterRow.RemoveCard(matchInfo.LastPlayedCard, out card, out var screenSpaceDrawQuad))
+                    if (pick.RemoveCard(matchInfo.LastPlayedCard, out card, out var screenSpaceDrawQuad))
                         card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, cardColumn);
                     break;
                 }

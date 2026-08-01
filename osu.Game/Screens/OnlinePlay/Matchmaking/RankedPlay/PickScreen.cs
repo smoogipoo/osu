@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
@@ -11,9 +12,11 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Utils;
@@ -25,7 +28,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.RankedPlay;
-using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
@@ -126,7 +128,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             AddInternal(mysteryLayer = new MysteryLayer
             {
                 RelativeSizeAxes = Axes.Both,
-                Depth = float.MinValue
+                Depth = float.MinValue,
             });
 
             cardAddSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-add-1");
@@ -335,6 +337,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     //     card.CreateProxy()
                     // ]);
 
+                    mysteryLayer.Add(card.CreateProxy());
+
                     card.Delay(1500)
                         .FadeOut(1000);
                     sparklesContainer?
@@ -363,6 +367,19 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             base.Dispose(isDisposing);
         }
 
+        public bool RemoveCard(RankedPlayCardWithPlaylistItem item, [MaybeNullWhen(false)] out RankedPlayCard card, out Quad screenSpaceDrawQuad)
+        {
+            if (mysteryLayer.Card != null)
+            {
+                screenSpaceDrawQuad = mysteryLayer.Card.ScreenSpaceDrawQuad;
+                mysteryLayer.Remove(mysteryLayer.Card, false);
+                card = mysteryLayer.Card;
+                return true;
+            }
+
+            return CenterRow.RemoveCard(item, out card, out screenSpaceDrawQuad);
+        }
+
         private class MysteryLayer : VisibilityContainer
         {
             public override bool IsPresent => base.IsPresent || Scheduler.HasPendingTasks;
@@ -372,12 +389,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             private OsuSpriteText centreText = null!;
 
+            private Box background = null!;
+
             [BackgroundDependencyLoader]
             private void load()
             {
                 Children = new Drawable[]
                 {
-                    new Box
+                    background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Black
@@ -390,19 +409,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                         Text = "NEW FEATURED ARTIST",
                         Alpha = 0
                     },
-                    // new ArtistDisplayContainer
-                    // {
-                    //     Anchor = Anchor.TopCentre,
-                    //     Origin = Anchor.TopCentre,
-                    //     Y = 100
-                    // }
                 };
             }
 
             public void ShowWithCard(RankedPlayCardWithPlaylistItem card)
-                => fetchAndShow(card.PlaylistItem.Value!.BeatmapID).FireAndForget();
+                => fetchAndShow(card.PlaylistItem.Value!.BeatmapID, card).FireAndForget();
 
-            private async Task fetchAndShow(int beatmapId)
+            [Resolved]
+            private TextureStore textures { get; set; } = null!;
+
+            public RankedPlayCard? Card;
+
+            private async Task fetchAndShow(int beatmapId, RankedPlayCardWithPlaylistItem item)
             {
                 APIBeatmap? beatmap = await beatmapLookupCache.GetBeatmapAsync(beatmapId).ConfigureAwait(false);
 
@@ -419,31 +437,40 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                         using (BeginDelayedSequence(4000))
                         {
-                            centreText.Delay(75).FadeOut(100);
+                            centreText.FadeOut(100);
 
                             Schedule(() =>
                             {
-                                FillFlowContainer f;
-
-                                Add(f = new FillFlowContainer
+                                LogoAnimation s;
+                                Add(s = new LogoAnimation
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    RelativeSizeAxes = Axes.Both,
-                                    Spacing = new Vector2(10),
-                                    Direction = FillDirection.Vertical,
-                                    Rotation = -15,
-                                    Alpha = 0.4f
+                                    Texture = textures.Get("https://osuc.ad/NNrqOLfC"),
+                                    FillMode = FillMode.Fit,
                                 });
 
-                                for (int i = 0; i < 10; i++)
-                                {
-                                    f.Add(new ScrollingTextLayer(i, (LineDirection)(i % 2))
-                                    {
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre
-                                    });
-                                }
+                                s.TransformTo(nameof(s.AnimationProgress), 1f, 6000, Easing.OutCubic);
+
+                                s.ScaleTo(2f)
+                                 .ScaleTo(0.6f, 5000, new CubicBezierEasingFunction(0, .75, 0, .75))
+                                 .Delay(4000)
+                                 .ResizeTo(0, 400, Easing.InCubic)
+                                 .Delay(350)
+                                 .Schedule(() =>
+                                 {
+                                     background.FadeOut();
+                                     s.FadeOut();
+                                     Add(Card = new RankedPlayCard(item)
+                                     {
+                                         Anchor = Anchor.Centre,
+                                         Origin = Anchor.Centre,
+                                         RevealMysteryCard = true,
+                                     });
+
+                                     Card.ScaleTo(1.3f)
+                                         .ScaleTo(1f, 500, Easing.OutExpo);
+                                 });
                             });
                         }
                     }
