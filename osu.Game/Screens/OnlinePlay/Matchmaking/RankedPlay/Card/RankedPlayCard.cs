@@ -157,11 +157,17 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 return;
             }
 
-            if (RevealMysteryCard)
+            if (!Item.Card.Mystery)
+            {
                 loadCardContentAsync(playlistItem);
+            }
+            else if (RevealMysteryCard)
+            {
+                loadCardContentAsync(playlistItem, false);
+            }
         }
 
-        private void loadCardContentAsync(MultiplayerPlaylistItem playlistItem) => Task.Run(async () =>
+        private void loadCardContentAsync(MultiplayerPlaylistItem playlistItem, bool flip = true) => Task.Run(async () =>
         {
             var beatmap = await beatmapLookupCache.GetBeatmapAsync(playlistItem.BeatmapID).ConfigureAwait(false);
 
@@ -175,25 +181,33 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             Schedule(() =>
             {
-                SetContent(new RankedPlayCardContent(beatmap));
+                SetContent(new RankedPlayCardContent(beatmap), flip);
                 songPreviewContainer.LoadPreview(beatmap);
             });
         });
 
         private bool hasContent;
 
-        public void SetContent(Drawable? newContent)
+        public void SetContent(Drawable? newContent, bool flip = true)
         {
             if (newContent == null && !hasContent)
                 return;
 
             hasContent = newContent != null;
-            content.ScaleTo(new Vector2(0, 1), 100, Easing.In)
-                   .Then()
-                   .Schedule(() => cardContent.Child = newContent ?? Empty())
-                   .ScaleTo(new Vector2(1), 300, Easing.OutElasticQuarter);
 
-            SamplePlaybackHelper.PlayWithRandomPitch(cardFlipSample);
+            if (flip)
+            {
+                content.ScaleTo(new Vector2(0, 1), 100, Easing.In)
+                       .Then()
+                       .Schedule(() => cardContent.Child = newContent ?? Empty())
+                       .ScaleTo(new Vector2(1), 300, Easing.OutElasticQuarter);
+
+                SamplePlaybackHelper.PlayWithRandomPitch(cardFlipSample);
+            }
+            else
+            {
+                cardContent.Child = newContent ?? Empty();
+            }
         }
 
         #endregion
