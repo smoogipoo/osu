@@ -446,7 +446,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Texture = textures.Get("https://osuc.ad/NNrqOLfC"),
+                                    Texture = textures.Get("https://i.imgur.com/KhYzTvw.png"),
                                     FillMode = FillMode.Fit,
                                 });
 
