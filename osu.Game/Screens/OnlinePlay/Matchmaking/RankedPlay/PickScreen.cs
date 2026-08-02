@@ -402,7 +402,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Font = OsuFont.GetFont(typeface: Typeface.Inter, size: 42),
+                        Font = OsuFont.GetFont(typeface: Typeface.Inter, size: 60),
                         Text = "REVEALED FIRST AT COE",
                         Alpha = 0
                     },
