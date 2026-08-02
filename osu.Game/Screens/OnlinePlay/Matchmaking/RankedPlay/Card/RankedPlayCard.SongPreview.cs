@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
@@ -109,7 +108,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             public void LoadPreview(APIBeatmap beatmap)
             {
-                Debug.Assert(previewTrack == null);
+                if (previewTrack != null)
+                    return;
 
                 LoadComponentAsync(previewTrack = previewTrackManager.Get(beatmap.BeatmapSet!), track =>
                 {

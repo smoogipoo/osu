@@ -9,17 +9,14 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
-using osu.Framework.Utils;
 using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.Graphics;
@@ -380,7 +377,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             return CenterRow.RemoveCard(item, out card, out screenSpaceDrawQuad);
         }
 
-        private class MysteryLayer : VisibilityContainer
+        public class MysteryLayer : VisibilityContainer
         {
             public override bool IsPresent => base.IsPresent || Scheduler.HasPendingTasks;
 
@@ -489,205 +486,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             {
                 this.FadeOut();
             }
-        }
-
-        private class ArtistDisplayContainer : CompositeDrawable
-        {
-            public ArtistDisplayContainer()
-            {
-                AutoSizeAxes = Axes.Both;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(TextureStore textures)
-            {
-                InternalChildren = new Drawable[]
-                {
-                    new FillFlowContainer
-                    {
-                        AutoSizeAxes = Axes.Both,
-                        Direction = FillDirection.Horizontal,
-                        Spacing = new Vector2(10),
-                        Children = new Drawable[]
-                        {
-                            new Sprite
-                            {
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                Texture = textures.Get("https://i.imgur.com/ZK8JKCy.png"),
-                                Size = new Vector2(100),
-                                FillMode = FillMode.Fit
-                            },
-                            new Container
-                            {
-                                Anchor = Anchor.BottomLeft,
-                                Origin = Anchor.BottomLeft,
-                                AutoSizeAxes = Axes.Both,
-                                Children = new Drawable[]
-                                {
-                                    new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both
-                                    },
-                                    new Container
-                                    {
-                                        AutoSizeAxes = Axes.Both,
-                                        Padding = new MarginPadding { Horizontal = 20, Vertical = 10 },
-                                        Child = new OsuSpriteText
-                                        {
-                                            Colour = Color4.Black,
-                                            Text = "Nizikawa",
-                                            Font = OsuFont.GetFont(weight: FontWeight.Black),
-                                            Spacing = new Vector2(20)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                };
-            }
-        }
-
-        private class TextLine : CompositeDrawable
-        {
-            public bool Generate { get; set; } = true;
-
-            private readonly LineDirection direction;
-
-            private Texture texture = null!;
-            private Container<Sprite> container = null!;
-
-            public TextLine(LineDirection direction)
-            {
-                this.direction = direction;
-
-                AutoSizeAxes = Axes.Both;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(TextureStore textures)
-            {
-                texture = textures.Get("https://i.imgur.com/93dJ4Vt.png");
-
-                InternalChild = container = new FillFlowContainer<Sprite>
-                {
-                    AutoSizeAxes = Axes.Both,
-                    Direction = FillDirection.Horizontal,
-                    Spacing = new Vector2(40)
-                };
-            }
-
-            protected override void Update()
-            {
-                base.Update();
-
-                do
-                {
-                    Sprite? lastSprite = container.LastOrDefault();
-
-                    if (lastSprite?.ScreenSpaceDrawQuad.Intersects(Parent!.ScreenSpaceDrawQuad) == false)
-                        break;
-
-                    container.Add(new Sprite
-                    {
-                        Texture = texture,
-                        Scale = new Vector2(0.95f)
-                    });
-                } while (true);
-            }
-        }
-
-        private class ScrollingTextLayer : CompositeDrawable
-        {
-            private readonly int id;
-            private readonly LineDirection direction;
-
-            private Container outerScroll = null!;
-            private FillFlowContainer innerScroll = null!;
-
-            private Texture outlineTexture = null!;
-            private Texture filledTexture = null!;
-
-            public ScrollingTextLayer(int id, LineDirection direction)
-            {
-                this.id = id;
-                this.direction = direction;
-
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(TextureStore textures)
-            {
-                outlineTexture = textures.Get("https://i.imgur.com/93dJ4Vt.png");
-                filledTexture = textures.Get("https://i.imgur.com/f6MjM2Q.png");
-
-                InternalChild = outerScroll = new Container
-                {
-                    AutoSizeAxes = Axes.Y,
-                    Child = innerScroll = new FillFlowContainer
-                    {
-                        AutoSizeAxes = Axes.Both,
-                        Direction = FillDirection.Horizontal,
-                        Spacing = new Vector2(40)
-                    }
-                };
-
-                for (int i = 0; i < 8; i++)
-                {
-                    innerScroll.Add(new Sprite
-                    {
-                        Texture = outlineTexture,
-                        Scale = new Vector2(0.95f)
-                    });
-                }
-            }
-
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                ScheduleAfterChildren(() =>
-                {
-                    using (BeginDelayedSequence(0))
-                    {
-                        outerScroll.Width = innerScroll.DrawWidth;
-
-                        if (direction == LineDirection.LeftToRight)
-                        {
-                            outerScroll.Anchor = Anchor.TopLeft;
-                            outerScroll.Origin = Anchor.TopRight;
-
-                            outerScroll.MoveToOffset(new Vector2(DrawWidth * (1 + RNG.NextSingle()), 0), 2000, Easing.OutPow10);
-                            innerScroll.MoveToOffset(new Vector2(10 * DrawWidth, 0), 200000);
-                        }
-                        else
-                        {
-                            outerScroll.Anchor = Anchor.TopRight;
-                            outerScroll.Origin = Anchor.TopLeft;
-
-                            outerScroll.MoveToOffset(new Vector2(-DrawWidth * (1 + RNG.NextSingle()), 0), 2000, Easing.OutPow10);
-                            innerScroll.MoveToOffset(new Vector2(-10 * DrawWidth, 0), 200000);
-                        }
-                    }
-
-                    using (BeginDelayedSequence(8000))
-                    {
-                        if (direction == LineDirection.LeftToRight)
-                            outerScroll.MoveToOffset(new Vector2(DrawWidth * 4, 0), 2000, Easing.OutPow10);
-                        else
-                            outerScroll.MoveToOffset(new Vector2(-DrawWidth * 4, 0), 2000, Easing.OutPow10);
-                    }
-                });
-            }
-        }
-
-        private enum LineDirection
-        {
-            LeftToRight,
-            RightToLeft
         }
     }
 }

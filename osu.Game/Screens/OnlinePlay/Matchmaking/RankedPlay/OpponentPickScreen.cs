@@ -2,12 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Game.Audio;
@@ -27,6 +29,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         public override LocalisableString StageHeading => "Pick Phase";
 
         protected override RankedPlayColourScheme ColourScheme => RankedPlayColourScheme.RED;
+
+        [Resolved]
+        private SparklesContainer? sparklesContainer { get; set; }
+
+        private PickScreen.MysteryLayer mysteryLayer = null!;
 
         private PlayerHandOfCards playerHand = null!;
         private OpponentHandOfCards opponentHand = null!;
@@ -80,6 +87,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 new HandReplayRecorder(playerHand),
                 new HandReplayPlayer(matchInfo.OpponentId, opponentHand),
             ];
+
+            AddInternal(mysteryLayer = new PickScreen.MysteryLayer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Depth = float.MinValue,
+            });
 
             cardAddSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/card-add-1");
 
@@ -148,8 +161,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private void cardPlayed(RankedPlayCardWithPlaylistItem item) => Task.Run(async () =>
         {
-            if (opponentHand.Cards.FirstOrDefault(it => it.Card.Item.Equals(item)) is { } c)
-                await c.Card.CardRevealed.ConfigureAwait(false);
+            // if (opponentHand.Cards.FirstOrDefault(it => it.Card.Item.Equals(item)) is { } c)
+            //     await c.Card.CardRevealed.ConfigureAwait(false);
 
             Schedule(() =>
             {
@@ -181,6 +194,35 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                 opponentHand.Contract();
                 playerHand.Contract();
+
+                if (item.Card.Mystery)
+                {
+                    this.Delay(0).Schedule(() =>
+                    {
+                        // this.FindClosestParent<OsuGameBase>()!.AddRange([
+                        //     mysteryLayer.CreateProxy(),
+                        //     sparklesContainer?.CreateProxy() ?? Empty(),
+                        //     card.CreateProxy()
+                        // ]);
+
+                        mysteryLayer.Add(card.CreateProxy());
+
+                        card.Delay(1500)
+                            .FadeOut(1000);
+                        sparklesContainer?
+                            .Delay(1500)
+                            .FadeOut(2000);
+
+                        mysteryLayer.ShowWithCard(item);
+                        CornerPieceVisibility.Value = Visibility.Hidden;
+                    });
+
+                    Scheduler.AddDelayed(() =>
+                    {
+                        if (sparklesContainer != null)
+                            sparklesContainer.Enabled = false;
+                    }, 500);
+                }
             });
         });
 
@@ -189,6 +231,19 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             matchInfo.CardPlayed -= cardPlayed;
 
             base.Dispose(isDisposing);
+        }
+
+        public bool RemoveCard(RankedPlayCardWithPlaylistItem item, [MaybeNullWhen(false)] out RankedPlayCard card, out Quad screenSpaceDrawQuad)
+        {
+            if (mysteryLayer.Card != null)
+            {
+                screenSpaceDrawQuad = mysteryLayer.Card.ScreenSpaceDrawQuad;
+                mysteryLayer.Remove(mysteryLayer.Card, false);
+                card = mysteryLayer.Card;
+                return true;
+            }
+
+            return CenterRow.RemoveCard(item, out card, out screenSpaceDrawQuad);
         }
     }
 }

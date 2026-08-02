@@ -193,7 +193,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                 case OpponentPickScreen opponentPick:
                 {
-                    if (opponentPick.CenterRow.RemoveCard(matchInfo.LastPlayedCard, out card, out var screenSpaceDrawQuad))
+                    if (opponentPick.RemoveCard(matchInfo.LastPlayedCard, out card, out var screenSpaceDrawQuad))
                         card.MatchScreenSpaceDrawQuad(screenSpaceDrawQuad, cardColumn);
                     break;
                 }
