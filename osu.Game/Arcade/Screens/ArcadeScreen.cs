@@ -210,14 +210,14 @@ namespace osu.Game.Arcade.Screens
                                                 Text = "Invalid code",
                                                 Alpha = 0
                                             },
-                                            new OsuSpriteText
-                                            {
-                                                Anchor = Anchor.TopCentre,
-                                                Origin = Anchor.TopCentre,
-                                                Text = "And remember to collect your prize at the store!",
-                                                Font = OsuFont.GetFont(weight: FontWeight.Bold),
-                                                Colour = colours.Yellow
-                                            }
+                                            // new OsuSpriteText
+                                            // {
+                                            //     Anchor = Anchor.TopCentre,
+                                            //     Origin = Anchor.TopCentre,
+                                            //     Text = "And remember to collect your prize at the store!",
+                                            //     Font = OsuFont.GetFont(weight: FontWeight.Bold),
+                                            //     Colour = colours.Yellow,
+                                            // }
                                         }
                                     },
                                     new Box
