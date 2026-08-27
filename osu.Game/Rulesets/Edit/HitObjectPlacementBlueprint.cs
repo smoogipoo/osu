@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
@@ -25,22 +26,19 @@ namespace osu.Game.Rulesets.Edit
     public abstract partial class HitObjectPlacementBlueprint : PlacementBlueprint
     {
         /// <summary>
-        /// Whether the sample bank should be taken from the previous hit object.
-        /// </summary>
-        public bool AutomaticBankAssignment { get; set; }
-
-        /// <summary>
-        /// Whether the sample addition bank should be taken from the previous hit objects.
-        /// </summary>
-        public bool AutomaticAdditionBankAssignment { get; set; }
-
-        /// <summary>
         /// The <see cref="HitObject"/> that is being placed.
         /// </summary>
         public readonly HitObject HitObject;
 
         [Resolved]
         protected EditorClock EditorClock { get; private set; } = null!;
+
+        protected override Container<Drawable> Content => content;
+
+        private readonly Container<Drawable> content = new Container<Drawable>
+        {
+            RelativeSizeAxes = Axes.Both,
+        };
 
         [Resolved]
         private EditorBeatmap beatmap { get; set; } = null!;
@@ -81,6 +79,7 @@ namespace osu.Game.Rulesets.Edit
         private void load()
         {
             AddInternal(placementStateManager = new PlacementStateManager(HitObject));
+            AddInternal(content);
 
             startTimeBindable = HitObject.StartTimeBindable.GetBoundCopy();
             startTimeBindable.BindValueChanged(_ => ApplyDefaultsToHitObject(), true);
@@ -147,5 +146,8 @@ namespace osu.Game.Rulesets.Edit
             base.PopOut();
             placementHandler.HidePlacement();
         }
+
+        protected override void ClearInternal(bool disposeChildren = true) =>
+            throw new InvalidOperationException($"Clearing {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
     }
 }
