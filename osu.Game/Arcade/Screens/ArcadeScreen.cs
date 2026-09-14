@@ -60,6 +60,8 @@ namespace osu.Game.Arcade.Screens
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
         private readonly Func<ArcadeIdentity, OsuScreen> createNextScreen;
 
+        private const float box_alpha = 0.95f;
+
         private Texture qrTexture = null!;
         private OsuNumberBox? codeTextBox;
         private OsuSpriteText? errorText;
@@ -115,7 +117,40 @@ namespace osu.Game.Arcade.Screens
                         Origin = Anchor.Centre,
                         Width = 360,
                         AutoSizeAxes = Axes.Y,
-                        Child = new LoginForm()
+                        Masking = true,
+                        CornerRadius = 5,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = colourProvider.Background4,
+                                Alpha = box_alpha,
+                            },
+                            new FillFlowContainer()
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Padding = new MarginPadding { Top = 10 },
+                                Children = new Drawable[]
+                                {
+                                    new OsuSpriteText()
+                                    {
+                                        Origin = Anchor.TopCentre,
+                                        Anchor = Anchor.TopCentre,
+                                        Font = OsuFont.GetFont(typeface: Typeface.Inter, size: 24f),
+                                        Depth = -1,
+                                        Text = "Machine operator: log into osu!"
+                                    },
+                                    new LoginForm()
+                                    {
+                                        Origin = Anchor.TopCentre,
+                                        Anchor = Anchor.TopCentre,
+                                        Padding = new MarginPadding { Top = 30, Bottom = 30 } // odd cropping on the top/bottom edges
+                                    }
+                                }
+                            }
+                        }
                     };
                     break;
 
@@ -126,13 +161,27 @@ namespace osu.Game.Arcade.Screens
                         Origin = Anchor.Centre,
                         Width = 360,
                         AutoSizeAxes = Axes.Y,
-                        Child = new SecondFactorAuthForm()
+                        Masking = true,
+                        CornerRadius = 5,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = colourProvider.Background4,
+                                Alpha = box_alpha
+                            },
+                            new SecondFactorAuthForm()
+                            {
+                                Padding = new MarginPadding { Top = 30, Bottom = 30 }
+                            }
+                        }
                     };
                     break;
 
                 case APIState.Connecting:
                 case APIState.Failing:
-                    InternalChild = new LoadingSpinner
+                    InternalChild = new LoadingSpinner(withBox: true)
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -147,14 +196,14 @@ namespace osu.Game.Arcade.Screens
                         Origin = Anchor.Centre,
                         AutoSizeAxes = Axes.Both,
                         Masking = true,
-                        CornerRadius = 20,
+                        CornerRadius = 5,
                         Children = new Drawable[]
                         {
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Black,
-                                Alpha = 0.8f
+                                Colour = colourProvider.Background4,
+                                Alpha = box_alpha
                             },
                             new FillFlowContainer
                             {
@@ -179,13 +228,29 @@ namespace osu.Game.Arcade.Screens
                                                 Origin = Anchor.TopCentre,
                                                 Text = "Open the following link and log-in to osu!"
                                             },
-                                            new Sprite
+                                            new Container()
                                             {
+                                                Name = "QR code",
                                                 Anchor = Anchor.TopCentre,
                                                 Origin = Anchor.TopCentre,
-                                                Texture = qrTexture,
-                                                Size = new Vector2(100)
+                                                Size = new Vector2(110),
+                                                Children = new Drawable[]
+                                                {
+                                                    new Box
+                                                    {
+                                                        RelativeSizeAxes = Axes.Both,
+                                                        Colour = colours.GrayF,
+                                                    },
+                                                    new Sprite
+                                                    {
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.Centre,
+                                                        Texture = qrTexture,
+                                                        Size = new Vector2(100)
+                                                    },
+                                                }
                                             },
+
                                             new OsuSpriteText
                                             {
                                                 Anchor = Anchor.TopCentre,
