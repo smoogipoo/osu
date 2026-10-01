@@ -458,7 +458,7 @@ namespace osu.Game.Arcade.Screens
                             new ArcadeUserMatchmakingStats
                             {
                                 PoolId = 1,
-                                Rating = 1200,
+                                Rating = 1100,
                                 RulesetId = 0,
                                 VariantId = 0
                             }

@@ -68,7 +68,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         private readonly BindableDictionary<int, ArcadeIdentity> connectedClients = [];
         private readonly ArcadeIdentity identity;
 
-        private OsuSpriteText welcomeText = null!;
+        private TextFlowContainer welcomeText = null!;
         private Container mainContainer = null!;
 
         private DateTimeOffset practiceEndTime = DateTimeOffset.MaxValue;
@@ -83,16 +83,18 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         [BackgroundDependencyLoader]
         private void load()
         {
+            welcomeText = new TextFlowContainer
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                TextAnchor = Anchor.TopCentre,
+                RelativePositionAxes = Axes.Y,
+            };
+            welcomeText.AddText("welcome, ", text => text.Font = OsuFont.GetFont(size: 64, weight: FontWeight.Regular));
+            welcomeText.AddText(identity.User.Username, text => text.Font = OsuFont.GetFont(size: 64, weight: FontWeight.SemiBold));
             InternalChildren = new Drawable[]
             {
-                welcomeText = new OsuSpriteText
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativePositionAxes = Axes.Y,
-                    Text = $"Welcome, {identity.User.Username}",
-                    Font = OsuFont.GetFont(size: 64)
-                },
+                welcomeText,
                 new Container
                 {
                     Anchor = Anchor.Centre,
@@ -126,7 +128,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
             welcomeText.FadeInFromZero(1000, Easing.OutQuint)
                        .Delay(1000)
-                       .MoveToOffset(new Vector2(0, -0.25f), 500, Easing.OutQuint);
+                       .MoveToOffset(new Vector2(0, -0.26f), 500, Easing.OutQuint);
 
             mainContainer.FadeOut()
                          .Delay(1200)
