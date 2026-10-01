@@ -99,6 +99,7 @@ namespace osu.Game.Arcade.Screens
                     case "Version":
                     case "LastProcessedMetadataId":
                     case "LastOnlineTagsPopulation":
+                    case "AudioOffset": // A bit of a special case/subjective... Just makes it preserved between runs.
                         continue;
 
                     case "ShowFirstRunSetup":
