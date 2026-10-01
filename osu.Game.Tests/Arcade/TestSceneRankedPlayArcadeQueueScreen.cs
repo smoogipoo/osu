@@ -80,7 +80,7 @@ namespace osu.Game.Tests.Arcade
             AddStep("finish animations", () => screen.FinishTransforms(true));
             AddStep("press practice button", () =>
             {
-                InputManager.MoveMouseTo(screen.ChildrenOfType<RoundedButton>().First());
+                InputManager.MoveMouseTo(screen.ChildrenOfType<RoundedButton>().ElementAt(1));
                 InputManager.Click(MouseButton.Left);
             });
 
