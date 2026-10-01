@@ -17,7 +17,7 @@ using osu.Game.Screens.Ranking;
 
 namespace osu.Game.Arcade.Screens.RankedPlay
 {
-    public class RankedPlayPracticePlayer : Player
+    public partial class RankedPlayPracticePlayer : Player
     {
         [Cached(typeof(IGameplayLeaderboardProvider))]
         private readonly DummyLeaderboardProvider leaderboardProvider = new DummyLeaderboardProvider();
@@ -50,10 +50,10 @@ namespace osu.Game.Arcade.Screens.RankedPlay
             public IBindableList<GameplayLeaderboardScore> Scores { get; } = new BindableList<GameplayLeaderboardScore>();
         }
 
-        private class GlobalSettingsGroup : PlayerSettingsGroup
+        private partial class GlobalSettingsGroup : PlayerSettingsGroup
         {
-            [Resolved]
-            private SettingsOverlay settingsOverlay { get; set; } = null!;
+            [Resolved(canBeNull: true)]
+            private SettingsOverlay settingsOverlay { get; set; }
 
             public GlobalSettingsGroup()
                 : base("Global Settings")
@@ -67,7 +67,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                 {
                     RelativeSizeAxes = Axes.X,
                     Text = "Open Settings",
-                    Action = () => settingsOverlay.Show()
+                    Action = () => settingsOverlay?.Show()
                 };
             }
         }
