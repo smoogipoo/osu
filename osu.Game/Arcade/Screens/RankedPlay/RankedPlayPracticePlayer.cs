@@ -52,8 +52,8 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
         private partial class GlobalSettingsGroup : PlayerSettingsGroup
         {
-            [Resolved(canBeNull: true)]
-            private SettingsOverlay settingsOverlay { get; set; }
+            [Resolved]
+            private SettingsOverlay? settingsOverlay { get; set; }
 
             public GlobalSettingsGroup()
                 : base("Global Settings")

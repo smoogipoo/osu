@@ -515,8 +515,8 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
         private sealed partial class SettingsButton : RoundedButton
         {
-            [Resolved(canBeNull: true)]
-            private SettingsOverlay settingsOverlay { get; set; } = null!;
+            [Resolved]
+            private SettingsOverlay? settingsOverlay { get; set; }
 
             [BackgroundDependencyLoader]
             private void load(OsuColour colours)
