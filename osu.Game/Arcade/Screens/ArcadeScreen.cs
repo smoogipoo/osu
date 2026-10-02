@@ -61,8 +61,6 @@ namespace osu.Game.Arcade.Screens
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
         private readonly Func<ArcadeIdentity, OsuScreen> createNextScreen;
 
-        private const float box_alpha = 1f;
-
         private Texture qrTexture = null!;
 
         private OsuNumberBox? codeTextBox;
@@ -128,7 +126,6 @@ namespace osu.Game.Arcade.Screens
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = colourProvider.Background4,
-                                Alpha = box_alpha,
                             },
                             new FillFlowContainer()
                             {
@@ -173,7 +170,6 @@ namespace osu.Game.Arcade.Screens
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = colourProvider.Background4,
-                                Alpha = box_alpha,
                             },
                             new Container()
                             {
@@ -220,7 +216,6 @@ namespace osu.Game.Arcade.Screens
                                     {
                                         RelativeSizeAxes = Axes.Both,
                                         Colour = colourProvider.Background4,
-                                        Alpha = box_alpha
                                     },
                                     new FillFlowContainer
                                     {
