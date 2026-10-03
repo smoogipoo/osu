@@ -9,13 +9,15 @@ using osu.Framework.Testing;
 using osu.Game.Arcade;
 using osu.Game.Arcade.Screens;
 using osu.Game.Arcade.Screens.RankedPlay;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Online.API;
+using osu.Game.Overlays;
 using osu.Game.Tests.Visual.RankedPlay;
 
 namespace osu.Game.Tests.Arcade
 {
-    public partial class TestSceneArcadeFlow : RankedPlayTestScene
+    public partial class TestSceneArcadeScreenFlow : RankedPlayTestScene
     {
         [Cached(typeof(ArcadeClient))]
         private readonly TestArcadeClient arcadeClient = new TestArcadeClient();
@@ -34,11 +36,18 @@ namespace osu.Game.Tests.Arcade
         }
 
         [Test]
-        public void TestGuestButtonAvailableOnExit()
+        public void TestBasic()
         {
-            AddStep("continue as guest", () => arcadeScreen.ChildrenOfType<RoundedButton>().First().TriggerClick());
+            AddStep("dummy", () => { });
+        }
+
+        [Test]
+        public void TestButtonsAvailableOnExit()
+        {
+            AddStep("continue as guest", () => arcadeScreen.ChildrenOfType<RoundedButton>().Single().TriggerClick());
             AddStep("exit queue screen", () => queueScreen.Exit());
-            AddAssert("guest button accessible", () => arcadeScreen.ChildrenOfType<RoundedButton>().First().Enabled.Value);
+            AddAssert("guest button accessible", () => arcadeScreen.ChildrenOfType<RoundedButton>().Single().Enabled.Value);
+            AddAssert("code box accessible", () => !arcadeScreen.ChildrenOfType<OsuNumberBox>().Single().Current.Disabled);
         }
     }
 }

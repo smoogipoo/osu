@@ -66,6 +66,8 @@ namespace osu.Game.Arcade.Screens
         private OsuNumberBox? codeTextBox;
         private OsuSpriteText? errorText;
         private RoundedButton? guestButton;
+        private LoadingSpinner? loggingInSpinner;
+        private Container? loginSections;
 
         public ArcadeScreen(Func<ArcadeIdentity, OsuScreen> createNextScreen)
         {
@@ -193,216 +195,237 @@ namespace osu.Game.Arcade.Screens
                     break;
 
                 case APIState.Online:
-                    InternalChild = new FillFlowContainer()
+                    InternalChildren = new Drawable[]
                     {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        AutoSizeAxes = Axes.Both,
-                        Direction = FillDirection.Horizontal,
-                        Spacing = new Vector2(20),
-                        Children = new Drawable[]
+                        new FillFlowContainer
                         {
-                            new Container
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Horizontal,
+                            Spacing = new Vector2(20),
+                            Children = new Drawable[]
                             {
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                AutoSizeAxes = Axes.Both,
-                                Name = "Login sections",
-                                Masking = true,
-                                CornerRadius = 5,
-                                Children = new Drawable[]
+                                new Container
                                 {
-                                    new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = colourProvider.Background4,
-                                    },
-                                    new FillFlowContainer
-                                    {
-                                        AutoSizeAxes = Axes.Both,
-                                        Padding = new MarginPadding(20),
-                                        Direction = FillDirection.Horizontal,
-                                        Spacing = new Vector2(20),
-                                        Children = new Drawable[]
-                                        {
-                                            new FillFlowContainer
-                                            {
-                                                Anchor = Anchor.CentreLeft,
-                                                Origin = Anchor.CentreLeft,
-                                                AutoSizeAxes = Axes.Y,
-                                                Width = 280,
-                                                Direction = FillDirection.Vertical,
-                                                Spacing = new Vector2(10),
-                                                Children = new Drawable[]
-                                                {
-                                                    new OsuTextFlowContainer()
-                                                    {
-                                                        Anchor = Anchor.TopCentre,
-                                                        Origin = Anchor.TopCentre,
-                                                        TextAnchor = Anchor.TopCentre,
-                                                        AutoSizeAxes = Axes.Y,
-                                                        Width = 260,
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    AutoSizeAxes = Axes.Both,
+                                    Name = "Login sections container",
 
-                                                        Text = "Have an account? Scan the QR code and sign in to your osu! account!"
-                                                    },
-                                                    new Container()
+                                    Children = new Drawable[]
+                                    {
+                                        loginSections = new Container()
+                                        {
+                                            Anchor = Anchor.CentreLeft,
+                                            Origin = Anchor.CentreLeft,
+                                            AutoSizeAxes = Axes.Both,
+                                            Name = "Login sections",
+
+                                            Masking = true,
+                                            CornerRadius = 5,
+                                            Children = new Drawable[]
+                                            {
+                                                new Box
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Colour = colourProvider.Background4,
+                                                },
+                                                new FillFlowContainer
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Padding = new MarginPadding(20),
+                                                    Direction = FillDirection.Horizontal,
+                                                    Spacing = new Vector2(20),
+                                                    Children = new Drawable[]
                                                     {
-                                                        Name = "QR code",
-                                                        Anchor = Anchor.TopCentre,
-                                                        Origin = Anchor.TopCentre,
-                                                        Margin = new MarginPadding { Top = 10, Bottom = 10 },
-                                                        Size = new Vector2(110),
-                                                        Children = new Drawable[]
+                                                        new FillFlowContainer
                                                         {
-                                                            new Box
+                                                            Anchor = Anchor.CentreLeft,
+                                                            Origin = Anchor.CentreLeft,
+                                                            AutoSizeAxes = Axes.Y,
+                                                            Name = "QR code section",
+                                                            Width = 280,
+                                                            Direction = FillDirection.Vertical,
+                                                            Spacing = new Vector2(10),
+                                                            Children = new Drawable[]
                                                             {
-                                                                RelativeSizeAxes = Axes.Both,
-                                                                Colour = colours.GrayF,
-                                                            },
-                                                            new Sprite
+                                                                new OsuTextFlowContainer()
+                                                                {
+                                                                    Anchor = Anchor.TopCentre,
+                                                                    Origin = Anchor.TopCentre,
+                                                                    TextAnchor = Anchor.TopCentre,
+                                                                    AutoSizeAxes = Axes.Y,
+                                                                    Width = 260,
+
+                                                                    Text = "Have an account? Scan the QR code and sign in to your osu! account!"
+                                                                },
+                                                                new Container()
+                                                                {
+                                                                    Name = "QR code",
+                                                                    Anchor = Anchor.TopCentre,
+                                                                    Origin = Anchor.TopCentre,
+                                                                    Margin = new MarginPadding { Top = 10, Bottom = 10 },
+                                                                    Size = new Vector2(110),
+                                                                    Children = new Drawable[]
+                                                                    {
+                                                                        new Box
+                                                                        {
+                                                                            RelativeSizeAxes = Axes.Both,
+                                                                            Colour = colours.GrayF,
+                                                                        },
+                                                                        new Sprite
+                                                                        {
+                                                                            Anchor = Anchor.Centre,
+                                                                            Origin = Anchor.Centre,
+                                                                            Texture = qrTexture,
+                                                                            Size = new Vector2(100)
+                                                                        },
+                                                                    }
+                                                                },
+
+                                                                new OsuSpriteText
+                                                                {
+                                                                    Anchor = Anchor.TopCentre,
+                                                                    Origin = Anchor.TopCentre,
+
+                                                                    Text = "Type the code displayed:"
+                                                                },
+                                                                codeTextBox = new OsuNumberBox
+                                                                {
+                                                                    Anchor = Anchor.TopCentre,
+                                                                    Origin = Anchor.TopCentre,
+                                                                    Width = 200,
+                                                                    InputProperties = new TextInputProperties(TextInputType.Code),
+                                                                    PlaceholderText = LoginPanelStrings.EnterCode,
+                                                                },
+                                                                errorText = new OsuSpriteText
+                                                                {
+                                                                    Anchor = Anchor.TopCentre,
+                                                                    Origin = Anchor.TopCentre,
+                                                                    Colour = colours.Red,
+                                                                    AlwaysPresent = true,
+                                                                    Text = "Invalid code",
+                                                                    Alpha = 0
+                                                                },
+                                                                // new OsuSpriteText
+                                                                // {
+                                                                //     Anchor = Anchor.TopCentre,
+                                                                //     Origin = Anchor.TopCentre,
+                                                                //     Text = "And remember to collect your prize at the store!",
+                                                                //     Font = OsuFont.GetFont(weight: FontWeight.Bold),
+                                                                //     Colour = colours.Yellow,
+                                                                // }
+                                                            }
+                                                        },
+                                                        new OsuSpriteText()
+                                                        {
+                                                            Anchor = Anchor.CentreLeft,
+                                                            Origin = Anchor.CentreLeft,
+                                                            Size = new Vector2(20, 30),
+                                                            Font = OsuFont.Torus.With(size: 24f),
+                                                            Colour = Color4.White,
+                                                            Alpha = 0.9f,
+                                                            Text = "or"
+                                                        },
+                                                        new FillFlowContainer
+                                                        {
+                                                            Anchor = Anchor.CentreLeft,
+                                                            Origin = Anchor.CentreLeft,
+                                                            AutoSizeAxes = Axes.Y,
+                                                            Width = 280,
+                                                            Name = "Guest login section",
+                                                            Direction = FillDirection.Vertical,
+                                                            Spacing = new Vector2(20),
+                                                            Children = new Drawable[]
                                                             {
-                                                                Anchor = Anchor.Centre,
-                                                                Origin = Anchor.Centre,
-                                                                Texture = qrTexture,
-                                                                Size = new Vector2(100)
-                                                            },
-                                                        }
-                                                    },
+                                                                new OsuTextFlowContainer()
+                                                                {
+                                                                    Anchor = Anchor.Centre,
+                                                                    Origin = Anchor.Centre,
+                                                                    TextAnchor = Anchor.TopCentre,
 
-                                                    new OsuSpriteText
-                                                    {
-                                                        Anchor = Anchor.TopCentre,
-                                                        Origin = Anchor.TopCentre,
-
-                                                        Text = "Type the code displayed:"
-                                                    },
-                                                    codeTextBox = new OsuNumberBox
-                                                    {
-                                                        Anchor = Anchor.TopCentre,
-                                                        Origin = Anchor.TopCentre,
-                                                        Width = 200,
-                                                        InputProperties = new TextInputProperties(TextInputType.Code),
-                                                        PlaceholderText = LoginPanelStrings.EnterCode,
-                                                    },
-                                                    errorText = new OsuSpriteText
-                                                    {
-                                                        Anchor = Anchor.TopCentre,
-                                                        Origin = Anchor.TopCentre,
-                                                        Colour = colours.Red,
-                                                        AlwaysPresent = true,
-                                                        Text = "Invalid code",
-                                                        Alpha = 0
-                                                    },
-                                                    // new OsuSpriteText
-                                                    // {
-                                                    //     Anchor = Anchor.TopCentre,
-                                                    //     Origin = Anchor.TopCentre,
-                                                    //     Text = "And remember to collect your prize at the store!",
-                                                    //     Font = OsuFont.GetFont(weight: FontWeight.Bold),
-                                                    //     Colour = colours.Yellow,
-                                                    // }
-                                                }
-                                            },
-                                            new OsuSpriteText()
-                                            {
-                                                Anchor = Anchor.CentreLeft,
-                                                Origin = Anchor.CentreLeft,
-                                                Size = new Vector2(20, 30),
-                                                Font = OsuFont.Torus.With(size: 24f),
-                                                Colour = Color4.White,
-                                                Alpha = 0.9f,
-                                                Text = "or"
-                                            },
-                                            new FillFlowContainer
-                                            {
-                                                Anchor = Anchor.CentreLeft,
-                                                Origin = Anchor.CentreLeft,
-                                                AutoSizeAxes = Axes.Y,
-                                                Width = 280,
-                                                Direction = FillDirection.Vertical,
-                                                Spacing = new Vector2(20),
-                                                Children = new Drawable[]
-                                                {
-                                                    new OsuTextFlowContainer()
-                                                    {
-                                                        Anchor = Anchor.Centre,
-                                                        Origin = Anchor.Centre,
-                                                        TextAnchor = Anchor.TopCentre,
-
-                                                        Text = "If you don't have an account, feel free to sign in as a guest!",
-                                                        AutoSizeAxes = Axes.Y,
-                                                        Width = 200,
-                                                    },
-                                                    guestButton = new RoundedButton()
-                                                    {
-                                                        Anchor = Anchor.Centre,
-                                                        Origin = Anchor.Centre,
-                                                        Width = 200,
-                                                        Text = "Continue as guest",
-                                                        Action = onGuestButton,
-                                                    },
-                                                }
-                                            },
-                                        }
-                                    }
-                                }
-                            },
-                            new FillFlowContainer
-                            {
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                AutoSizeAxes = Axes.X,
-                                Height = 314,
-                                Name = "Leaderboard container",
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(10),
-                                Children = new Drawable[]
-                                {
-                                    new FillFlowContainer
-                                    {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        AutoSizeAxes = Axes.Both,
-                                        Direction = FillDirection.Horizontal,
-                                        Spacing = new Vector2(5),
-                                        Children = new Drawable[]
-                                        {
-                                            new OsuSpriteText
-                                            {
-                                                Anchor = Anchor.CentreLeft,
-                                                Origin = Anchor.CentreLeft,
-                                                Text = "Leaderboard",
-                                                Font = OsuFont.GetFont(size: 24)
-                                            },
-                                            new IconButton
-                                            {
-                                                Anchor = Anchor.CentreLeft,
-                                                Origin = Anchor.CentreLeft,
-                                                Scale = new Vector2(0.8f),
-                                                Icon = FontAwesome.Solid.ExpandArrowsAlt,
-                                                Action = () =>
-                                                {
-                                                    if (this.IsCurrentScreen())
-                                                        this.Push(new ArcadeLeaderboardScreen());
+                                                                    Text = "If you don't have an account, feel free to sign in as a guest!",
+                                                                    AutoSizeAxes = Axes.Y,
+                                                                    Width = 200,
+                                                                },
+                                                                guestButton = new RoundedButton()
+                                                                {
+                                                                    Anchor = Anchor.Centre,
+                                                                    Origin = Anchor.Centre,
+                                                                    Width = 200,
+                                                                    Text = "Continue as guest",
+                                                                    Action = onGuestButton,
+                                                                },
+                                                            }
+                                                        },
+                                                    }
                                                 }
                                             }
-                                        }
-                                    },
-                                    new OsuScrollContainer(Direction.Vertical)
-                                    {
-                                        Anchor = Anchor.TopCentre,
-                                        Origin = Anchor.TopCentre,
-                                        // TODO: This should be sized according to the surrounding container, and not magic number'd.
-                                        Size = new Vector2(300, 280),
-                                        ScrollbarOverlapsContent = false,
-                                        Child = new ArcadeLeaderboard
+                                        },
+                                        loggingInSpinner = new LoadingSpinner(withBox: true)
                                         {
-                                            RelativeSizeAxes = Axes.X
+                                            Size = new Vector2(90)
+                                        },
+                                    }
+                                },
+                                new FillFlowContainer
+                                {
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    AutoSizeAxes = Axes.X,
+                                    Height = 314,
+                                    Name = "Leaderboard container",
+                                    Direction = FillDirection.Vertical,
+                                    Spacing = new Vector2(10),
+                                    Children = new Drawable[]
+                                    {
+                                        new FillFlowContainer
+                                        {
+                                            Anchor = Anchor.TopCentre,
+                                            Origin = Anchor.TopCentre,
+                                            AutoSizeAxes = Axes.Both,
+                                            Direction = FillDirection.Horizontal,
+                                            Spacing = new Vector2(5),
+                                            Children = new Drawable[]
+                                            {
+                                                new OsuSpriteText
+                                                {
+                                                    Anchor = Anchor.CentreLeft,
+                                                    Origin = Anchor.CentreLeft,
+                                                    Text = "Leaderboard",
+                                                    Font = OsuFont.GetFont(size: 24)
+                                                },
+                                                new IconButton
+                                                {
+                                                    Anchor = Anchor.CentreLeft,
+                                                    Origin = Anchor.CentreLeft,
+                                                    Scale = new Vector2(0.8f),
+                                                    Icon = FontAwesome.Solid.ExpandArrowsAlt,
+                                                    Action = () =>
+                                                    {
+                                                        if (this.IsCurrentScreen())
+                                                            this.Push(new ArcadeLeaderboardScreen());
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        new OsuScrollContainer(Direction.Vertical)
+                                        {
+                                            Anchor = Anchor.TopCentre,
+                                            Origin = Anchor.TopCentre,
+                                            // TODO: This should be sized according to the surrounding container, and not magic number'd.
+                                            Size = new Vector2(300, 280),
+                                            ScrollbarOverlapsContent = false,
+                                            Child = new ArcadeLeaderboard
+                                            {
+                                                RelativeSizeAxes = Axes.X
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
+                        },
                     };
 
                     codeTextBox.Current.BindValueChanged(onCodeChanged);
@@ -413,8 +436,40 @@ namespace osu.Game.Arcade.Screens
         private void onClientConnected(int clientId, ArcadeIdentity identity) => Schedule(() =>
         {
             if (clientId == api.LocalUser.Value.OnlineID)
+            {
                 this.Push(createNextScreen(identity));
+                // Ensure that controls are not disabled if we return to this screen
+                disableArcadeLoginControls(false);
+            }
         });
+
+        /// <summary>
+        /// Locks all controls that could log in the user.
+        /// </summary>
+        /// <param name="disableControls"> true to disable controls, false to enable controls</param>
+        private void disableArcadeLoginControls(bool disableControls)
+        {
+            if (guestButton is not null)
+                guestButton.Enabled.Value = !disableControls;
+
+            if (codeTextBox is not null)
+            {
+                codeTextBox.Current.Disabled = disableControls;
+
+                if (!disableControls)
+                {
+                    codeTextBox.Current.Value = string.Empty;
+                }
+            }
+
+            if (loginSections is not null)
+            {
+                loginSections.Alpha = disableControls ? 0.95f : 1f;
+            }
+
+            if (loggingInSpinner is not null)
+                loggingInSpinner.State.Value = disableControls ? Visibility.Visible : Visibility.Hidden;
+        }
 
         private void onCodeChanged(ValueChangedEvent<string> e)
         {
@@ -424,14 +479,14 @@ namespace osu.Game.Arcade.Screens
             if (trimmedCode.Length == 8)
             {
                 Task.Run(() => attemptLogin(trimmedCode));
-                codeTextBox!.Current.Disabled = true;
+                disableArcadeLoginControls(true);
             }
         }
 
         private void onGuestButton()
         {
+            disableArcadeLoginControls(true);
             Task.Run(() => attemptLogin(null));
-            guestButton!.Enabled.Value = false;
         }
 
         /// <summary>
@@ -448,9 +503,12 @@ namespace osu.Game.Arcade.Screens
                 {
                     Logger.Log($"[ARCADE] Retrieving user with code '{code}'...");
                     user = await arcadeClient.GetUserWithCode(code);
+                    Logger.Log($"[ARCADE] Connecting as {user.User.Username}.");
+
                 }
                 else
                 {
+                    Logger.Log($"[ARCADE] Logging in as guest...");
                     user = new ArcadeIdentity
                     {
                         User =
@@ -475,8 +533,7 @@ namespace osu.Game.Arcade.Screens
                         ]
                     };
                 }
-
-                Logger.Log($"[ARCADE] Connecting as {user.User.Username}...");
+                Logger.Log($"[ARCADE] Attempting connection as {user.User.Username}...");
                 arcadeClient.Connect(user).FireAndForget(() => Logger.Log("[ARCADE] Connected"), failLoginAttempt);
             }
             catch (Exception ex)
@@ -489,17 +546,7 @@ namespace osu.Game.Arcade.Screens
                 Logger.Log($"[ARCADE] Failed to connect: {ex}");
 
                 errorText?.FadeIn().Delay(2000).FadeOut(500);
-
-                if (codeTextBox != null)
-                {
-                    codeTextBox.Current.Disabled = false;
-                    codeTextBox.Current.Value = string.Empty;
-                }
-
-                if (guestButton != null)
-                {
-                    guestButton.Enabled.Value = true;
-                }
+                disableArcadeLoginControls(false);
             });
         }
 
