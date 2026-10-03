@@ -27,7 +27,7 @@ namespace osu.Game.Tests.Arcade
         [SetUpSteps]
         public void SetupSteps()
         {
-            AddStep("load screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(peppy_user)
+            AddStep("load screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(dummy_user)
             {
                 GetPracticeBeatmap = _ => CreateWorkingBeatmap(new OsuRuleset().RulesetInfo)
             }));
@@ -52,8 +52,8 @@ namespace osu.Game.Tests.Arcade
         {
             AddStep("connect users", () =>
             {
-                ArcadeClient.Connect(peppy_user).WaitSafely();
-                ArcadeClient.Connect(2, peppy_user).WaitSafely();
+                ArcadeClient.Connect(dummy_user).WaitSafely();
+                ArcadeClient.Connect(2, guest_user).WaitSafely();
             });
         }
 
@@ -62,8 +62,8 @@ namespace osu.Game.Tests.Arcade
         {
             AddStep("connect users", () =>
             {
-                ArcadeClient.Connect(peppy_user).WaitSafely();
-                ArcadeClient.Connect(2, peppy_user).WaitSafely();
+                ArcadeClient.Connect(dummy_user).WaitSafely();
+                ArcadeClient.Connect(2, dummy_user).WaitSafely();
             });
 
             AddStep("finish animations", () => screen.FinishTransforms(true));
@@ -80,7 +80,7 @@ namespace osu.Game.Tests.Arcade
             AddStep("finish animations", () => screen.FinishTransforms(true));
             AddStep("press practice button", () =>
             {
-                InputManager.MoveMouseTo(screen.ChildrenOfType<RoundedButton>().First());
+                InputManager.MoveMouseTo(screen.ChildrenOfType<RoundedButton>().ElementAt(1));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -107,7 +107,7 @@ namespace osu.Game.Tests.Arcade
             WaitForJoined();
             AddStep("join other user", () => MultiplayerClient.AddUser(new APIUser { Id = 2 }));
 
-            AddStep("load arcade screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(peppy_user)));
+            AddStep("load arcade screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(dummy_user)));
             AddUntilStep("wait for load", () => screen.IsLoaded);
 
             AddUntilStep("entered ranked play screen", () => Stack.CurrentScreen is RankedPlayScreen);
@@ -117,12 +117,12 @@ namespace osu.Game.Tests.Arcade
             AddUntilStep("exited from arcade screen", () => Stack.CurrentScreen is null);
         }
 
-        private static readonly ArcadeIdentity peppy_user = new ArcadeIdentity
+        private static readonly ArcadeIdentity dummy_user = new ArcadeIdentity
         {
             User = new ArcadeUser
             {
                 UserId = 2,
-                Username = "peppy",
+                Username = "CapitalizedName",
                 AvatarUrl = "https://a.ppy.sh/2",
                 Cover = new ArcadeUser.UserCover
                 {
@@ -135,6 +135,30 @@ namespace osu.Game.Tests.Arcade
                 {
                     PoolId = 1,
                     Rating = 1234,
+                    RulesetId = 0,
+                    VariantId = 0
+                }
+            ]
+        };
+
+        private static readonly ArcadeIdentity guest_user = new ArcadeIdentity
+        {
+            User = new ArcadeUser
+            {
+                UserId = 1,
+                Username = "Guest",
+                AvatarUrl = "https://a.ppy.sh/1",
+                Cover = new ArcadeUser.UserCover
+                {
+                    Url = "https://assets.ppy.sh/user-profile-covers/8195163/4a8e2ad5a02a2642b631438cfa6c6bd7e2f9db289be881cb27df18331f64144c.jpeg"
+                }
+            },
+            MatchmakingStats =
+            [
+                new ArcadeUserMatchmakingStats
+                {
+                    PoolId = 1,
+                    Rating = 1100,
                     RulesetId = 0,
                     VariantId = 0
                 }

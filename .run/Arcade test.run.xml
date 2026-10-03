@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Arcade test" type="CompoundRunConfigurationType">
+    <toRun name="osu! arcade 1" type="DotNetProject" />
+    <toRun name="osu! arcade 2" type="DotNetProject" />
+    <method v="2" />
+  </configuration>
+</component>
