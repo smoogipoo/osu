@@ -249,7 +249,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                                 AvailablePools = { BindTarget = availablePools },
                                 SelectedPool = { BindTarget = selectedPool }
                             },
-                            new FillFlowContainer()
+                            new FillFlowContainer
                             {
                                 Direction = FillDirection.Horizontal,
                                 Anchor = Anchor.TopCentre,

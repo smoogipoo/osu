@@ -129,14 +129,14 @@ namespace osu.Game.Arcade.Screens
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = colourProvider.Background4,
                             },
-                            new FillFlowContainer()
+                            new FillFlowContainer
                             {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
                                 Padding = new MarginPadding { Top = 20 },
                                 Children = new Drawable[]
                                 {
-                                    new OsuSpriteText()
+                                    new OsuSpriteText
                                     {
                                         Origin = Anchor.TopCentre,
                                         Anchor = Anchor.TopCentre,
@@ -144,7 +144,7 @@ namespace osu.Game.Arcade.Screens
                                         Depth = -1,
                                         Text = "Machine operator: sign in"
                                     },
-                                    new LoginForm()
+                                    new LoginForm
                                     {
                                         Origin = Anchor.TopCentre,
                                         Anchor = Anchor.TopCentre,
@@ -173,7 +173,7 @@ namespace osu.Game.Arcade.Screens
                                 RelativeSizeAxes = Axes.Both,
                                 Colour = colourProvider.Background4,
                             },
-                            new Container()
+                            new Container
                             {
                                 AutoSizeAxes = Axes.Y,
                                 RelativeSizeAxes = Axes.X,
@@ -215,7 +215,7 @@ namespace osu.Game.Arcade.Screens
 
                                     Children = new Drawable[]
                                     {
-                                        loginSections = new Container()
+                                        loginSections = new Container
                                         {
                                             Anchor = Anchor.CentreLeft,
                                             Origin = Anchor.CentreLeft,
@@ -250,7 +250,7 @@ namespace osu.Game.Arcade.Screens
                                                             Spacing = new Vector2(10),
                                                             Children = new Drawable[]
                                                             {
-                                                                new OsuTextFlowContainer()
+                                                                new OsuTextFlowContainer
                                                                 {
                                                                     Anchor = Anchor.TopCentre,
                                                                     Origin = Anchor.TopCentre,
@@ -260,7 +260,7 @@ namespace osu.Game.Arcade.Screens
 
                                                                     Text = "Have an account? Scan the QR code and sign in to your osu! account!"
                                                                 },
-                                                                new Container()
+                                                                new Container
                                                                 {
                                                                     Name = "QR code",
                                                                     Anchor = Anchor.TopCentre,
@@ -318,7 +318,7 @@ namespace osu.Game.Arcade.Screens
                                                                 // }
                                                             }
                                                         },
-                                                        new OsuSpriteText()
+                                                        new OsuSpriteText
                                                         {
                                                             Anchor = Anchor.CentreLeft,
                                                             Origin = Anchor.CentreLeft,
@@ -339,7 +339,7 @@ namespace osu.Game.Arcade.Screens
                                                             Spacing = new Vector2(20),
                                                             Children = new Drawable[]
                                                             {
-                                                                new OsuTextFlowContainer()
+                                                                new OsuTextFlowContainer
                                                                 {
                                                                     Anchor = Anchor.Centre,
                                                                     Origin = Anchor.Centre,
@@ -349,7 +349,7 @@ namespace osu.Game.Arcade.Screens
                                                                     AutoSizeAxes = Axes.Y,
                                                                     Width = 200,
                                                                 },
-                                                                guestButton = new RoundedButton()
+                                                                guestButton = new RoundedButton
                                                                 {
                                                                     Anchor = Anchor.Centre,
                                                                     Origin = Anchor.Centre,
