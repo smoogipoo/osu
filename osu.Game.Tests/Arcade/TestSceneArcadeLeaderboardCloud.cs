@@ -12,7 +12,7 @@ using osu.Game.Tests.Visual.RankedPlay;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneArcadeLeaderboardCloud : RankedPlayTestScene
+    public partial class TestSceneArcadeLeaderboardCloud : RankedPlayTestScene
     {
         private ArcadeLeaderboardCloud leaderboard = null!;
 
@@ -39,11 +39,7 @@ namespace osu.Game.Tests.Arcade
 
             AddStep("fetch", () =>
             {
-                ArcadeClient.FetchLeaderboardFunc = () =>
-                {
-                    return stats.ToArray();
-                };
-
+                ArcadeClient.FetchLeaderboardFunc = stats.ToArray;
                 leaderboard.Fetch().WaitSafely();
             });
         }

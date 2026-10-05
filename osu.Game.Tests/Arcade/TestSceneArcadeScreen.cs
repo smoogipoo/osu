@@ -15,7 +15,7 @@ using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneArcadeScreen : ScreenTestScene
+    public partial class TestSceneArcadeScreen : ScreenTestScene
     {
         [Cached(typeof(ArcadeClient))]
         private readonly TestArcadeClient arcadeClient;
@@ -72,7 +72,7 @@ namespace osu.Game.Tests.Arcade
             AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "11111111");
         }
 
-        private class DummyScreen : OsuScreen;
+        private partial class DummyScreen : OsuScreen;
 
         private static readonly ArcadeIdentity peppy_user = new ArcadeIdentity
         {

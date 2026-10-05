@@ -12,7 +12,6 @@ using osu.Game.Arcade.Screens.RankedPlay;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Online.API;
-using osu.Game.Overlays;
 using osu.Game.Tests.Visual.RankedPlay;
 
 namespace osu.Game.Tests.Arcade

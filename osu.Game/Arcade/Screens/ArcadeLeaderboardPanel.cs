@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Game.Arcade.Screens
 {
-    public class ArcadeLeaderboardPanel : CompositeDrawable
+    public partial class ArcadeLeaderboardPanel : CompositeDrawable
     {
         public const float HEIGHT = 50;
 

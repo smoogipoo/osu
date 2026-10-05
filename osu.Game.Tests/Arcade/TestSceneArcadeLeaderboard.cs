@@ -12,7 +12,7 @@ using osu.Game.Tests.Visual.RankedPlay;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneArcadeLeaderboard : RankedPlayTestScene
+    public partial class TestSceneArcadeLeaderboard : RankedPlayTestScene
     {
         private ArcadeLeaderboard leaderboard = null!;
 

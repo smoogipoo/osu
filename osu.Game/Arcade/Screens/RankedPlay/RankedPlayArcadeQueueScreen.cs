@@ -479,7 +479,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
             WaitingForStart
         }
 
-        private class UserRow : CompositeDrawable
+        private partial class UserRow : CompositeDrawable
         {
             public UserRow(APIUser user, Anchor contentAnchor)
             {
@@ -531,7 +531,8 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                 settingsOverlay?.Show();
             }
         }
-        private class PracticeButton : RoundedButton
+
+        private partial class PracticeButton : RoundedButton
         {
             private readonly DateTimeOffset endTime;
 

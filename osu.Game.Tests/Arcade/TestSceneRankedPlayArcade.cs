@@ -19,7 +19,7 @@ using osu.Game.Tests.Visual.RankedPlay;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneRankedPlayArcade : RankedPlayTestScene
+    public partial class TestSceneRankedPlayArcade : RankedPlayTestScene
     {
         public override void SetUpSteps()
         {

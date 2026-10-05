@@ -22,7 +22,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Arcade.Screens
 {
-    public class ArcadeLeaderboardScreen : OsuScreen
+    public partial class ArcadeLeaderboardScreen : OsuScreen
     {
         [Resolved]
         private ArcadeClient arcadeClient { get; set; } = null!;

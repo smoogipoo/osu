@@ -502,13 +502,12 @@ namespace osu.Game.Arcade.Screens
                 if (code is not null)
                 {
                     Logger.Log($"[ARCADE] Retrieving user with code '{code}'...");
-                    user = await arcadeClient.GetUserWithCode(code);
+                    user = await arcadeClient.GetUserWithCode(code).ConfigureAwait(false);
                     Logger.Log($"[ARCADE] Connecting as {user.User.Username}.");
-
                 }
                 else
                 {
-                    Logger.Log($"[ARCADE] Logging in as guest...");
+                    Logger.Log("[ARCADE] Logging in as guest...");
                     user = new ArcadeIdentity
                     {
                         User =
@@ -533,6 +532,7 @@ namespace osu.Game.Arcade.Screens
                         ]
                     };
                 }
+
                 Logger.Log($"[ARCADE] Attempting connection as {user.User.Username}...");
                 arcadeClient.Connect(user).FireAndForget(() => Logger.Log("[ARCADE] Connected"), failLoginAttempt);
             }

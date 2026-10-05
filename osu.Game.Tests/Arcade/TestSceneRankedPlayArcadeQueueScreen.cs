@@ -20,7 +20,7 @@ using osuTK.Input;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneRankedPlayArcadeQueueScreen : RankedPlayTestScene
+    public partial class TestSceneRankedPlayArcadeQueueScreen : RankedPlayTestScene
     {
         private RankedPlayArcadeQueueScreen screen = null!;
 

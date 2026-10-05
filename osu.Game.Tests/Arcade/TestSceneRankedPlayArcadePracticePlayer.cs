@@ -9,7 +9,7 @@ using osu.Game.Tests.Visual.RankedPlay;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneRankedPlayArcadePracticePlayer : RankedPlayTestScene
+    public partial class TestSceneRankedPlayArcadePracticePlayer : RankedPlayTestScene
     {
         [Cached]
         private readonly SettingsOverlay settingsOverlay;
