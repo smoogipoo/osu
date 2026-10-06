@@ -89,7 +89,7 @@ namespace osu.Game.Tests.Arcade
             AddStep("end practice", () => screen.EndPracticeAfter(TimeSpan.FromSeconds(2)));
             AddUntilStep("practice ended", () => screen.IsCurrentScreen());
 
-            AddAssert("button disabled", () => screen.ChildrenOfType<RoundedButton>().First().Enabled.Value, () => Is.False);
+            AddAssert("button disabled", () => screen.ChildrenOfType<RoundedButton>().ElementAt(1).Enabled.Value, () => Is.False);
         }
 
         [Test]
@@ -109,8 +109,8 @@ namespace osu.Game.Tests.Arcade
 
             AddStep("load arcade screen", () => LoadScreen(screen = new RankedPlayArcadeQueueScreen(dummy_user)));
             AddUntilStep("wait for load", () => screen.IsLoaded);
+            AddUntilStep("entered ranked play screen", () => (Stack.CurrentScreen as RankedPlayScreen)?.IsLoaded == true);
 
-            AddUntilStep("entered ranked play screen", () => Stack.CurrentScreen is RankedPlayScreen);
             AddStep("trigger exit", () => Stack.Exit());
             AddStep("press confirmation button", () => DialogOverlay.CurrentDialog!.PerformOkAction());
 
