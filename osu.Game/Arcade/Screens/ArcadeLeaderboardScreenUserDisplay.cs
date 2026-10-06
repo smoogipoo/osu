@@ -15,7 +15,7 @@ using osuTK;
 
 namespace osu.Game.Arcade.Screens
 {
-    public class ArcadeLeaderboardScreenUserDisplay : CompositeDrawable
+    public partial class ArcadeLeaderboardScreenUserDisplay : CompositeDrawable
     {
         private readonly APIUser user;
         private readonly Anchor contentAnchor;

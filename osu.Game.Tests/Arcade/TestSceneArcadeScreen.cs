@@ -15,7 +15,7 @@ using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Arcade
 {
-    public class TestSceneArcadeScreen : ScreenTestScene
+    public partial class TestSceneArcadeScreen : ScreenTestScene
     {
         [Cached(typeof(ArcadeClient))]
         private readonly TestArcadeClient arcadeClient;
@@ -62,17 +62,17 @@ namespace osu.Game.Tests.Arcade
         {
             AddStep("bind handler", () => arcadeClient.GetUserWithCodeFunc = _ => peppy_user);
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
-            AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "111111");
+            AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "11111111");
         }
 
         [Test]
         public void TestFailedAuth()
         {
             AddStep("set state -> online", () => ((DummyAPIAccess)API).SetState(APIState.Online));
-            AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "111111");
+            AddStep("attempt login", () => screen.ChildrenOfType<OsuNumberBox>().Single().Text = "11111111");
         }
 
-        private class DummyScreen : OsuScreen;
+        private partial class DummyScreen : OsuScreen;
 
         private static readonly ArcadeIdentity peppy_user = new ArcadeIdentity
         {

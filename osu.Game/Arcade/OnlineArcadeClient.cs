@@ -56,7 +56,7 @@ namespace osu.Game.Arcade
             OsuJsonWebRequest<ArcadeIdentity> req = new OsuJsonWebRequest<ArcadeIdentity>($"{KeyEndpoint}/check");
             req.Method = HttpMethod.Post;
             req.AddParameter("key", code);
-            await req.PerformAsync();
+            await req.PerformAsync().ConfigureAwait(false);
             return req.ResponseObject;
         }
 

@@ -127,8 +127,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                 // This serves two purposes: first to populate an unknown user where a score couldn't be retrieved,
                 // and second to populate users with their correct online model that could differ during arcade play.
-                playerScore.User = await userLookupCache.GetUserAsync(localUserId) ?? APIUser.UnknownUser(localUserId);
-                opponentScore.User = await userLookupCache.GetUserAsync(opponentId) ?? APIUser.UnknownUser(opponentId);
+                playerScore.User = await userLookupCache.GetUserAsync(localUserId).ConfigureAwait(false) ?? APIUser.UnknownUser(localUserId);
+                opponentScore.User = await userLookupCache.GetUserAsync(opponentId).ConfigureAwait(false) ?? APIUser.UnknownUser(opponentId);
 
                 // Should complete instantaneously due to prior lookups.
                 APIBeatmap beatmap = (await beatmapLookupCache.GetBeatmapAsync(globalBeatmap.Value.BeatmapInfo.OnlineID).ConfigureAwait(false))!;

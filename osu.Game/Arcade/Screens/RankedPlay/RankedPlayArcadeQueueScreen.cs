@@ -23,6 +23,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Overlays;
 using osu.Game.Screens;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
@@ -33,7 +34,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Arcade.Screens.RankedPlay
 {
-    public class RankedPlayArcadeQueueScreen : OsuScreen
+    public partial class RankedPlayArcadeQueueScreen : OsuScreen
     {
         public Func<MatchmakingPool, WorkingBeatmap> GetPracticeBeatmap { get; init; }
 
@@ -67,7 +68,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         private readonly BindableDictionary<int, ArcadeIdentity> connectedClients = [];
         private readonly ArcadeIdentity identity;
 
-        private OsuSpriteText welcomeText = null!;
+        private TextFlowContainer welcomeText = null!;
         private Container mainContainer = null!;
 
         private DateTimeOffset practiceEndTime = DateTimeOffset.MaxValue;
@@ -82,16 +83,18 @@ namespace osu.Game.Arcade.Screens.RankedPlay
         [BackgroundDependencyLoader]
         private void load()
         {
+            welcomeText = new TextFlowContainer
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                TextAnchor = Anchor.TopCentre,
+                RelativePositionAxes = Axes.Y,
+            };
+            welcomeText.AddText("welcome, ", text => text.Font = OsuFont.GetFont(size: 64, weight: FontWeight.Regular));
+            welcomeText.AddText(identity.User.Username, text => text.Font = OsuFont.GetFont(size: 64, weight: FontWeight.SemiBold));
             InternalChildren = new Drawable[]
             {
-                welcomeText = new OsuSpriteText
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativePositionAxes = Axes.Y,
-                    Text = $"Welcome, {identity.User.Username}",
-                    Font = OsuFont.GetFont(size: 72)
-                },
+                welcomeText,
                 new Container
                 {
                     Anchor = Anchor.Centre,
@@ -125,7 +128,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
 
             welcomeText.FadeInFromZero(1000, Easing.OutQuint)
                        .Delay(1000)
-                       .MoveToOffset(new Vector2(0, -0.25f), 500, Easing.OutQuint);
+                       .MoveToOffset(new Vector2(0, -0.26f), 500, Easing.OutQuint);
 
             mainContainer.FadeOut()
                          .Delay(1200)
@@ -220,22 +223,22 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                                 Origin = Anchor.TopCentre,
                                 AutoSizeAxes = Axes.Both,
                                 Direction = FillDirection.Horizontal,
-                                Spacing = new Vector2(5),
+                                Spacing = new Vector2(10),
                                 Children = new Drawable[]
                                 {
-                                    new OsuSpriteText
-                                    {
-                                        Anchor = Anchor.CentreLeft,
-                                        Origin = Anchor.CentreLeft,
-                                        Text = "Waiting for your opponent...",
-                                        Font = OsuFont.Style.Heading1,
-                                    },
                                     new LoadingSpinner
                                     {
                                         Anchor = Anchor.CentreLeft,
                                         Origin = Anchor.CentreLeft,
                                         Size = new Vector2(16),
                                         State = { Value = Visibility.Visible }
+                                    },
+                                    new OsuSpriteText
+                                    {
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        Text = "waiting for your opponent...",
+                                        Font = OsuFont.Style.Heading1,
                                     }
                                 }
                             },
@@ -246,13 +249,30 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                                 AvailablePools = { BindTarget = availablePools },
                                 SelectedPool = { BindTarget = selectedPool }
                             },
-                            new PracticeButton(practiceEndTime)
+                            new FillFlowContainer
                             {
+                                Direction = FillDirection.Horizontal,
                                 Anchor = Anchor.TopCentre,
                                 Origin = Anchor.TopCentre,
-                                Width = 100,
-                                Enabled = { BindTarget = canPractice },
-                                Action = enterPractice
+                                AutoSizeAxes = Axes.Both,
+                                Spacing = new Vector2(10),
+                                Children = new Drawable[]
+                                {
+                                    new SettingsButton
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Width = 100,
+                                    },
+                                    new PracticeButton(practiceEndTime)
+                                    {
+                                        Anchor = Anchor.TopCentre,
+                                        Origin = Anchor.TopCentre,
+                                        Width = 100,
+                                        Enabled = { BindTarget = canPractice },
+                                        Action = enterPractice
+                                    }
+                                }
                             }
                         }
                     };
@@ -313,6 +333,10 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                                 Spacing = new Vector2(10),
                                 Children = new Drawable[]
                                 {
+                                    new SettingsButton
+                                    {
+                                        Width = 150,
+                                    },
                                     new PracticeButton(practiceEndTime)
                                     {
                                         Width = 150,
@@ -322,7 +346,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                                     new RoundedButton
                                     {
                                         Width = 150,
-                                        Text = "Ready",
+                                        Text = "ready",
                                         BackgroundColour = colours.Green3,
                                         Enabled = { BindTarget = canQueue },
                                         Action = beginQueueing
@@ -348,7 +372,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
-                                Text = "Waiting for your opponent...",
+                                Text = "waiting for your opponent...",
                                 Font = OsuFont.Style.Heading1,
                             },
                             new LoadingSpinner
@@ -455,7 +479,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
             WaitingForStart
         }
 
-        private class UserRow : CompositeDrawable
+        private partial class UserRow : CompositeDrawable
         {
             public UserRow(APIUser user, Anchor contentAnchor)
             {
@@ -489,7 +513,26 @@ namespace osu.Game.Arcade.Screens.RankedPlay
             }
         }
 
-        private class PracticeButton : RoundedButton
+        private sealed partial class SettingsButton : RoundedButton
+        {
+            [Resolved]
+            private SettingsOverlay? settingsOverlay { get; set; }
+
+            [BackgroundDependencyLoader]
+            private void load(OsuColour colours)
+            {
+                BackgroundColour = colours.Purple3;
+                Text = "settings";
+                Action = showSettingsOverlay;
+            }
+
+            private void showSettingsOverlay()
+            {
+                settingsOverlay?.Show();
+            }
+        }
+
+        private partial class PracticeButton : RoundedButton
         {
             private readonly DateTimeOffset endTime;
 
@@ -503,7 +546,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                 base.Update();
 
                 if (endTime == DateTimeOffset.MaxValue)
-                    Text = "Practice";
+                    Text = "practice";
                 else
                 {
                     TimeSpan remaining = endTime - DateTimeOffset.Now;
@@ -511,7 +554,7 @@ namespace osu.Game.Arcade.Screens.RankedPlay
                     if (remaining < TimeSpan.Zero)
                         remaining = TimeSpan.Zero;
 
-                    Text = $"Practice ({remaining.ToFormattedDuration()})";
+                    Text = $"practice ({remaining.ToFormattedDuration()})";
                 }
             }
         }

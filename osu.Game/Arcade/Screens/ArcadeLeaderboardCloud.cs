@@ -13,7 +13,7 @@ using osuTK;
 
 namespace osu.Game.Arcade.Screens
 {
-    public class ArcadeLeaderboardCloud : CompositeDrawable
+    public partial class ArcadeLeaderboardCloud : CompositeDrawable
     {
         [Resolved]
         private ArcadeClient arcadeClient { get; set; } = null!;
@@ -123,7 +123,7 @@ namespace osu.Game.Arcade.Screens
             cancellationSource.Cancel();
         }
 
-        private class PanelWrapper : PoolableDrawable
+        private partial class PanelWrapper : PoolableDrawable
         {
             public float Speed { get; set; } = 1;
 

@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Game.Arcade.Screens
 {
-    public class ArcadeLeaderboard : CompositeDrawable
+    public partial class ArcadeLeaderboard : CompositeDrawable
     {
         public int MaxPanels { get; set; } = int.MaxValue;
 

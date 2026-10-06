@@ -76,6 +76,15 @@ namespace osu.Game.Arcade.Screens
                         setValue(bindable, FrameSync.Unlimited);
                         break;
 
+                    case "VolumeUniversal":
+                    case "VolumeMusic":
+                    case "VolumeEffect":
+                        // Don't reset volume in debug runs. Obnoxious
+#if !DEBUG
+                        setDefault(bindable);
+#endif
+                        break;
+
                     default:
                         setDefault(bindable);
                         break;
